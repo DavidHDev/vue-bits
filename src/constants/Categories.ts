@@ -44,6 +44,7 @@ export const CATEGORIES = [
       'Magnet',
       'Cubes',
       'Blob Cursor',
+      'Pixel Trail'
     ]
   },
   {
