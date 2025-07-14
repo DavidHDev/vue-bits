@@ -36,7 +36,7 @@ interface PixelTrailProps {
 
 const props = withDefaults(defineProps<PixelTrailProps>(), {
   gridSize: 40,
-  trailSize: 0, // Changed to 0 for single cell highlighting
+  trailSize: 0.1,
   maxAge: 250,
   interpolate: 5,
   easingFunction: (x: number) => x,
