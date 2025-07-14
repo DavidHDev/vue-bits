@@ -13,6 +13,7 @@ const animations = {
   'splash-cursor': () => import('../demo/Animations/SplashCursorDemo.vue'),
   'noise': () => import('../demo/Animations/NoiseDemo.vue'),
   'blob-cursor': () => import('../demo/Animations/BlobCursorDemo.vue'),
+  'pixel-trail': () => import('../demo/Animations/PixelTrailDemo.vue')
 };
 
 const textAnimations = {
