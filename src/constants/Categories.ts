@@ -80,7 +80,8 @@ export const CATEGORIES = [
       'Flowing Menu',
       'Elastic Slider',
       'Stack',
-      'Chroma Grid'
+      'Chroma Grid',
+      'Stepper'
     ]
   },
   {
