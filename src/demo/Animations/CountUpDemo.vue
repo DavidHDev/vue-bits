@@ -6,18 +6,19 @@
       <div class="demo-container relative">
         <CountUp
           :key="keyDefault"
-          :from="0"
-          :to="100"
-          separator=","
-          direction="up"
-          :duration="1"
+          :from="from"
+          :to="to"
+          :direction="direction"
+          :delay="delay"
+          :duration="duration"
+          :separator="separator"
           class-name="count-up-text"
         />
 
         <RefreshButton @click="forceRerenderDefault" />
       </div>
 
-      <h2 class="demo-title-extra">Start Programatically</h2>
+      <h2 class="demo-title-extra">Start Programmatically</h2>
 
       <div class="demo-container flex flex-col justify-center items-center relative min-h-[200px]">
         <button
@@ -28,7 +29,7 @@
         </button>
 
         <CountUp
-          :key="keyProgramatically"
+          :key="keyProgrammatically"
           :from="100"
           :to="500"
           :start-when="startCounting"
@@ -36,8 +37,22 @@
           class-name="count-up-text"
         />
 
-        <RefreshButton v-if="startCounting" @click="forceRerenderProgramatically" />
+        <RefreshButton v-if="startCounting" @click="forceRerenderProgrammatically" />
       </div>
+
+      <Customize>
+        <PreviewSlider title="From" v-model="from" :min="0" :max="1000" :step="10" />
+
+        <PreviewSlider title="To" v-model="to" :min="100" :max="5000" :step="100" />
+
+        <PreviewSelect title="Direction" v-model="direction" :options="directionOptions" />
+
+        <PreviewSlider title="Duration" v-model="duration" :min="0.5" :max="10" :step="0.5" value-unit="s" />
+
+        <PreviewSlider title="Delay" v-model="delay" :min="0" :max="5" :step="0.5" value-unit="s" />
+
+        <PreviewSelect title="Separator" v-model="separator" :options="separatorOptions" />
+      </Customize>
 
       <PropTable :data="propData" />
     </template>
@@ -62,18 +77,41 @@ import RefreshButton from '../../components/common/RefreshButton.vue';
 import CountUp from '../../content/Animations/CountUp/CountUp.vue';
 import { countup } from '@/constants/code/Animations/countUpCode';
 import { useForceRerender } from '@/composables/useForceRerender';
+import Customize from '../../components/common/Customize.vue';
+import PreviewSlider from '../../components/common/PreviewSlider.vue';
+import PreviewSelect from '../../components/common/PreviewSelect.vue';
 
 const startCounting = ref(false);
 
 const { rerenderKey: keyDefault, forceRerender: forceRerenderDefault } = useForceRerender();
-const { rerenderKey: keyProgramatically, forceRerender: forceRerenderProgramatically } = useForceRerender();
+const { rerenderKey: keyProgrammatically, forceRerender: forceRerenderProgrammatically } = useForceRerender();
 
 const setStartCounting = (value: boolean) => {
   startCounting.value = value;
   if (value) {
-    forceRerenderProgramatically();
+    forceRerenderProgrammatically();
   }
 };
+
+const from = ref(50);
+const to = ref(1000);
+const direction = ref<'up' | 'down'>('up');
+const duration = ref(2);
+const delay = ref(0);
+const separator = ref(',');
+
+const directionOptions = [
+  { label: 'Up', value: 'up' },
+  { label: 'Down', value: 'down' }
+];
+
+const separatorOptions = [
+  { label: 'None', value: '' },
+  { label: 'Comma (,)', value: ',' },
+  { label: 'Period (.)', value: '.' },
+  { label: 'Space ( )', value: ' ' },
+  { label: 'Underscore (_)', value: '_' }
+];
 
 const propData = [
   {
