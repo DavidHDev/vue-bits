@@ -21,6 +21,7 @@
           :on-final-step-completed="handleFinalStepCompleted"
           :next-button-props="{ disabled: step === 3 && !name }"
           :disable-step-indicators="step === 3 && !name"
+          :lock-on-complete="false"
           back-button-text="Previous"
           next-button-text="Next"
         >
@@ -170,6 +171,12 @@ const propData = [
     type: '(props: RenderStepIndicatorProps) => VNode',
     default: 'undefined',
     description: 'Renders a custom step indicator component.'
+  },
+  {
+    name: 'lockOnComplete',
+    type: 'boolean',
+    default: 'false',
+    description: 'Prevents returning to previous steps after completing the stepper.'
   }
 ];
 

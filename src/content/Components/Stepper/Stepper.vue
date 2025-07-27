@@ -14,7 +14,7 @@
             @click="() => handleStepClick(index + 1)"
             :class="[
               'relative outline-none flex h-8 w-8 items-center justify-center rounded-full font-semibold',
-              isCompleted ? 'cursor-default' : 'cursor-pointer'
+              isCompleted && lockOnComplete ? 'cursor-default' : 'cursor-pointer'
             ]"
             :style="getStepIndicatorStyle(index + 1)"
           >
@@ -154,6 +154,7 @@ interface StepperProps {
   nextButtonText?: string;
   disableStepIndicators?: boolean;
   renderStepIndicator?: Component;
+  lockOnComplete?: boolean;
 }
 
 const props = withDefaults(defineProps<StepperProps>(), {
@@ -169,7 +170,8 @@ const props = withDefaults(defineProps<StepperProps>(), {
   backButtonText: 'Back',
   nextButtonText: 'Continue',
   disableStepIndicators: false,
-  renderStepIndicator: undefined
+  renderStepIndicator: undefined,
+  lockOnComplete: true
 });
 
 const slots = useSlots();
@@ -212,7 +214,7 @@ const getStepContentExit = () => ({
 });
 
 const handleStepClick = (step: number) => {
-  if (isCompleted.value) return;
+  if (isCompleted.value && props.lockOnComplete) return;
   if (!props.disableStepIndicators) {
     direction.value = step > currentStep.value ? 1 : -1;
     updateStep(step);
@@ -220,7 +222,7 @@ const handleStepClick = (step: number) => {
 };
 
 const handleCustomStepClick = (clicked: number) => {
-  if (isCompleted.value) return;
+  if (isCompleted.value && props.lockOnComplete) return;
   if (clicked !== currentStep.value && !props.disableStepIndicators) {
     direction.value = clicked > currentStep.value ? 1 : -1;
     updateStep(clicked);
@@ -259,12 +261,18 @@ const handleComplete = () => {
   props.onFinalStepCompleted?.();
 };
 
-watch(currentStep, newStep => {
-  props.onStepChange?.(newStep);
-  if (!isCompleted.value) {
-    measureHeight();
+watch(
+  currentStep,
+  (newStep, oldStep) => {
+    props.onStepChange?.(newStep);
+    if (newStep !== oldStep && !isCompleted.value) {
+      nextTick(measureHeight);
+    } else if (!props.lockOnComplete && isCompleted.value) {
+      isCompleted.value = false;
+      nextTick(measureHeight);
+    }
   }
-});
+);
 
 onMounted(() => {
   if (props.initialStep !== 1) {
