@@ -83,6 +83,7 @@ export const CATEGORIES = [
       'Elastic Slider',
       'Stack',
       'Chroma Grid',
+      'Stepper',
       'Bounce Cards',
       'Counter',
       'Rolling Gallery'
