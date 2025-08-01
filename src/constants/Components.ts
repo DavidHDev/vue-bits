@@ -44,6 +44,7 @@ const textAnimations = {
   'glitch-text': () => import("../demo/TextAnimations/GlitchTextDemo.vue"),
   'scroll-velocity': () => import("../demo/TextAnimations/ScrollVelocityDemo.vue"),
   'text-type': () => import("../demo/TextAnimations/TextTypeDemo.vue"),
+  'variable-proximity': () => import("../demo/TextAnimations/VariableProximityDemo.vue"),
 };
 
 const components = {
@@ -70,6 +71,10 @@ const components = {
   'stack': () => import('../demo/Components/StackDemo.vue'),
   'chroma-grid': () => import('../demo/Components/ChromaGridDemo.vue'),
   'stepper': () => import('../demo/Components/StepperDemo.vue'),
+  'bounce-cards': () => import('../demo/Components/BounceCardsDemo.vue'),
+  'counter': () => import('../demo/Components/CounterDemo.vue'),
+  'rolling-gallery': () => import('../demo/Components/RollingGalleryDemo.vue'),
+  'scroll-stack': () => import('../demo/Components/ScrollStackDemo.vue'),
 };
 
 const backgrounds = {
@@ -95,6 +100,8 @@ const backgrounds = {
   'grid-distortion': () => import('../demo/Backgrounds/GridDistortionDemo.vue'),
   'ripple-grid': () => import('../demo/Backgrounds/RippleGridDemo.vue'),
   'galaxy': () => import('../demo/Backgrounds/GalaxyDemo.vue'),
+  'faulty-terminal': () => import('../demo/Backgrounds/FaultyTerminalDemo.vue'),
+  'light-rays': () => import('../demo/Backgrounds/LightRaysDemo.vue'),
 };
 
 export const componentMap = {

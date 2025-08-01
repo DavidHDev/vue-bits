@@ -378,7 +378,7 @@ const ParticleCard = defineComponent({
 const GlobalSpotlight = defineComponent({
   name: 'GlobalSpotlight',
   props: {
-    gridRef: { type: Object as PropType<HTMLDivElement | null>, required: true },
+    gridRef: { type: [Object, null] as PropType<HTMLDivElement | null>, required: true },
     disableAnimations: { type: Boolean, default: false },
     enabled: { type: Boolean, default: true },
     spotlightRadius: { type: Number, default: DEFAULT_SPOTLIGHT_RADIUS },
@@ -539,7 +539,10 @@ const GlobalSpotlight = defineComponent({
 const BentoCardGrid = defineComponent({
   name: 'BentoCardGrid',
   props: {
-    gridRef: { type: Object }
+    gridRef: {
+      type: Function as PropType<(el: HTMLDivElement | null) => void>,
+      required: true
+    }
   },
   template: `
     <div
@@ -735,7 +738,7 @@ const setupCardRef = (el: HTMLDivElement | null, index: number) => {
     :glow-color="glowColor"
   />
 
-  <BentoCardGrid :grid-ref="(el: HTMLDivElement) => (gridRef = el)">
+  <BentoCardGrid :grid-ref="(el: HTMLDivElement | null) => { gridRef = el; }">
     <div class="gap-2 grid card-responsive">
       <template v-for="(card, index) in cardData" :key="index">
         <ParticleCard

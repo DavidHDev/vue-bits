@@ -1,5 +1,5 @@
 // Highlighted sidebar items
-export const NEW = ['Target Cursor', 'Ripple Grid', 'Magic Bento', 'Galaxy', 'Text Type', 'Glass Surface', 'Sticker Peel'];
+export const NEW = ['Target Cursor', 'Ripple Grid', 'Magic Bento', 'Galaxy', 'Text Type', 'Glass Surface', 'Sticker Peel', 'Scroll Stack', 'Faulty Terminal'];
 export const UPDATED = [];
 
 // Used for main sidebar navigation
@@ -27,7 +27,8 @@ export const CATEGORIES = [
       'Rotating Text',
       'Glitch Text',
       'Scroll Velocity',
-      'Text Type'
+      'Text Type',
+      'Variable Proximity',
     ]
   },
   {
@@ -63,6 +64,7 @@ export const CATEGORIES = [
       'Masonry',
       'Glass Surface',
       'Magic Bento',
+      'Scroll Stack',
       'Profile Card',
       'Dock',
       'Gooey Nav',
@@ -81,7 +83,10 @@ export const CATEGORIES = [
       'Elastic Slider',
       'Stack',
       'Chroma Grid',
-      'Stepper'
+      'Stepper',
+      'Bounce Cards',
+      'Counter',
+      'Rolling Gallery'
     ]
   },
   {
@@ -93,6 +98,7 @@ export const CATEGORIES = [
       'Dither',
       'Dot Grid',
       'Hyperspeed',
+      'Faulty Terminal',
       'Ripple Grid',
       'Silk',
       'Lightning',
@@ -109,6 +115,7 @@ export const CATEGORIES = [
       'Liquid Chrome',
       'Grid Distortion',
       'Galaxy',
+      'Light Rays',
     ]
   }
 ];
