@@ -11,7 +11,6 @@
           :direction="direction"
           :delay="delay"
           :duration="duration"
-          :separator="separator"
           class-name="count-up-text"
         />
 
@@ -41,17 +40,15 @@
       </div>
 
       <Customize>
-        <PreviewSlider title="From" v-model="from" :min="0" :max="1000" :step="10" />
+        <PreviewSlider title="From" v-model="from" :min="0" :max="100" :step="10" />
 
-        <PreviewSlider title="To" v-model="to" :min="100" :max="5000" :step="100" />
+        <PreviewSlider title="To" v-model="to" :min="100" :max="500" :step="100" />
 
         <PreviewSelect title="Direction" v-model="direction" :options="directionOptions" />
 
         <PreviewSlider title="Duration" v-model="duration" :min="0.5" :max="10" :step="0.5" value-unit="s" />
 
         <PreviewSlider title="Delay" v-model="delay" :min="0" :max="5" :step="0.5" value-unit="s" />
-
-        <PreviewSelect title="Separator" v-model="separator" :options="separatorOptions" />
       </Customize>
 
       <PropTable :data="propData" />
@@ -94,23 +91,14 @@ const setStartCounting = (value: boolean) => {
 };
 
 const from = ref(50);
-const to = ref(1000);
+const to = ref(100);
 const direction = ref<'up' | 'down'>('up');
 const duration = ref(2);
 const delay = ref(0);
-const separator = ref(',');
 
 const directionOptions = [
   { label: 'Up', value: 'up' },
   { label: 'Down', value: 'down' }
-];
-
-const separatorOptions = [
-  { label: 'None', value: '' },
-  { label: 'Comma (,)', value: ',' },
-  { label: 'Period (.)', value: '.' },
-  { label: 'Space ( )', value: ' ' },
-  { label: 'Underscore (_)', value: '_' }
 ];
 
 const propData = [
