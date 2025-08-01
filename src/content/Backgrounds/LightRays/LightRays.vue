@@ -1,11 +1,5 @@
 <template>
-  <div
-    ref="containerRef"
-    :class="[
-      'w-full h-full relative pointer-events-none z-[3] overflow-hidden',
-      className
-    ]"
-  />
+  <div ref="containerRef" :class="['w-full h-full relative pointer-events-none z-[3] overflow-hidden', className]" />
 </template>
 
 <script setup lang="ts">
@@ -96,18 +90,12 @@ const observerRef = ref<IntersectionObserver | null>(null);
 const resizeTimeoutRef = ref<number | null>(null);
 
 const rgbColor = computed<[number, number, number]>(() => hexToRgb(props.raysColor));
-const pulsatingValue = computed<number>(() => props.pulsating ? 1.0 : 0.0);
+const pulsatingValue = computed<number>(() => (props.pulsating ? 1.0 : 0.0));
 const devicePixelRatio = computed<number>(() => Math.min(window.devicePixelRatio || 1, 2));
 
 const hexToRgb = (hex: string): [number, number, number] => {
   const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return m
-    ? [
-        parseInt(m[1], 16) / 255,
-        parseInt(m[2], 16) / 255,
-        parseInt(m[3], 16) / 255,
-      ]
-    : [1, 1, 1];
+  return m ? [parseInt(m[1], 16) / 255, parseInt(m[2], 16) / 255, parseInt(m[3], 16) / 255] : [1, 1, 1];
 };
 
 const getAnchorAndDir = (origin: RaysOrigin, w: number, h: number): AnchorAndDirection => {
@@ -288,7 +276,7 @@ const initializeWebGL = async (): Promise<void> => {
       mousePos: { value: [0.5, 0.5] },
       mouseInfluence: { value: props.mouseInfluence },
       noiseAmount: { value: props.noiseAmount },
-      distortion: { value: props.distortion },
+      distortion: { value: props.distortion }
     };
     uniformsRef.value = uniforms;
 
@@ -296,7 +284,7 @@ const initializeWebGL = async (): Promise<void> => {
     const program = new Program(gl, {
       vertex: vertexShader,
       fragment: fragmentShader,
-      uniforms,
+      uniforms
     });
     const mesh = new Mesh(gl, { geometry, program });
     meshRef.value = mesh;
@@ -330,17 +318,10 @@ const initializeWebGL = async (): Promise<void> => {
       if (props.followMouse && props.mouseInfluence > 0.0) {
         const smoothing = 0.92;
 
-        smoothMouseRef.value.x =
-          smoothMouseRef.value.x * smoothing +
-          mouseRef.value.x * (1 - smoothing);
-        smoothMouseRef.value.y =
-          smoothMouseRef.value.y * smoothing +
-          mouseRef.value.y * (1 - smoothing);
+        smoothMouseRef.value.x = smoothMouseRef.value.x * smoothing + mouseRef.value.x * (1 - smoothing);
+        smoothMouseRef.value.y = smoothMouseRef.value.y * smoothing + mouseRef.value.y * (1 - smoothing);
 
-        uniforms.mousePos.value = [
-          smoothMouseRef.value.x,
-          smoothMouseRef.value.y,
-        ];
+        uniforms.mousePos.value = [smoothMouseRef.value.x, smoothMouseRef.value.y];
       }
 
       try {
@@ -376,8 +357,7 @@ const initializeWebGL = async (): Promise<void> => {
       if (renderer) {
         try {
           const canvas = renderer.gl.canvas;
-          const loseContextExt =
-            renderer.gl.getExtension('WEBGL_lose_context');
+          const loseContextExt = renderer.gl.getExtension('WEBGL_lose_context');
           if (loseContextExt) {
             loseContextExt.loseContext();
           }
@@ -460,7 +440,7 @@ watch(
     () => props.saturation,
     () => props.mouseInfluence,
     () => props.noiseAmount,
-    () => props.distortion,
+    () => props.distortion
   ],
   (): void => {
     if (!uniformsRef.value || !containerRef.value || !rendererRef.value) return;

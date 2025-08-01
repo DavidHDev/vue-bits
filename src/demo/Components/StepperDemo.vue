@@ -73,7 +73,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { toast, Toaster } from 'vue-sonner';
-import 'vue-sonner/style.css'
+import 'vue-sonner/style.css';
 
 import TabbedLayout from '@/components/common/TabbedLayout.vue';
 import PropTable from '@/components/common/PropTable.vue';
@@ -115,25 +115,25 @@ const propData = [
   {
     name: 'stepCircleContainerClassName',
     type: 'string',
-    default: "-",
+    default: '-',
     description: 'Custom class name for the container holding the step indicators.'
   },
   {
     name: 'stepContainerClassName',
     type: 'string',
-    default: "-",
+    default: '-',
     description: 'Custom class name for the row holding the step circles/connectors.'
   },
   {
     name: 'contentClassName',
     type: 'string',
-    default: "-",
+    default: '-',
     description: "Custom class name for the step's main content container."
   },
   {
     name: 'footerClassName',
     type: 'string',
-    default: "-",
+    default: '-',
     description: 'Custom class name for the footer area containing navigation buttons.'
   },
   {
@@ -188,12 +188,12 @@ const handleStepChange = (newStep: number) => {
   step.value = newStep;
   if (newStep === 4) {
     if (name.value) {
-      toast(`👋🏻 Hello ${name.value}!`)
+      toast(`👋🏻 Hello ${name.value}!`);
     } else {
-      toast(`You didn't provide your name :(`)
+      toast(`You didn't provide your name :(`);
     }
   } else {
-    toast(`✅ Step ${newStep}!`)
+    toast(`✅ Step ${newStep}!`);
   }
 };
 </script>

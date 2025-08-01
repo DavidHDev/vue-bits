@@ -261,18 +261,15 @@ const handleComplete = () => {
   props.onFinalStepCompleted?.();
 };
 
-watch(
-  currentStep,
-  (newStep, oldStep) => {
-    props.onStepChange?.(newStep);
-    if (newStep !== oldStep && !isCompleted.value) {
-      nextTick(measureHeight);
-    } else if (!props.lockOnComplete && isCompleted.value) {
-      isCompleted.value = false;
-      nextTick(measureHeight);
-    }
+watch(currentStep, (newStep, oldStep) => {
+  props.onStepChange?.(newStep);
+  if (newStep !== oldStep && !isCompleted.value) {
+    nextTick(measureHeight);
+  } else if (!props.lockOnComplete && isCompleted.value) {
+    isCompleted.value = false;
+    nextTick(measureHeight);
   }
-);
+});
 
 onMounted(() => {
   if (props.initialStep !== 1) {

@@ -22,80 +22,25 @@
       </div>
 
       <Customize>
-        <PreviewColor
-          title="Rays Color"
-          v-model="raysColor"
-        />
+        <PreviewColor title="Rays Color" v-model="raysColor" />
 
-        <PreviewSelect
-          title="Rays Origin"
-          v-model="raysOrigin"
-          :options="raysOriginOptions"
-        />
+        <PreviewSelect title="Rays Origin" v-model="raysOrigin" :options="raysOriginOptions" />
 
-        <PreviewSlider
-          title="Rays Speed"
-          v-model="raysSpeed"
-          :min="0.1"
-          :max="3"
-          :step="0.1"
-        />
+        <PreviewSlider title="Rays Speed" v-model="raysSpeed" :min="0.1" :max="3" :step="0.1" />
 
-        <PreviewSlider
-          title="Light Spread"
-          v-model="lightSpread"
-          :min="0.1"
-          :max="2"
-          :step="0.1"
-        />
+        <PreviewSlider title="Light Spread" v-model="lightSpread" :min="0.1" :max="2" :step="0.1" />
 
-        <PreviewSlider
-          title="Ray Length"
-          v-model="rayLength"
-          :min="0.5"
-          :max="3"
-          :step="0.1"
-        />
+        <PreviewSlider title="Ray Length" v-model="rayLength" :min="0.5" :max="3" :step="0.1" />
 
-        <PreviewSlider
-          title="Fade Distance"
-          v-model="fadeDistance"
-          :min="0.5"
-          :max="2"
-          :step="0.1"
-        />
+        <PreviewSlider title="Fade Distance" v-model="fadeDistance" :min="0.5" :max="2" :step="0.1" />
 
-        <PreviewSlider
-          title="Saturation"
-          v-model="saturation"
-          :min="0"
-          :max="2"
-          :step="0.1"
-        />
+        <PreviewSlider title="Saturation" v-model="saturation" :min="0" :max="2" :step="0.1" />
 
-        <PreviewSlider
-          title="Mouse Influence"
-          v-model="mouseInfluence"
-          :min="0"
-          :max="1"
-          :step="0.1"
-        />
+        <PreviewSlider title="Mouse Influence" v-model="mouseInfluence" :min="0" :max="1" :step="0.1" />
 
-        <PreviewSlider
-          title="Noise Amount"
-          v-model="noiseAmount"
-          :min="0"
-          :max="0.5"
-          :step="0.01"
-        />
+        <PreviewSlider title="Noise Amount" v-model="noiseAmount" :min="0" :max="0.5" :step="0.01" />
 
-        <PreviewSlider
-          title="Distortion"
-          v-model="distortion"
-          :min="0"
-          :max="1"
-          :step="0.1"
-        />
+        <PreviewSlider title="Distortion" v-model="distortion" :min="0" :max="1" :step="0.1" />
 
         <PreviewSwitch title="Pulsating" v-model="pulsating" />
       </Customize>

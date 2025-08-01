@@ -738,7 +738,13 @@ const setupCardRef = (el: HTMLDivElement | null, index: number) => {
     :glow-color="glowColor"
   />
 
-  <BentoCardGrid :grid-ref="(el: HTMLDivElement | null) => { gridRef = el; }">
+  <BentoCardGrid
+    :grid-ref="
+      (el: HTMLDivElement | null) => {
+        gridRef = el;
+      }
+    "
+  >
     <div class="gap-2 grid card-responsive">
       <template v-for="(card, index) in cardData" :key="index">
         <ParticleCard
