@@ -20,7 +20,7 @@
           >
             <svg
               v-if="getStepStatus(index + 1) === 'complete'"
-              class="h-4 w-4 text-white stroke-white"
+              class="h-4 w-4 text-black stroke-black"
               fill="none"
               stroke="currentColor"
               :stroke-width="2"
@@ -39,7 +39,7 @@
                 "
               />
             </svg>
-            <div v-else-if="getStepStatus(index + 1) === 'active'" class="h-3 w-3 rounded-full bg-white" />
+            <div v-else-if="getStepStatus(index + 1) === 'active'" class="h-3 w-3 rounded-full bg-black" />
             <span v-else class="text-sm">{{ index + 1 }}</span>
           </div>
 
@@ -114,7 +114,7 @@
           <button
             @click="isLastStep ? handleComplete() : handleNext()"
             :disabled="nextButtonProps?.disabled"
-            :class="`border-none bg-[#27ff64] transition-all duration-[350ms] flex items-center justify-center rounded-full text-white font-medium tracking-tight px-3.5 py-1.5 cursor-pointer hover:bg-[#22e55c] disabled:opacity-50 disabled:cursor-not-allowed`"
+            :class="`border-none bg-[#27ff64] transition-all duration-[350ms] flex items-center justify-center rounded-full text-black font-medium tracking-tight px-3.5 py-1.5 cursor-pointer hover:bg-[#22e55c] disabled:opacity-50 disabled:cursor-not-allowed`"
           >
             {{ isLastStep ? 'Complete' : nextButtonText }}
           </button>
