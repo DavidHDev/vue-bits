@@ -85,18 +85,18 @@ const themeConfigs: Record<ThemeKey, ThemeConfig> = {
   dark: {
     logo: logoDark,
     baseColor: '#fff',
-    pillColor: '#060010',
+    pillColor: '#0b0b0b',
     hoveredPillTextColor: '#000',
     pillTextColor: '#fff',
-    backgroundColor: '#060010'
+    backgroundColor: '#0b0b0b'
   },
   color: {
     logo: logoDark,
     baseColor: '#27FF64',
-    pillColor: '#060010',
-    hoveredPillTextColor: '#060010',
+    pillColor: '#0b0b0b',
+    hoveredPillTextColor: '#0b0b0b',
     pillTextColor: '#fff',
-    backgroundColor: '#060010'
+    backgroundColor: '#0b0b0b'
   }
 };
 
