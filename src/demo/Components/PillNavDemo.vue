@@ -43,6 +43,7 @@
 
 <script setup lang="ts">
 import { useForceRerender } from '@/composables/useForceRerender';
+import { pillNav } from '@/constants/code/Components/pillNavCode';
 import { computed, ref, watch } from 'vue';
 import logoDark from '../../assets/logos/vue-bits-logo-small-dark.svg';
 import logoLight from '../../assets/logos/vue-bits-logo-small.svg';
@@ -54,7 +55,6 @@ import PreviewSelect from '../../components/common/PreviewSelect.vue';
 import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
 import PropTable from '../../components/common/PropTable.vue';
 import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import { pillNav } from '../../constants/code/Components/PillNavCode';
 import PillNav from '../../content/Components/PillNav/PillNav.vue';
 
 const { rerenderKey: key, forceRerender } = useForceRerender();
