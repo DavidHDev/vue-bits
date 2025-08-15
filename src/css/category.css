@@ -106,6 +106,31 @@
   color: #e5e7eb;
 }
 
+.demo-container-dots {
+  position: relative;
+}
+
+.demo-container-dots::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(circle, #165f2b 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+  z-index: 0;
+  mask:
+    linear-gradient(to right, transparent 0%, black 35%, black 55%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, black 35%, black 55%, transparent 100%);
+  mask-composite: intersect;
+  -webkit-mask:
+    linear-gradient(to right, transparent 0%, black 35%, black 55%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, black 35%, black 55%, transparent 100%);
+  -webkit-mask-composite: source-in;
+}
+
 div:has(> .props-table) {
   border: 1px solid #333;
   border-radius: 20px;
