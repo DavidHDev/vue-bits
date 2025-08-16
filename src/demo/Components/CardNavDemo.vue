@@ -70,7 +70,7 @@ interface ThemeConfig {
   items: CardNavItem[];
 }
 
-const theme = ref<ThemeKey>('color');
+const theme = ref<ThemeKey>('light');
 const ease = ref<EaseKey>('power3.out');
 
 const items: CardNavItem[] = [
