@@ -125,7 +125,7 @@ const wrap = (min: number, max: number, v: number): number => {
 const scrollTransforms = computed(() => {
   return props.texts.map((_, index) => {
     const singleWidth = copyWidths.value[index];
-    if (singleWidth === 0) return '0px';
+    if (singleWidth === undefined || singleWidth === 0) return '0px';
     return `${wrap(-singleWidth, 0, baseX.value[index] || 0)}px`;
   });
 });
@@ -162,7 +162,7 @@ const animate = (currentTime: number) => {
   props.texts.forEach((_, index) => {
     const baseVelocity = index % 2 !== 0 ? -props.velocity : props.velocity;
 
-    let moveBy = directionFactors.value[index] * baseVelocity * (delta / 1000);
+    let moveBy = (directionFactors.value[index] || 1) * baseVelocity * (delta / 1000);
 
     if (velocityFactor.value < 0) {
       directionFactors.value[index] = -1;
@@ -170,7 +170,7 @@ const animate = (currentTime: number) => {
       directionFactors.value[index] = 1;
     }
 
-    moveBy += directionFactors.value[index] * moveBy * velocityFactor.value;
+    moveBy += (directionFactors.value[index] || 1) * moveBy * velocityFactor.value;
     baseX.value[index] = (baseX.value[index] || 0) + moveBy;
   });
 
