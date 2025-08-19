@@ -380,11 +380,13 @@
   align-items: center;
   gap: 0.25rem;
   font-size: 10px;
-  padding: 0 0.5rem;
   border-radius: 50px;
   background: #1a1a1a;
   color: #a6a6a6;
   border: 1px solid #333;
+  width: 20px;
+  height: 20px;
+  justify-content: center;
 }
 
 .star-count {

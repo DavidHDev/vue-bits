@@ -5,12 +5,27 @@
         <img :src="Logo" alt="Logo" />
       </router-link>
 
-      <button class="mobile-menu-button" aria-label="Open Menu" @click="toggleDrawer">
-        <i class="pi pi-bars"></i>
-      </button>
+      <div class="flex gap-2">
+        <button class="mobile-menu-button" aria-label="Open Search" @click="openSearch">
+          <i class="pi pi-search"></i>
+        </button>
+
+        <button class="mobile-menu-button" aria-label="Open Menu" @click="toggleDrawer">
+          <i class="pi pi-bars"></i>
+        </button>
+      </div>
 
       <div class="desktop-nav">
-        <!-- TODO: Search Component -->
+        <FadeContent blur>
+          <button
+            class="search-button"
+            @click="openSearch"
+          >
+            <i class="pi pi-search search-icon"></i>
+            <span class="search-text">Search Docs</span>
+            <kbd class="search-kbd">/</kbd>
+          </button>
+        </FadeContent>
 
         <FadeContent blur>
           <button class="cta-button-docs" @click="openGitHub">
@@ -77,6 +92,11 @@
         </div>
       </div>
     </div>
+    <SearchDialog
+      :is-open="isSearchOpen"
+      @close="closeSearch"
+      @open="openSearch"
+    />
   </div>
 </template>
 
@@ -88,9 +108,11 @@ import { CATEGORIES, NEW, UPDATED } from '../../constants/Categories';
 import FadeContent from '../../content/Animations/FadeContent/FadeContent.vue';
 import Logo from '../../assets/logos/vue-bits-logo.svg';
 import Star from '../../assets/common/star.svg';
+import SearchDialog from '../common/SearchDialog.vue'
 
 const isDrawerOpen = ref(false);
 const isTransitioning = ref(false);
+const isSearchOpen = ref(false)
 const stars = useStars();
 const route = useRoute();
 const router = useRouter();
@@ -131,6 +153,13 @@ const handleMobileTransitionNavigation = async (path: string) => {
 const handleKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Escape' && isDrawerOpen.value) {
     closeDrawer();
+  }
+  if (e.key === '/' && !isSearchOpen.value) {
+    e.preventDefault()
+    openSearch()
+  }
+  if (e.key === 'Escape' && isSearchOpen.value) {
+    closeSearch()
   }
 };
 
@@ -223,6 +252,14 @@ const Category = defineComponent({
       ]);
   }
 });
+
+const openSearch = () => {
+  isSearchOpen.value = true
+}
+
+const closeSearch = () => {
+  isSearchOpen.value = false
+}
 
 onMounted(() => {
   document.addEventListener('keydown', handleKeyDown);
