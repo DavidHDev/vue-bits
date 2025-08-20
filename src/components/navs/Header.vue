@@ -17,10 +17,7 @@
 
       <div class="desktop-nav">
         <FadeContent blur>
-          <button
-            class="search-button"
-            @click="openSearch"
-          >
+          <button class="search-button" @click="openSearch">
             <i class="pi pi-search search-icon"></i>
             <span class="search-text">Search Docs</span>
             <kbd class="search-kbd">/</kbd>
@@ -92,11 +89,7 @@
         </div>
       </div>
     </div>
-    <SearchDialog
-      :is-open="isSearchOpen"
-      @close="closeSearch"
-      @open="openSearch"
-    />
+    <SearchDialog :is-open="isSearchOpen" @close="closeSearch" @open="openSearch" />
   </div>
 </template>
 
@@ -108,11 +101,11 @@ import { CATEGORIES, NEW, UPDATED } from '../../constants/Categories';
 import FadeContent from '../../content/Animations/FadeContent/FadeContent.vue';
 import Logo from '../../assets/logos/vue-bits-logo.svg';
 import Star from '../../assets/common/star.svg';
-import SearchDialog from '../common/SearchDialog.vue'
+import SearchDialog from '../common/SearchDialog.vue';
 
 const isDrawerOpen = ref(false);
 const isTransitioning = ref(false);
-const isSearchOpen = ref(false)
+const isSearchOpen = ref(false);
 const stars = useStars();
 const route = useRoute();
 const router = useRouter();
@@ -155,11 +148,11 @@ const handleKeyDown = (e: KeyboardEvent) => {
     closeDrawer();
   }
   if (e.key === '/' && !isSearchOpen.value) {
-    e.preventDefault()
-    openSearch()
+    e.preventDefault();
+    openSearch();
   }
   if (e.key === 'Escape' && isSearchOpen.value) {
-    closeSearch()
+    closeSearch();
   }
 };
 
@@ -254,12 +247,12 @@ const Category = defineComponent({
 });
 
 const openSearch = () => {
-  isSearchOpen.value = true
-}
+  isSearchOpen.value = true;
+};
 
 const closeSearch = () => {
-  isSearchOpen.value = false
-}
+  isSearchOpen.value = false;
+};
 
 onMounted(() => {
   document.addEventListener('keydown', handleKeyDown);

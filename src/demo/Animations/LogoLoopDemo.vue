@@ -12,15 +12,15 @@
           :scale-on-hover="scaleOnHover"
           :pause-on-hover="pauseOnHover"
           :fade-out="fadeOut"
-          fade-out-color="#060010"
+          fade-out-color="#0b0b0b"
           aria-label="Our icons"
         />
       </div>
 
       <Customize>
+        <PreviewSelect title="Direction" v-model="direction" :options="directionOptions" />
         <PreviewSlider title="Speed" :min="0" :max="300" :step="10" value-unit="px/s" v-model="speed" />
         <PreviewSlider title="Gap" :min="10" :max="120" :step="5" value-unit="px" v-model="gap" />
-        <PreviewSelect title="Direction" v-model="direction" :options="directionOptions" />
         <PreviewSwitch title="Pause on Hover" v-model="pauseOnHover" />
         <PreviewSwitch title="Fade Out" v-model="fadeOut" />
         <PreviewSwitch title="Scale on Hover" v-model="scaleOnHover" />
@@ -68,20 +68,15 @@ const directionOptions = [
 ];
 
 const items = [
-  { node: `<i class="pi pi-cog" style="font-size: 4rem;"></i>`, title: 'Settings', href: 'https://vue-bits.dev/' },
-  { node: `<i class="pi pi-globe" style="font-size: 4rem;"></i>`, title: 'Web', href: 'https://vue-bits.dev/' },
-  { node: `<i class="pi pi-code" style="font-size: 4rem;"></i>`, title: 'Code', href: 'https://vue-bits.dev/' },
-  { node: `<i class="pi pi-palette" style="font-size: 4rem;"></i>`, title: 'Design', href: 'https://vue-bits.dev/' },
-  { node: `<i class="pi pi-cloud" style="font-size: 4rem;"></i>`, title: 'Cloud', href: 'https://vue-bits.dev/' },
+  { node: `<i class="pi pi-reddit" style="font-size: 4rem;"></i>`, title: 'Settings', href: 'https://vue-bits.dev/' },
+  { node: `<i class="pi pi-paypal" style="font-size: 4rem;"></i>`, title: 'Web', href: 'https://vue-bits.dev/' },
+  { node: `<i class="pi pi-linkedin" style="font-size: 4rem;"></i>`, title: 'Code', href: 'https://vue-bits.dev/' },
+  { node: `<i class="pi pi-facebook" style="font-size: 4rem;"></i>`, title: 'Design', href: 'https://vue-bits.dev/' },
+  { node: `<i class="pi pi-tiktok" style="font-size: 4rem;"></i>`, title: 'Cloud', href: 'https://vue-bits.dev/' },
   { node: `<i class="pi pi-github" style="font-size: 4rem;"></i>`, title: 'GitHub', href: 'https://vue-bits.dev/' },
-  { node: `<i class="pi pi-box" style="font-size: 4rem;"></i>`, title: 'Container', href: 'https://vue-bits.dev/' },
-  { node: `<i class="pi pi-database" style="font-size: 4rem;"></i>`, title: 'Database', href: 'https://vue-bits.dev/' },
-  { node: `<i class="pi pi-server" style="font-size: 4rem;"></i>`, title: 'Server', href: 'https://vue-bits.dev/' },
-  {
-    node: `<i class="pi pi-credit-card" style="font-size: 4rem;"></i>`,
-    title: 'Payments',
-    href: 'https://vue-bits.dev/'
-  }
+  { node: `<i class="pi pi-google" style="font-size: 4rem;"></i>`, title: 'Container', href: 'https://vue-bits.dev/' },
+  { node: `<i class="pi pi-youtube" style="font-size: 4rem;"></i>`, title: 'Database', href: 'https://vue-bits.dev/' },
+  { node: `<i class="pi pi-twitch" style="font-size: 4rem;"></i>`, title: 'Server', href: 'https://vue-bits.dev/' }
 ];
 
 const propData = [
