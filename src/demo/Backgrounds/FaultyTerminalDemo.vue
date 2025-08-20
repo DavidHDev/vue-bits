@@ -188,7 +188,7 @@ const propData = [
   },
   {
     name: 'style',
-    type: 'React.CSSProperties',
+    type: 'object',
     default: '{}',
     description: 'Inline styles.'
   }

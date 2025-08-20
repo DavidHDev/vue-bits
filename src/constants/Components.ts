@@ -3,6 +3,7 @@ const animations = {
   'animated-content': () => import('../demo/Animations/AnimatedContentDemo.vue'),
   'pixel-transition': () => import('../demo/Animations/PixelTransitionDemo.vue'),
   'glare-hover': () => import('../demo/Animations/GlareHoverDemo.vue'),
+  'logo-loop': () => import('../demo/Animations/LogoLoopDemo.vue'),
   'magnet-lines': () => import('../demo/Animations/MagnetLinesDemo.vue'),
   'click-spark': () => import('../demo/Animations/ClickSparkDemo.vue'),
   'ribbons': () => import('../demo/Animations/RibbonsDemo.vue'),
