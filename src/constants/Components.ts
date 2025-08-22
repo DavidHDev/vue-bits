@@ -106,6 +106,7 @@ const backgrounds = {
   'faulty-terminal': () => import('../demo/Backgrounds/FaultyTerminalDemo.vue'),
   'light-rays': () => import('../demo/Backgrounds/LightRaysDemo.vue'),
   'plasma': () => import('../demo/Backgrounds/PlasmaDemo.vue'),
+  'prism': () => import('../demo/Backgrounds/PrismDemo.vue'),
 };
 
 export const componentMap = {
