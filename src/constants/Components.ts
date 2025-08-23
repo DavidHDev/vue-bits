@@ -21,6 +21,7 @@ const animations = {
   'target-cursor': () => import('../demo/Animations/TargetCursorDemo.vue'),
   'crosshair': () => import('../demo/Animations/CrosshairDemo.vue'),
   'sticker-peel': () => import('../demo/Animations/StickerPeelDemo.vue'),
+  'electric-border': () => import('../demo/Animations/ElectricBorderDemo.vue'),
 };
 
 const textAnimations = {
