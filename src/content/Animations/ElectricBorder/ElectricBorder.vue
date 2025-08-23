@@ -111,9 +111,19 @@ onBeforeUnmount(() => {
   if (ro) ro.disconnect();
 });
 
-const inheritRadius = computed<CSSProperties>(() => ({
-  borderRadius: props.style?.borderRadius ?? 'inherit'
-}));
+const inheritRadius = computed<CSSProperties>(() => {
+  const radius = props.style?.borderRadius;
+
+  if (radius === undefined) {
+    return { borderRadius: 'inherit' };
+  }
+
+  if (typeof radius === 'number') {
+    return { borderRadius: `${radius}px` };
+  }
+
+  return { borderRadius: radius };
+});
 
 const strokeStyle = computed<CSSProperties>(() => ({
   ...inheritRadius.value,
