@@ -79,6 +79,7 @@ const components = {
   'counter': () => import('../demo/Components/CounterDemo.vue'),
   'rolling-gallery': () => import('../demo/Components/RollingGalleryDemo.vue'),
   'scroll-stack': () => import('../demo/Components/ScrollStackDemo.vue'),
+  'bubble-menu': () => import('../demo/Components/BubbleMenuDemo.vue'),
 };
 
 const backgrounds = {

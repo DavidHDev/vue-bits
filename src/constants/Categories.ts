@@ -1,5 +1,5 @@
 // Highlighted sidebar items
-export const NEW = ['Gradient Blinds', 'Prism', 'Plasma', 'Electric Border', 'Target Cursor', 'Ripple Grid', 'Magic Bento', 'Galaxy', 'Glass Surface', 'Sticker Peel', 'Scroll Stack', 'Faulty Terminal', 'Pill Nav', 'Card Nav', 'Logo Loop'];
+export const NEW = ['Gradient Blinds', 'Bubble Menu', 'Prism', 'Plasma', 'Electric Border', 'Target Cursor', 'Ripple Grid', 'Magic Bento', 'Galaxy', 'Glass Surface', 'Sticker Peel', 'Scroll Stack', 'Faulty Terminal', 'Pill Nav', 'Card Nav', 'Logo Loop'];
 export const UPDATED = [];
 
 // Used for main sidebar navigation
@@ -72,6 +72,7 @@ export const CATEGORIES = [
       'Pill Nav',
       'Dock',
       'Gooey Nav',
+      'Bubble Menu',
       'Pixel Card',
       'Carousel',
       'Spotlight Card',
