@@ -108,6 +108,7 @@ const backgrounds = {
   'light-rays': () => import('../demo/Backgrounds/LightRaysDemo.vue'),
   'plasma': () => import('../demo/Backgrounds/PlasmaDemo.vue'),
   'prism': () => import('../demo/Backgrounds/PrismDemo.vue'),
+  'gradient-blinds': () => import('../demo/Backgrounds/GradientBlindsDemo.vue'),
 };
 
 export const componentMap = {
