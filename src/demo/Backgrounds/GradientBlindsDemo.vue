@@ -18,8 +18,11 @@
       </div>
 
       <Customize>
-        <PreviewColor title="Color 1" v-model="color1" />
-        <PreviewColor title="Color 2" v-model="color2" />
+        <div class="flex gap-4">
+          <PreviewColor title="Color 1" v-model="color1" />
+          <PreviewColor title="Color 2" v-model="color2" />
+        </div>
+
         <PreviewSelect title="Light Direction" v-model="shineDirection" :options="directionOptions" />
         <PreviewSlider title="Blinds Angle" :min="0" :max="360" :step="1" v-model="angle" />
         <PreviewSlider title="Noise Amount" :min="0" :max="1" :step="0.01" v-model="noise" />
