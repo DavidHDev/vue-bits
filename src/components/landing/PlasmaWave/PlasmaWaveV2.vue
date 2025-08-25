@@ -382,8 +382,8 @@ watch(
         bottom: 0,
         left: 0,
         right: 0,
-        height: 200,
-        background: 'linear-gradient(to top, #060010, transparent)',
+        height: '200px',
+        background: 'linear-gradient(to top, #0b0b0b 20%, transparent)',
         pointerEvents: 'none',
         zIndex: 1
       }"
