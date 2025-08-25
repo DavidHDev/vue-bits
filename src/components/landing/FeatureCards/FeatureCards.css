@@ -1,9 +1,9 @@
 .features-section {
   position: relative;
-  margin-top: 12em;
-  padding: 8rem 2rem 4em;
+  padding: 0 2rem 4em;
   padding-bottom: 0 !important;
   z-index: 22;
+  transform: translateY(-4rem);
   user-select: none;
 }
 
@@ -12,59 +12,22 @@
   margin: 0 auto;
 }
 
-.features-header {
-  text-align: center;
-  margin-bottom: 4rem;
-}
-
-.features-title {
-  font-size: 4rem;
-  font-weight: 600;
-  letter-spacing: -2px;
-  color: #fff;
-  margin-bottom: 0.2rem;
-  background: linear-gradient(135deg, #fff 0%, #60fa89 20%, #55f788 40%, #00ff62 60%, #55f799 80%, #fff 100%);
-  background-size: 200% 200%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-align: center;
-  animation: gradientShift 4s ease-in-out infinite;
-  display: inline-block;
-  white-space: nowrap;
-}
-
-.features-title * {
-  background: inherit;
-  background-size: inherit;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: inherit;
-}
-
-@keyframes gradientShift {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
+@media (max-width: 1024px) {
+  .features-section {
+    position: relative;
+    margin-top: 4rem;
+    padding: 0 2rem 4em;
+    padding-bottom: 0 !important;
+    z-index: 22;
+    transform: translateY(0);
+    user-select: none;
   }
 }
 
-.features-subtitle {
-  font-size: 1.2rem;
-  color: #fff;
-  text-shadow:
-    0 0 2px rgba(255, 255, 255, 0.1),
-    0 0 4px rgba(255, 255, 255, 0.3),
-    0 0 8px rgba(255, 255, 255, 0.4),
-    0 0 136px rgba(0, 255, 98, 0.9);
-  font-weight: 400;
-  margin: 0;
-  text-align: center;
+@media (max-width: 768px) {
+}
+
+@media (max-width: 480px) {
 }
 
 .bento-grid {
@@ -367,9 +330,8 @@
 
 @media (max-width: 479px) {
   .features-section {
-    padding: 4rem 1rem 2rem;
+    padding: 0 1rem 2rem;
     padding-bottom: 0;
-    margin-top: 4em;
   }
 
   .features-title {
@@ -449,8 +411,7 @@
 
 @media (min-width: 768px) {
   .features-section {
-    padding: 6rem 2rem 3rem;
-    margin-top: 6em;
+    padding: 0 2rem 3rem;
   }
 
   .feature-card {
@@ -496,9 +457,8 @@
 
 @media (min-width: 50rem) {
   .features-section {
-    padding: 8rem 2rem 4rem;
+    padding: 0 2rem 4rem;
     padding-bottom: 0;
-    margin-top: 8em;
   }
 
   .bento-grid {
@@ -543,8 +503,7 @@
 
 @media (max-height: 500px) and (orientation: landscape) {
   .features-section {
-    margin-top: 2em;
-    padding: 2rem 1rem;
+    padding: 0 2rem 1rem;
   }
 
   .feature-card {

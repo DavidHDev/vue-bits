@@ -1,10 +1,38 @@
 <template>
   <div class="landing-content">
+    <img
+      :src="landingBlur"
+      alt=""
+      aria-hidden="true"
+      class="landing-gradient-blur"
+      draggable="false"
+      :style="{ zIndex: 5 }"
+    />
+
+    <img
+      :src="landingBlur"
+      alt=""
+      aria-hidden="true"
+      class="landing-gradient-blur"
+      draggable="false"
+      :style="{ zIndex: 5 }"
+    />
+
     <div class="hero-main-content">
+      <FadeContent class="hero-tag-fade" blur>
+        <router-link to="/backgrounds/gradient-blinds" class="hero-new-badge-container">
+          <span class="hero-new-badge">New 🎉</span>
+          <div class="hero-new-badge-text">
+            <span>Gradient Blinds</span>
+            <GoArrowRight />
+          </div>
+        </router-link>
+      </FadeContent>
+
       <h1 class="landing-title">
         <ResponsiveSplitText
           :is-mobile="isMobile"
-          text="Animated Vue components"
+          text="Vue Components"
           class-name="hero-split"
           split-type="chars"
           :delay="30"
@@ -16,7 +44,7 @@
 
         <ResponsiveSplitText
           :is-mobile="isMobile"
-          text="for creative developers"
+          text="For Creative Developers"
           class-name="hero-split"
           split-type="chars"
           :delay="30"
@@ -29,9 +57,9 @@
         :is-mobile="isMobile"
         class-name="landing-subtitle"
         split-type="words"
-        :delay="10"
+        :delay="25"
         :duration="1"
-        text="Eighty-plus snippets, ready to be dropped into your Vue projects"
+        text="Highly customizable animated components that make your React projects truly stand out"
       />
 
       <router-link to="/text-animations/split-text" class="landing-button">
@@ -44,45 +72,14 @@
         </div>
       </router-link>
     </div>
-
-    <div v-if="!isMobile" class="hero-cards-container">
-      <div class="hero-card hero-card-1" @click="openUrl('https://vue-bits.dev/backgrounds/dot-grid')">
-        <div class="w-full h-full relative hero-dot-grid">
-          <DotGrid
-            base-color="#ffffff"
-            active-color="rgba(138, 43, 226, 0.9)"
-            :dot-size="8"
-            :gap="16"
-            :proximity="50"
-          />
-
-          <div class="placeholder-card"></div>
-        </div>
-      </div>
-
-      <div class="hero-cards-row">
-        <div class="hero-card hero-card-2" @click="openUrl('https://vue-bits.dev/backgrounds/letter-glitch')">
-          <LetterGlitch class-name="hero-glitch" :glitch-colors="['#ffffff', '#999999', '#333333']" />
-
-          <div class="placeholder-card"></div>
-        </div>
-
-        <div class="hero-card hero-card-3" @click="openUrl('https://vue-bits.dev/backgrounds/squares')">
-          <Squares border-color="#fff" :speed="0.2" direction="diagonal" hover-fill-color="#fff" />
-
-          <div class="placeholder-card"></div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, h, defineComponent } from 'vue';
-import DotGrid from '@/content/Backgrounds/DotGrid/DotGrid.vue';
 import SplitText from '@/content/TextAnimations/SplitText/SplitText.vue';
-import LetterGlitch from '@/content/Backgrounds/LetterGlitch/LetterGlitch.vue';
-import Squares from '@/content/Backgrounds/Squares/Squares.vue';
+import { defineComponent, h, onMounted, onUnmounted, ref } from 'vue';
+import landingBlur from '../../../assets/common/landing-blur.svg';
+import FadeContent from '../../../content/Animations/FadeContent/FadeContent.vue';
 
 const ResponsiveSplitText = defineComponent({
   props: {
@@ -121,10 +118,6 @@ const ResponsiveSplitText = defineComponent({
     }
   }
 });
-
-const openUrl = (url: string) => {
-  window.open(url);
-};
 
 const isMobile = ref(false);
 
