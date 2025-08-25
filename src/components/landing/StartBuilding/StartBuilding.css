@@ -17,11 +17,11 @@
   max-width: 1200px;
   user-select: none;
   margin: 0 auto;
-  background: linear-gradient(135deg, rgba(58, 237, 109, 1), rgba(23, 255, 66, 0.6));
+  background: linear-gradient(135deg, rgb(30, 160, 63), rgba(24, 47, 255, 1));
   background-size: 200% 200%;
   border-radius: 50px;
   padding: 4rem 3rem;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.5);
+  box-shadow: 0 8px 32px 0 rgba(31, 135, 99, 0.5);
   backdrop-filter: blur(10px);
   position: relative;
   overflow: hidden;
@@ -56,14 +56,14 @@
 }
 
 .start-building-title {
-  color: #0b0b0b;
+  color: #ffffff;
   font-size: 3rem;
   font-weight: 500;
   line-height: 1;
 }
 
 .start-building-subtitle {
-  color: #0b0b0b;
+  color: #ffffff;
   font-size: 1.2rem;
   font-weight: 500;
   opacity: 0.6;
@@ -86,8 +86,8 @@
 }
 
 .start-building-button:hover {
-  background: #0b0b0b;
-  color: #27ff64;
+  transform: scale(1.05);
+  transition: all 0.2s ease;
 }
 
 @media (max-width: 1280px) {

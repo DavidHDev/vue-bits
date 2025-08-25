@@ -42,7 +42,7 @@
   user-select: none;
   background: #0b0b0b;
   border: 1px solid rgba(148, 184, 154, 0.2);
-  border-radius: 16px;
+  border-radius: 30px;
   padding: 2rem;
   text-align: left;
   text-decoration: none;
@@ -97,7 +97,7 @@
 }
 
 .feature-card:hover {
-  box-shadow: 0 4px 40px -15px rgba(46, 24, 78, 0.4) !important;
+  box-shadow: 0 4px 40px -15px rgba(24, 78, 50, 0.4) !important;
   background: #07160a;
 }
 

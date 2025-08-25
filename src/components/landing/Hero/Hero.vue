@@ -19,15 +19,13 @@
     />
 
     <div class="hero-main-content">
-      <FadeContent class="hero-tag-fade" blur>
-        <router-link to="/backgrounds/gradient-blinds" class="hero-new-badge-container">
-          <span class="hero-new-badge">New 🎉</span>
-          <div class="hero-new-badge-text">
-            <span>Gradient Blinds</span>
-            <GoArrowRight />
-          </div>
-        </router-link>
-      </FadeContent>
+      <router-link to="/backgrounds/gradient-blinds" class="hero-new-badge-container">
+        <span class="hero-new-badge">New 🎉</span>
+        <div class="hero-new-badge-text">
+          <span>Gradient Blinds</span>
+          <GoArrowRight />
+        </div>
+      </router-link>
 
       <h1 class="landing-title">
         <ResponsiveSplitText
@@ -79,7 +77,6 @@
 import SplitText from '@/content/TextAnimations/SplitText/SplitText.vue';
 import { defineComponent, h, onMounted, onUnmounted, ref } from 'vue';
 import landingBlur from '../../../assets/common/landing-blur.svg';
-import FadeContent from '../../../content/Animations/FadeContent/FadeContent.vue';
 
 const ResponsiveSplitText = defineComponent({
   props: {

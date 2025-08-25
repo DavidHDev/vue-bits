@@ -56,18 +56,20 @@
   top: 50%;
   transform: translate(-50%, -50%);
   aspect-ratio: 1;
-  height: 1200px;
+  opacity: 0.5;
+  height: 800px;
 }
 
 .hero-new-badge-container {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.8rem;
   border: 1px solid rgba(255, 255, 255, 0.07);
-  background: rgba(255, 255, 255, 0.01);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 8px 32px 0 rgba(31, 135, 76, 0.15);
   padding: 0.6em 0.8em 0.6em 0.6em;
   border-radius: 50px;
   margin-bottom: 1.5rem;
@@ -76,17 +78,13 @@
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.hero-tag-fade {
-  position: relative;
-  z-index: 8;
-}
-
 .hero-new-badge {
   font-size: 14px;
-  background: #3aef43;
+  background: linear-gradient(135deg, rgb(30, 160, 63), rgba(24, 47, 255, 1));
+  background-size: 200% 200%;
   padding: 0.2em 0.8em;
   border-radius: 50px;
-  color: black;
+  color: #ffffff;
 }
 
 .hero-new-badge-text {
@@ -97,10 +95,10 @@
 
 .hero-new-badge-container:hover {
   box-shadow:
-    0 0 60px rgba(58, 237, 112, 0.4),
-    0 0 120px rgba(92, 246, 138, 0.35),
-    0 0 180px rgba(40, 217, 64, 0.3),
-    0 12px 40px rgba(0, 0, 0, 0.6);
+    0 0 60px rgba(58, 237, 112, 0.2),
+    0 0 120px rgba(92, 246, 138, 0.15),
+    0 0 180px rgba(40, 217, 64, 0.1),
+    0 12px 40px rgba(0, 0, 0, 0.2);
   transform: translateY(-4px) scale(1.01);
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   animation-duration: 1.5s;
