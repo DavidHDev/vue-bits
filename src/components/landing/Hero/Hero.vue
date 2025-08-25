@@ -57,7 +57,7 @@
         split-type="words"
         :delay="25"
         :duration="1"
-        text="Highly customizable animated components that make your React projects truly stand out"
+        text="Highly customizable animated components that make your Vue projects truly stand out"
       />
 
       <router-link to="/text-animations/split-text" class="landing-button">
