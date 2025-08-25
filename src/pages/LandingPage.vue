@@ -9,7 +9,7 @@
       />
     </div>
 
-    <PlasmaWave :y-offset="-300" :x-offset="100" :rotation-deg="-30" />
+    <PlasmaWaveV2 :yOffset="0" :xOffset="40" :rotationDeg="-35" />
     <Hero />
     <FeatureCards />
     <StartBuilding />
@@ -20,7 +20,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 import Hero from '../components/landing/Hero/Hero.vue';
-import PlasmaWave from '@/components/landing/PlasmaWave/PlasmaWave.vue';
+import PlasmaWaveV2 from '@/components/landing/PlasmaWave/PlasmaWaveV2.vue';
 import Footer from '@/components/landing/Footer/Footer.vue';
 import FeatureCards from '@/components/landing/FeatureCards/FeatureCards.vue';
 import StartBuilding from '@/components/landing/StartBuilding/StartBuilding.vue';

@@ -17,10 +17,11 @@
   max-width: 1200px;
   user-select: none;
   margin: 0 auto;
-  background: linear-gradient(135deg, #3aed6d, rgba(24, 255, 93, 0.6));
+  background: linear-gradient(135deg, rgba(58, 237, 109, 1), rgba(23, 255, 66, 0.6));
   background-size: 200% 200%;
-  border-radius: 16px;
+  border-radius: 50px;
   padding: 4rem 3rem;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.5);
   backdrop-filter: blur(10px);
   position: relative;
   overflow: hidden;
@@ -40,9 +41,9 @@
   width: 100%;
   height: 100%;
   background-image: url('/assets/grain.webp');
+  filter: brightness(3);
   background-size: 500px 500px;
-  filter: invert(100%);
-  mix-blend-mode: multiply;
+  mix-blend-mode: lighten;
   background-repeat: repeat;
   opacity: 1;
   pointer-events: none;
@@ -56,9 +57,8 @@
 
 .start-building-title {
   color: #0b0b0b;
-  font-size: 2.6rem;
-  font-weight: 600;
-  margin: 0;
+  font-size: 3rem;
+  font-weight: 500;
   line-height: 1;
 }
 
@@ -66,19 +66,20 @@
   color: #0b0b0b;
   font-size: 1.2rem;
   font-weight: 500;
-  margin: -1rem 0 0 0;
-  opacity: 0.9;
+  opacity: 0.6;
   max-width: 600px;
-  line-height: 1.4;
+  line-height: 1;
 }
 
 .start-building-button {
   background: transparent;
+  background: white;
+  border: 1px solid white;
   color: #0b0b0b;
-  border: 2px solid #0b0b0b;
-  padding: 0.6rem 1.6rem;
-  font-size: 1.1rem;
-  font-weight: 600;
+  padding: 0.6rem 1.8rem;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: -0.2px;
   border-radius: 50px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -111,7 +112,6 @@
 
   .start-building-card {
     padding: 3rem 2rem;
-    border-radius: 12px;
     gap: 1.25rem;
   }
 

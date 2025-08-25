@@ -113,6 +113,9 @@
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
   color: #fff;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
   border: none;
   border-radius: 50px;
   cursor: pointer;
@@ -126,7 +129,7 @@
 .cta-button span {
   background-color: #0b0b0b;
   margin-left: 1em;
-  margin-right: calc(1em - 8px);
+  margin-right: calc(1em - 10px);
   padding-top: 0.1em;
   height: 45px;
   border-radius: 50px;

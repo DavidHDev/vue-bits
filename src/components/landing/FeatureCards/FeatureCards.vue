@@ -1,11 +1,6 @@
 <template>
   <div class="features-section">
     <div class="features-container">
-      <div class="features-header">
-        <h3 class="features-title">Zero cost, all the cool.</h3>
-        <p class="features-subtitle">Everything you need to add flair to your websites</p>
-      </div>
-
       <div class="bento-grid" ref="gridRef">
         <ParticleCard class="feature-card card1" :disable-animations="isMobile">
           <div class="messages-gif-wrapper">
@@ -29,7 +24,7 @@
             <CountUp v-else :to="80" />
             +
           </h2>
-          <h3>Curated Components</h3>
+          <h3>Creative Components</h3>
           <p>Growing weekly &amp; only getting better</p>
         </ParticleCard>
 
