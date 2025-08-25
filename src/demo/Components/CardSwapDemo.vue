@@ -29,62 +29,62 @@
             @card-click="handleCardClick"
           >
             <template #card-0>
-              <div class="border-b border-white bg-gradient-to-t from-[#222] to-[#0b0b0b]">
-                <div class="m-2 flex items-center">
-                  <i class="pi pi-circle-fill mr-2"></i>
-
-                  <span>Smooth</span>
+              <div class="h-full flex flex-col">
+                <div class="rounded-2xl border-b border-white bg-gradient-to-t from-[#222] to-[#0b0b0b] shrink-0">
+                  <div class="m-2 flex items-center">
+                    <i class="pi pi-circle-fill mr-2"></i>
+                    <span>Smooth</span>
+                  </div>
                 </div>
-              </div>
-
-              <div class="relative p-2">
-                <video autoplay loop muted playsinline class="rounded-[15px] w-full h-full">
-                  <source
-                    src="https://cdn.dribbble.com/userupload/7053861/file/original-7956be57144058795db6bb24875bdab9.mp4"
-                    type="video/mp4"
+                <div class="relative p-2 flex-1 overflow-hidden rounded-[15px]">
+                  <img
+                    src="@/assets/demo/cs1.webp"
+                    alt="Card swap demo screenshot 1"
+                    class="w-full h-full object-cover grayscale block transform scale-105"
+                    loading="lazy"
+                    decoding="async"
                   />
-                  Your browser does not support the video tag.
-                </video>
+                </div>
               </div>
             </template>
 
             <template #card-1>
-              <div class="border-b border-white bg-gradient-to-t from-[#222] to-[#0b0b0b]">
-                <div class="m-2 flex items-center">
-                  <i class="pi pi-code mr-2"></i>
-
-                  <span>Reliable</span>
+              <div class="h-full flex flex-col">
+                <div class="rounded-2xl border-b border-white bg-gradient-to-t from-[#222] to-[#0b0b0b] shrink-0">
+                  <div class="m-2 flex items-center">
+                    <i class="pi pi-code mr-2"></i>
+                    <span>Reliable</span>
+                  </div>
                 </div>
-              </div>
-
-              <div class="relative p-2">
-                <video autoplay loop muted playsinline class="rounded-[15px] w-full h-full">
-                  <source
-                    src="https://cdn.dribbble.com/userupload/7078020/file/original-b071e9063d9e3ba86a85a61b9d5a7c42.mp4"
-                    type="video/mp4"
+                <div class="relative p-2 flex-1 overflow-hidden rounded-[15px]">
+                  <img
+                    src="@/assets/demo/cs2.webp"
+                    alt="Card swap demo screenshot 2"
+                    class="w-full h-full object-cover grayscale block transform scale-105"
+                    loading="lazy"
+                    decoding="async"
                   />
-                  Your browser does not support the video tag.
-                </video>
+                </div>
               </div>
             </template>
 
             <template #card-2>
-              <div class="border-b border-white bg-gradient-to-t from-[#222] to-[#0b0b0b]">
-                <div class="m-2 flex items-center">
-                  <i class="pi pi-sliders-h mr-2"></i>
-
-                  <span>Customizable</span>
+              <div class="h-full flex flex-col">
+                <div class="rounded-2xl border-b border-white bg-gradient-to-t from-[#222] to-[#0b0b0b] shrink-0">
+                  <div class="m-2 flex items-center">
+                    <i class="pi pi-sliders-h mr-2"></i>
+                    <span>Customizable</span>
+                  </div>
                 </div>
-              </div>
-
-              <div class="relative p-2">
-                <video autoplay loop muted playsinline class="rounded-[15px] w-full h-full">
-                  <source
-                    src="https://cdn.dribbble.com/userupload/7098541/file/original-0b063b12ca835421580e6034368ad95a.mp4"
-                    type="video/mp4"
+                <div class="relative p-2 flex-1 overflow-hidden rounded-[15px]">
+                  <img
+                    src="@/assets/demo/cs3.webp"
+                    alt="Card swap demo screenshot 3"
+                    class="w-full h-full object-cover grayscale block transform scale-105"
+                    loading="lazy"
+                    decoding="async"
                   />
-                  Your browser does not support the video tag.
-                </video>
+                </div>
               </div>
             </template>
           </CardSwap>
