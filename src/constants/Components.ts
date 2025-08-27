@@ -110,6 +110,7 @@ const backgrounds = {
   'plasma': () => import('../demo/Backgrounds/PlasmaDemo.vue'),
   'prism': () => import('../demo/Backgrounds/PrismDemo.vue'),
   'gradient-blinds': () => import('../demo/Backgrounds/GradientBlindsDemo.vue'),
+  'prismatic-burst': () => import('../demo/Backgrounds/PrismaticBurstDemo.vue'),
 };
 
 export const componentMap = {
