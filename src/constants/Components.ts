@@ -22,6 +22,7 @@ const animations = {
   'crosshair': () => import('../demo/Animations/CrosshairDemo.vue'),
   'sticker-peel': () => import('../demo/Animations/StickerPeelDemo.vue'),
   'electric-border': () => import('../demo/Animations/ElectricBorderDemo.vue'),
+  'gradual-blur': () => import('../demo/Animations/GradualBlurDemo.vue'),
 };
 
 const textAnimations = {
