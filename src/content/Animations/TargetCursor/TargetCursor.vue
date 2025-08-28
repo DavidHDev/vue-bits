@@ -35,7 +35,7 @@ const moveCursor = (x: number, y: number) => {
   });
 };
 
-let cleanupAnimation: () => void = () => {};
+let cleanupAnimation: () => void = () => { };
 
 const setupAnimation = () => {
   if (!cursorRef.value) return;
@@ -116,7 +116,7 @@ const setupAnimation = () => {
 
     activeTarget = target;
 
-    gsap.killTweensOf(cursorRef.value, 'rotation');
+    gsap.killTweensOf(cursorRef.value);
     spinTl.value?.pause();
 
     gsap.set(cursorRef.value, { rotation: 0 });
@@ -336,30 +336,22 @@ watch(
 </script>
 
 <template>
-  <div
-    ref="cursorRef"
+  <div ref="cursorRef"
     class="top-0 left-0 z-[9999] fixed w-0 h-0 -translate-x-1/2 -translate-y-1/2 pointer-events-none mix-blend-difference transform opacity-0"
-    :style="{ willChange: 'transform' }"
-  >
-    <div
-      class="top-1/2 left-1/2 absolute bg-white rounded-full w-1 h-1 -translate-x-1/2 -translate-y-1/2 transform"
-      :style="{ willChange: 'transform' }"
-    />
+    :style="{ willChange: 'transform' }">
+    <div class="top-1/2 left-1/2 absolute bg-white rounded-full w-1 h-1 -translate-x-1/2 -translate-y-1/2 transform"
+      :style="{ willChange: 'transform' }" />
     <div
       class="top-1/2 left-1/2 absolute border-[3px] border-white border-r-0 border-b-0 w-3 h-3 -translate-x-[150%] -translate-y-[150%] target-cursor-corner transform"
-      :style="{ willChange: 'transform' }"
-    />
+      :style="{ willChange: 'transform' }" />
     <div
       class="top-1/2 left-1/2 absolute border-[3px] border-white border-b-0 border-l-0 w-3 h-3 -translate-y-[150%] translate-x-1/2 target-cursor-corner transform"
-      :style="{ willChange: 'transform' }"
-    />
+      :style="{ willChange: 'transform' }" />
     <div
       class="top-1/2 left-1/2 absolute border-[3px] border-white border-t-0 border-l-0 w-3 h-3 translate-x-1/2 translate-y-1/2 target-cursor-corner transform"
-      :style="{ willChange: 'transform' }"
-    />
+      :style="{ willChange: 'transform' }" />
     <div
       class="top-1/2 left-1/2 absolute border-[3px] border-white border-t-0 border-r-0 w-3 h-3 -translate-x-[150%] translate-y-1/2 target-cursor-corner transform"
-      :style="{ willChange: 'transform' }"
-    />
+      :style="{ willChange: 'transform' }" />
   </div>
 </template>
