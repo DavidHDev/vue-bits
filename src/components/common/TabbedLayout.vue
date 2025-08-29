@@ -70,6 +70,7 @@ import ContributionSection from './ContributionSection.vue';
 :deep(.p-tablist-tab-list) {
   display: flex;
   gap: 0.5rem;
+  padding-bottom: .1em;
   align-items: flex-start;
   flex-wrap: wrap;
   border: none !important;
