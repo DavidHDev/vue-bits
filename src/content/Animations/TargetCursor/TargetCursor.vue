@@ -118,7 +118,7 @@ const setupAnimation = () => {
     const corners = Array.from(cornersRef.value);
     corners.forEach(corner => {
       gsap.killTweensOf(corner);
-    })
+    });
     gsap.killTweensOf(cursorRef.value, 'rotation');
     spinTl.value?.pause();
 

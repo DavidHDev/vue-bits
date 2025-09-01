@@ -395,7 +395,13 @@ const threeRef = ref<{
   touch?: ReturnType<typeof createTouchTexture>;
   liquidEffect?: Effect;
 } | null>(null);
-const prevConfigRef = ref<any>(null);
+
+interface PixelBlastConfig {
+  antialias: boolean;
+  liquid: boolean;
+  noiseAmount: number;
+}
+const prevConfigRef = ref<PixelBlastConfig | null>(null);
 
 let cleanup: (() => void) | null = null;
 
@@ -403,13 +409,17 @@ const setup = () => {
   const container = containerRef.value;
   if (!container) return;
   speedRef.value = props.speed;
-  const needsReinitKeys = ['antialias', 'liquid', 'noiseAmount'];
-  const cfg = { antialias: props.antialias, liquid: props.liquid, noiseAmount: props.noiseAmount };
+  const needsReinitKeys: (keyof PixelBlastConfig)[] = ['antialias', 'liquid', 'noiseAmount'];
+  const cfg: PixelBlastConfig = {
+    antialias: props.antialias,
+    liquid: props.liquid,
+    noiseAmount: props.noiseAmount
+  };
   let mustReinit = false;
   if (!threeRef.value) mustReinit = true;
   else if (prevConfigRef.value) {
     for (const k of needsReinitKeys)
-      if (prevConfigRef.value[k] !== (cfg as any)[k]) {
+      if (prevConfigRef.value[k] !== cfg[k]) {
         mustReinit = true;
         break;
       }
@@ -486,7 +496,7 @@ const setup = () => {
     const ro = new ResizeObserver(setSize);
     ro.observe(container);
     const randomFloat = () => {
-      if (typeof window !== 'undefined' && (window as any).crypto?.getRandomValues) {
+      if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
         const u32 = new Uint32Array(1);
         window.crypto.getRandomValues(u32);
         return u32[0] / 0xffffffff;
@@ -528,7 +538,11 @@ const setup = () => {
       );
       const noisePass = new EffectPass(camera, noiseEffect);
       noisePass.renderToScreen = true;
-      if (composer && composer.passes.length > 0) composer.passes.forEach(p => ((p as any).renderToScreen = false));
+      if (composer && composer.passes.length > 0)
+        composer.passes.forEach(p => {
+          // EffectPass has renderToScreen; ensure we turn it off before adding a new final pass
+          if ('renderToScreen' in p) (p as { renderToScreen?: boolean }).renderToScreen = false;
+        });
       composer.addPass(noisePass);
     }
     if (composer) composer.setSize(renderer.domElement.width, renderer.domElement.height);
@@ -570,16 +584,17 @@ const setup = () => {
         return;
       }
       uniforms.uTime.value = timeOffset + clock.getElapsedTime() * speedRef.value;
-      if (liquidEffect) (liquidEffect as any).uniforms.get('uTime').value = uniforms.uTime.value;
+      if (liquidEffect) liquidEffect.uniforms.get('uTime')!.value = uniforms.uTime.value;
       if (composer) {
         if (touch) touch.update();
         composer.passes.forEach(p => {
-          const effs = (p as any).effects;
-          if (effs)
-            effs.forEach((eff: any) => {
-              const u = eff.uniforms?.get('uTime');
+          if (p instanceof EffectPass) {
+            const effs = (p as unknown as { effects?: Effect[] }).effects;
+            effs?.forEach(eff => {
+              const u = eff.uniforms.get('uTime');
               if (u) u.value = uniforms.uTime.value;
             });
+          }
         });
         composer.render();
       } else renderer.render(scene, camera);
@@ -618,9 +633,9 @@ const setup = () => {
     if (props.transparent) t.renderer.setClearAlpha(0);
     else t.renderer.setClearColor(0x000000, 1);
     if (t.liquidEffect) {
-      const uStrength = (t.liquidEffect as any).uniforms.get('uStrength');
+      const uStrength = t.liquidEffect?.uniforms.get('uStrength');
       if (uStrength) uStrength.value = props.liquidStrength;
-      const uFreq = (t.liquidEffect as any).uniforms.get('uFreq');
+      const uFreq = t.liquidEffect?.uniforms.get('uFreq');
       if (uFreq) uFreq.value = props.liquidWobbleSpeed;
     }
     if (t.touch) t.touch.radiusScale = props.liquidRadius;
