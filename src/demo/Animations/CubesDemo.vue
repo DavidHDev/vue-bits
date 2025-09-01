@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container h-[650px]">
+      <div class="demo-container h-[700px]">
         <Cubes
           :borderStyle="borderStyle"
           :gridSize="gridSize"

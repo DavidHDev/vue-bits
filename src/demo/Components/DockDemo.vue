@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container">
+      <div class="demo-container h-[400px]">
         <Dock
           :key="rerenderKey"
           :items="items"
@@ -140,10 +140,3 @@ const propData = [
   }
 ];
 </script>
-
-<style scoped>
-.demo-container {
-  min-height: 400px;
-  padding: 2rem;
-}
-</style>

@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container overflow-hidden">
+      <div class="demo-container h-[500px] overflow-hidden">
         <div class="relative flex justify-center items-center">
           <ScrollVelocity
             :texts="['Vue Bits', 'Scroll Down']"
@@ -124,9 +124,3 @@ const propData = [
   }
 ];
 </script>
-
-<style scoped>
-.demo-container {
-  min-height: 400px;
-}
-</style>

@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="relative h-[800px] overflow-hidden demo-container demo-container-dots">
+      <div class="demo-container demo-container-dots h-[800px] overflow-hidden">
         <BubbleMenu
           :logo="logo"
           :menu-bg="menuBg"

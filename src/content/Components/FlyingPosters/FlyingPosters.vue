@@ -156,8 +156,11 @@ void main() {
 }
 `;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function AutoBind(self: any, { include, exclude }: AutoBindOptions = {}) {
+type MethodNames<T> = {
+  [K in keyof T]: T[K] extends (...args: unknown[]) => unknown ? K : never;
+}[keyof T];
+
+function AutoBind<T extends object>(self: T, { include, exclude }: AutoBindOptions = {}) {
   const getAllProperties = (object: object): Set<[object, string | symbol]> => {
     const properties = new Set<[object, string | symbol]>();
     let currentObject: object | null = object;
@@ -178,11 +181,18 @@ function AutoBind(self: any, { include, exclude }: AutoBindOptions = {}) {
     return true;
   };
 
-  for (const [object, key] of getAllProperties(self.constructor.prototype)) {
+  const proto = Object.getPrototypeOf(self);
+  if (!proto) return self;
+  for (const [object, key] of getAllProperties(proto)) {
     if (key === 'constructor' || !filter(key)) continue;
     const descriptor = Reflect.getOwnPropertyDescriptor(object, key);
     if (descriptor && typeof descriptor.value === 'function' && typeof key === 'string') {
-      self[key] = self[key].bind(self);
+      const current = (self as Record<string, unknown>)[key];
+      if (typeof current === 'function') {
+        (self as Record<MethodNames<T>, unknown>)[key as MethodNames<T>] = (
+          current as (...a: unknown[]) => unknown
+        ).bind(self);
+      }
     }
   }
   return self;

@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="relative flex-col h-[500px] overflow-hidden demo-container demo-container-dots">
+      <div class="demo-container demo-container-dots h-[500px] overflow-hidden">
         <div
           ref="scrollRef"
           class="relative flex flex-col items-center px-6 py-[100px] w-full h-full overflow-x-hidden overflow-y-auto scrollContainer"
@@ -237,10 +237,6 @@ const propData = [
 </script>
 
 <style scoped>
-.demo-container {
-  padding: 0;
-}
-
 .scrollContainer {
   &::-webkit-scrollbar {
     display: none;

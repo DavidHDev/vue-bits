@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div ref="containerRef" class="demo-container relative min-h-[300px] overflow-hidden">
+      <div ref="containerRef" class="demo-container min-h-[300px] overflow-hidden">
         <Crosshair :container-ref="targeted ? containerElement : null" :color="color" />
 
         <div class="flex flex-col justify-center items-center">

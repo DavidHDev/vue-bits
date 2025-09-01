@@ -72,9 +72,3 @@ const propData = [
   { name: 'size', type: 'number', default: '1', description: 'Scale factor for the bolt size.' }
 ];
 </script>
-
-<style scoped>
-.demo-container {
-  padding: 0;
-}
-</style>

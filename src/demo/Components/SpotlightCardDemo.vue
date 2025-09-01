@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container relative py-10">
+      <div class="demo-container py-10">
         <SpotlightCard class-name="custom-spotlight-card">
           <div class="flex h-full flex-col items-start justify-center">
             <i class="pi pi-star-fill text-4xl mb-3 text-white"></i>
@@ -17,7 +17,7 @@
 
       <h2 class="text-xl font-semibold text-white mb-4 mt-8">Custom Color</h2>
 
-      <div class="demo-container relative py-10">
+      <div class="demo-container py-10">
         <SpotlightCard class-name="custom-spotlight-card" spotlight-color="rgba(39, 255, 100, 0.326)">
           <div class="flex h-full flex-col items-start justify-center">
             <i class="pi pi-lock text-3xl mb-3 text-white"></i>

@@ -3,13 +3,13 @@
     <template #preview>
       <h2 class="demo-title-extra">Basic</h2>
 
-      <div class="demo-container">
+      <div class="demo-container h-[200px]">
         <ShinyText text="Just some shiny text!" :disabled="false" :speed="3" class-name="shiny-text-demo" />
       </div>
 
       <h2 class="demo-title-extra">Button Text</h2>
 
-      <div class="demo-container">
+      <div class="demo-container h-[200px]">
         <div class="shiny-button">
           <ShinyText text="Shiny Button" :disabled="false" :speed="3" class-name="shiny-text-demo" />
         </div>
@@ -17,7 +17,7 @@
 
       <h2 class="demo-title-extra">Configurable Speed</h2>
 
-      <div class="demo-container relative min-h-[150px] text-2xl flex items-center justify-center">
+      <div class="demo-container h-[200px]">
         <ShinyText
           :text="speed < 2.5 ? '🐎 This is fast!' : '🐌 This is slow!'"
           :disabled="false"
@@ -85,10 +85,6 @@ const propData = [
 </script>
 
 <style scoped>
-.demo-container {
-  min-height: 200px;
-}
-
 .shiny-button {
   padding: 12px 24px;
   border-radius: 50px;

@@ -70,9 +70,3 @@ const propData = [
   { name: 'style', type: 'CSSProperties', default: '{}', description: 'Inline styles for the component.' }
 ];
 </script>
-
-<style scoped>
-.demo-container {
-  padding: 0;
-}
-</style>

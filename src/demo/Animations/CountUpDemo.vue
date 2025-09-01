@@ -3,7 +3,7 @@
     <template #preview>
       <h2 class="demo-title-extra">Default</h2>
 
-      <div class="demo-container relative">
+      <div class="demo-container h-[200px]">
         <CountUp
           :key="keyDefault"
           :from="from"
@@ -19,9 +19,9 @@
 
       <h2 class="demo-title-extra">Start Programmatically</h2>
 
-      <div class="demo-container flex flex-col justify-center items-center relative min-h-[200px]">
+      <div class="demo-container h-[200px] flex-col justify-center items-center">
         <button
-          class="bg-[#0b0b0b] cursor-pointer rounded-[10px] border border-[#222] text-white px-4 py-2 mb-4"
+          class="bg-[#0b0b0b] cursor-pointer rounded-[10px] border border-[#222] text-white px-4 py-2"
           @click="setStartCounting(true)"
         >
           Count to 500!
@@ -166,10 +166,3 @@ const propData = [
   }
 ];
 </script>
-
-<style scoped>
-.demo-container {
-  min-height: 200px;
-  height: 200px;
-}
-</style>

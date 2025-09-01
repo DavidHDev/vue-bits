@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container relative py-6 overflow-hidden">
+      <div class="demo-container py-6 overflow-hidden">
         <RefreshButton @click="forceRerender" />
 
         <div :key="key" class="pl-6 m-8 w-full flex flex-col justify-start items-start">

@@ -86,12 +86,10 @@
 }
 
 .demo-container {
-  min-height: 500px;
   position: relative;
   width: 100%;
   background: #0b0b0b;
   border: 1px solid #333;
-  padding: 1em;
   margin-top: 1.4rem;
   border-radius: 20px;
   display: flex;

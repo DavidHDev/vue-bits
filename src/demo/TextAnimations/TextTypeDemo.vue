@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container">
+      <div class="demo-container py-[64px] h-[350px]">
         <TextType
           :key="key"
           :text="texts"
@@ -215,14 +215,5 @@ const propData = [
 .custom-text-type {
   font-size: clamp(1.5rem, 4vw, 4rem);
   font-weight: 700;
-}
-.demo-container {
-  padding: 64px;
-  min-height: 350px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  display: flex;
-  position: relative;
-  overflow: hidden;
 }
 </style>

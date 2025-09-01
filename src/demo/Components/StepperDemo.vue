@@ -14,7 +14,7 @@
   />
   <TabbedLayout>
     <template #preview>
-      <div class="relative demo-container h-[500px] overflow-hidden">
+      <div class="demo-container h-[500px] overflow-hidden">
         <Stepper
           :initial-step="step"
           :on-step-change="handleStepChange"

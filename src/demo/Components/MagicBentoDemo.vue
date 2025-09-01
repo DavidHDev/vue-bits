@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="relative h-auto overflow-hidden demo-container">
+      <div class="py-[100px] overflow-hidden demo-container">
         <MagicBento
           :enable-stars="enableStars"
           :enable-spotlight="enableSpotlight"
@@ -133,9 +133,3 @@ const propData = [
   }
 ];
 </script>
-
-<style scoped>
-.demo-container {
-  padding: 0 8px;
-}
-</style>

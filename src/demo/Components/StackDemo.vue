@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container">
+      <div class="demo-container h-[500px]">
         <Stack
           :key="rerenderKey"
           :randomRotation="randomRotation"

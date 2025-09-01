@@ -2,7 +2,7 @@
   <TabbedLayout>
     <template #preview>
       <div
-        class="flex-col bg-[linear-gradient(to_bottom,_#060010,_#0D0716,_#0D0716,_#060010)] h-[500px] overflow-hidden demo-container"
+        class="bg-[linear-gradient(to_bottom,_#060010,_#0D0716,_#0D0716,_#060010)] h-[500px] overflow-hidden demo-container"
       >
         <StickerPeel
           :image-src="logo"
@@ -143,9 +143,3 @@ const propData = [
   }
 ];
 </script>
-
-<style scoped>
-.demo-container {
-  padding: 0;
-}
-</style>

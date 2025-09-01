@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container relative h-[400px] overflow-hidden p-0 flex justify-center items-center">
+      <div class="demo-container h-[400px] overflow-hidden">
         <FallingText
           :key="key"
           text="Vue Bits is a library of animated and interactive Vue components designed to streamline UI development and simplify your workflow."

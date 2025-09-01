@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div ref="containerRef" class="demo-container" @wheel="smoothScroll">
+      <div ref="containerRef" class="demo-container overflow-y-auto h-[600px]" @wheel="smoothScroll">
         <div class="scroll-instruction">Scroll Down</div>
 
         <div class="scroll-content">
@@ -158,11 +158,6 @@ const propData = [
 </script>
 
 <style scoped>
-.demo-container {
-  height: 60vh;
-  overflow-y: auto;
-}
-
 .scroll-content {
   padding-top: 150vh !important;
   padding-bottom: 50vh;

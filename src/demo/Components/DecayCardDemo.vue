@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container" style="overflow: hidden">
+      <div class="demo-container h-[500px] overflow-hidden">
         <DecayCard>
           <div class="text-[2rem]">
             Decay

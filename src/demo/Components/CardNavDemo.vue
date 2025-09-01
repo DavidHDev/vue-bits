@@ -2,7 +2,7 @@
   <TabbedLayout>
     <template #preview>
       <div
-        class="relative overflow-hidden demo-container demo-container-dots"
+        class="demo-container demo-container-dots overflow-hidden"
         :style="{
           backgroundColor: currentTheme.backgroundColor,
           minHeight: '550px',

@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container relative h-[500px] overflow-hidden p-0">
+      <div class="demo-container h-[500px] overflow-hidden">
         <CurvedLoop
           :key="rerenderKey"
           :marquee-text="marqueeText"

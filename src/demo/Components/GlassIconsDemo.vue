@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container" style="height: 500px; overflow: hidden">
+      <div class="demo-container h-[500px] overflow-hidden">
         <GlassIcons :items="items" class="my-glass-icons" />
       </div>
 

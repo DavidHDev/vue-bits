@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container relative overflow-hidden">
+      <div class="demo-container overflow-hidden py-[64px]">
         <ChromaGrid :radius="radius" :damping="damping" :fadeOut="fadeOut" :ease="ease" />
       </div>
 
@@ -93,10 +93,3 @@ const propData = [
   }
 ];
 </script>
-
-<style scoped>
-.demo-container {
-  height: auto;
-  padding: 4em 0;
-}
-</style>

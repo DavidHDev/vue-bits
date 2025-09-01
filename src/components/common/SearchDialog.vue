@@ -132,7 +132,7 @@ const keyboardNav = ref(false);
 const topGradientOpacity = ref(0);
 const bottomGradientOpacity = ref(1);
 const searchValue = ref('');
-let debounceTimer: any = null;
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 interface SearchResult {
   categoryName: string;

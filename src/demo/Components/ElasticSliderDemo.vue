@@ -2,7 +2,7 @@
   <TabbedLayout>
     <template #preview>
       <div class="demo-section">
-        <div class="demo-container relative min-h-[200px] flex items-center justify-center">
+        <div class="demo-container h-[300px] overflow-hidden">
           <ElasticSlider />
         </div>
       </div>
@@ -10,7 +10,7 @@
       <div class="demo-section">
         <h2 class="demo-title-extra">Using Steps</h2>
 
-        <div class="demo-container relative min-h-[200px] flex items-center justify-center">
+        <div class="demo-container h-[300px] overflow-hidden">
           <ElasticSlider :is-stepped="true" :step-size="10" />
         </div>
       </div>
@@ -18,7 +18,7 @@
       <div class="demo-section">
         <h2 class="demo-title-extra">Custom Range & Icons</h2>
 
-        <div class="demo-container relative min-h-[200px] flex items-center justify-center">
+        <div class="demo-container h-[300px] overflow-hidden">
           <ElasticSlider :starting-value="500" :default-value="750" :max-value="1000">
             <template #left-icon>
               <i class="pi pi-thumbs-down text-xl"></i>
@@ -103,11 +103,3 @@ const propData = [
   }
 ];
 </script>
-
-<style scoped>
-.demo-container {
-  height: 300px;
-  min-height: 300px;
-  overflow: hidden;
-}
-</style>

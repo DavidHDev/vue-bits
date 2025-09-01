@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container">
+      <div class="demo-container h-[600px] overflow-hidden">
         <MagnetLines
           :rows="rows"
           :columns="columns"

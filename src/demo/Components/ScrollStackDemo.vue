@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="relative h-[500px] overflow-hidden demo-container">
+      <div class="demo-container h-[500px] overflow-hidden">
         <RefreshButton
           @refresh="
             () => {
@@ -208,9 +208,3 @@ const propData = [
   }
 ];
 </script>
-
-<style scoped>
-.demo-container {
-  padding: 0;
-}
-</style>

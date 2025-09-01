@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container relative min-h-[400px] overflow-hidden">
+      <div class="demo-container h-[400px] overflow-hidden">
         <RefreshButton @refresh="forceRerender" />
 
         <BlurText

@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container">
+      <div class="demo-container h-[400px]">
         <span class="text-6xl text-center text-[#333] font-black select-none">Move Your Cursor</span>
       </div>
 
@@ -142,11 +142,3 @@ const propData = [
   }
 ];
 </script>
-
-<style scoped>
-.demo-container {
-  overflow: hidden;
-  min-height: 300px;
-  padding: 0;
-}
-</style>

@@ -64,9 +64,3 @@ const options = [
   { value: 'six', label: 'Deep' }
 ];
 </script>
-
-<style scoped>
-.demo-container {
-  padding: 0;
-}
-</style>

@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container relative h-[600px] overflow-hidden flex items-center justify-center">
+      <div class="demo-container h-[600px] overflow-hidden">
         <FlyingPosters
           :key="rerenderKey"
           :items="items"

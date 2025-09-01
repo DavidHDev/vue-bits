@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="flex-col h-[500px] overflow-hidden demo-container">
+      <div class="demo-container h-[500px] overflow-hidden">
         <ElectricBorder
           v-if="example === 'card'"
           :color="cardProps.color"
@@ -160,9 +160,3 @@ const propData = [
   }
 ];
 </script>
-
-<style scoped>
-.demo-container {
-  padding: 0;
-}
-</style>

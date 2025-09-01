@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container h-[500px] overflow-hidden flex flex-col lg:flex-row relative">
+      <div class="demo-container h-[500px] overflow-hidden">
         <div
           class="w-full lg:w-1/2 h-auto lg:h-full flex flex-col justify-center items-center lg:items-start text-center lg:text-left pt-8 lg:pt-0 pb-4 lg:pb-0 px-4 lg:px-4"
         >

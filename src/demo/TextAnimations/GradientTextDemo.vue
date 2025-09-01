@@ -4,7 +4,7 @@
       <template #preview>
         <h2 class="demo-title-extra">Default</h2>
 
-        <div class="demo-container">
+        <div class="demo-container h-[200px]">
           <div class="text-[2rem]">
             <GradientText
               text="Add a splash of color!"
@@ -17,7 +17,7 @@
 
         <h2 class="demo-title-extra">Border Animation</h2>
 
-        <div class="demo-container">
+        <div class="demo-container h-[200px]">
           <div class="text-[2rem]">
             <GradientText
               text="Now with a cool border!"
@@ -128,9 +128,3 @@ const propData = [
   }
 ];
 </script>
-
-<style scoped>
-.demo-container {
-  min-height: 200px;
-}
-</style>

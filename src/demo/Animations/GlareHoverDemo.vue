@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container min-h-[400px]">
+      <div class="demo-container h-[400px]">
         <GlareHover
           background="#111"
           border-color="#222"

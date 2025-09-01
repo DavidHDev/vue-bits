@@ -3,7 +3,7 @@
     <template #preview>
       <h2 class="demo-title-extra">Container</h2>
 
-      <div class="demo-container">
+      <div class="demo-container h-[400px]">
         <Magnet :key="rerenderKey" :padding="padding" :disabled="disabled" :magnetStrength="magnetStrength">
           <div class="magnet-container">Hover Me!</div>
         </Magnet>
@@ -11,7 +11,7 @@
 
       <h2 class="demo-title-extra">Link</h2>
 
-      <div class="demo-container">
+      <div class="demo-container h-[400px]">
         <Magnet
           :key="rerenderKey + 1"
           :padding="Math.floor(padding / 2)"
@@ -117,11 +117,6 @@ const propData = [
   color: #fff;
   margin: 2rem 0 1rem 0;
   font-weight: 600;
-}
-
-.demo-container {
-  position: relative;
-  min-height: 300px;
 }
 
 .magnet-container {

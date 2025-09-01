@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container" style="min-height: 500px; position: relative; overflow: hidden">
+      <div class="demo-container h-[500px] overflow-hidden">
         <TiltedCard
           image-src="https://i.scdn.co/image/ab67616d0000b273d9985092cd88bffd97653b58"
           alt-text="Kendrick Lamar - GNX Album Cover"

@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container h-[400px] overflow-hidden relative">
+      <div class="demo-container h-[400px] overflow-hidden">
         <Counter
           :value="value"
           :places="[100, 10, 1]"

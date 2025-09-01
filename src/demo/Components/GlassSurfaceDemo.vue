@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="relative overflow-y-auto no-scrollbar demo-container" ref="scrollContainerRef">
+      <div class="overflow-y-auto no-scrollbar demo-container h-[500px]" ref="scrollContainerRef">
         <GlassSurface
           :key="key"
           :width="360"
@@ -293,12 +293,3 @@ const propData = [
   }
 ];
 </script>
-
-<style scoped>
-.demo-container {
-  padding: 0;
-}
-.demo-container::-webkit-scrollbar {
-  display: none;
-}
-</style>

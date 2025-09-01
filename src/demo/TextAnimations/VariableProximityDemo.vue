@@ -1,10 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div
-        ref="containerRef"
-        class="demo-container relative min-h-[400px] overflow-hidden p-4 font-['Roboto_Flex',sans-serif]"
-      >
+      <div ref="containerRef" class="demo-container h-[400px] overflow-hidden font-['Roboto_Flex',sans-serif]">
         <VariableProximity
           label="Hover me! And then star Vue Bits on GitHub, or else..."
           class-name="variable-proximity-demo"

@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container">
+      <div class="demo-container h-[500px]">
         <ClickSpark
           :key="rerenderKey"
           :spark-color="sparkColor"
@@ -87,10 +87,6 @@ const propData = [
 </script>
 
 <style scoped>
-.demo-container {
-  min-height: 400px;
-}
-
 .click-spark-demo-area {
   position: absolute;
   width: 100%;

@@ -1,9 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div
-        class="demo-container relative h-[500px] overflow-hidden bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center"
-      >
+      <div class="demo-container h-[500px] overflow-hidden">
         <GooeyNav
           :key="rerenderKey"
           :items="navItems"

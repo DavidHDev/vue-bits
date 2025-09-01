@@ -59,14 +59,20 @@ let intervalId: ReturnType<typeof setInterval> | null = null;
 
 const splitIntoCharacters = (text: string): string[] => {
   if (typeof Intl !== 'undefined' && 'Segmenter' in Intl) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const segmenter = new (Intl as any).Segmenter('en', { granularity: 'grapheme' });
+    const IntlWithSegmenter = Intl as typeof Intl & {
+      Segmenter: new (
+        locales?: string | string[],
+        options?: { granularity: 'grapheme' | 'word' | 'sentence' }
+      ) => {
+        segment: (text: string) => Iterable<{ segment: string }>;
+      };
+    };
+    const segmenter = new IntlWithSegmenter.Segmenter('en', { granularity: 'grapheme' });
     return [...segmenter.segment(text)].map(({ segment }) => segment);
   }
 
   return [...text];
 };
-
 const elements = computed((): WordElement[] => {
   const currentText = props.texts[currentTextIndex.value];
 

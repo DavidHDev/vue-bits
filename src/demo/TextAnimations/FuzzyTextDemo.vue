@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container relative h-[500px] overflow-hidden">
+      <div class="demo-container h-[500px] overflow-hidden">
         <div class="flex flex-col items-center justify-center h-full">
           <FuzzyText
             :key="`main-${rerenderKey}`"

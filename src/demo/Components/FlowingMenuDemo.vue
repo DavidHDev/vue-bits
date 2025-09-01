@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container" style="height: 600px; overflow: hidden; padding: 100px 0">
+      <div class="demo-container h-[600px] overflow-hidden py-[100px]">
         <FlowingMenu :items="demoItems" />
       </div>
 

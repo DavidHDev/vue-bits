@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container min-h-[400px]">
+      <div class="demo-container h-[400px]">
         <PixelTransition
           :key="key"
           :grid-size="gridSize"
@@ -24,7 +24,7 @@
           </template>
         </PixelTransition>
 
-        <div class="mt-2 absolute bottom-[2em] text-[#a6a6a6]">Psst, hover the image!</div>
+        <div class="mt-2 absolute bottom-[1em] text-[#a6a6a6]">Psst, hover the image!</div>
       </div>
 
       <Customize>

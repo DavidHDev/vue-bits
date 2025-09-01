@@ -2,7 +2,7 @@
   <div class="shape-blur-demo">
     <TabbedLayout>
       <template #preview>
-        <div class="demo-container">
+        <div class="demo-container h-[500px] overflow-hidden">
           <ShapeBlur
             :variation="0"
             :pixel-ratio-prop="pixelRatioProp"
@@ -120,10 +120,5 @@ const propData = [
   z-index: 0;
   color: #222;
   pointer-events: none;
-}
-
-.demo-container {
-  overflow: hidden;
-  padding: 0;
 }
 </style>

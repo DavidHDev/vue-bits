@@ -49,9 +49,3 @@ const imageUrl =
 const numberOfImages = 30;
 const images = Array.from({ length: numberOfImages }, () => imageUrl);
 </script>
-
-<style scoped>
-.demo-container {
-  padding: 0;
-}
-</style>

@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="relative h-[500px] overflow-hidden demo-container">
+      <div class="demo-container h-[500px] overflow-hidden">
         <LogoLoop
           :key="key"
           :logos="items"
@@ -161,9 +161,3 @@ const propData = [
   }
 ];
 </script>
-
-<style scoped>
-.demo-container {
-  padding: 0;
-}
-</style>

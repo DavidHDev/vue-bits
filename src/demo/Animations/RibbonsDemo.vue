@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container">
+      <div class="demo-container h-[500px] overflow-hidden">
         <div class="hover-text">Hover Me.</div>
         <Ribbons
           :base-thickness="baseThickness"
@@ -175,13 +175,6 @@ const propData = [
   color: #222;
   z-index: 1;
   pointer-events: none;
-}
-
-.demo-container {
-  position: relative;
-  height: 500px;
-  padding: 0;
-  overflow: hidden;
 }
 
 .count-controls {

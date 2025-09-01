@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container bounce-cards-demo">
+      <div class="demo-container h-[500px] bounce-cards-demo">
         <RefreshButton @refresh="forceRerender" />
 
         <BounceCards

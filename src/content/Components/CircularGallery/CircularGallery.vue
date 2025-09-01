@@ -42,12 +42,16 @@ function lerp(p1: number, p2: number, t: number): number {
   return p1 + (p2 - p1) * t;
 }
 
-function autoBind(instance: Record<string, unknown>): void {
-  const proto = Object.getPrototypeOf(instance);
+function autoBind<T extends object>(instance: T): void {
+  const proto = Object.getPrototypeOf(instance) as Record<string, unknown> | null;
+  if (!proto) return;
   Object.getOwnPropertyNames(proto).forEach(key => {
-    if (key !== 'constructor' && typeof instance[key] === 'function') {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      instance[key] = (instance[key] as any).bind(instance);
+    if (key !== 'constructor') {
+      const desc = Object.getOwnPropertyDescriptor(proto, key);
+      if (desc && typeof desc.value === 'function') {
+        const fn = desc.value as (...args: unknown[]) => unknown;
+        (instance as Record<string, unknown>)[key] = fn.bind(instance);
+      }
     }
   });
 }
@@ -107,8 +111,7 @@ class Title {
   mesh!: Mesh;
 
   constructor({ gl, plane, renderer, text, textColor = '#545050', font = '30px sans-serif' }: TitleProps) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    autoBind(this as any);
+    autoBind(this);
     this.gl = gl;
     this.plane = plane;
     this.renderer = renderer;
@@ -590,8 +593,9 @@ class App {
 
   onWheel(e: Event) {
     const wheelEvent = e as WheelEvent;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const delta = wheelEvent.deltaY || (wheelEvent as any).wheelDelta || (wheelEvent as any).detail;
+    // Support legacy wheel events if present
+    const legacy = wheelEvent as unknown as { wheelDelta?: number; detail?: number };
+    const delta = wheelEvent.deltaY ?? legacy.wheelDelta ?? legacy.detail ?? 0;
     this.scroll.target += delta > 0 ? this.scrollSpeed : -this.scrollSpeed;
     this.onCheckDebounce();
   }

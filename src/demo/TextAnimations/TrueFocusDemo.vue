@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container">
+      <div class="demo-container h-[400px]">
         <div :key="key" class="flex flex-col justify-center items-center m-8 pl-6 w-full">
           <TrueFocus :key="key" v-bind="config" />
         </div>

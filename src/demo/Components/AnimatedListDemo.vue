@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container relative min-h-[500px] max-h-[500px] overflow-hidden flex items-center justify-center">
+      <div class="demo-container h-[500px] overflow-hidden">
         <AnimatedList
           :key="rerenderKey"
           :show-gradients="showGradients"
