@@ -81,7 +81,7 @@ const ParticleCard = defineComponent({
       el.className = 'particle';
       el.style.cssText = `
         position:absolute;width:4px;height:4px;border-radius:50%;
-        background:rgba(132,0,255,1);box-shadow:0 0 6px rgba(132,0,255,.6);
+        background:#A7EF9E;box-shadow:0 0 6px rgba(132,0,255,.6);
         pointer-events:none;z-index:100;left:${x}px;top:${y}px;
       `;
       return el;
