@@ -1,3 +1,5 @@
+<!-- Component ported and enhanced from https://codepen.io/JuanFuentes/pen/eYEeoyE -->
+
 <script setup lang="ts">
 import { onMounted, onUnmounted, watch, useTemplateRef } from 'vue';
 import * as THREE from 'three';

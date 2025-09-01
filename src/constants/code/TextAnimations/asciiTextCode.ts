@@ -3,7 +3,9 @@ import { createCodeObject } from '../../../types/code';
 
 export const asciiText = createCodeObject(code, 'TextAnimations/AsciiText', {
   installation: `npm install three @types/three`,
-  usage: `<template>
+  usage: `<!-- Component ported and enhanced from https://codepen.io/JuanFuentes/pen/eYEeoyE -->
+  
+<template>
   <AsciiText
     text="Hey!"
     :ascii-font-size="8"

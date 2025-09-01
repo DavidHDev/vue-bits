@@ -1,3 +1,5 @@
+<!-- Component ported from https://codepen.io/JuanFuentes/full/rgXKGQ -->
+
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, computed, watch, useTemplateRef } from 'vue';
 

@@ -2,7 +2,10 @@ import code from '@content/TextAnimations/TextPressure/TextPressure.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const textPressure = createCodeObject(code, 'TextAnimations/TextPressure', {
-  usage: `<template>
+  usage: `<!-- Component ported from https://codepen.io/JuanFuentes/full/rgXKGQ -->
+<!-- Font used - https://compressa.preusstype.com/ -->
+  
+<template>
   <TextPressure
     text="Hello!"
     :flex="true"
