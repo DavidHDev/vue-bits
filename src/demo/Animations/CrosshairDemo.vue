@@ -8,7 +8,7 @@
           <a
             ref="linkRef"
             href="https://github.com/DavidHDev/vue-bits"
-            class="text-center font-black text-[2rem] md:text-[4rem] transition-all duration-300 ease-in-out hover:text-[#5227ff]"
+            class="text-center font-black text-[2rem] md:text-[4rem] transition-all duration-300 ease-in-out hover:text-[#27FF64]"
             :style="{ minWidth: minWidth + 'px' }"
             @mouseenter="handleMouseEnter"
             @mouseleave="handleMouseLeave"

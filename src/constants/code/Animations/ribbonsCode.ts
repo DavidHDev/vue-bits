@@ -5,7 +5,7 @@ export const ribbons = createCodeObject(code, 'Animations/Ribbons', {
   installation: `npm install ogl`,
   usage: `<template>
   <Ribbons
-    :colors="['#ff9346', '#7cff67', '#ffee51', '#5227FF']"
+    :colors="['#ff9346', '#7cff67', '#ffee51', '#27FF64']"
     :base-spring="0.03"
     :base-friction="0.9"
     :base-thickness="30"

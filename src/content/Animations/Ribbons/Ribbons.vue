@@ -22,7 +22,7 @@ interface RibbonsProps {
 }
 
 const props = withDefaults(defineProps<RibbonsProps>(), {
-  colors: () => ['#ff9346', '#7cff67', '#ffee51', '#5227FF'],
+  colors: () => ['#ff9346', '#7cff67', '#ffee51', '#27FF64'],
   baseSpring: 0.03,
   baseFriction: 0.9,
   baseThickness: 30,

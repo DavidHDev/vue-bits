@@ -3,7 +3,7 @@ import { createCodeObject } from '../../../types/code';
 
 export const folder = createCodeObject(code, 'Components/Folder', {
   usage: `<template>
-  <Folder :items="items" :size="2" color="#5227FF" class="my-folder-class" />
+  <Folder :items="items" :size="2" color="#27FF64" class="my-folder-class" />
 </template>
 
 <script setup lang="ts">

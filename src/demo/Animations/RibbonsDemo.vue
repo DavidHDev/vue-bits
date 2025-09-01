@@ -95,7 +95,7 @@ const propData = [
   {
     name: 'colors',
     type: 'string[]',
-    default: "['#5227FF']",
+    default: "['#27FF64']",
     description: 'An array of color strings to be used for the ribbons.'
   },
   {

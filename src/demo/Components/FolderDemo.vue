@@ -36,14 +36,14 @@ import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PropTable from '@/components/common/PropTable.vue';
 import TabbedLayout from '@/components/common/TabbedLayout.vue';
 
-const color = ref('#5227FF');
+const color = ref('#27FF64');
 const size = ref(2);
 
 const propData = [
   {
     name: 'color',
     type: 'string',
-    default: '#5227FF',
+    default: '#27FF64',
     description: 'The color of the folder.'
   },
   {

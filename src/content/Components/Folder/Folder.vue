@@ -32,7 +32,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  color: '#5227FF',
+  color: '#27FF64',
   size: 1,
   items: () => [],
   class: ''
