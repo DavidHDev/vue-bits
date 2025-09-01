@@ -112,6 +112,7 @@ const backgrounds = {
   'prism': () => import('../demo/Backgrounds/PrismDemo.vue'),
   'gradient-blinds': () => import('../demo/Backgrounds/GradientBlindsDemo.vue'),
   'prismatic-burst': () => import('../demo/Backgrounds/PrismaticBurstDemo.vue'),
+  'pixel-blast': () => import('../demo/Backgrounds/PixelBlastDemo.vue'),
 };
 
 export const componentMap = {

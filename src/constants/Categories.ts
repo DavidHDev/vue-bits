@@ -1,5 +1,5 @@
 // Highlighted sidebar items
-export const NEW = ['Gradual Blur', 'Gradient Blinds', 'Bubble Menu', 'Prism', 'Plasma', 'Electric Border', 'Target Cursor', 'Pill Nav', 'Card Nav', 'Logo Loop', 'Prismatic Burst'];
+export const NEW = ['Pixel Blast', 'Gradual Blur', 'Gradient Blinds', 'Bubble Menu', 'Prism', 'Plasma', 'Electric Border', 'Target Cursor', 'Pill Nav', 'Card Nav', 'Logo Loop', 'Prismatic Burst'];
 export const UPDATED = [];
 
 // Used for main sidebar navigation
@@ -101,6 +101,7 @@ export const CATEGORIES = [
       'Prism',
       'Aurora',
       'Beams',
+      'Pixel Blast',
       'Dark Veil',
       'Dither',
       'Gradient Blinds',
