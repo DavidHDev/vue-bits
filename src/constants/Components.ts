@@ -81,6 +81,7 @@ const components = {
   'rolling-gallery': () => import('../demo/Components/RollingGalleryDemo.vue'),
   'scroll-stack': () => import('../demo/Components/ScrollStackDemo.vue'),
   'bubble-menu': () => import('../demo/Components/BubbleMenuDemo.vue'),
+  'staggered-menu': () => import('../demo/Components/StaggeredMenuDemo.vue'),
 };
 
 const backgrounds = {
