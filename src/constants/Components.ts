@@ -23,6 +23,7 @@ const animations = {
   'sticker-peel': () => import('../demo/Animations/StickerPeelDemo.vue'),
   'electric-border': () => import('../demo/Animations/ElectricBorderDemo.vue'),
   'gradual-blur': () => import('../demo/Animations/GradualBlurDemo.vue'),
+  'laser-flow': () => import('../demo/Animations/LaserFlowDemo.vue'),
 };
 
 const textAnimations = {
