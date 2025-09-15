@@ -72,7 +72,7 @@ export const laserFlow = createCodeObject(code, 'Animations/LaserFlow', {
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { useTemplateRef } from 'vue'
 import LaserFlow from './LaserFlow.vue'
 
 const revealImgRef = useTemplateRef('revealImgRef')
