@@ -83,7 +83,7 @@ uniform float uFade;
 // Wisps (animated micro-streaks) that travel along the beam
 #define W_BASE_X 1.5
 #define W_LAYER_GAP 0.25
-#define W_LANES 55
+#define W_LANES 10
 #define W_SIDE_DECAY 0.5
 #define W_HALF 0.01
 #define W_AA 0.15
@@ -96,7 +96,7 @@ uniform float uFade;
 
 // Volumetric fog controls
 #define FOG_ON 1
-#define FOG_CONTRAST 1.5
+#define FOG_CONTRAST 1.2
 #define FOG_SPEED_U 0.1
 #define FOG_SPEED_V -0.1
 #define FOG_OCTAVES 5
@@ -107,7 +107,7 @@ uniform float uFade;
 #define FOG_TILT_SHAPE 1.5
 #define FOG_BEAM_MIN 0.0
 #define FOG_BEAM_MAX 0.75
-#define FOG_MASK_GAMMA 0.20
+#define FOG_MASK_GAMMA 0.5
 #define FOG_EXPAND_SHAPE 12.2
 #define FOG_EDGE_MIX 0.5
 
@@ -136,7 +136,7 @@ uniform float uFade;
         return powr*min(1.0,r);
     }
     float tri01(float x){float f=fract(x);return 1.0-abs(f*2.0-1.0);}
-    float tauWf(float t,float tmin,float tmax){float a=smoothstep(tmin,tmin+EDGE_SOFT,t),b=1.0-smoothstep(tmax-EDGE_SOFT,tmax,t);return max(0.0,a*b);} 
+    float tauWf(float t,float tmin,float tmax){float a=smoothstep(tmin,tmin+EDGE_SOFT,t),b=1.0-smoothstep(tmax-EDGE_SOFT,tmax,t);return max(0.0,a*b);}
     float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+34.123);return fract(p.x*p.y);}
     float vnoise(vec2 p){
         vec2 i=floor(p),f=fract(p);
@@ -235,7 +235,12 @@ void mainImage(out vec4 fc,in vec2 frag){
     float nxF=abs((frag.x-C.x)*invW),hE=1.0-smoothstep(HFOG_EDGE_START,HFOG_EDGE_END,nxF); hE=pow(clamp(hE,0.0,1.0),HFOG_EDGE_GAMMA);
     float hW=mix(1.0,hE,clamp(yP,0.0,1.0));
     float bBias=mix(1.0,1.0-sPix,FOG_BOTTOM_BIAS);
-    fog=n*uFogIntensity*bBias*bm*hW;
+    float browserFogIntensity = uFogIntensity;
+    browserFogIntensity *= 1.8;
+
+    float radialFade = 1.0 - smoothstep(0.0, 0.7, length(uvc) / 120.0);
+    float safariFog = n * browserFogIntensity * bBias * bm * hW * radialFade;
+    fog = safariFog;
 #endif
     float LF=L+fog;
     float dith=(h21(frag)-0.5)*(DITHER_STRENGTH/255.0);
@@ -278,29 +283,68 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const mountRef = useTemplateRef('mountRef');
+const rendererRef = ref<THREE.WebGLRenderer | null>(null);
+const uniformsRef = ref<any>(null);
 const hasFadedRef = ref(false);
+const rectRef = ref<DOMRect | null>(null);
+const baseDprRef = ref<number>(1);
+const currentDprRef = ref<number>(1);
+const fpsSamplesRef = ref<number[]>([]);
+const lastFpsCheckRef = ref<number>(performance.now());
+const emaDtRef = ref<number>(16.7); // ms
+const pausedRef = ref<boolean>(false);
+const inViewRef = ref<boolean>(true);
+
+const hexToRGB = (hex: string) => {
+  let c = hex.trim();
+  if (c[0] === '#') c = c.slice(1);
+  if (c.length === 3)
+    c = c
+      .split('')
+      .map(x => x + x)
+      .join('');
+  const n = parseInt(c, 16) || 0xffffff;
+  return { r: ((n >> 16) & 255) / 255, g: ((n >> 8) & 255) / 255, b: (n & 255) / 255 };
+};
 
 let cleanup: (() => void) | null = null;
 
 const setup = () => {
   const mount = mountRef.value!;
   const renderer = new THREE.WebGLRenderer({
-    antialias: true,
+    antialias: false,
     alpha: false,
+    depth: false,
+    stencil: false,
     powerPreference: 'high-performance',
-    premultipliedAlpha: false
+    premultipliedAlpha: false,
+    preserveDrawingBuffer: false,
+    failIfMajorPerformanceCaveat: false,
+    logarithmicDepthBuffer: false
   });
+
+  rendererRef.value = renderer;
+
+  baseDprRef.value = Math.min(props.dpr ?? (window.devicePixelRatio || 1), 2);
+  currentDprRef.value = baseDprRef.value;
+
+  renderer.setPixelRatio(currentDprRef.value);
+  renderer.shadowMap.enabled = false;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.setClearColor(0x000000, 1);
-  renderer.domElement.style.width = '100%';
-  renderer.domElement.style.height = '100%';
-  renderer.domElement.style.display = 'block';
-  mount.appendChild(renderer.domElement);
+  const canvas = renderer.domElement;
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+  canvas.style.display = 'block';
+  mount.appendChild(canvas);
 
   const scene = new THREE.Scene();
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]), 3));
+
+  const { r, g, b } = hexToRGB(props.color || '#FFFFFF');
 
   const uniforms = {
     iTime: { value: 0 },
@@ -323,9 +367,10 @@ const setup = () => {
     uDecay: { value: props.decay },
     uFalloffStart: { value: props.falloffStart },
     uFogFallSpeed: { value: props.fogFallSpeed },
-    uColor: { value: new THREE.Vector3(1, 1, 1) },
+    uColor: { value: new THREE.Vector3(r, g, b) },
     uFade: { value: hasFadedRef.value ? 1 : 0 }
   };
+  uniformsRef.value = uniforms;
 
   const material = new THREE.RawShaderMaterial({
     vertexShader: VERT,
@@ -338,33 +383,55 @@ const setup = () => {
   });
 
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
   scene.add(mesh);
 
   const clock = new THREE.Clock();
   let prevTime = 0;
-  let flowTime = 0;
-  let fogTime = 0;
+
   let fade = hasFadedRef.value ? 1 : 0;
   const mouseTarget = new THREE.Vector2(0, 0);
   const mouseSmooth = new THREE.Vector2(0, 0);
 
-  const setSize = () => {
-    const { clientWidth: w, clientHeight: h } = mount;
-    const pixelRatio = Math.min(props.dpr ?? window.devicePixelRatio ?? 1, 2);
-    renderer.setPixelRatio(pixelRatio);
+  const setSizeNow = () => {
+    const w = mount.clientWidth || 1;
+    const h = mount.clientHeight || 1;
+    const pr = currentDprRef.value;
+    renderer.setPixelRatio(pr);
     renderer.setSize(w, h, false);
-    uniforms.iResolution.value.set(w * pixelRatio, h * pixelRatio, pixelRatio);
+    uniforms.iResolution.value.set(w * pr, h * pr, pr);
+    rectRef.value = canvas.getBoundingClientRect();
   };
 
-  setSize();
-  const ro = new ResizeObserver(setSize);
+  let resizeRaf = 0;
+  const scheduleResize = () => {
+    if (resizeRaf) cancelAnimationFrame(resizeRaf);
+    resizeRaf = requestAnimationFrame(setSizeNow);
+  };
+
+  setSizeNow();
+  const ro = new ResizeObserver(scheduleResize);
   ro.observe(mount);
 
+  const io = new IntersectionObserver(
+    entries => {
+      inViewRef.value = entries[0]?.isIntersecting ?? true;
+    },
+    { root: null, threshold: 0 }
+  );
+  io.observe(mount);
+
+  const onVis = () => {
+    pausedRef.value = document.hidden;
+  };
+  document.addEventListener('visibilitychange', onVis, { passive: true });
+
   const updateMouse = (clientX: number, clientY: number) => {
-    const rect = renderer.domElement.getBoundingClientRect();
+    const rect = rectRef.value;
+    if (!rect) return;
     const x = clientX - rect.left;
     const y = clientY - rect.top;
-    const ratio = renderer.getPixelRatio();
+    const ratio = currentDprRef.value;
     const hb = rect.height * ratio;
     mouseTarget.set(x * ratio, hb - y * ratio);
   };
@@ -372,20 +439,155 @@ const setup = () => {
   const onMove = (ev: PointerEvent | MouseEvent) => updateMouse(ev.clientX, ev.clientY);
   const onLeave = () => mouseTarget.set(0, 0);
 
-  renderer.domElement.addEventListener('pointermove', onMove as any);
-  renderer.domElement.addEventListener('pointerdown', onMove as any);
-  renderer.domElement.addEventListener('pointerenter', onMove as any);
-  renderer.domElement.addEventListener('pointerleave', onLeave as any);
-  window.addEventListener('mousemove', onMove);
+  canvas.addEventListener('pointermove', onMove as any, { passive: true });
+  canvas.addEventListener('pointerdown', onMove as any, { passive: true });
+  canvas.addEventListener('pointerenter', onMove as any, { passive: true });
+  canvas.addEventListener('pointerleave', onLeave as any, { passive: true });
+
+  const onCtxLost = (e: Event) => {
+    e.preventDefault();
+    pausedRef.value = true;
+  };
+  const onCtxRestored = () => {
+    pausedRef.value = false;
+    scheduleResize();
+  };
+  canvas.addEventListener('webglcontextlost', onCtxLost, false);
+  canvas.addEventListener('webglcontextrestored', onCtxRestored, false);
 
   let raf = 0;
+  const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+  const dprFloor = 0.6;
+  const lowerThresh = 50;
+  const upperThresh = 58;
+
+  const adjustDprIfNeeded = (now: number) => {
+    const elapsed = now - lastFpsCheckRef.value;
+    if (elapsed < 750) return;
+
+    const samples = fpsSamplesRef.value;
+    if (samples.length === 0) {
+      lastFpsCheckRef.value = now;
+      return;
+    }
+    const avgFps = samples.reduce((a, b) => a + b, 0) / samples.length;
+
+    let next = currentDprRef.value;
+    const base = baseDprRef.value;
+
+    if (avgFps < lowerThresh) {
+      next = clamp(currentDprRef.value * 0.9, dprFloor, base);
+    } else if (avgFps > upperThresh && currentDprRef.value < base) {
+      next = clamp(currentDprRef.value * 1.05, dprFloor, base);
+    }
+
+    if (Math.abs(next - currentDprRef.value) > 0.01) {
+      currentDprRef.value = next;
+      setSizeNow();
+    }
+
+    fpsSamplesRef.value = [];
+    lastFpsCheckRef.value = now;
+  };
+
   const animate = () => {
+    raf = requestAnimationFrame(animate);
+    if (pausedRef.value || !inViewRef.value) return;
+
     const t = clock.getElapsedTime();
     const dt = Math.max(0, t - prevTime);
     prevTime = t;
+
+    const dtMs = dt * 1000;
+    emaDtRef.value = emaDtRef.value * 0.9 + dtMs * 0.1;
+    const instFps = 1000 / Math.max(1, emaDtRef.value);
+    fpsSamplesRef.value.push(instFps);
+
     uniforms.iTime.value = t;
-    uniforms.uTiltScale.value = props.mouseTiltStrength;
+
+    const cdt = Math.min(0.033, Math.max(0.001, dt));
+    (uniforms.uFlowTime.value as number) += cdt;
+    (uniforms.uFogTime.value as number) += cdt;
+
+    if (!hasFadedRef.value) {
+      const fadeDur = 1.0;
+      fade = Math.min(1, fade + cdt / fadeDur);
+      uniforms.uFade.value = fade;
+      if (fade >= 1) hasFadedRef.value = true;
+    }
+
+    const tau = Math.max(1e-3, props.mouseSmoothTime);
+    const alpha = 1 - Math.exp(-cdt / tau);
+    mouseSmooth.lerp(mouseTarget, alpha);
+    uniforms.iMouse.value.set(mouseSmooth.x, mouseSmooth.y, 0, 0);
+
+    renderer.render(scene, camera);
+
+    adjustDprIfNeeded(performance.now());
+  };
+
+  animate();
+
+  cleanup = () => {
+    cancelAnimationFrame(raf);
+    ro.disconnect();
+    io.disconnect();
+    document.removeEventListener('visibilitychange', onVis);
+    canvas.removeEventListener('pointermove', onMove as any);
+    canvas.removeEventListener('pointerdown', onMove as any);
+    canvas.removeEventListener('pointerenter', onMove as any);
+    canvas.removeEventListener('pointerleave', onLeave as any);
+    canvas.removeEventListener('webglcontextlost', onCtxLost);
+    canvas.removeEventListener('webglcontextrestored', onCtxRestored);
+    geometry.dispose();
+    material.dispose();
+    renderer.dispose();
+    if (mount.contains(canvas)) mount.removeChild(canvas);
+  };
+};
+
+onMounted(() => {
+  setup();
+});
+
+onBeforeUnmount(() => {
+  cleanup?.();
+});
+
+watch(
+  () => [props.dpr],
+  () => {
+    cleanup?.();
+    setup();
+  },
+  { deep: true }
+);
+
+watch(
+  () => [
+    props.wispDensity,
+    props.mouseTiltStrength,
+    props.horizontalBeamOffset,
+    props.verticalBeamOffset,
+    props.flowSpeed,
+    props.verticalSizing,
+    props.horizontalSizing,
+    props.fogIntensity,
+    props.fogScale,
+    props.wispSpeed,
+    props.wispIntensity,
+    props.flowStrength,
+    props.decay,
+    props.falloffStart,
+    props.fogFallSpeed,
+    props.color
+  ],
+  () => {
+    const uniforms = uniformsRef.value;
+    if (!uniforms) return;
+
     uniforms.uWispDensity.value = props.wispDensity;
+    uniforms.uTiltScale.value = props.mouseTiltStrength;
     uniforms.uBeamXFrac.value = props.horizontalBeamOffset;
     uniforms.uBeamYFrac.value = props.verticalBeamOffset;
     uniforms.uFlowSpeed.value = props.flowSpeed;
@@ -399,74 +601,10 @@ const setup = () => {
     uniforms.uDecay.value = props.decay;
     uniforms.uFalloffStart.value = props.falloffStart;
     uniforms.uFogFallSpeed.value = props.fogFallSpeed;
-    (function () {
-      let c = props.color || '#ffffff';
-      c = c.trim();
-      if (c[0] === '#') c = c.slice(1);
-      if (c.length === 3)
-        c = c
-          .split('')
-          .map(x => x + x)
-          .join('');
-      let n = parseInt(c, 16);
-      if (isNaN(n)) n = 0xffffff;
-      const r = ((n >> 16) & 255) / 255;
-      const g = ((n >> 8) & 255) / 255;
-      const b = (n & 255) / 255;
-      uniforms.uColor.value.set(r, g, b);
-    })();
-    const cdt = Math.min(0.033, Math.max(0.001, dt));
-    flowTime += cdt;
-    fogTime += cdt;
-    uniforms.uFlowTime.value = flowTime;
-    uniforms.uFogTime.value = fogTime;
-    if (!hasFadedRef.value) {
-      const fadeDur = 1.0;
-      fade = Math.min(1, fade + cdt / fadeDur);
-      uniforms.uFade.value = fade;
-      if (fade >= 1) hasFadedRef.value = true;
-    } else if (uniforms.uFade.value !== 1) {
-      uniforms.uFade.value = 1;
-    }
 
-    const tau = Math.max(1e-3, props.mouseSmoothTime);
-    const alpha = 1 - Math.exp(-cdt / tau);
-    mouseSmooth.lerp(mouseTarget, alpha);
-    uniforms.iMouse.value.set(mouseSmooth.x, mouseSmooth.y, 0, 0);
-
-    renderer.render(scene, camera);
-    raf = requestAnimationFrame(animate);
-  };
-  animate();
-
-  cleanup = () => {
-    cancelAnimationFrame(raf);
-    ro.disconnect();
-    renderer.domElement.removeEventListener('pointermove', onMove as any);
-    renderer.domElement.removeEventListener('pointerdown', onMove as any);
-    renderer.domElement.removeEventListener('pointerenter', onMove as any);
-    renderer.domElement.removeEventListener('pointerleave', onLeave as any);
-    window.removeEventListener('mousemove', onMove);
-    geometry.dispose();
-    material.dispose();
-    renderer.dispose();
-    mount.removeChild(renderer.domElement);
-  };
-};
-
-onMounted(() => {
-  setup();
-});
-
-onBeforeUnmount(() => {
-  cleanup?.();
-});
-
-watch(
-  props,
-  () => {
-    cleanup?.();
-    setup();
+    const { r, g, b } = hexToRGB(props.color || '#FFFFFF');
+    console.log(props.color);
+    uniforms.uColor.value.set(r, g, b);
   },
   { deep: true }
 );

@@ -23,6 +23,7 @@
           :fog-scale="fogScale"
           :fog-fall-speed="fogFallSpeed"
           :decay="decay"
+          :dpr="1"
           :falloff-start="falloffStart"
           :color="laserColor"
           :key="key"
