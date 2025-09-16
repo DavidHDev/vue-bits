@@ -101,6 +101,7 @@ const backgrounds = {
   'galaxy': () => import('../demo/Backgrounds/GalaxyDemo.vue'),
   'faulty-terminal': () => import('../demo/Backgrounds/FaultyTerminalDemo.vue'),
   'light-rays': () => import('../demo/Backgrounds/LightRaysDemo.vue'),
+  'gradient-blinds': () => import('../demo/Backgrounds/GradientBlindsDemo.vue'),
 };
 
 export const componentMap = {
