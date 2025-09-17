@@ -82,6 +82,7 @@ const components = {
   'scroll-stack': () => import('../demo/Components/ScrollStackDemo.vue'),
   'bubble-menu': () => import('../demo/Components/BubbleMenuDemo.vue'),
   'staggered-menu': () => import('../demo/Components/StaggeredMenuDemo.vue'),
+  'infinite-menu': () => import('../demo/Components/InfiniteMenuDemo.vue'),
 };
 
 const backgrounds = {
