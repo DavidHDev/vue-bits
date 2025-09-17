@@ -1,5 +1,5 @@
 // Highlighted sidebar items
-export const NEW = ['Liquid Ether', 'Staggered Menu', 'Pixel Blast', 'Gradual Blur', 'Gradient Blinds', 'Bubble Menu', 'Prism', 'Plasma', 'Electric Border', 'Target Cursor', 'Pill Nav', 'Card Nav', 'Logo Loop', 'Prismatic Burst'];
+export const NEW = ['Infinite Menu', 'Liquid Ether', 'Staggered Menu', 'Pixel Blast', 'Gradual Blur', 'Gradient Blinds', 'Bubble Menu', 'Prism', 'Plasma', 'Electric Border', 'Target Cursor', 'Pill Nav', 'Card Nav', 'Logo Loop', 'Prismatic Burst'];
 export const UPDATED = [];
 
 // Used for main sidebar navigation
@@ -82,6 +82,7 @@ export const CATEGORIES = [
       'Flying Posters',
       'Folder',
       'Card Swap',
+      'Infinite Menu',
       'Infinite Scroll',
       'Tilted Card',
       'Glass Icons',
