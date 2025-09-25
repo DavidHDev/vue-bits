@@ -83,6 +83,7 @@ export const CATEGORIES = [
       'Flying Posters',
       'Folder',
       'Card Swap',
+      'Infinite Menu',
       'Infinite Scroll',
       'Tilted Card',
       'Glass Icons',
