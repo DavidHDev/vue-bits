@@ -32,26 +32,6 @@ const focusRect = ref({ x: 0, y: 0, width: 0, height: 0 });
 let interval: number | null = null;
 
 watch(
-  [() => props.manualMode, () => props.animationDuration, () => props.pauseBetweenAnimations, () => words.value],
-  () => {
-    if (interval) {
-      clearInterval(interval);
-      interval = null;
-    }
-
-    if (!props.manualMode) {
-      interval = setInterval(
-        () => {
-          currentIndex.value = (currentIndex.value + 1) % words.value.length;
-        },
-        (props.animationDuration + props.pauseBetweenAnimations) * 1000
-      );
-    }
-  },
-  { immediate: true }
-);
-
-watch(
   [currentIndex, () => words.value.length],
   async () => {
     if (currentIndex.value === null || currentIndex.value === -1) return;
@@ -105,6 +85,26 @@ onMounted(async () => {
       height: activeRect.height
     };
   }
+
+  watch(
+    [() => props.manualMode, () => props.animationDuration, () => props.pauseBetweenAnimations, () => words.value],
+    () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+
+      if (!props.manualMode) {
+        interval = setInterval(
+          () => {
+            currentIndex.value = (currentIndex.value + 1) % words.value.length;
+          },
+          (props.animationDuration + props.pauseBetweenAnimations) * 1000
+        );
+      }
+    },
+    { immediate: true }
+  );
 });
 
 onUnmounted(() => {

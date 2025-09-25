@@ -23,6 +23,7 @@ const animations = {
   'sticker-peel': () => import('../demo/Animations/StickerPeelDemo.vue'),
   'electric-border': () => import('../demo/Animations/ElectricBorderDemo.vue'),
   'gradual-blur': () => import('../demo/Animations/GradualBlurDemo.vue'),
+  'laser-flow': () => import('../demo/Animations/LaserFlowDemo.vue'),
 };
 
 const textAnimations = {
@@ -70,6 +71,7 @@ const components = {
   'infinite-scroll': () => import('../demo/Components/InfiniteScrollDemo.vue'),
   'glass-icons': () => import('../demo/Components/GlassIconsDemo.vue'),
   'decay-card': () => import('../demo/Components/DecayCardDemo.vue'),
+  'dome-gallery': () => import('../demo/Components/DomeGalleryDemo.vue'),
   'flowing-menu': () => import('../demo/Components/FlowingMenuDemo.vue'),
   'elastic-slider': () => import('../demo/Components/ElasticSliderDemo.vue'),
   'tilted-card': () => import('../demo/Components/TiltedCardDemo.vue'),
