@@ -3,7 +3,7 @@
     <template #preview>
       <div class="h-[600px] overflow-hidden cursor-pointer demo-container">
         <Hyperspeed :effect-options="currentPreset" />
-        <BackgroundContent pillText="New Background" headline="Cick & hold to see the real magic of hyperspeed!" />
+        <BackgroundContent pillText="New Background" headline="Click & hold to see the real magic of hyperspeed!" />
       </div>
 
       <Customize>
