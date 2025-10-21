@@ -18,7 +18,7 @@ For example, if you are working on a feature related to adding a new component, 
 
 ## Pull Requests
 
-We welcome pull requests from everyone as long as they respeect the quality standards of this project. To submit a pull request, please follow these steps:
+We welcome pull requests from everyone as long as they respect the quality standards of this project. To submit a pull request, please follow these steps:
 
 1. Fork the repository and create a new branch based on the branch naming convention mentioned above.
 2. Make your changes in the new branch.
