@@ -24,6 +24,7 @@ const animations = {
   'electric-border': () => import('../demo/Animations/ElectricBorderDemo.vue'),
   'gradual-blur': () => import('../demo/Animations/GradualBlurDemo.vue'),
   'laser-flow': () => import('../demo/Animations/LaserFlowDemo.vue'),
+  'ghost-cursor': () => import('../demo/Animations/GhostCursorDemo.vue'),
 };
 
 const textAnimations = {
