@@ -119,6 +119,7 @@ const backgrounds = {
   'prismatic-burst': () => import('../demo/Backgrounds/PrismaticBurstDemo.vue'),
   'pixel-blast': () => import('../demo/Backgrounds/PixelBlastDemo.vue'),
   'liquid-ether': () => import('../demo/Backgrounds/LiquidEtherDemo.vue'),
+  'color-bends': () => import('../demo/Backgrounds/ColorBendsDemo.vue'),
 };
 
 export const componentMap = {
