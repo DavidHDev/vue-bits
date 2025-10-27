@@ -1,5 +1,5 @@
 // Highlighted sidebar items
-export const NEW = ['Ghost Cursor', 'Laser Flow', 'Dome Gallery', 'Liquid Ether', 'Staggered Menu', 'Pixel Blast', 'Gradient Blinds', 'Bubble Menu', 'Prism', 'Plasma', 'Pill Nav', 'Card Nav', 'Prismatic Burst'];
+export const NEW = ['Color Bends', 'Ghost Cursor', 'Laser Flow', 'Dome Gallery', 'Liquid Ether', 'Staggered Menu', 'Pixel Blast', 'Bubble Menu', 'Pill Nav', 'Card Nav'];
 export const UPDATED = [];
 
 // Used for main sidebar navigation
@@ -103,6 +103,7 @@ export const CATEGORIES = [
   {
     name: 'Backgrounds',
     subcategories: [
+      'Color Bends',
       'Prism',
       'Aurora',
       'Beams',
