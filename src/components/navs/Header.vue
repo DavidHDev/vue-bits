@@ -24,6 +24,35 @@
           </button>
         </FadeContent>
 
+        <div class="inline-block relative">
+          <router-link
+            to="/favorites"
+            @mouseenter="showTooltip"
+            @mouseleave="hideTooltip"
+            aria-label="Favorites"
+            class="flex justify-center items-center bg-linear-to-br from-[#1ea03f] to-[#182fff99] hover:brightness-110 active:brightness-95 rounded-full w-10 h-10 transition-all duration-200 cursor-pointer"
+          >
+            <i class="pi pi-heart-fill" :style="{ color: '#ffffff' }"></i>
+          </router-link>
+
+          <Transition
+            enter-active-class="transition-opacity duration-200"
+            leave-active-class="transition-opacity duration-100"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+          >
+            <div v-if="isTooltipVisible" class="top-full left-1/2 absolute mt-2 -translate-x-1/2 pointer-events-none">
+              <div
+                class="flex justify-center items-center bg-[#0b0b0b] px-4 py-2 border border-[#333] rounded-[50px] font-semibold text-white text-xs whitespace-nowrap"
+              >
+                Favorites
+              </div>
+            </div>
+          </Transition>
+        </div>
+
         <FadeContent blur>
           <button class="cta-button-docs" @click="openGitHub">
             Star On GitHub
@@ -69,10 +98,11 @@
             <p class="section-title">Useful Links</p>
 
             <router-link to="/text-animations/split-text" @click="closeDrawer" class="drawer-link">Docs</router-link>
+            <router-link to="/favorites" @click="closeDrawer" class="drawer-link">Favorites</router-link>
 
             <a href="https://github.com/DavidHDev/vue-bits" target="_blank" @click="closeDrawer" class="drawer-link">
               GitHub
-              <i class="pi pi-arrow-up-right arrow-icon"></i>
+              <i class="pi-arrow-up-right pi arrow-icon"></i>
             </a>
           </div>
 
@@ -83,7 +113,7 @@
 
             <a href="https://davidhaz.com/" target="_blank" @click="closeDrawer" class="drawer-link">
               Who made this?
-              <i class="pi pi-arrow-up-right arrow-icon"></i>
+              <i class="pi-arrow-up-right pi arrow-icon"></i>
             </a>
           </div>
         </div>
@@ -110,6 +140,10 @@ const stars = useStars();
 const route = useRoute();
 const router = useRouter();
 
+const isTooltipVisible = ref(false);
+const showTimeout = ref<number | null>(null);
+const hideTimeout = ref<number | null>(null);
+
 const slug = (str: string) => str.replace(/\s+/g, '-').toLowerCase();
 
 const toggleDrawer = () => {
@@ -127,6 +161,20 @@ const openGitHub = () => {
 const onNavClick = () => {
   closeDrawer();
   window.scrollTo(0, 0);
+};
+
+const showTooltip = () => {
+  clearTimeout(hideTimeout.value ?? 0);
+  showTimeout.value = setTimeout(() => {
+    isTooltipVisible.value = true;
+  }, 250);
+};
+
+const hideTooltip = () => {
+  clearTimeout(showTimeout.value ?? 0);
+  hideTimeout.value = setTimeout(() => {
+    isTooltipVisible.value = false;
+  }, 100);
 };
 
 const handleMobileTransitionNavigation = async (path: string) => {

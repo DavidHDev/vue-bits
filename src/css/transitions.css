@@ -1,0 +1,42 @@
+.page-transition-fade {
+  transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.page-transition-fade-out {
+  opacity: 0;
+}
+
+.page-transition-fade-in {
+  opacity: 1;
+}
+
+.sidebar-item {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding-left: 0;
+}
+
+.sidebar-item:hover {
+  padding-left: 2px;
+}
+
+.sidebar-item.transitioning {
+  pointer-events: none;
+}
+
+.category-page.loading {
+  pointer-events: none;
+}
+
+.skeleton-loader {
+  animation: fadeIn 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import LandingPage from '@/pages/LandingPage.vue';
 import CategoryPage from '@/pages/CategoryPage.vue';
+import FavoritesPage from '@/pages/FavoritesPage.vue';
 import CategoryLayout from '@/components/layouts/CategoryLayout.vue';
 
 const router = createRouter({
@@ -21,6 +22,11 @@ const router = createRouter({
           component: CategoryPage
         }
       ]
+    },
+    {
+      path: '/favorites',
+      name: 'favorites',
+      component: FavoritesPage
     }
   ]
 });

@@ -1,19 +1,23 @@
 <template>
   <div>
-    <DisplayHeader v-if="!isCategoryPage" :activeItem="activeItem" />
+    <DisplayHeader v-if="!isSidebarPage" :activeItem="activeItem" />
 
     <router-view />
   </div>
 </template>
 
 <script setup lang="ts">
+import DisplayHeader from '@/components/landing/DisplayHeader/DisplayHeader.vue';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import DisplayHeader from '@/components/landing/DisplayHeader/DisplayHeader.vue';
 
 const route = useRoute();
 
-const isCategoryPage = computed(() => /^\/[^/]+\/[^/]+$/.test(route.path));
+const sidebarPages = ['/favorites'];
+const isSidebarPage = computed(() => {
+  const path = route.path;
+  return sidebarPages.some(sidebarPath => path.includes(sidebarPath)) || /^\/[^/]+\/[^/]+$/.test(path);
+});
 
 const activeItem = computed(() => {
   if (route.path === '/') return 'home';
