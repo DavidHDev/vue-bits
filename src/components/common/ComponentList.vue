@@ -480,7 +480,6 @@ watch(virtualedRows, newRows => {
               :to="`/${slug(fromPascal(item.categoryKey))}/${slug(fromPascal(item.componentKey))}` || '#'"
               :data-item-key="item.key"
               :style="{
-                height: `${CARD_HEIGHT}px`,
                 backgroundColor: '#222',
                 borderRadius: `${CARD_RADIUS}px`,
                 padding: `${CARD_PADDING}px`
