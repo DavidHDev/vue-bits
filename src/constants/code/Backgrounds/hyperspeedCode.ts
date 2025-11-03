@@ -1,8 +1,10 @@
 import code from '@content/Backgrounds/Hyperspeed/Hyperspeed.vue?raw';
+import presets from '@content/Backgrounds/Hyperspeed/HyperspeedPresets.ts?raw';
 import { createCodeObject } from '../../../types/code';
 
 export const hyperspeed = createCodeObject(code, 'Backgrounds/Hyperspeed', {
   installation: `npm install three postprocessing`,
+  utility: presets,
   usage: `<template>
   <div class="hyperspeed-container">
     <Hyperspeed :effect-options="effectOptions" />
