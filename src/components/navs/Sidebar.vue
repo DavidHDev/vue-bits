@@ -37,20 +37,17 @@
           <div class="links-container">
             <a href="https://github.com/DavidHDev/vue-bits" target="_blank" @click="closeDrawer" class="useful-link">
               <span>GitHub</span>
-
-              <i class="pi pi-arrow-up-right arrow-icon"></i>
+              <i class="pi-arrow-up-right pi arrow-icon"></i>
             </a>
 
             <router-link to="/text-animations/split-text" @click="closeDrawer" class="useful-link">
               <span>Docs</span>
-
-              <i class="pi pi-arrow-up-right arrow-icon"></i>
+              <i class="pi-arrow-up-right pi arrow-icon"></i>
             </router-link>
 
             <a href="https://davidhaz.com/" target="_blank" @click="closeDrawer" class="useful-link">
               <span>Who made this?</span>
-
-              <i class="pi pi-arrow-up-right arrow-icon"></i>
+              <i class="pi-arrow-up-right pi arrow-icon"></i>
             </a>
           </div>
         </div>
@@ -101,10 +98,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, watch, defineComponent, h, computed, useTemplateRef } from 'vue';
+import { getSavedComponents } from '@/utils/favorites';
+import {
+  computed,
+  defineComponent,
+  h,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  onUnmounted,
+  ref,
+  useTemplateRef,
+  watch
+} from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { CATEGORIES, NEW, UPDATED } from '../../constants/Categories';
 import Logo from '../../assets/logos/vue-bits-logo.svg';
+import { CATEGORIES, NEW, UPDATED } from '../../constants/Categories';
 import '../../css/sidebar.css';
 
 const HOVER_TIMEOUT_DELAY = 150;
@@ -123,12 +132,18 @@ const sidebarContainerRef = useTemplateRef<HTMLDivElement>('sidebarContainerRef'
 
 let hoverTimeoutRef: number | null = null;
 let hoverDelayTimeoutRef: number | null = null;
+const savedSet = ref(new Set(getSavedComponents()));
 
 const route = useRoute();
 const router = useRouter();
 
 const scrollToTop = () => window.scrollTo(0, 0);
 const slug = (str: string) => str.replace(/\s+/g, '-').toLowerCase();
+const toPascal = (str: string) =>
+  str
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('');
 
 const findActiveElement = () => {
   const activePath = pendingActivePath.value || route.path;
@@ -240,6 +255,22 @@ const updateActiveLine = async () => {
   }, 100);
 };
 
+const updateSaved = () => (savedSet.value = new Set(getSavedComponents()));
+const onStorage = (e?: StorageEvent | null) => {
+  if (!e || e.key === 'savedComponents') updateSaved();
+};
+
+onMounted(() => {
+  window.addEventListener('favorites:updated', updateSaved);
+  window.addEventListener('storage', onStorage);
+  updateSaved();
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('favorites:updated', updateSaved);
+  window.removeEventListener('storage', onStorage);
+});
+
 const Category = defineComponent({
   name: 'Category',
   props: {
@@ -274,6 +305,10 @@ const Category = defineComponent({
     isTransitioning: {
       type: Boolean,
       default: false
+    },
+    savedSet: {
+      type: Object,
+      default: () => savedSet.value
     }
   },
   setup(props) {
@@ -283,18 +318,21 @@ const Category = defineComponent({
       isActive: boolean;
       isNew: boolean;
       isUpdated: boolean;
+      isFavorited: boolean;
     }
 
     const items = computed(() =>
       props.category.subcategories.map((sub: string): ItemType => {
         const path = `/${slug(props.category.name)}/${slug(sub)}`;
         const activePath = props.pendingActivePath || props.location.path;
+        const favoriteKey = `${toPascal(slug(props.category.name))}/${toPascal(slug(sub))}`;
         return {
           sub,
           path,
           isActive: activePath === path,
           isNew: (NEW as string[]).includes(sub),
-          isUpdated: (UPDATED as string[]).includes(sub)
+          isUpdated: (UPDATED as string[]).includes(sub),
+          isFavorited: savedSet.value?.has?.(favoriteKey)
         };
       })
     );
@@ -305,7 +343,7 @@ const Category = defineComponent({
         h(
           'div',
           { class: 'category-items' },
-          items.value.map(({ sub, path, isActive, isNew, isUpdated }: ItemType) => {
+          items.value.map(({ sub, path, isActive, isNew, isUpdated, isFavorited }: ItemType) => {
             return h(
               'router-link',
               {
@@ -324,7 +362,15 @@ const Category = defineComponent({
                   [
                     sub,
                     isNew ? h('span', { class: 'new-tag' }, 'New') : null,
-                    isUpdated ? h('span', { class: 'updated-tag' }, 'Updated') : null
+                    isUpdated ? h('span', { class: 'updated-tag' }, 'Updated') : null,
+                    isFavorited
+                      ? h('i', {
+                          class: 'pi pi-heart-fill footer-heart',
+                          style: {
+                            marginLeft: '6px'
+                          }
+                        })
+                      : null
                   ].filter(Boolean)
               }
             );

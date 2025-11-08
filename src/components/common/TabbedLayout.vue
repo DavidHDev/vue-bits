@@ -5,7 +5,6 @@
         <Tab value="0">
           <div class="tab-header">
             <i class="pi pi-eye"></i>
-
             <span>Preview</span>
           </div>
         </Tab>
@@ -13,7 +12,6 @@
         <Tab value="1">
           <div class="tab-header">
             <i class="pi pi-code"></i>
-
             <span>Code</span>
           </div>
         </Tab>
@@ -21,16 +19,54 @@
         <Tab value="2">
           <div class="tab-header">
             <i class="pi pi-box"></i>
-
             <span>CLI</span>
           </div>
         </Tab>
 
         <Tab value="3">
-          <div class="tab-header">
-            <i class="pi pi-heart"></i>
+          <div class="flex items-center gap-2 shrink-0">
+            <div class="inline-block relative" v-if="favoriteKey && category !== 'get-started'">
+              <button
+                @click.stop="toggleFavorite"
+                @mouseenter="showTooltip"
+                @mouseleave="hideTooltip"
+                :aria-label="isSaved ? 'Remove from Favorites' : 'Add to Favorites'"
+                :aria-pressed="isSaved"
+                class="flex justify-center items-center rounded-lg w-10 h-10 transition-all duration-200 cursor-pointer"
+                :class="
+                  isSaved
+                    ? 'bg-linear-to-br from-[#1ea03f] to-[#182fff99] hover:brightness-90'
+                    : 'border border-[#222] hover:bg-[#222]'
+                "
+              >
+                <i :class="isSaved ? 'pi pi-heart-fill' : 'pi pi-heart'" :style="{ color: '#ffffff' }"></i>
+              </button>
 
-            <span>Contribute</span>
+              <Transition
+                enter-active-class="transition-opacity duration-200"
+                leave-active-class="transition-opacity duration-100"
+                enter-from-class="opacity-0"
+                enter-to-class="opacity-100"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
+              >
+                <div
+                  v-if="isTooltipVisible"
+                  class="top-1/2 right-full absolute mr-2 -translate-y-1/2 pointer-events-none"
+                >
+                  <div
+                    class="flex justify-center items-center bg-transparent px-4 border border-[#222] rounded-[15px] h-10 font-medium text-white text-xs whitespace-nowrap"
+                  >
+                    {{ isSaved ? 'Remove from Favorites' : 'Add to Favorites' }}
+                  </div>
+                </div>
+              </Transition>
+            </div>
+
+            <div class="tab-header">
+              <i class="pi pi-lightbulb"></i>
+              <span>Contribute</span>
+            </div>
           </div>
         </Tab>
       </TabList>
@@ -57,12 +93,105 @@
 </template>
 
 <script setup lang="ts">
-import Tabs from 'primevue/tabs';
-import TabList from 'primevue/tablist';
+import { getSavedComponents, isComponentSaved, toggleSavedComponent } from '@/utils/favorites';
 import Tab from 'primevue/tab';
-import TabPanels from 'primevue/tabpanels';
+import TabList from 'primevue/tablist';
 import TabPanel from 'primevue/tabpanel';
+import TabPanels from 'primevue/tabpanels';
+import Tabs from 'primevue/tabs';
+import { useToast } from 'primevue/usetoast';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import ContributionSection from './ContributionSection.vue';
+
+const savedSet = ref(new Set(getSavedComponents()));
+const isSaved = ref<boolean>(false);
+
+const route = useRoute();
+const category = computed(() => route.params.category);
+const subcategory = computed(() => route.params.subcategory);
+const toast = useToast();
+
+const isTooltipVisible = ref(false);
+const showTimeout = ref<number | null>(null);
+const hideTimeout = ref<number | null>(null);
+
+const toPascal = (str: string) =>
+  str
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('');
+
+const favoriteKey = computed<string | null>(() => {
+  if (!category.value || !subcategory.value) return null;
+  const categoryName = toPascal(category.value as string);
+  const compName = toPascal(subcategory.value as string);
+  return `${categoryName}/${compName}`;
+});
+
+const componentName = computed<string | null>(() => {
+  if (!subcategory.value) return null;
+  return toPascal(subcategory.value as string);
+});
+
+const updateSaved = () => (savedSet.value = new Set(getSavedComponents()));
+const onStorage = (e?: StorageEvent | null) => {
+  if (!e || e.key === 'savedComponents') updateSaved();
+};
+const toggleFavorite = () => {
+  if (!favoriteKey.value) return;
+
+  try {
+    const { saved } = toggleSavedComponent(favoriteKey.value);
+    isSaved.value = saved;
+
+    toast.add({
+      severity: saved ? 'success' : 'error',
+      summary: saved
+        ? `Added <${componentName.value} /> to Favorites`
+        : `Removed <${componentName.value} /> from Favorites`,
+      life: 3000
+    });
+  } catch (err) {
+    console.error('Error toggling favorite:', err);
+  }
+};
+
+const showTooltip = () => {
+  clearTimeout(hideTimeout.value ?? 0);
+  showTimeout.value = setTimeout(() => {
+    isTooltipVisible.value = true;
+  }, 250);
+};
+
+const hideTooltip = () => {
+  clearTimeout(showTimeout.value ?? 0);
+  hideTimeout.value = setTimeout(() => {
+    isTooltipVisible.value = false;
+  }, 100);
+};
+
+onMounted(() => {
+  window.addEventListener('favorites:updated', updateSaved);
+  window.addEventListener('storage', onStorage);
+  updateSaved();
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('favorites:updated', updateSaved);
+  window.removeEventListener('storage', onStorage);
+});
+
+watch(
+  () => favoriteKey.value,
+  () => {
+    if (!favoriteKey.value) return;
+    isSaved.value = isComponentSaved(favoriteKey.value);
+  },
+  {
+    immediate: true
+  }
+);
 </script>
 
 <style scoped>
