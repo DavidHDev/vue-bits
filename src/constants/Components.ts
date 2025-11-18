@@ -120,6 +120,7 @@ const backgrounds = {
   'pixel-blast': () => import('../demo/Backgrounds/PixelBlastDemo.vue'),
   'liquid-ether': () => import('../demo/Backgrounds/LiquidEtherDemo.vue'),
   'color-bends': () => import('../demo/Backgrounds/ColorBendsDemo.vue'),
+  'floating-lines': () => import('../demo/Backgrounds/FloatingLinesDemo.vue'),
 };
 
 export const componentMap = {

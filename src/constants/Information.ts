@@ -765,6 +765,14 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/backgrounds/faulty-terminal',
     tags: []
   },
+  'Backgrounds/FloatingLines': {
+    videoUrl: '/assets/video/floatinglines.webm',
+    description: '3D floating lines that react to cursor movement.',
+    category: 'Backgrounds',
+    name: 'FloatingLines',
+    docsUrl: 'https://vue-bits.dev/backgrounds/floating-lines',
+    tags: []
+  },
   'Backgrounds/Galaxy': {
     videoUrl: '/assets/videos/galaxy.webm',
     description: 'Parallax realistic starfield with pointer interactions.',
