@@ -1,1 +1,20 @@
-{"name":"Animations/FadeContent","type":"Animations","add":"when-added","files":[{"type":"Animations","role":"file","content":"<template>\n  <div\n    ref=\"elementRef\"\n    :class=\"className\"\n    :style=\"{\n      opacity: inView ? 1 : initialOpacity,\n      transition: `opacity ${duration}ms ${easing}, filter ${duration}ms ${easing}`,\n      filter: blur ? (inView ? 'blur(0px)' : 'blur(10px)') : 'none'\n    }\"\n  >\n    <slot />\n  </div>\n</template>\n\n<script setup lang=\"ts\">\nimport { ref, onMounted, onUnmounted, useTemplateRef } from 'vue';\n\ninterface Props {\n  blur?: boolean;\n  duration?: number;\n  easing?: string;\n  delay?: number;\n  threshold?: number;\n  initialOpacity?: number;\n  className?: string;\n}\n\nconst props = withDefaults(defineProps<Props>(), {\n  blur: false,\n  duration: 1000,\n  easing: 'ease-out',\n  delay: 0,\n  threshold: 0.1,\n  initialOpacity: 0,\n  className: ''\n});\n\nconst inView = ref(false);\nconst elementRef = useTemplateRef<HTMLDivElement>('elementRef');\nlet observer: IntersectionObserver | null = null;\n\nonMounted(() => {\n  const element = elementRef.value;\n  if (!element) return;\n\n  observer = new IntersectionObserver(\n    ([entry]) => {\n      if (entry.isIntersecting) {\n        observer?.unobserve(element);\n        setTimeout(() => {\n          inView.value = true;\n        }, props.delay);\n      }\n    },\n    { threshold: props.threshold }\n  );\n\n  observer.observe(element);\n});\n\nonUnmounted(() => {\n  if (observer) {\n    observer.disconnect();\n  }\n});\n</script>\n","path":"FadeContent/FadeContent.vue","_imports_":[],"registryDependencies":[],"dependencies":[],"devDependencies":[]}],"registryDependencies":[],"dependencies":[],"devDependencies":[]}
+{
+    "name": "Animations/FadeContent",
+    "type": "Animations",
+    "add": "when-added",
+    "files": [
+        {
+            "type": "Animations",
+            "role": "file",
+            "content": "<template>\n  <div\n    ref=\"elementRef\"\n    :class=\"className\"\n    :style=\"{\n      opacity: inView ? 1 : initialOpacity,\n      transition: `opacity ${duration}ms ${easing}, filter ${duration}ms ${easing}`,\n      filter: blur ? (inView ? 'blur(0px)' : 'blur(10px)') : 'none'\n    }\"\n  >\n    <slot />\n  </div>\n</template>\n\n<script setup lang=\"ts\">\nimport { ref, onMounted, onUnmounted, useTemplateRef } from 'vue';\n\ninterface Props {\n  blur?: boolean;\n  duration?: number;\n  easing?: string;\n  delay?: number;\n  threshold?: number;\n  initialOpacity?: number;\n  className?: string;\n}\n\nconst props = withDefaults(defineProps<Props>(), {\n  blur: false,\n  duration: 1000,\n  easing: 'ease-out',\n  delay: 0,\n  threshold: 0.1,\n  initialOpacity: 0,\n  className: ''\n});\n\nconst inView = ref(false);\nconst elementRef = useTemplateRef<HTMLDivElement>('elementRef');\nlet observer: IntersectionObserver | null = null;\n\nonMounted(() => {\n  const element = elementRef.value;\n  if (!element) return;\n\n  observer = new IntersectionObserver(\n    ([entry]) => {\n      if (entry.isIntersecting) {\n        observer?.unobserve(element);\n        setTimeout(() => {\n          inView.value = true;\n        }, props.delay);\n      }\n    },\n    { threshold: props.threshold }\n  );\n\n  observer.observe(element);\n});\n\nonUnmounted(() => {\n  if (observer) {\n    observer.disconnect();\n  }\n});\n</script>\n",
+            "path": "FadeContent/FadeContent.vue",
+            "_imports_": [],
+            "registryDependencies": [],
+            "dependencies": [],
+            "devDependencies": []
+        }
+    ],
+    "registryDependencies": [],
+    "dependencies": [],
+    "devDependencies": []
+}
