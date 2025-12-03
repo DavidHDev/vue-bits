@@ -14,8 +14,12 @@
           :animate-opacity="animateOpacity"
           :scale="scale"
           :threshold="threshold"
+          :disappear-after="disappearAfter"
+          :disappear-duration="disappearDuration"
+          :disappear-ease="disappearEase"
           :key="key"
           @complete="() => console.log('✅ Animation Complete!')"
+          @disappearance-complete="() => console.log('👋 Disappearance Complete!')"
         >
           <div class="demo-content">
             <h4>Animated Content</h4>
@@ -44,6 +48,12 @@
         <PreviewSwitch title="Reverse Direction" v-model="reverse" />
 
         <PreviewSwitch title="Animate Opacity" v-model="animateOpacity" />
+
+        <PreviewSlider title="Disappear After" v-model="disappearAfter" :min="0" :max="5" :step="0.5" value-unit="s" />
+
+        <PreviewSlider title="Disappear Duration" v-model="disappearDuration" :min="0.1" :max="2" :step="0.1" value-unit="s" />
+
+        <PreviewSelect title="Disappear Ease" v-model="disappearEase" :options="disappearEaseOptions" />
       </Customize>
 
       <PropTable :data="propData" />
@@ -89,6 +99,9 @@ const initialOpacity = ref(0);
 const animateOpacity = ref(true);
 const scale = ref(1);
 const threshold = ref(0.1);
+const disappearAfter = ref(0);
+const disappearDuration = ref(0.5);
+const disappearEase = ref('power3.in');
 
 const directionOptions = [
   { label: 'Vertical', value: 'vertical' },
@@ -99,6 +112,12 @@ const easeOptions = [
   { label: 'Power3 Out', value: 'power3.out' },
   { label: 'Bounce Out', value: 'bounce.out' },
   { label: 'Elastic Out', value: 'elastic.out(1, 0.3)' }
+];
+
+const disappearEaseOptions = [
+  { label: 'Power3 In', value: 'power3.in' },
+  { label: 'Power2 In', value: 'power2.in' },
+  { label: 'Bounce In', value: 'bounce.in' }
 ];
 
 const propData = [
@@ -167,6 +186,30 @@ const propData = [
     type: 'string',
     default: '""',
     description: 'Additional CSS classes for styling.'
+  },
+  {
+    name: 'container',
+    type: 'string | HTMLElement | null',
+    default: 'null',
+    description: 'Custom scroll container element or selector.'
+  },
+  {
+    name: 'disappearAfter',
+    type: 'number',
+    default: '0',
+    description: 'Delay before disappear animation starts (in seconds). Set to 0 to disable.'
+  },
+  {
+    name: 'disappearDuration',
+    type: 'number',
+    default: '0.5',
+    description: 'Duration of the disappear animation in seconds.'
+  },
+  {
+    name: 'disappearEase',
+    type: 'string | function',
+    default: '"power3.in"',
+    description: 'GSAP easing function for the disappear animation.'
   }
 ];
 
