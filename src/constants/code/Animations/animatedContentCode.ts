@@ -15,7 +15,11 @@ export const animatedContent = createCodeObject(code, 'Animations/AnimatedConten
     :scale="1"
     :threshold="0.1"
     :delay="0"
+    :disappear-after="0"
+    :disappear-duration="0.5"
+    disappear-ease="power3.in"
     @complete="handleComplete"
+    @disappearance-complete="handleDisappearance"
   >
     <div class="your-content">
       Content to animate
@@ -27,7 +31,11 @@ export const animatedContent = createCodeObject(code, 'Animations/AnimatedConten
   import AnimatedContent from "./AnimatedContent.vue";
   
   const handleComplete = () => {
-    console.log("Animation completed!");,
-});
+    console.log("Animation completed!");
+  };
+
+  const handleDisappearance = () => {
+    console.log("Disappearance completed!");
+  };
 </script>`
 });
