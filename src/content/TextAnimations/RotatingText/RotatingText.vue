@@ -194,8 +194,7 @@ watch(
   () => {
     cleanupInterval();
     startInterval();
-  },
-  { immediate: true }
+  }
 );
 
 onMounted(() => {

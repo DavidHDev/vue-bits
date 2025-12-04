@@ -948,5 +948,13 @@ export const componentMetadata: ComponentMetadata = {
     name: 'LiquidEther',
     docsUrl: 'https://vue-bits.dev/backgrounds/liquid-ether',
     tags: []
+  },
+  'Backgrounds/LightPillar': {
+    videoUrl: '/assets/videos/lightpillar.webm',
+    description: 'Vertical pillar of light with glow effects.',
+    category: 'Backgrounds',
+    name: 'LightPillar',
+    docsUrl: 'https://vue-bits.dev/backgrounds/light-pillar',
+    tags: []
   }
 };

@@ -19,10 +19,10 @@
     />
 
     <div class="hero-main-content">
-      <router-link to="/backgrounds/floating-lines" class="hero-new-badge-container">
+      <router-link to="/backgrounds/light-pillar" class="hero-new-badge-container">
         <span class="hero-new-badge">New 🎉</span>
         <div class="hero-new-badge-text">
-          <span>Floating Lines</span>
+          <span>Light Pillar</span>
           <i class="pi-arrow-right pi" style="font-size: 0.8rem"></i>
         </div>
       </router-link>

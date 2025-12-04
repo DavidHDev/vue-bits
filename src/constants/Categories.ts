@@ -1,5 +1,5 @@
 // Highlighted sidebar items
-export const NEW = ['Color Bends', 'Ghost Cursor', 'Laser Flow', 'Liquid Ether', 'Pixel Blast', 'Floating Lines'];
+export const NEW = ['Color Bends', 'Ghost Cursor', 'Laser Flow', 'Liquid Ether', 'Pixel Blast', 'Floating Lines', 'Light Pillar'];
 export const UPDATED = ['Animated Content', 'Fade Content'];
 
 // Used for main sidebar navigation
@@ -123,6 +123,7 @@ export const CATEGORIES = [
       'Iridescence',
       'Letter Glitch',
       'Lightning',
+      'Light Pillar',
       'Light Rays',
       'Liquid Chrome',
       'Liquid Ether',
