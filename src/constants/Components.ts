@@ -121,6 +121,7 @@ const backgrounds = {
   'liquid-ether': () => import('../demo/Backgrounds/LiquidEtherDemo.vue'),
   'color-bends': () => import('../demo/Backgrounds/ColorBendsDemo.vue'),
   'floating-lines': () => import('../demo/Backgrounds/FloatingLinesDemo.vue'),
+  'light-pillar': () => import('../demo/Backgrounds/LightPillarDemo.vue'),
 };
 
 export const componentMap = {
