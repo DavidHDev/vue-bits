@@ -6,15 +6,17 @@ export const fadeContent = createCodeObject(code, 'Animations/FadeContent', {
   usage: `<template>
   <FadeContent
     :blur="true"
-    :duration="1"
-    :delay="0.2"
+    :duration="1000"
+    :delay="200"
     :threshold="0.1"
     :initial-opacity="0"
     ease="power2.out"
     :disappear-after="0"
-    :disappear-duration="0.5"
+    :disappear-duration="500"
     disappear-ease="power2.in"
     class-name="my-fade-content"
+    :on-complete="handleComplete"
+    :on-disappearance-complete="handleDisappearance"
     @complete="handleComplete"
     @disappearance-complete="handleDisappearance"
   >

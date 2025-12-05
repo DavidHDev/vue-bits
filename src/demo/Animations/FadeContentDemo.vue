@@ -30,9 +30,9 @@
       <Customize>
         <PreviewSwitch title="Enable Blur Effect" v-model="blur" />
 
-        <PreviewSlider title="Duration" v-model="duration" :min="0.1" :max="3" :step="0.1" value-unit="s" />
+        <PreviewSlider title="Duration" v-model="duration" :min="100" :max="3000" :step="100" value-unit="ms" />
 
-        <PreviewSlider title="Delay" v-model="delay" :min="0" :max="2" :step="0.1" value-unit="s" />
+        <PreviewSlider title="Delay" v-model="delay" :min="0" :max="2000" :step="100" value-unit="ms" />
 
         <PreviewSlider title="Threshold" v-model="threshold" :min="0.1" :max="1" :step="0.1" />
 
@@ -40,9 +40,9 @@
 
         <PreviewSelect title="Easing Function" v-model="ease" :options="easeOptions" />
 
-        <PreviewSlider title="Disappear After" v-model="disappearAfter" :min="0" :max="5" :step="0.5" value-unit="s" />
+        <PreviewSlider title="Disappear After" v-model="disappearAfter" :min="0" :max="5000" :step="500" value-unit="ms" />
 
-        <PreviewSlider title="Disappear Duration" v-model="disappearDuration" :min="0.1" :max="2" :step="0.1" value-unit="s" />
+        <PreviewSlider title="Disappear Duration" v-model="disappearDuration" :min="100" :max="2000" :step="100" value-unit="ms" />
 
         <PreviewSelect title="Disappear Ease" v-model="disappearEase" :options="disappearEaseOptions" />
       </Customize>
@@ -79,13 +79,13 @@ import { fadeContent } from '@/constants/code/Animations/fadeContentCode';
 import { useForceRerender } from '@/composables/useForceRerender';
 
 const blur = ref(true);
-const duration = ref(1);
-const delay = ref(0.2);
+const duration = ref(1000);
+const delay = ref(200);
 const threshold = ref(0.1);
 const initialOpacity = ref(0);
 const ease = ref('power2.out');
 const disappearAfter = ref(0);
-const disappearDuration = ref(0.5);
+const disappearDuration = ref(500);
 const disappearEase = ref('power2.in');
 const { rerenderKey, forceRerender } = useForceRerender();
 
@@ -103,9 +103,9 @@ const disappearEaseOptions = [
 
 const propData = [
   { name: 'blur', type: 'boolean', default: 'false', description: 'Enable blur effect during fade animation.' },
-  { name: 'duration', type: 'number', default: '1', description: 'Animation duration in seconds.' },
+  { name: 'duration', type: 'number', default: '1000', description: 'Animation duration in milliseconds.' },
   { name: 'ease', type: 'string | function', default: '"power2.out"', description: 'GSAP easing function for the animation.' },
-  { name: 'delay', type: 'number', default: '0', description: 'Delay before animation starts in seconds.' },
+  { name: 'delay', type: 'number', default: '0', description: 'Delay before animation starts in milliseconds.' },
   {
     name: 'threshold',
     type: 'number',
@@ -113,6 +113,8 @@ const propData = [
     description: 'Intersection threshold to trigger animation (0-1).'
   },
   { name: 'initialOpacity', type: 'number', default: '0', description: 'Initial opacity before animation (0-1).' },
+  { name: 'onComplete', type: 'function', default: 'undefined', description: 'Callback function called when fade animation completes.' },
+  { name: 'onDisappearanceComplete', type: 'function', default: 'undefined', description: 'Callback function called when disappear animation completes.' },
   { name: 'className', type: 'string', default: '""', description: 'Additional CSS classes for styling.' },
   {
     name: 'container',
@@ -124,13 +126,13 @@ const propData = [
     name: 'disappearAfter',
     type: 'number',
     default: '0',
-    description: 'Delay before disappear animation starts (in seconds). Set to 0 to disable.'
+    description: 'Delay before disappear animation starts (in milliseconds). Set to 0 to disable.'
   },
   {
     name: 'disappearDuration',
     type: 'number',
-    default: '0.5',
-    description: 'Duration of the disappear animation in seconds.'
+    default: '500',
+    description: 'Duration of the disappear animation in milliseconds.'
   },
   {
     name: 'disappearEase',
