@@ -1,5 +1,5 @@
 <template>
-  <div ref="elementRef" :class="className" style="visibility: hidden">
+  <div ref="elementRef" :class="className">
     <slot />
   </div>
 </template>
@@ -22,13 +22,15 @@ interface Props {
   disappearAfter?: number;
   disappearDuration?: number;
   disappearEase?: string | ((progress: number) => number);
+  onComplete?: () => void;
+  onDisappearanceComplete?: () => void;
   className?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   container: null,
   blur: false,
-  duration: 1,
+  duration: 1000,
   ease: 'power2.out',
   delay: 0,
   threshold: 0.1,
@@ -48,6 +50,8 @@ const elementRef = useTemplateRef<HTMLDivElement>('elementRef');
 let scrollTriggerInstance: ScrollTrigger | null = null;
 let timelineInstance: gsap.core.Timeline | null = null;
 
+const getSeconds = (val: number): number => (typeof val === 'number' && val > 10 ? val / 1000 : val);
+
 onMounted(() => {
   const el = elementRef.value;
   if (!el) return;
@@ -62,33 +66,37 @@ onMounted(() => {
   const startPct = (1 - props.threshold) * 100;
 
   gsap.set(el, {
-    opacity: props.initialOpacity,
+    autoAlpha: props.initialOpacity,
     filter: props.blur ? 'blur(10px)' : 'blur(0px)',
-    visibility: 'visible'
+    willChange: 'opacity, filter, transform'
   });
 
   timelineInstance = gsap.timeline({
     paused: true,
-    delay: props.delay,
+    delay: getSeconds(props.delay),
     onComplete: () => {
       emit('complete');
+      props.onComplete?.();
       if (props.disappearAfter > 0) {
         gsap.to(el, {
-          opacity: props.initialOpacity,
+          autoAlpha: props.initialOpacity,
           filter: props.blur ? 'blur(10px)' : 'blur(0px)',
-          delay: props.disappearAfter,
-          duration: props.disappearDuration,
+          delay: getSeconds(props.disappearAfter),
+          duration: getSeconds(props.disappearDuration),
           ease: props.disappearEase,
-          onComplete: () => emit('disappearanceComplete')
+          onComplete: () => {
+            emit('disappearanceComplete');
+            props.onDisappearanceComplete?.();
+          }
         });
       }
     }
   });
 
   timelineInstance.to(el, {
-    opacity: 1,
+    autoAlpha: 1,
     filter: 'blur(0px)',
-    duration: props.duration,
+    duration: getSeconds(props.duration),
     ease: props.ease
   });
 
