@@ -1,6 +1,6 @@
 <template>
   <div class="cli-installation">
-    <h2 class="demo-title">One-Time Installation</h2>
+    <h2 class="demo-title">CLI Installation</h2>
 
     <VCodeBlock
       v-if="command"
