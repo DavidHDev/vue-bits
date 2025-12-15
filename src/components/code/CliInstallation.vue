@@ -13,8 +13,6 @@
       class="code-block"
     />
 
-    <div class="cli-divider"></div>
-
     <p class="jsrepo-info">
       Vue Bits uses <strong>jsrepo</strong> to help you install components via CLI commands. Learn more about it
       <a href="https://jsrepo.dev/" target="_blank" rel="noreferrer">here</a>.
