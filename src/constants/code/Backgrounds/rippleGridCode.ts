@@ -7,13 +7,13 @@ export const rippleGrid = createCodeObject(code, 'Backgrounds/RippleGrid', {
   <div class="relative overflow-hidden h-[600px]">
     <RippleGrid
       :enable-rainbow="false"
-      :grid-color="#ffffff"
       :ripple-intensity="0.05"
       :grid-size="10"
       :grid-thickness="15"
       :mouse-interaction="true"
       :mouse-interaction-radius="1.2"
       :opacity="0.8"
+      grid-color="#ffffff"
     />
   </div>
 </template>
