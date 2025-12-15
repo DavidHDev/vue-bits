@@ -14,9 +14,9 @@ export interface CodeObjectInput {
 }
 
 export function createCodeObject(code: string, path: string, data: CodeObjectInput): CodeObject {
-  const [category, componentName] = path.split('/');
+  const [, componentName] = path.split('/');
   return {
-    cli: `npx jsrepo add https://vue-bits.dev/ui/${category}/${componentName}`,
+    cli: `npx jsrepo@latest add https://vue-bits.dev/r/${componentName}`,
     ...(data.installation && { installation: data.installation }),
     ...(data.usage && { usage: data.usage }),
     code,

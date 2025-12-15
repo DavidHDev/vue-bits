@@ -150,14 +150,6 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/animations/noise',
     tags: []
   },
-  'Animations/PixelTrail': {
-    videoUrl: '/assets/videos/pixeltrail.webm',
-    description: 'Pixelated cursor trail emitting fading squares with retro digital feel.',
-    category: 'Animations',
-    name: 'PixelTrail',
-    docsUrl: 'https://vue-bits.dev/animations/pixel-trail',
-    tags: []
-  },
   'Animations/PixelTransition': {
     videoUrl: '/assets/videos/pixeltransition.webm',
     description: 'Pixel dissolve transition for content reveal on hover.',
@@ -222,6 +214,14 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/animations/laser-flow',
     tags: []
   },
+  'Animations/CountUp': {
+    videoUrl: '/assets/videos/countup.webm',
+    description: 'Animated number counter supporting formatting and decimals.',
+    category: 'Animations',
+    name: 'CountUp',
+    docsUrl: 'https://vue-bits.dev/text-animations/count-up',
+    tags: []
+  },
 
   //! Text Animations -------------------------------------------------------------------------------------------------------------------------------
 
@@ -247,14 +247,6 @@ export const componentMetadata: ComponentMetadata = {
     category: 'TextAnimations',
     name: 'CircularText',
     docsUrl: 'https://vue-bits.dev/text-animations/circular-text',
-    tags: []
-  },
-  'TextAnimations/CountUp': {
-    videoUrl: '/assets/videos/countup.webm',
-    description: 'Animated number counter supporting formatting and decimals.',
-    category: 'TextAnimations',
-    name: 'CountUp',
-    docsUrl: 'https://vue-bits.dev/text-animations/count-up',
     tags: []
   },
   'TextAnimations/CurvedLoop': {
@@ -313,12 +305,12 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/text-animations/rotating-text',
     tags: []
   },
-  'TextAnimations/ScrambledText': {
+  'TextAnimations/ScrambleText': {
     videoUrl: '/assets/videos/scrambledtext.webm',
     description: 'Detects cursor position and applies a distortion effect to text.',
     category: 'TextAnimations',
-    name: 'ScrambledText',
-    docsUrl: 'https://vue-bits.dev/text-animations/scrambled-text',
+    name: 'ScrambleText',
+    docsUrl: 'https://vue-bits.dev/text-animations/scramble-text',
     tags: []
   },
   'TextAnimations/ScrollFloat': {
@@ -399,14 +391,6 @@ export const componentMetadata: ComponentMetadata = {
     category: 'TextAnimations',
     name: 'VariableProximity',
     docsUrl: 'https://vue-bits.dev/text-animations/variable-proximity',
-    tags: []
-  },
-  'TextAnimations/Shuffle': {
-    videoUrl: '/assets/videos/shuffle.webm',
-    description: 'Animated text reveal where characters shuffle before settling.',
-    category: 'TextAnimations',
-    name: 'Shuffle',
-    docsUrl: 'https://vue-bits.dev/text-animations/shuffle',
     tags: []
   },
 
@@ -523,14 +507,6 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/components/flowing-menu',
     tags: []
   },
-  'Components/FluidGlass': {
-    videoUrl: '/assets/videos/fluidglass.webm',
-    description: 'Glassmorphism container with animated liquid distortion refraction.',
-    category: 'Components',
-    name: 'FluidGlass',
-    docsUrl: 'https://vue-bits.dev/components/fluid-glass',
-    tags: []
-  },
   'Components/FlyingPosters': {
     videoUrl: '/assets/videos/flyingposters.webm',
     description: '3D posters rotate on scroll infinitely.',
@@ -587,14 +563,6 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/components/infinite-scroll',
     tags: []
   },
-  'Components/Lanyard': {
-    videoUrl: '/assets/videos/lanyard.webm',
-    description: 'Swinging 3D lanyard / badge card with realistic inertial motion.',
-    category: 'Components',
-    name: 'Lanyard',
-    docsUrl: 'https://vue-bits.dev/components/lanyard',
-    tags: []
-  },
   'Components/MagicBento': {
     videoUrl: '/assets/videos/magicbento.webm',
     description: 'Interactive bento grid tiles expand + animate with various options.',
@@ -609,14 +577,6 @@ export const componentMetadata: ComponentMetadata = {
     category: 'Components',
     name: 'Masonry',
     docsUrl: 'https://vue-bits.dev/components/masonry',
-    tags: []
-  },
-  'Components/ModelViewer': {
-    videoUrl: '/assets/videos/modelviewer.webm',
-    description: 'Three.js model viewer with orbit controls and lighting presets.',
-    category: 'Components',
-    name: 'ModelViewer',
-    docsUrl: 'https://vue-bits.dev/components/model-viewer',
     tags: []
   },
   'Components/PillNav': {
