@@ -18,7 +18,10 @@
       '--item-height': 'calc(var(--circ) / var(--segments-y))'
     }"
   >
-    <main ref="mainRef" class="absolute inset-0 grid place-items-center overflow-hidden touch-none select-none bg-transparent">
+    <main
+      ref="mainRef"
+      class="absolute inset-0 grid place-items-center overflow-hidden touch-none select-none bg-transparent"
+    >
       <div
         class="w-full h-full grid place-items-center contain-layout contain-paint contain-size"
         :style="{
@@ -392,11 +395,7 @@ const autoRotateStep = (now: number) => {
   const deltaMs = now - lastAutoRotateTime;
   lastAutoRotateTime = now;
 
-  const canSpin =
-    !isDragging.value &&
-    !isOpening.value &&
-    !focusedElement.value &&
-    inertiaAnimationFrame === null;
+  const canSpin = !isDragging.value && !isOpening.value && !focusedElement.value && inertiaAnimationFrame === null;
 
   if (canSpin && deltaMs > 0) {
     const nextY = wrapAngleSigned(rotation.value.y + deltaMs * AUTO_ROTATE_SPEED_DEG_PER_MS);
@@ -418,7 +417,7 @@ const startAutoRotate = () => {
 const onDragStart = (e: MouseEvent | TouchEvent) => {
   if (focusedElement.value) return;
   stopInertia();
-  
+
   isDragging.value = true;
   hasMoved.value = false;
   startRotation.value = { ...rotation.value };
@@ -462,8 +461,8 @@ const onDragEnd = (e: MouseEvent | TouchEvent) => {
 
   // Calculate velocity for inertia (simplified version)
   if (hasMoved.value && startPosition.value) {
-    const clientX = 'touches' in e ? e.changedTouches?.[0]?.clientX ?? 0 : e.clientX;
-    const clientY = 'touches' in e ? e.changedTouches?.[0]?.clientY ?? 0 : e.clientY;
+    const clientX = 'touches' in e ? (e.changedTouches?.[0]?.clientX ?? 0) : e.clientX;
+    const clientY = 'touches' in e ? (e.changedTouches?.[0]?.clientY ?? 0) : e.clientY;
 
     const dxTotal = clientX - startPosition.value.x;
     const dyTotal = clientY - startPosition.value.y;
@@ -859,8 +858,7 @@ onUnmounted(() => {
 });
 
 // Watch for rotation changes
-watch(rotation, (newRotation) => {
+watch(rotation, newRotation => {
   applyTransform(newRotation.x, newRotation.y);
 });
 </script>
-

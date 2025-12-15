@@ -8,7 +8,8 @@
           </div>
           <h2>
             <template v-if="isMobile">100</template>
-            <CountUp v-else :to="100" />%
+            <CountUp v-else :to="100" />
+            %
           </h2>
           <h3>Free &amp; Open Source</h3>
           <p>Loved by developers around the world</p>
@@ -20,7 +21,8 @@
           </div>
           <h2>
             <template v-if="isMobile">90</template>
-            <CountUp v-else :to="90" />+
+            <CountUp v-else :to="90" />
+            +
           </h2>
           <h3>Creative Components</h3>
           <p>Growing weekly &amp; only getting better</p>
