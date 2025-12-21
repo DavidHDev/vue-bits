@@ -916,5 +916,13 @@ export const componentMetadata: ComponentMetadata = {
     name: 'LightPillar',
     docsUrl: 'https://vue-bits.dev/backgrounds/light-pillar',
     tags: []
+  },
+  'Backgrounds/PixelSnow': {
+    videoUrl: '/assets/videos/pixelsnow.webm',
+    description: 'Falling pixelated snow effect with customizable density and speed.',
+    category: 'Backgrounds',
+    name: 'PixelSnow',
+    docsUrl: 'https://vue-bits.dev/backgrounds/pixel-snow',
+    tags: []
   }
 };
