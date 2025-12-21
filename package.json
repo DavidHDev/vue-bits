@@ -20,6 +20,7 @@
     "@tresjs/cientos": "^4.3.1",
     "@tresjs/core": "^4.3.6",
     "@types/matter-js": "^0.19.8",
+    "@vueuse/core": "^14.1.0",
     "@vueuse/motion": "^3.0.3",
     "@wdns/vue-code-block": "^2.3.5",
     "gl-matrix": "^3.4.3",
