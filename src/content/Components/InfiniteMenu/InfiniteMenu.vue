@@ -660,7 +660,7 @@ class InfiniteGridMenu {
     far: 40,
     fov: Math.PI / 4,
     aspect: 1,
-    position: vec3.fromValues(0, 0, props.scale),
+    position: vec3.fromValues(0, 0, 3),
     up: vec3.fromValues(0, 1, 0),
     matrices: {
       view: mat4.create(),
@@ -703,10 +703,10 @@ class InfiniteGridMenu {
     private onActiveItemChange: (index: number) => void,
     private onMovementChange: (isMoving: boolean) => void,
     private onInit?: (menu: InfiniteGridMenu) => void,
-    scale: number = 1.0
+    scale: number = 3.0
   ) {
     this.scaleFactor = scale;
-    this.camera.position[2] = 3 * scale;
+    this.camera.position[2] = scale;
     this.init();
   }
 
@@ -1132,6 +1132,26 @@ watch(
     }
   },
   { deep: true }
+);
+
+watch(
+  () => props.scale,
+  () => {
+    if (infiniteMenu && canvasRef.value) {
+      infiniteMenu.destroy();
+      infiniteMenu = new InfiniteGridMenu(
+        canvasRef.value,
+        resolvedItems.value,
+        handleActiveItem,
+        moving => {
+          isMoving.value = moving;
+        },
+        menu => menu.run(),
+
+        props.scale
+      );
+    }
+  }
 );
 </script>
 
