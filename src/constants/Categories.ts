@@ -1,8 +1,8 @@
-// Highlighted sidebar items
+
 export const NEW = ['Color Bends', 'Ghost Cursor', 'Laser Flow', 'Liquid Ether', 'Pixel Blast', 'Floating Lines', 'Light Pillar', 'Pixel Snow'];
 export const UPDATED = [];
 
-// Used for main sidebar navigation
+
 export const CATEGORIES = [
   {
     name: 'Get Started',
@@ -26,6 +26,7 @@ export const CATEGORIES = [
       'Scroll Velocity',
       'Scramble Text',
       'Shiny Text',
+      'Shuffle',
       'Split Text',
       'Text Cursor',
       'Text Pressure',
