@@ -11,6 +11,7 @@ type InfiniteMenuItem = {
 
 type InfiniteMenuProps = {
   items?: InfiniteMenuItem[];
+  scale?: number;
 };
 
 const DEFAULT_ITEMS: InfiniteMenuItem[] = [
@@ -22,7 +23,9 @@ const DEFAULT_ITEMS: InfiniteMenuItem[] = [
   }
 ];
 
-const props = defineProps<InfiniteMenuProps>();
+const props = withDefaults(defineProps<InfiniteMenuProps>(), {
+  scale: 1.0
+});
 
 // Refs
 const canvasRef = ref<HTMLCanvasElement>();
@@ -657,7 +660,7 @@ class InfiniteGridMenu {
     far: 40,
     fov: Math.PI / 4,
     aspect: 1,
-    position: vec3.fromValues(0, 0, 3),
+    position: vec3.fromValues(0, 0, props.scale),
     up: vec3.fromValues(0, 1, 0),
     matrices: {
       view: mat4.create(),
@@ -699,8 +702,11 @@ class InfiniteGridMenu {
     private items: InfiniteMenuItem[],
     private onActiveItemChange: (index: number) => void,
     private onMovementChange: (isMoving: boolean) => void,
-    private onInit?: (menu: InfiniteGridMenu) => void
+    private onInit?: (menu: InfiniteGridMenu) => void,
+    scale: number = 1.0
   ) {
+    this.scaleFactor = scale;
+    this.camera.position[2] = 3 * scale;
     this.init();
   }
 
