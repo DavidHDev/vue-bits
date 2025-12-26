@@ -393,6 +393,14 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/text-animations/variable-proximity',
     tags: []
   },
+  'TextAnimations/Shuffle': {
+    videoUrl: '/assets/videos/shuffle.webm',
+    description: 'GSAP-powered slot machine style text shuffle animation with scroll trigger.',
+    category: 'TextAnimations',
+    name: 'Shuffle',
+    docsUrl: 'https://vue-bits.dev/text-animations/shuffle',
+    tags: []
+  },
 
   //! Components -------------------------------------------------------------------------------------------------------------------------------
   'Components/AnimatedList': {
