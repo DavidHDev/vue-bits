@@ -33,8 +33,8 @@
           <span class="ml-1 text-gray-400">{{ blobType }}</span>
         </button>
 
-        <PreviewColor title="Fill Color" v-model="fillColor" />
-        <PreviewColor title="Inner Color" v-model="innerColor" />
+        <PreviewColor title="Fill Color" v-model="fillColor" class="mb-4" />
+        <PreviewColor title="Inner Color" v-model="innerColor" class="mb-4" />
         <PreviewColor title="Shadow Color" v-model="shadowColor" />
 
         <PreviewSlider
