@@ -123,6 +123,7 @@ const backgrounds = {
   'floating-lines': () => import('../demo/Backgrounds/FloatingLinesDemo.vue'),
   'light-pillar': () => import('../demo/Backgrounds/LightPillarDemo.vue'),
   'pixel-snow': () => import('../demo/Backgrounds/PixelSnowDemo.vue'),
+  'grid-scan': () => import('../demo/Backgrounds/GridScanDemo.vue'),
 };
 
 export const componentMap = {

@@ -23,6 +23,7 @@
     "@vueuse/core": "^14.1.0",
     "@vueuse/motion": "^3.0.3",
     "@wdns/vue-code-block": "^2.3.5",
+    "face-api.js": "^0.22.2",
     "gl-matrix": "^3.4.3",
     "gsap": "^3.13.0",
     "lenis": "^1.3.8",
