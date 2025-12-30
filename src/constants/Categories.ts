@@ -1,5 +1,5 @@
 // Highlighted sidebar items
-export const NEW = ['Antigravity', 'Color Bends', 'Ghost Cursor', 'Laser Flow', 'Liquid Ether', 'Pixel Blast', 'Floating Lines', 'Light Pillar', 'Pixel Snow'];
+export const NEW = ['Antigravity', 'Color Bends', 'Ghost Cursor', 'Laser Flow', 'Liquid Ether', 'Pixel Blast', 'Floating Lines', 'Light Pillar', 'Pixel Snow', 'Grid Scan'];
 export const UPDATED = [];
 
 // Used for main sidebar navigation
@@ -124,6 +124,7 @@ export const CATEGORIES = [
       'Gradient Blinds',
       'Grid Distortion',
       'Grid Motion',
+      'Grid Scan',
       'Hyperspeed',
       'Iridescence',
       'Letter Glitch',
