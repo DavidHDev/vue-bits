@@ -1,5 +1,5 @@
 // Highlighted sidebar items
-export const NEW = ['Color Bends', 'Ghost Cursor', 'Grid Scan', 'Laser Flow', 'Liquid Ether', 'Pixel Blast', 'Floating Lines', 'Light Pillar', 'Pixel Snow'];
+export const NEW = ['Antigravity', 'Color Bends', 'Ghost Cursor', 'Laser Flow', 'Liquid Ether', 'Pixel Blast', 'Floating Lines', 'Light Pillar', 'Pixel Snow', 'Grid Scan'];
 export const UPDATED = [];
 
 // Used for main sidebar navigation
@@ -26,6 +26,7 @@ export const CATEGORIES = [
       'Scroll Velocity',
       'Scramble Text',
       'Shiny Text',
+      'Shuffle',
       'Split Text',
       'Text Cursor',
       'Text Pressure',
@@ -39,6 +40,7 @@ export const CATEGORIES = [
     name: 'Animations',
     subcategories: [
       'Animated Content',
+      'Antigravity',
       'Blob Cursor',
       'Click Spark',
       'Count Up',
@@ -49,12 +51,15 @@ export const CATEGORIES = [
       'Ghost Cursor',
       'Glare Hover',
       'Gradual Blur',
+      'Image Trail',
       'Laser Flow',
       'Logo Loop',
       'Magnet',
       'Magnet Lines',
+      'Meta Balls',
       'Metallic Paint',
       'Noise',
+      'Pixel Trail',
       'Pixel Transition',
       'Ribbons',
       'Shape Blur',

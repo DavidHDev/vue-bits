@@ -3,11 +3,14 @@ import { createCodeObject } from '@/types/code';
 
 export const infiniteMenu = createCodeObject(code, 'Components/InfiniteMenu', {
   usage: `<template>
-  <InfiniteMenu :items="menuItems" />
+  <InfiniteMenu :items="menuItems" :scale="scaleFactor" />
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
 import InfiniteMenu from "./InfiniteMenu.vue";
+
+const scaleFactor = ref<number>(3);
 
 const menuItems = [
   {
