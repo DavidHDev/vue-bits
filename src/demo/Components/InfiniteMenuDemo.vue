@@ -2,9 +2,11 @@
   <TabbedLayout>
     <template #preview>
       <div class="demo-container h-[500px] overflow-hidden">
-        <InfiniteMenu :items="demoItems" />
+        <InfiniteMenu :items="demoItems" :scale="scaleFactor" />
       </div>
-
+      <Customize>
+        <PreviewSlider title="Scale" v-model="scaleFactor" :min="1" :max="10" :step="1" />
+      </Customize>
       <PropTable :data="propData" />
       <Dependencies :dependency-list="['gl-matrix']" />
     </template>
@@ -27,6 +29,9 @@ import PropTable from '../../components/common/PropTable.vue';
 import TabbedLayout from '../../components/common/TabbedLayout.vue';
 import { infiniteMenu } from '../../constants/code/Components/infiniteMenuCode';
 import InfiniteMenu from '../../content/Components/InfiniteMenu/InfiniteMenu.vue';
+import { ref } from 'vue';
+import PreviewSlider from '../../components/common/PreviewSlider.vue';
+import Customize from '../../components/common/Customize.vue';
 
 const demoItems = [
   {
@@ -55,12 +60,20 @@ const demoItems = [
   }
 ];
 
+const scaleFactor = ref<number>(3);
+
 const propData = [
   {
     name: 'items',
     type: 'InfiniteMenuItem[]',
     default: '[{...}]',
     description: 'Array of menu items with image, title, description, and link properties.'
+  },
+  {
+    name: 'scale',
+    type: 'number',
+    default: '3',
+    description: 'scale camera position'
   }
 ];
 </script>

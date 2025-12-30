@@ -26,6 +26,7 @@ const animations = {
   'laser-flow': () => import('../demo/Animations/LaserFlowDemo.vue'),
   'ghost-cursor': () => import('../demo/Animations/GhostCursorDemo.vue'),
   'antigravity': () => import('../demo/Animations/AntigravityDemo.vue'),
+  'pixel-trail': () => import('../demo/Animations/PixelTrailDemo.vue'),
 };
 
 const textAnimations = {
@@ -51,6 +52,7 @@ const textAnimations = {
   'scroll-velocity': () => import("../demo/TextAnimations/ScrollVelocityDemo.vue"),
   'text-type': () => import("../demo/TextAnimations/TextTypeDemo.vue"),
   'variable-proximity': () => import("../demo/TextAnimations/VariableProximityDemo.vue"),
+  'shuffle': () => import("../demo/TextAnimations/ShuffleDemo.vue"),
 };
 
 const components = {

@@ -222,6 +222,14 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/text-animations/count-up',
     tags: []
   },
+  'Animations/PixelTrail': {
+    videoUrl: '/assets/videos/pixeltrail.webm',
+    description: 'Pixel grid trail effect that follows cursor movement with customizable gooey filter.',
+    category: 'Animations',
+    name: 'PixelTrail',
+    docsUrl: 'https://vue-bits.dev/animations/pixel-trail',
+    tags: []
+  },
 
   //! Text Animations -------------------------------------------------------------------------------------------------------------------------------
 
@@ -391,6 +399,14 @@ export const componentMetadata: ComponentMetadata = {
     category: 'TextAnimations',
     name: 'VariableProximity',
     docsUrl: 'https://vue-bits.dev/text-animations/variable-proximity',
+    tags: []
+  },
+  'TextAnimations/Shuffle': {
+    videoUrl: '/assets/videos/shuffle.webm',
+    description: 'GSAP-powered slot machine style text shuffle animation with scroll trigger.',
+    category: 'TextAnimations',
+    name: 'Shuffle',
+    docsUrl: 'https://vue-bits.dev/text-animations/shuffle',
     tags: []
   },
 
