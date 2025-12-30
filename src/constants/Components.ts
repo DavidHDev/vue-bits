@@ -25,6 +25,7 @@ const animations = {
   'gradual-blur': () => import('../demo/Animations/GradualBlurDemo.vue'),
   'laser-flow': () => import('../demo/Animations/LaserFlowDemo.vue'),
   'ghost-cursor': () => import('../demo/Animations/GhostCursorDemo.vue'),
+  'pixel-trail': () => import('../demo/Animations/PixelTrailDemo.vue'),
 };
 
 const textAnimations = {

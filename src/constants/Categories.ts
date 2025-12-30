@@ -57,6 +57,7 @@ export const CATEGORIES = [
       'Meta Balls',
       'Metallic Paint',
       'Noise',
+      'Pixel Trail',
       'Pixel Transition',
       'Ribbons',
       'Shape Blur',
