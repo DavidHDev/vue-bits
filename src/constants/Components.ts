@@ -51,6 +51,7 @@ const textAnimations = {
   'scroll-velocity': () => import("../demo/TextAnimations/ScrollVelocityDemo.vue"),
   'text-type': () => import("../demo/TextAnimations/TextTypeDemo.vue"),
   'variable-proximity': () => import("../demo/TextAnimations/VariableProximityDemo.vue"),
+  'shuffle': () => import("../demo/TextAnimations/ShuffleDemo.vue"),
 };
 
 const components = {

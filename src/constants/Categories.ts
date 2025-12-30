@@ -26,6 +26,7 @@ export const CATEGORIES = [
       'Scroll Velocity',
       'Scramble Text',
       'Shiny Text',
+      'Shuffle',
       'Split Text',
       'Text Cursor',
       'Text Pressure',
