@@ -40,7 +40,8 @@ These components are all enhanced with customization options as props, to make i
 - All components have minimal dependencies, and are highly customizable through props
 - Designed to integrate seamlessly with any modern Vue/Nuxt project
 
-## CLI (<a href="https://jsrepo.dev"><img src="https://jsrepo.dev/badges/jsrepo.svg" width="50" alt="jsrepo"></a>)
+## CLI [![jsrepo](https://jsrepo.com/badges/@ieedan/std)](https://jsrepo.com/packages/@ieedan/std)
+
 
 Vue Bits uses [jsrepo](https://jsrepo.dev) for installing components via CLI. </br>
 The setup steps can be found on each component's page in the [documentation](https://vue-bits.dev/).
