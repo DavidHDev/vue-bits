@@ -57,8 +57,8 @@ const forceHoverState = ref(false);
 const debouncedHue = ref(100);
 const debouncedHoverIntensity = ref(0.5);
 
-let hueTimeout: number;
-let hoverIntensityTimeout: number;
+let hueTimeout: ReturnType<typeof setTimeout>;
+let hoverIntensityTimeout: ReturnType<typeof setTimeout>;
 
 watch(hue, newValue => {
   clearTimeout(hueTimeout);
