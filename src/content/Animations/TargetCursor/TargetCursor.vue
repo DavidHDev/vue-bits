@@ -78,9 +78,11 @@ const setupAnimation = () => {
     if (spinTl.value) {
       spinTl.value.kill();
     }
-    spinTl.value = gsap
-      .timeline({ repeat: -1 })
-      .to(cursor, { rotation: '+=360', duration: props.spinDuration, ease: 'none' });
+    spinTl.value = gsap.timeline({ repeat: -1 }).to(cursor, {
+      rotation: '+=360',
+      duration: props.spinDuration,
+      ease: 'none'
+    });
   };
 
   createSpinTimeline();
@@ -173,11 +175,13 @@ const setupAnimation = () => {
       const offsets = [tlOffset, trOffset, brOffset, blOffset];
 
       corners.forEach((corner, index) => {
+        const offset = offsets[index];
+        if (!offset) return;
         tl.to(
           corner as HTMLElement,
           {
-            x: offsets[index].x,
-            y: offsets[index].y,
+            x: offset.x,
+            y: offset.y,
             duration: 0.2,
             ease: 'power2.out'
           },
@@ -221,11 +225,13 @@ const setupAnimation = () => {
 
         const tl = gsap.timeline();
         corners.forEach((corner, index) => {
+          const pos = positions[index];
+          if (!pos) return;
           tl.to(
             corner as HTMLElement,
             {
-              x: positions[index].x,
-              y: positions[index].y,
+              x: pos.x,
+              y: pos.y,
               duration: 0.3,
               ease: 'power3.out'
             },
@@ -240,9 +246,11 @@ const setupAnimation = () => {
           const normalizedRotation = currentRotation % 360;
 
           spinTl.value.kill();
-          spinTl.value = gsap
-            .timeline({ repeat: -1 })
-            .to(cursorRef.value, { rotation: '+=360', duration: props.spinDuration, ease: 'none' });
+          spinTl.value = gsap.timeline({ repeat: -1 }).to(cursorRef.value, {
+            rotation: '+=360',
+            duration: props.spinDuration,
+            ease: 'none'
+          });
 
           gsap.to(cursorRef.value, {
             rotation: normalizedRotation + 360,
@@ -329,9 +337,11 @@ watch(
 
     if (spinTl.value.isActive()) {
       spinTl.value.kill();
-      spinTl.value = gsap
-        .timeline({ repeat: -1 })
-        .to(cursorRef.value, { rotation: '+=360', duration: props.spinDuration, ease: 'none' });
+      spinTl.value = gsap.timeline({ repeat: -1 }).to(cursorRef.value, {
+        rotation: '+=360',
+        duration: props.spinDuration,
+        ease: 'none'
+      });
     }
   },
   { immediate: true }
