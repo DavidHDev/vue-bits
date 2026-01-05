@@ -39,7 +39,7 @@ const trail = ref<TrailItem[]>([]);
 const lastMoveTime = ref(Date.now());
 const idCounter = ref(0);
 
-let removalIntervalId: number | null = null;
+let removalIntervalId: ReturnType<typeof setInterval> | null = null;
 
 const handleMouseMove = (e: MouseEvent) => {
   if (!containerRef.value) return;
@@ -134,7 +134,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div ref="containerRef" class="w-full h-full relative">
+  <div ref="containerRef" class="relative w-full h-full">
     <div class="absolute inset-0 pointer-events-none">
       <Motion
         v-for="item in trail"
@@ -152,7 +152,7 @@ onUnmounted(() => {
           repeat: props.randomFloat ? Infinity : 0,
           repeatType: props.randomFloat ? 'mirror' : 'loop'
         }"
-        class="absolute select-none whitespace-nowrap text-3xl"
+        class="absolute text-3xl whitespace-nowrap select-none"
         :style="{ left: `${item.x}px`, top: `${item.y}px` }"
       >
         {{ props.text }}

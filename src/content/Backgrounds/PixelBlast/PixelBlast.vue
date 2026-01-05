@@ -439,12 +439,13 @@ const setup = () => {
     const canvas = document.createElement('canvas');
     const gl = canvas.getContext('webgl2', { antialias: props.antialias, alpha: true });
     if (!gl) return;
+
     const renderer = new THREE.WebGLRenderer({
       canvas,
-      context: gl as WebGL2RenderingContext,
       antialias: props.antialias,
       alpha: true
     });
+
     renderer.domElement.style.width = '100%';
     renderer.domElement.style.height = '100%';
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));

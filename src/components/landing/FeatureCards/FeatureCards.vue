@@ -71,7 +71,7 @@ const ParticleCard = defineComponent({
   setup(props, { slots }) {
     const cardRef = ref<HTMLDivElement | null>(null);
     const particlesRef = ref<HTMLDivElement[]>([]);
-    const timeoutsRef = ref<number[]>([]);
+    const timeoutsRef = ref<ReturnType<typeof setTimeout>[]>([]);
     const isHoveredRef = ref(false);
     const memoizedParticles = ref<HTMLDivElement[]>([]);
     const particlesInit = ref(false);

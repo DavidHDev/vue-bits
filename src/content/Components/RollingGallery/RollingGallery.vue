@@ -1,12 +1,12 @@
 <template>
-  <div class="relative h-[500px] w-full overflow-hidden">
-    <div class="absolute top-0 left-0 h-full w-12 z-10 bg-gradient-to-l from-transparent to-[#0b0b0b]" />
-    <div class="absolute top-0 right-0 h-full w-12 z-10 bg-gradient-to-r from-transparent to-[#0b0b0b]" />
+  <div class="relative w-full h-[500px] overflow-hidden">
+    <div class="top-0 left-0 z-10 absolute bg-gradient-to-l from-transparent to-[#0b0b0b] w-12 h-full" />
+    <div class="top-0 right-0 z-10 absolute bg-gradient-to-r from-transparent to-[#0b0b0b] w-12 h-full" />
 
-    <div class="flex h-full items-center justify-center [perspective:1000px] [transform-style:preserve-3d]">
+    <div class="flex justify-center items-center h-full transform-3d perspective-[1000px]">
       <Motion
         tag="div"
-        class="flex min-h-[200px] items-center justify-center w-full cursor-grab select-none will-change-transform [transform-style:preserve-3d] active:cursor-grabbing"
+        class="flex justify-center items-center w-full min-h-[200px] transform-3d cursor-grab active:cursor-grabbing select-none will-change-transform"
         :style="trackStyle"
         :animate="animateProps"
         :transition="springTransition"
@@ -18,14 +18,14 @@
           v-for="(url, i) in displayImages"
           :key="`gallery-${i}`"
           :style="getItemStyle(i)"
-          class="absolute flex items-center justify-center px-[8%] [backface-visibility:hidden] will-change-transform pointer-events-none"
+          class="absolute flex justify-center items-center px-[8%] backface-hidden pointer-events-none will-change-transform"
         >
           <img
             :src="url"
             alt="gallery"
             loading="lazy"
             decoding="async"
-            class="pointer-events-auto h-[120px] w-[300px] rounded-[15px] border-[3px] border-white object-cover transition-transform duration-300 ease-in-out will-change-transform hover:scale-105"
+            class="border-[3px] border-white rounded-[15px] w-[300px] h-[120px] object-cover hover:scale-105 transition-transform duration-300 ease-in-out pointer-events-auto will-change-transform"
           />
         </div>
       </Motion>
@@ -34,8 +34,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue';
 import { Motion } from 'motion-v';
+import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue';
 
 interface RollingGalleryProps {
   autoplay?: boolean;
@@ -64,8 +64,8 @@ const DEFAULT_IMAGES = shallowRef([
 
 const isScreenSizeSm = ref(false);
 const rotateYValue = ref(0);
-const autoplayInterval = ref<number | null>(null);
-const autoplayTimeout = ref<number | null>(null);
+const autoplayInterval = ref<ReturnType<typeof setInterval> | null>(null);
+const autoplayTimeout = ref<ReturnType<typeof setInterval> | null>(null);
 const isDragging = ref(false);
 const isHovered = ref(false);
 const dragStartX = ref(0);
@@ -146,8 +146,8 @@ const getItemStyle = (index: number) => {
   return style;
 };
 
-let resizeTimeout: number | null = null;
-let hoverTimeout: number | null = null;
+let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
+let hoverTimeout: ReturnType<typeof setTimeout> | null = null;
 
 function checkScreenSize() {
   isScreenSizeSm.value = window.innerWidth <= 640;

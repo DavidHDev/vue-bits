@@ -40,7 +40,7 @@ const isScrambling = ref(false);
 const revealedIndices = ref(new Set<number>());
 const hasAnimated = ref(false);
 
-let interval: number | null = null;
+let interval: ReturnType<typeof setInterval> | null = null;
 let intersectionObserver: IntersectionObserver | null = null;
 
 watch(

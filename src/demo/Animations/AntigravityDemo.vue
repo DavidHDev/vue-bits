@@ -25,11 +25,7 @@
       <Customize>
         <PreviewColor title="Color" v-model="color" />
 
-        <PreviewSelect
-          title="Particle Shape"
-          :options="shapeOptions"
-          v-model="particleShape"
-        />
+        <PreviewSelect title="Particle Shape" :options="shapeOptions" v-model="particleShape" />
 
         <PreviewSlider title="Magnet Radius" :min="5" :max="50" :step="1" v-model="magnetRadius" />
 

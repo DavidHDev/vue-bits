@@ -20,53 +20,19 @@
       </div>
 
       <Customize>
-        <PreviewSelect
-          title="Direction"
-          v-model="shuffleDirection"
-          :options="directionOptions"
-        />
+        <PreviewSelect title="Direction" v-model="shuffleDirection" :options="directionOptions" />
 
-        <PreviewSelect
-          title="Ease"
-          v-model="ease"
-          :options="easeOptions"
-        />
+        <PreviewSelect title="Ease" v-model="ease" :options="easeOptions" />
 
-        <PreviewSlider
-          title="Duration"
-          v-model="duration"
-          :min="0.1"
-          :max="1.5"
-          :step="0.05"
-          value-unit="s"
-        />
+        <PreviewSlider title="Duration" v-model="duration" :min="0.1" :max="1.5" :step="0.05" value-unit="s" />
 
-        <PreviewSlider
-          title="Shuffle Times"
-          v-model="shuffleTimes"
-          :min="1"
-          :max="8"
-          :step="1"
-        />
+        <PreviewSlider title="Shuffle Times" v-model="shuffleTimes" :min="1" :max="8" :step="1" />
 
-        <PreviewSlider
-          title="Stagger"
-          v-model="stagger"
-          :min="0"
-          :max="0.2"
-          :step="0.01"
-          value-unit="s"
-        />
+        <PreviewSlider title="Stagger" v-model="stagger" :min="0" :max="0.2" :step="0.01" value-unit="s" />
 
-        <PreviewSwitch
-          title="Hover Replay"
-          v-model="triggerOnHover"
-        />
+        <PreviewSwitch title="Hover Replay" v-model="triggerOnHover" />
 
-        <PreviewSwitch
-          title="Loop"
-          v-model="loop"
-        />
+        <PreviewSwitch title="Loop" v-model="loop" />
 
         <PreviewSlider
           title="Loop Delay"

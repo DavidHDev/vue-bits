@@ -19,13 +19,41 @@
       </div>
 
       <Customize>
-        <PreviewSlider title="Grid Size" v-model="gridSize" :min="10" :max="100" :step="1" @update:model-value="forceRerender" />
+        <PreviewSlider
+          title="Grid Size"
+          v-model="gridSize"
+          :min="10"
+          :max="100"
+          :step="1"
+          @update:model-value="forceRerender"
+        />
 
-        <PreviewSlider title="Trail Size" v-model="trailSize" :min="0.05" :max="0.5" :step="0.01" @update:model-value="forceRerender" />
+        <PreviewSlider
+          title="Trail Size"
+          v-model="trailSize"
+          :min="0.05"
+          :max="0.5"
+          :step="0.01"
+          @update:model-value="forceRerender"
+        />
 
-        <PreviewSlider title="Max Age" v-model="maxAge" :min="100" :max="1000" :step="50" @update:model-value="forceRerender" />
+        <PreviewSlider
+          title="Max Age"
+          v-model="maxAge"
+          :min="100"
+          :max="1000"
+          :step="50"
+          @update:model-value="forceRerender"
+        />
 
-        <PreviewSlider title="Interpolate" v-model="interpolate" :min="0" :max="10" :step="0.1" @update:model-value="forceRerender" />
+        <PreviewSlider
+          title="Interpolate"
+          v-model="interpolate"
+          :min="0"
+          :max="10"
+          :step="0.1"
+          @update:model-value="forceRerender"
+        />
 
         <PreviewColor title="Color" v-model="color" @update:model-value="forceRerender" />
 
@@ -88,6 +116,11 @@ const propData = [
   { name: 'maxAge', type: 'number', default: '250', description: 'Duration of the trail effect.' },
   { name: 'interpolate', type: 'number', default: '5', description: 'Interpolation factor for pointer movement.' },
   { name: 'color', type: 'string', default: '#ffffff', description: 'Pixel color.' },
-  { name: 'gooeyFilter', type: 'object', default: "{ id: 'custom-goo-filter', strength: 5 }", description: 'Configuration for gooey filter.' }
+  {
+    name: 'gooeyFilter',
+    type: 'object',
+    default: "{ id: 'custom-goo-filter', strength: 5 }",
+    description: 'Configuration for gooey filter.'
+  }
 ];
 </script>

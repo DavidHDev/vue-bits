@@ -399,12 +399,7 @@ watch(
       <defs>
         <filter :id="props.gooeyFilter.id">
           <feGaussianBlur in="SourceGraphic" :stdDeviation="props.gooeyFilter.strength" result="blur" />
-          <feColorMatrix
-            in="blur"
-            type="matrix"
-            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9"
-            result="goo"
-          />
+          <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
           <feComposite in="SourceGraphic" in2="goo" operator="atop" />
         </filter>
       </defs>

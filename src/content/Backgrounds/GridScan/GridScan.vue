@@ -1,20 +1,10 @@
 <template>
-  <div
-    ref="containerRef"
-    :class="['relative w-full h-full overflow-hidden', className]"
-    :style="style"
-  >
+  <div ref="containerRef" :class="['relative w-full h-full overflow-hidden', className]" :style="style">
     <div
       v-if="showPreview"
       class="absolute right-3 bottom-3 w-[220px] h-[132px] rounded-lg overflow-hidden border border-white/25 shadow-[0_4px_16px_rgba(0,0,0,0.4)] bg-black text-white text-[12px] leading-[1.2] font-sans pointer-events-none"
     >
-      <video
-        ref="videoRef"
-        muted
-        playsinline
-        autoplay
-        class="w-full h-full object-cover -scale-x-100"
-      />
+      <video ref="videoRef" muted playsinline autoplay class="w-full h-full object-cover -scale-x-100" />
       <div class="absolute left-2 top-2 px-[6px] py-[2px] bg-black/50 rounded-[6px] backdrop-blur-[4px]">
         {{
           enableWebcam
@@ -764,7 +754,7 @@ const setupAnimation = () => {
   // Watch for webcam changes
   const unwatchWebcam = watch(
     () => props.enableWebcam,
-    (newVal) => {
+    newVal => {
       if (newVal && modelsReady.value) {
         stopFaceDetection = false;
         startFaceDetection();
@@ -774,7 +764,7 @@ const setupAnimation = () => {
     }
   );
 
-  const unwatchModels = watch(modelsReady, (ready) => {
+  const unwatchModels = watch(modelsReady, ready => {
     if (ready && props.enableWebcam) {
       stopFaceDetection = false;
       startFaceDetection();
@@ -814,7 +804,8 @@ const setupAnimation = () => {
       uniforms.uNoise.value = Math.max(0, props.noiseIntensity);
       uniforms.uScanGlow.value = props.scanGlow;
       uniforms.uScanOpacity.value = Math.max(0, Math.min(1, props.scanOpacity));
-      uniforms.uScanDirection.value = props.scanDirection === 'backward' ? 1 : props.scanDirection === 'pingpong' ? 2 : 0;
+      uniforms.uScanDirection.value =
+        props.scanDirection === 'backward' ? 1 : props.scanDirection === 'pingpong' ? 2 : 0;
       uniforms.uScanSoftness.value = props.scanSoftness;
       uniforms.uPhaseTaper.value = props.scanPhaseTaper;
       uniforms.uScanDuration.value = Math.max(0.05, props.scanDuration);

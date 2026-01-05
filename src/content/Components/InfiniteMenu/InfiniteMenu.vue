@@ -476,8 +476,10 @@ function makeBuffer(
   gl.bindBuffer(gl.ARRAY_BUFFER, buf);
   if (typeof sizeOrData === 'number') {
     gl.bufferData(gl.ARRAY_BUFFER, sizeOrData, usage);
+  } else if (sizeOrData instanceof ArrayBuffer) {
+    gl.bufferData(gl.ARRAY_BUFFER, sizeOrData, usage);
   } else {
-    gl.bufferData(gl.ARRAY_BUFFER, sizeOrData as AllowSharedBufferSource, usage);
+    gl.bufferData(gl.ARRAY_BUFFER, sizeOrData, usage);
   }
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
   return buf;
@@ -1157,7 +1159,7 @@ watch(
 
 <template>
   <div class="relative w-full h-full">
-    <canvas ref="canvasRef" class="w-full h-full cursor-grab active:cursor-grabbing outline-none overflow-hidden" />
+    <canvas ref="canvasRef" class="outline-none w-full h-full overflow-hidden cursor-grab active:cursor-grabbing" />
 
     <template v-if="activeItem">
       <h2
@@ -1202,7 +1204,7 @@ watch(
           transform: isMoving ? 'translateX(-50%) scale(0)' : 'translateX(-50%) scale(1)'
         }"
       >
-        <p class="select-none relative text-white text-2xl" :style="{ top: '2px' }">&#x2197;</p>
+        <p class="relative text-white text-2xl select-none" :style="{ top: '2px' }">&#x2197;</p>
       </div>
     </template>
   </div>

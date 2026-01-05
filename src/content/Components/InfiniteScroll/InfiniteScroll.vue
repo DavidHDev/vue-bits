@@ -1,7 +1,7 @@
 <template>
   <div class="w-full">
     <div
-      class="infinite-scroll-wrapper relative flex items-center justify-center w-full overflow-hidden"
+      class="relative flex justify-center items-center w-full overflow-hidden infinite-scroll-wrapper"
       ref="wrapperRef"
       :style="{
         maxHeight: maxHeight,
@@ -9,7 +9,7 @@
       }"
     >
       <div
-        class="infinite-scroll-container flex flex-col px-4 cursor-grab"
+        class="flex flex-col px-4 infinite-scroll-container cursor-grab"
         ref="containerRef"
         :style="{
           transform: getTiltTransform(),
@@ -22,7 +22,7 @@
         <div
           v-for="(item, index) in items"
           :key="index"
-          class="infinite-scroll-item rounded-2xl flex items-center justify-center p-4 text-xl font-semibold text-center border-2 border-white select-none box-border relative"
+          class="box-border relative flex justify-center items-center p-4 border-2 border-white rounded-2xl font-semibold text-xl text-center infinite-scroll-item select-none"
           :style="{
             height: itemMinHeight + 'px',
             marginTop: negativeMargin
@@ -38,9 +38,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch, useTemplateRef } from 'vue';
 import { gsap } from 'gsap';
-import { Observer } from 'gsap/Observer';
+import { Observer } from 'gsap/all';
+import { onMounted, onUnmounted, useTemplateRef, watch } from 'vue';
 
 gsap.registerPlugin(Observer);
 
