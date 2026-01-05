@@ -1,10 +1,5 @@
 <template>
-  <component
-    :is="tag"
-    ref="textRef"
-    :class="computedClasses"
-    :style="computedStyle"
-  >
+  <component :is="tag" ref="textRef" :class="computedClasses" :style="computedStyle">
     {{ text }}
   </component>
 </template>
@@ -94,9 +89,7 @@ const baseTw = 'inline-block whitespace-normal break-words will-change-transform
 
 const userHasFont = computed(() => props.className && /font[-[]/i.test(props.className));
 
-const fallbackFont = computed(() =>
-  userHasFont.value ? {} : { fontFamily: `'Press Start 2P', sans-serif` }
-);
+const fallbackFont = computed(() => (userHasFont.value ? {} : { fontFamily: `'Press Start 2P', sans-serif` }));
 
 const computedStyle = computed(() => ({
   textAlign: props.textAlign,
@@ -104,9 +97,7 @@ const computedStyle = computed(() => ({
   ...props.style
 }));
 
-const computedClasses = computed(() =>
-  `${baseTw} ${ready.value ? 'visible' : 'invisible'} ${props.className}`.trim()
-);
+const computedClasses = computed(() => `${baseTw} ${ready.value ? 'visible' : 'invisible'} ${props.className}`.trim());
 
 const removeHover = () => {
   if (hoverHandler && textRef.value) {
@@ -274,7 +265,7 @@ const play = () => {
         cleanupToStill();
         if (props.colorTo) gsap.set(strips, { color: props.colorTo });
         emit('shuffle-complete');
-      props.onShuffleComplete?.();
+        props.onShuffleComplete?.();
         armHover();
       }
     }
@@ -292,7 +283,8 @@ const play = () => {
       },
       at
     );
-    if (props.colorFrom && props.colorTo) tl.to(targets, { color: props.colorTo, duration: props.duration, ease: props.ease }, at);
+    if (props.colorFrom && props.colorTo)
+      tl.to(targets, { color: props.colorTo, duration: props.duration, ease: props.ease }, at);
   };
 
   if (props.animationMode === 'evenodd') {
@@ -315,7 +307,13 @@ const play = () => {
         },
         d
       );
-      if (props.colorFrom && props.colorTo) tl.fromTo(strip, { color: props.colorFrom }, { color: props.colorTo, duration: props.duration, ease: props.ease }, d);
+      if (props.colorFrom && props.colorTo)
+        tl.fromTo(
+          strip,
+          { color: props.colorFrom },
+          { color: props.colorTo, duration: props.duration, ease: props.ease },
+          d
+        );
     });
   }
 
@@ -333,7 +331,11 @@ const create = () => {
 const initializeAnimation = async () => {
   if (typeof window === 'undefined' || !textRef.value || !props.text || !fontsLoaded.value) return;
 
-  if (props.respectReducedMotion && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if (
+    props.respectReducedMotion &&
+    window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  ) {
     ready.value = true;
     emit('shuffle-complete');
     props.onShuffleComplete?.();

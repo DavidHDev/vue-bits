@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, defineComponent, h } from 'vue';
-import { useMotionValue, useSpring, useTransform, type SpringOptions } from 'motion-v';
+import { useMotionValue, useSpring, useTransform } from 'motion-v';
+
+export type SpringOptions = NonNullable<Parameters<typeof useSpring>[1]>;
 
 export type DockItemData = {
   icon: unknown;
@@ -65,7 +67,7 @@ const handleMouseLeave = () => {
 </script>
 
 <template>
-  <div :style="{ height: currentHeight + 'px', scrollbarWidth: 'none' }" class="mx-2 flex max-w-full items-center">
+  <div :style="{ height: currentHeight + 'px', scrollbarWidth: 'none' }" class="flex items-center mx-2 max-w-full">
     <div
       @mousemove="handleMouseMove"
       @mouseleave="handleMouseLeave"

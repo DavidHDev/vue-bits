@@ -5,14 +5,14 @@
         <div
           v-for="(__, c) in cells"
           :key="`${r}-${c}`"
-          class="cube relative w-full h-full aspect-square [transform-style:preserve-3d]"
+          class="relative w-full h-full aspect-square transform-3d cube"
           :data-row="r"
           :data-col="c"
         >
-          <span class="absolute pointer-events-none -inset-9" />
+          <span class="absolute -inset-9 pointer-events-none" />
 
           <div
-            class="cube-face absolute inset-0 flex items-center justify-center"
+            class="absolute inset-0 flex justify-center items-center cube-face"
             :style="{
               background: 'var(--cube-face-bg)',
               border: 'var(--cube-face-border)',
@@ -22,7 +22,7 @@
           />
 
           <div
-            class="cube-face absolute inset-0 flex items-center justify-center"
+            class="absolute inset-0 flex justify-center items-center cube-face"
             :style="{
               background: 'var(--cube-face-bg)',
               border: 'var(--cube-face-border)',
@@ -32,7 +32,7 @@
           />
 
           <div
-            class="cube-face absolute inset-0 flex items-center justify-center"
+            class="absolute inset-0 flex justify-center items-center cube-face"
             :style="{
               background: 'var(--cube-face-bg)',
               border: 'var(--cube-face-border)',
@@ -42,7 +42,7 @@
           />
 
           <div
-            class="cube-face absolute inset-0 flex items-center justify-center"
+            class="absolute inset-0 flex justify-center items-center cube-face"
             :style="{
               background: 'var(--cube-face-bg)',
               border: 'var(--cube-face-border)',
@@ -52,7 +52,7 @@
           />
 
           <div
-            class="cube-face absolute inset-0 flex items-center justify-center"
+            class="absolute inset-0 flex justify-center items-center cube-face"
             :style="{
               background: 'var(--cube-face-bg)',
               border: 'var(--cube-face-border)',
@@ -62,7 +62,7 @@
           />
 
           <div
-            class="cube-face absolute inset-0 flex items-center justify-center"
+            class="absolute inset-0 flex justify-center items-center cube-face"
             :style="{
               background: 'var(--cube-face-bg)',
               border: 'var(--cube-face-border)',
@@ -77,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, withDefaults, useTemplateRef } from 'vue';
+import { ref, computed, onMounted, onUnmounted, useTemplateRef } from 'vue';
 import gsap from 'gsap';
 
 interface Gap {
@@ -124,7 +124,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const sceneRef = useTemplateRef<HTMLDivElement>('sceneRef');
 const rafRef = ref<number | null>(null);
-const idleTimerRef = ref<number | null>(null);
+const idleTimerRef = ref<ReturnType<typeof setTimeout> | null>(null);
 const userActiveRef = ref(false);
 const simPosRef = ref<{ x: number; y: number }>({ x: 0, y: 0 });
 const simTargetRef = ref<{ x: number; y: number }>({ x: 0, y: 0 });

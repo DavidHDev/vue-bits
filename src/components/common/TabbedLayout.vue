@@ -113,8 +113,8 @@ const subcategory = computed(() => route.params.subcategory);
 const toast = useToast();
 
 const isTooltipVisible = ref(false);
-const showTimeout = ref<number | null>(null);
-const hideTimeout = ref<number | null>(null);
+const showTimeout = ref<ReturnType<typeof setTimeout> | null>(null);
+const hideTimeout = ref<ReturnType<typeof setTimeout> | null>(null);
 
 const toPascal = (str: string) =>
   str

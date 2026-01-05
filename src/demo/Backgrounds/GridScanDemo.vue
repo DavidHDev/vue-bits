@@ -24,63 +24,21 @@
         <PreviewColor title="Lines Color" v-model="linesColor" class="mb-4" />
         <PreviewColor title="Scan Color" v-model="scanColor" />
 
-        <PreviewSlider
-          title="Line Thickness"
-          v-model="lineThickness"
-          :min="1"
-          :max="4"
-          :step="0.1"
-        />
+        <PreviewSlider title="Line Thickness" v-model="lineThickness" :min="1" :max="4" :step="0.1" />
 
-        <PreviewSlider
-          title="Grid Scale"
-          v-model="gridScale"
-          :min="0.02"
-          :max="0.5"
-          :step="0.01"
-        />
+        <PreviewSlider title="Grid Scale" v-model="gridScale" :min="0.02" :max="0.5" :step="0.01" />
 
-        <PreviewSlider
-          title="Line Jitter"
-          v-model="lineJitter"
-          :min="0"
-          :max="1"
-          :step="0.01"
-        />
+        <PreviewSlider title="Line Jitter" v-model="lineJitter" :min="0" :max="1" :step="0.01" />
 
-        <PreviewSlider
-          title="Scan Glow"
-          v-model="scanGlow"
-          :min="0.1"
-          :max="3"
-          :step="0.1"
-        />
+        <PreviewSlider title="Scan Glow" v-model="scanGlow" :min="0.1" :max="3" :step="0.1" />
 
-        <PreviewSlider
-          title="Scan Softness"
-          v-model="scanSoftness"
-          :min="0.1"
-          :max="4"
-          :step="0.1"
-        />
+        <PreviewSlider title="Scan Softness" v-model="scanSoftness" :min="0.1" :max="4" :step="0.1" />
 
         <PreviewSwitch title="Enable Post" v-model="enablePost" />
 
-        <PreviewSlider
-          title="Chromatic Aberration"
-          v-model="chromaticAberration"
-          :min="0"
-          :max="0.01"
-          :step="0.0005"
-        />
+        <PreviewSlider title="Chromatic Aberration" v-model="chromaticAberration" :min="0" :max="0.01" :step="0.0005" />
 
-        <PreviewSlider
-          title="Noise Intensity"
-          v-model="noiseIntensity"
-          :min="0"
-          :max="0.1"
-          :step="0.005"
-        />
+        <PreviewSlider title="Noise Intensity" v-model="noiseIntensity" :min="0" :max="0.1" :step="0.005" />
 
         <PreviewSwitch title="Enable Webcam" v-model="enableWebcam" />
         <PreviewSwitch title="Show Preview HUD" v-model="showPreview" />

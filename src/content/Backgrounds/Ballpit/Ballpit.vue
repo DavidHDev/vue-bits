@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { gsap } from 'gsap';
-import { Observer } from 'gsap/Observer';
+import { Observer } from 'gsap/all';
 import {
   ACESFilmicToneMapping,
   AmbientLight,
@@ -26,7 +26,7 @@ import {
   type WebGLRendererParameters
 } from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
-import { defineProps, onMounted, onUnmounted, useTemplateRef, ref } from 'vue';
+import { onMounted, onUnmounted, ref, useTemplateRef } from 'vue';
 
 gsap.registerPlugin(Observer);
 

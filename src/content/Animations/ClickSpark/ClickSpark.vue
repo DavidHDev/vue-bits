@@ -130,7 +130,7 @@ const resizeCanvas = () => {
   }
 };
 
-let resizeTimeout: number;
+let resizeTimeout: ReturnType<typeof setTimeout>;
 
 const handleResize = () => {
   clearTimeout(resizeTimeout);

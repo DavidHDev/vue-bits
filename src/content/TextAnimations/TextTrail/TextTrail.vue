@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, useTemplateRef } from 'vue';
 import {
   CanvasTexture,
   Clock,
@@ -16,6 +15,7 @@ import {
   WebGLRenderer,
   WebGLRenderTarget
 } from 'three';
+import { onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
 
 interface TextTrailProps {
   text?: string;
@@ -151,7 +151,7 @@ let quad: Mesh | null = null;
 let labelMat: ShaderMaterial | null = null;
 let label: Mesh | null = null;
 let resizeObserver: ResizeObserver | null = null;
-let colorTimer: number | null = null;
+let colorTimer: ReturnType<typeof setInterval> | null = null;
 
 const persistColor = ref<[number, number, number]>(
   hexToRgb(props.textColor || props.startColor).map(c => c / 255) as [number, number, number]

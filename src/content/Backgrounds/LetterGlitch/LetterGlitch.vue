@@ -1,15 +1,15 @@
 <template>
   <div class="relative overflow-hidden">
-    <canvas ref="canvasRef" class="absolute top-0 left-0 w-full h-full" />
+    <canvas ref="canvasRef" class="top-0 left-0 absolute w-full h-full" />
 
     <div
       v-if="outerVignette"
-      class="absolute top-0 left-0 w-full h-full pointer-events-none bg-[radial-gradient(circle,_rgba(0,0,0,0)_60%,_rgba(0,0,0,1)_100%)]"
+      class="top-0 left-0 absolute bg-[radial-gradient(circle,rgba(0,0,0,0)_60%,rgba(0,0,0,1)_100%)] w-full h-full pointer-events-none"
     />
 
     <div
       v-if="centerVignette"
-      class="absolute top-0 left-0 w-full h-full pointer-events-none bg-[radial-gradient(circle,_rgba(0,0,0,0.8)_0%,_rgba(0,0,0,0)_60%)]"
+      class="top-0 left-0 absolute bg-[radial-gradient(circle,rgba(0,0,0,0.8)_0%,rgba(0,0,0,0)_60%)] w-full h-full pointer-events-none"
     />
   </div>
 </template>
@@ -268,7 +268,7 @@ const animate = () => {
   animationRef.value = requestAnimationFrame(animate);
 };
 
-let resizeTimeout: number;
+let resizeTimeout: ReturnType<typeof setTimeout>;
 
 const handleResize = () => {
   clearTimeout(resizeTimeout);

@@ -1,9 +1,15 @@
 <script setup lang="ts">
-import { AnimatePresence, Motion, type Target, type Transition, type VariantLabels } from 'motion-v';
+import { AnimatePresence, Motion } from 'motion-v';
+import type { MotionProps } from 'motion-v';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 
 type StaggerFrom = 'first' | 'last' | 'center' | 'random' | number;
 type SplitBy = 'characters' | 'words' | 'lines';
+
+type TransitionType = NonNullable<MotionProps['transition']>;
+type InitialType = NonNullable<MotionProps['initial']>;
+type AnimateType = NonNullable<MotionProps['animate']>;
+type ExitType = NonNullable<MotionProps['exit']>;
 
 interface WordElement {
   characters: string[];
@@ -12,10 +18,10 @@ interface WordElement {
 
 interface RotatingTextProps {
   texts: string[];
-  transition?: Transition;
-  initial?: boolean | Target | VariantLabels;
-  animate?: Target | VariantLabels;
-  exit?: Target | VariantLabels;
+  transition?: TransitionType;
+  initial?: InitialType;
+  animate?: AnimateType;
+  exit?: ExitType;
   animatePresenceMode?: 'sync' | 'wait';
   animatePresenceInitial?: boolean;
   rotationInterval?: number;
@@ -40,10 +46,10 @@ const props = withDefaults(defineProps<RotatingTextProps>(), {
       type: 'spring',
       damping: 25,
       stiffness: 300
-    }) as Transition,
-  initial: () => ({ y: '100%', opacity: 0 }) as Target,
-  animate: () => ({ y: 0, opacity: 1 }) as Target,
-  exit: () => ({ y: '-120%', opacity: 0 }) as Target,
+    }) as TransitionType,
+  initial: () => ({ y: '100%', opacity: 0 }) as InitialType,
+  animate: () => ({ y: 0, opacity: 1 }) as AnimateType,
+  exit: () => ({ y: '-120%', opacity: 0 }) as ExitType,
   animatePresenceMode: 'wait',
   animatePresenceInitial: false,
   rotationInterval: 2000,

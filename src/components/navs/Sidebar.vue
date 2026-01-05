@@ -130,8 +130,8 @@ const isTransitioning = ref(false);
 const sidebarRef = useTemplateRef<HTMLDivElement>('sidebarRef');
 const sidebarContainerRef = useTemplateRef<HTMLDivElement>('sidebarContainerRef');
 
-let hoverTimeoutRef: number | null = null;
-let hoverDelayTimeoutRef: number | null = null;
+let hoverTimeoutRef: ReturnType<typeof setTimeout> | null = null;
+let hoverDelayTimeoutRef: ReturnType<typeof setTimeout> | null = null;
 const savedSet = ref(new Set(getSavedComponents()));
 
 const route = useRoute();

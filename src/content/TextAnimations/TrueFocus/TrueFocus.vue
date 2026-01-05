@@ -29,7 +29,7 @@ const containerRef = useTemplateRef<HTMLDivElement>('containerRef');
 const wordRefs = ref<HTMLSpanElement[]>([]);
 const focusRect = ref({ x: 0, y: 0, width: 0, height: 0 });
 
-let interval: number | null = null;
+let interval: ReturnType<typeof setInterval> | null = null;
 
 watch(
   [currentIndex, () => words.value.length],
@@ -150,20 +150,20 @@ onUnmounted(() => {
         '--glow-color': glowColor
       }"
     >
+      <spanx
+        class="top-[-10px] left-[-10px] absolute filter-[drop-shadow(0_0_4px_var(--border-color,#fff))] border-[3px] border-(--border-color,#fff) border-r-0 border-b-0 rounded-[3px] w-4 h-4 transition-none"
+      ></spanx>
+
       <span
-        class="top-[-10px] left-[-10px] absolute [filter:drop-shadow(0_0_4px_var(--border-color,#fff))] border-[3px] border-[var(--border-color,#fff)] border-r-0 border-b-0 rounded-[3px] w-4 h-4 transition-none"
+        class="top-[-10px] right-[-10px] absolute filter-[drop-shadow(0_0_4px_var(--border-color,#fff))] border-[3px] border-(--border-color,#fff) border-b-0 border-l-0 rounded-[3px] w-4 h-4 transition-none"
       ></span>
 
       <span
-        class="top-[-10px] right-[-10px] absolute [filter:drop-shadow(0_0_4px_var(--border-color,#fff))] border-[3px] border-[var(--border-color,#fff)] border-b-0 border-l-0 rounded-[3px] w-4 h-4 transition-none"
+        class="bottom-[-10px] left-[-10px] absolute filter-[drop-shadow(0_0_4px_var(--border-color,#fff))] border-[3px] border-(--border-color,#fff) border-t-0 border-r-0 rounded-[3px] w-4 h-4 transition-none"
       ></span>
 
       <span
-        class="bottom-[-10px] left-[-10px] absolute [filter:drop-shadow(0_0_4px_var(--border-color,#fff))] border-[3px] border-[var(--border-color,#fff)] border-t-0 border-r-0 rounded-[3px] w-4 h-4 transition-none"
-      ></span>
-
-      <span
-        class="right-[-10px] bottom-[-10px] absolute [filter:drop-shadow(0_0_4px_var(--border-color,#fff))] border-[3px] border-[var(--border-color,#fff)] border-t-0 border-l-0 rounded-[3px] w-4 h-4 transition-none"
+        class="right-[-10px] bottom-[-10px] absolute filter-[drop-shadow(0_0_4px_var(--border-color,#fff))] border-[3px] border-(--border-color,#fff) border-t-0 border-l-0 rounded-[3px] w-4 h-4 transition-none"
       ></span>
     </motion.div>
   </div>

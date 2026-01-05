@@ -203,9 +203,7 @@ function animate() {
   const elapsedTime = clock.getElapsedTime();
 
   // Mouse movement detection
-  const mouseDist = Math.sqrt(
-    Math.pow(pointer.x - lastMousePos.x, 2) + Math.pow(pointer.y - lastMousePos.y, 2)
-  );
+  const mouseDist = Math.sqrt(Math.pow(pointer.x - lastMousePos.x, 2) + Math.pow(pointer.y - lastMousePos.y, 2));
 
   if (mouseDist > 0.001) {
     lastMouseMoveTime = Date.now();

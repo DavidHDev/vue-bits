@@ -141,8 +141,8 @@ const route = useRoute();
 const router = useRouter();
 
 const isTooltipVisible = ref(false);
-const showTimeout = ref<number | null>(null);
-const hideTimeout = ref<number | null>(null);
+const showTimeout = ref<ReturnType<typeof setTimeout> | null>(null);
+const hideTimeout = ref<ReturnType<typeof setTimeout> | null>(null);
 
 const slug = (str: string) => str.replace(/\s+/g, '-').toLowerCase();
 
