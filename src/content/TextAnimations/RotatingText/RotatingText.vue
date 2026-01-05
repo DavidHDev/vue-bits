@@ -80,7 +80,7 @@ const splitIntoCharacters = (text: string): string[] => {
   return [...text];
 };
 const elements = computed((): WordElement[] => {
-  const currentText = props.texts[currentTextIndex.value];
+  const currentText = props.texts[currentTextIndex.value] as string;
 
   switch (props.splitBy) {
     case 'characters': {
