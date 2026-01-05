@@ -13,7 +13,8 @@
     "lint": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "new:component": "node scripts/generateComponent.js"
+    "new:component": "node scripts/generateComponent.js",
+    "prepare": "husky"
   },
   "dependencies": {
     "@primeuix/themes": "^1.2.1",
@@ -52,8 +53,10 @@
     "autoprefixer": "^10.4.21",
     "eslint": "^9.29.0",
     "eslint-plugin-vue": "~10.2.0",
+    "husky": "^9.1.7",
     "jiti": "^2.4.2",
     "jsrepo": "^3.0.8",
+    "lint-staged": "^16.2.7",
     "npm-run-all2": "^8.0.4",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
@@ -62,5 +65,14 @@
     "vite": "^7.0.0",
     "vite-plugin-vue-devtools": "^7.7.7",
     "vue-tsc": "^2.2.10"
+  },
+  "lint-staged": {
+    "src/**/*.{js,ts,jsx,tsx,vue}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "src/**/*.{json,css,scss,md}": [
+      "prettier --write"
+    ]
   }
 }
