@@ -1,12 +1,24 @@
 // Highlighted sidebar items
-export const NEW = ['Antigravity', 'Color Bends', 'Ghost Cursor', 'Laser Flow', 'Liquid Ether', 'Pixel Blast', 'Floating Lines', 'Light Pillar', 'Pixel Snow', 'Grid Scan'];
+export const NEW = [
+  'Antigravity',
+  'Color Bends',
+  'Floating Lines',
+  'Ghost Cursor',
+  'Grid Scan',
+  'Laser Flow',
+  'Light Pillar',
+  'Liquid Ether',
+  'Pixel Blast',
+  'Pixel Snow',
+];
+
 export const UPDATED = [];
 
 // Used for main sidebar navigation
 export const CATEGORIES = [
   {
     name: 'Get Started',
-    subcategories: ['Index']
+    subcategories: [ 'Index' ],
   },
   {
     name: 'Text Animations',
@@ -14,6 +26,7 @@ export const CATEGORIES = [
       'Ascii Text',
       'Blur Text',
       'Circular Text',
+      'Count Up',
       'Curved Loop',
       'Decrypted Text',
       'Falling Text',
@@ -43,7 +56,6 @@ export const CATEGORIES = [
       'Antigravity',
       'Blob Cursor',
       'Click Spark',
-      'Count Up',
       'Crosshair',
       'Cubes',
       'Electric Border',
@@ -56,8 +68,8 @@ export const CATEGORIES = [
       'Logo Loop',
       'Magnet',
       'Magnet Lines',
-      'Meta Balls',
       'Metallic Paint',
+      'Meta Balls',
       'Noise',
       'Pixel Trail',
       'Pixel Transition',
@@ -95,8 +107,8 @@ export const CATEGORIES = [
       'Infinite Scroll',
       'Magic Bento',
       'Masonry',
-      'Pixel Card',
       'Pill Nav',
+      'Pixel Card',
       'Profile Card',
       'Rolling Gallery',
       'Scroll Stack',
@@ -128,9 +140,9 @@ export const CATEGORIES = [
       'Hyperspeed',
       'Iridescence',
       'Letter Glitch',
-      'Lightning',
       'Light Pillar',
       'Light Rays',
+      'Lightning',
       'Liquid Chrome',
       'Liquid Ether',
       'Orb',
