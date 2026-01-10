@@ -17,7 +17,7 @@
       </div>
 
       <Customize>
-        <PreviewSelect v-model="cursorCharacter" :options="['|', '_', '█', '▌', '▐']" title="Cursor Character" />
+        <PreviewSelect v-model="cursorCharacter" :options="cursorOptions" title="Cursor Character" />
         <PreviewSlider v-model="typingSpeed" title="Typing Speed" :min="10" :max="200" :step="5" value-unit="ms" />
         <PreviewSlider
           v-model="pauseDuration"
@@ -98,6 +98,14 @@ const variableSpeedMax = ref(120);
 const cursorBlinkDuration = ref(0.5);
 
 const { rerenderKey: key } = useForceRerender();
+
+const cursorOptions = [
+  { value: '_', label: 'Underscore (_)' },
+  { value: '|', label: 'Pipe (|)' },
+  { value: '▎', label: 'Block (▎)' },
+  { value: '●', label: 'Dot (●)' },
+  { value: '█', label: 'Full Block (█)' }
+];
 
 const propData = [
   {
