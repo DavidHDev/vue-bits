@@ -16,7 +16,7 @@ export interface ShuffleProps {
   text: string;
   className?: string;
   style?: Record<string, any>;
-  shuffleDirection?: 'left' | 'right';
+  shuffleDirection?: 'left' | 'right' | 'up' | 'down';
   duration?: number;
   maxDelay?: number;
   ease?: string | ((t: number) => number);
@@ -152,54 +152,87 @@ const build = () => {
     if (!parent) return;
 
     const w = ch.getBoundingClientRect().width;
+    const h = ch.getBoundingClientRect().height;
     if (!w) return;
 
     const wrap = document.createElement('span');
-    wrap.className = 'inline-block overflow-hidden align-baseline text-left';
-    Object.assign(wrap.style, { width: w + 'px' });
+    wrap.className = 'inline-block overflow-hidden text-left';
+    Object.assign(wrap.style, {
+      width: w + 'px',
+      height: props.shuffleDirection === 'up' || props.shuffleDirection === 'down' ? h + 'px' : 'auto',
+      verticalAlign: 'bottom'
+    });
 
     const inner = document.createElement('span');
-    inner.className = 'inline-block whitespace-nowrap will-change-transform origin-left transform-gpu';
+    inner.className =
+      'inline-block will-change-transform origin-left transform-gpu ' +
+      (props.shuffleDirection === 'up' || props.shuffleDirection === 'down'
+        ? 'whitespace-normal'
+        : 'whitespace-nowrap');
 
     parent.insertBefore(wrap, ch);
     wrap.appendChild(inner);
 
     const firstOrig = ch.cloneNode(true) as HTMLElement;
-    firstOrig.className = 'inline-block text-left';
+    firstOrig.className =
+      'text-left ' + (props.shuffleDirection === 'up' || props.shuffleDirection === 'down' ? 'block' : 'inline-block');
     Object.assign(firstOrig.style, { width: w + 'px', fontFamily: computedFont });
 
     ch.setAttribute('data-orig', '1');
-    ch.className = 'inline-block text-left';
+    ch.className =
+      'text-left ' + (props.shuffleDirection === 'up' || props.shuffleDirection === 'down' ? 'block' : 'inline-block');
     Object.assign(ch.style, { width: w + 'px', fontFamily: computedFont });
 
     inner.appendChild(firstOrig);
     for (let k = 0; k < rolls; k++) {
       const c = ch.cloneNode(true) as HTMLElement;
       if (props.scrambleCharset) c.textContent = rand(props.scrambleCharset);
-      c.className = 'inline-block text-left';
+      c.className =
+        'text-left ' +
+        (props.shuffleDirection === 'up' || props.shuffleDirection === 'down' ? 'block' : 'inline-block');
       Object.assign(c.style, { width: w + 'px', fontFamily: computedFont });
       inner.appendChild(c);
     }
     inner.appendChild(ch);
 
     const steps = rolls + 1;
-    let startX = 0;
-    let finalX = -steps * w;
-    if (props.shuffleDirection === 'right') {
+    if (props.shuffleDirection === 'right' || props.shuffleDirection === 'down') {
       const firstCopy = inner.firstElementChild as HTMLElement | null;
       const real = inner.lastElementChild as HTMLElement | null;
       if (real) inner.insertBefore(real, inner.firstChild);
       if (firstCopy) inner.appendChild(firstCopy);
-      startX = -steps * w;
-      finalX = 0;
     }
 
-    gsap.set(inner, { x: startX, force3D: true });
+    let startX = 0;
+    let finalX = 0;
+    let startY = 0;
+    let finalY = 0;
+
+    if (props.shuffleDirection === 'right') {
+      startX = -steps * w;
+      finalX = 0;
+    } else if (props.shuffleDirection === 'left') {
+      startX = 0;
+      finalX = -steps * w;
+    } else if (props.shuffleDirection === 'down') {
+      startY = -steps * h;
+      finalY = 0;
+    } else if (props.shuffleDirection === 'up') {
+      startY = 0;
+      finalY = -steps * h;
+    }
+
+    if (props.shuffleDirection === 'left' || props.shuffleDirection === 'right') {
+      gsap.set(inner, { x: startX, y: 0, force3D: true });
+      inner.setAttribute('data-start-x', String(startX));
+      inner.setAttribute('data-final-x', String(finalX));
+    } else {
+      gsap.set(inner, { x: 0, y: startY, force3D: true });
+      inner.setAttribute('data-start-y', String(startY));
+      inner.setAttribute('data-final-y', String(finalY));
+    }
+
     if (props.colorFrom) (inner.style as any).color = props.colorFrom;
-
-    inner.setAttribute('data-final-x', String(finalX));
-    inner.setAttribute('data-start-x', String(startX));
-
     wrappersRef.value.push(wrap);
   });
 };
@@ -248,6 +281,7 @@ const play = () => {
   if (!strips.length) return;
 
   playingRef.value = true;
+  const isVertical = props.shuffleDirection === 'up' || props.shuffleDirection === 'down';
 
   const tl = gsap.timeline({
     smoothChildTiming: true,
@@ -255,7 +289,11 @@ const play = () => {
     repeatDelay: props.loop ? props.loopDelay : 0,
     onRepeat: () => {
       if (props.scrambleCharset) randomizeScrambles();
-      gsap.set(strips, { x: (i, t: HTMLElement) => parseFloat(t.getAttribute('data-start-x') || '0') });
+      if (isVertical) {
+        gsap.set(strips, { y: (i, t: HTMLElement) => parseFloat(t.getAttribute('data-start-y') || '0') });
+      } else {
+        gsap.set(strips, { x: (i, t: HTMLElement) => parseFloat(t.getAttribute('data-start-x') || '0') });
+      }
       emit('shuffle-complete');
       props.onShuffleComplete?.();
     },
@@ -272,17 +310,19 @@ const play = () => {
   });
 
   const addTween = (targets: HTMLElement[], at: number) => {
-    tl.to(
-      targets,
-      {
-        x: (i, t: HTMLElement) => parseFloat(t.getAttribute('data-final-x') || '0'),
-        duration: props.duration,
-        ease: props.ease,
-        force3D: true,
-        stagger: props.animationMode === 'evenodd' ? props.stagger : 0
-      },
-      at
-    );
+    const vars: any = {
+      duration: props.duration,
+      ease: props.ease,
+      force3D: true,
+      stagger: props.animationMode === 'evenodd' ? props.stagger : 0
+    };
+    if (isVertical) {
+      vars.y = (i: number, t: HTMLElement) => parseFloat(t.getAttribute('data-final-y') || '0');
+    } else {
+      vars.x = (i: number, t: HTMLElement) => parseFloat(t.getAttribute('data-final-x') || '0');
+    }
+
+    tl.to(targets, vars, at);
     if (props.colorFrom && props.colorTo)
       tl.to(targets, { color: props.colorTo, duration: props.duration, ease: props.ease }, at);
   };
@@ -297,16 +337,17 @@ const play = () => {
   } else {
     strips.forEach(strip => {
       const d = Math.random() * props.maxDelay;
-      tl.to(
-        strip,
-        {
-          x: parseFloat(strip.getAttribute('data-final-x') || '0'),
-          duration: props.duration,
-          ease: props.ease,
-          force3D: true
-        },
-        d
-      );
+      const vars: any = {
+        duration: props.duration,
+        ease: props.ease,
+        force3D: true
+      };
+      if (isVertical) {
+        vars.y = parseFloat(strip.getAttribute('data-final-y') || '0');
+      } else {
+        vars.x = parseFloat(strip.getAttribute('data-final-x') || '0');
+      }
+      tl.to(strip, vars, d);
       if (props.colorFrom && props.colorTo)
         tl.fromTo(
           strip,

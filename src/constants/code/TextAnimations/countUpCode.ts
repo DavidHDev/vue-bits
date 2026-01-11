@@ -1,7 +1,7 @@
-import code from '@/content/Animations/CountUp/CountUp.vue?raw';
+import code from '@/content/TextAnimations/CountUp/CountUp.vue?raw';
 import { createCodeObject } from '@/types/code';
 
-export const countup = createCodeObject(code, 'Animations/CountUp', {
+export const countup = createCodeObject(code, 'TextAnimations/CountUp', {
   usage: `<template>
   <CountUp
     :from="0"

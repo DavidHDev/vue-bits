@@ -80,7 +80,7 @@ const { rerenderKey: key, forceRerender } = useForceRerender();
 const duration = ref(0.35);
 const shuffleTimes = ref(1);
 const stagger = ref(0.03);
-const shuffleDirection = ref<'left' | 'right'>('right');
+const shuffleDirection = ref<'left' | 'right' | 'up' | 'down'>('right');
 const ease = ref('power3.out');
 const loop = ref(false);
 const loopDelay = ref(0);
@@ -88,7 +88,9 @@ const triggerOnHover = ref(true);
 
 const directionOptions = [
   { label: 'Right', value: 'right' },
-  { label: 'Left', value: 'left' }
+  { label: 'Left', value: 'left' },
+  { label: 'Up', value: 'up' },
+  { label: 'Down', value: 'down' }
 ];
 
 const easeOptions = [
@@ -104,7 +106,7 @@ const propData = [
   { name: 'style', type: 'object', default: '{}', description: 'Inline styles applied to the wrapper element.' },
   {
     name: 'shuffleDirection',
-    type: '"left" | "right"',
+    type: '"left" | "right" | "up" | "down"',
     default: '"right"',
     description: 'Direction the per-letter strip slides to reveal the final character.'
   },

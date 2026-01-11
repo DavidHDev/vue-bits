@@ -214,14 +214,6 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/animations/laser-flow',
     tags: []
   },
-  'Animations/CountUp': {
-    videoUrl: '/assets/videos/countup.webm',
-    description: 'Animated number counter supporting formatting and decimals.',
-    category: 'Animations',
-    name: 'CountUp',
-    docsUrl: 'https://vue-bits.dev/text-animations/count-up',
-    tags: []
-  },
   'Animations/PixelTrail': {
     videoUrl: '/assets/videos/pixeltrail.webm',
     description: 'Pixel grid trail effect that follows cursor movement with customizable gooey filter.',
@@ -239,6 +231,14 @@ export const componentMetadata: ComponentMetadata = {
     category: 'TextAnimations',
     name: 'AsciiText',
     docsUrl: 'https://vue-bits.dev/text-animations/ascii-text',
+    tags: []
+  },
+  'TextAnimations/CountUp': {
+    videoUrl: '/assets/videos/countup.webm',
+    description: 'Animated number counter supporting formatting and decimals.',
+    category: 'TextAnimations',
+    name: 'CountUp',
+    docsUrl: 'https://vue-bits.dev/text-animations/count-up',
     tags: []
   },
   'TextAnimations/BlurText': {
