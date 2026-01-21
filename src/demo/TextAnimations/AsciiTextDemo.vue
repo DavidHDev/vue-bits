@@ -2,7 +2,7 @@
   <TabbedLayout>
     <template #preview>
       <div class="demo-container h-[400px] overflow-hidden">
-        <AsciiText
+        <ASCIIText
           :key="rerenderKey"
           :text="text"
           :ascii-font-size="asciiFontSize"
@@ -62,7 +62,7 @@ import Customize from '@/components/common/Customize.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PreviewText from '@/components/common/PreviewText.vue';
-import AsciiText from '@/content/TextAnimations/AsciiText/AsciiText.vue';
+import ASCIIText from '@/content/TextAnimations/ASCIIText/ASCIIText.vue';
 import { asciiText } from '@/constants/code/TextAnimations/asciiTextCode';
 import { useForceRerender } from '@/composables/useForceRerender';
 

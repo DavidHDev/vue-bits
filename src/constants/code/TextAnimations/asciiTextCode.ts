@@ -1,12 +1,12 @@
-import code from '@/content/TextAnimations/AsciiText/AsciiText.vue?raw';
+import code from '@/content/TextAnimations/ASCIIText/ASCIIText.vue?raw';
 import { createCodeObject } from '../../../types/code';
 
-export const asciiText = createCodeObject(code, 'TextAnimations/AsciiText', {
+export const asciiText = createCodeObject(code, 'TextAnimations/ASCIIText', {
   installation: `npm install three @types/three`,
   usage: `<!-- Component ported and enhanced from https://codepen.io/JuanFuentes/pen/eYEeoyE -->
   
 <template>
-  <AsciiText
+  <ASCIIText
     text="Hey!"
     :ascii-font-size="8"
     :text-font-size="200"
@@ -18,6 +18,6 @@ export const asciiText = createCodeObject(code, 'TextAnimations/AsciiText', {
 </template>
 
 <script setup lang="ts">
-  import AsciiText from "./AsciiText.vue";
+  import ASCIIText from "./ASCIIText.vue";
 </script>`
 });

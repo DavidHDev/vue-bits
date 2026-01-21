@@ -549,19 +549,19 @@
       "categories": ["Animations"]
     },
     {
-      "name": "CountUp",
-      "title": "CountUp",
-      "description": "Animated number counter supporting formatting and decimals.",
+      "name": "PixelTrail",
+      "title": "PixelTrail",
+      "description": "Pixel grid trail effect that follows cursor movement with customizable gooey filter.",
       "type": "registry:component",
       "add": "when-added",
       "registryDependencies": [],
-      "dependencies": [],
+      "dependencies": [{ "ecosystem": "js", "name": "three", "version": "^0.178.0" }],
       "devDependencies": [],
       "files": [
         {
           "type": "registry:component",
           "role": "file",
-          "path": "CountUp/CountUp.vue",
+          "path": "PixelTrail/PixelTrail.vue",
           "registryDependencies": [],
           "dependencies": [],
           "devDependencies": []
@@ -582,7 +582,28 @@
         {
           "type": "registry:component",
           "role": "file",
-          "path": "ASCIIText/AsciiText.vue",
+          "path": "ASCIIText/ASCIIText.vue",
+          "registryDependencies": [],
+          "dependencies": [],
+          "devDependencies": []
+        }
+      ],
+      "categories": ["TextAnimations"]
+    },
+    {
+      "name": "CountUp",
+      "title": "CountUp",
+      "description": "Animated number counter supporting formatting and decimals.",
+      "type": "registry:component",
+      "add": "when-added",
+      "registryDependencies": [],
+      "dependencies": [],
+      "devDependencies": [],
+      "files": [
+        {
+          "type": "registry:component",
+          "role": "file",
+          "path": "CountUp/CountUp.vue",
           "registryDependencies": [],
           "dependencies": [],
           "devDependencies": []
@@ -1003,6 +1024,27 @@
           "type": "registry:component",
           "role": "file",
           "path": "VariableProximity/VariableProximity.vue",
+          "registryDependencies": [],
+          "dependencies": [],
+          "devDependencies": []
+        }
+      ],
+      "categories": ["TextAnimations"]
+    },
+    {
+      "name": "Shuffle",
+      "title": "Shuffle",
+      "description": "GSAP-powered slot machine style text shuffle animation with scroll trigger.",
+      "type": "registry:component",
+      "add": "when-added",
+      "registryDependencies": [],
+      "dependencies": [{ "ecosystem": "js", "name": "gsap", "version": "^3.13.0" }],
+      "devDependencies": [],
+      "files": [
+        {
+          "type": "registry:component",
+          "role": "file",
+          "path": "Shuffle/Shuffle.vue",
           "registryDependencies": [],
           "dependencies": [],
           "devDependencies": []
@@ -2385,6 +2427,27 @@
           "type": "registry:component",
           "role": "file",
           "path": "LightPillar/LightPillar.vue",
+          "registryDependencies": [],
+          "dependencies": [],
+          "devDependencies": []
+        }
+      ],
+      "categories": ["Backgrounds"]
+    },
+    {
+      "name": "PixelSnow",
+      "title": "PixelSnow",
+      "description": "Falling pixelated snow effect with customizable density and speed.",
+      "type": "registry:component",
+      "add": "when-added",
+      "registryDependencies": [],
+      "dependencies": [{ "ecosystem": "js", "name": "three", "version": "^0.178.0" }],
+      "devDependencies": [],
+      "files": [
+        {
+          "type": "registry:component",
+          "role": "file",
+          "path": "PixelSnow/PixelSnow.vue",
           "registryDependencies": [],
           "dependencies": [],
           "devDependencies": []
