@@ -1,6 +1,6 @@
 // Highlighted sidebar items
 export const NEW = ['Antigravity', 'Color Bends', 'Ghost Cursor', 'Laser Flow', 'Liquid Ether', 'Pixel Blast', 'Floating Lines', 'Light Pillar', 'Pixel Snow', 'Grid Scan'];
-export const UPDATED = [];
+export const UPDATED = ['Metallic Paint'];
 
 // Used for main sidebar navigation
 export const CATEGORIES = [
