@@ -4,7 +4,7 @@
 import { onMounted, onUnmounted, watch, useTemplateRef } from 'vue';
 import * as THREE from 'three';
 
-interface AsciiTextProps {
+interface ASCIITextProps {
   text?: string;
   asciiFontSize?: number;
   textFontSize?: number;
@@ -14,7 +14,7 @@ interface AsciiTextProps {
   className?: string;
 }
 
-const props = withDefaults(defineProps<AsciiTextProps>(), {
+const props = withDefaults(defineProps<ASCIITextProps>(), {
   text: 'David!',
   asciiFontSize: 8,
   textFontSize: 200,

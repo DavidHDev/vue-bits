@@ -225,11 +225,11 @@ export const componentMetadata: ComponentMetadata = {
 
   //! Text Animations -------------------------------------------------------------------------------------------------------------------------------
 
-  'TextAnimations/AsciiText': {
+  'TextAnimations/ASCIIText': {
     videoUrl: '/assets/videos/asciitext.webm',
     description: 'Renders text with an animated ASCII background for a retro feel.',
     category: 'TextAnimations',
-    name: 'AsciiText',
+    name: 'ASCIIText',
     docsUrl: 'https://vue-bits.dev/text-animations/ascii-text',
     tags: []
   },

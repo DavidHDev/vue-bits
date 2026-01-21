@@ -11,8 +11,7 @@ export const NEW = [
   'Pixel Blast',
   'Pixel Snow',
 ];
-
-export const UPDATED = [];
+export const UPDATED = ['Metallic Paint'];
 
 // Used for main sidebar navigation
 export const CATEGORIES = [
