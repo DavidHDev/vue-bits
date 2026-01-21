@@ -21,7 +21,7 @@ export const blurText = createCodeObject(code, 'TextAnimations/BlurText', {
   import BlurText from "./BlurText.vue";
 
   const handleAnimationComplete = () => {
-    console.log('All animations complete!');,
-});
+    console.log('All animations complete!');
+};
 </script>`
 });
