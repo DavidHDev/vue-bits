@@ -1,81 +1,99 @@
 <template>
-  <p ref="rootRef" :class="['blur-text', className, 'flex', 'flex-wrap']">
+  <p ref="rootRef" class="flex flex-wrap blur-text" :class="className">
     <Motion
       v-for="(segment, index) in elements"
-      :key="`${animationKey}-${index}`"
+      :key="index"
       tag="span"
       :initial="fromSnapshot"
-      :animate="inView ? getAnimateKeyframes() : fromSnapshot"
+      :animate="inView ? buildKeyframes(fromSnapshot, toSnapshots) : fromSnapshot"
       :transition="getTransition(index)"
-      :style="{
-        display: 'inline-block',
-        willChange: 'transform, filter, opacity'
-      }"
-      @animation-complete="() => handleAnimationComplete(index)"
+      @animation-complete="handleAnimationComplete(index)"
+      style="display: inline-block; will-change: transform, filter, opacity"
     >
-      {{ segment === ' ' ? '\u00A0' : segment
-      }}{{ animateBy === 'words' && index < elements.length - 1 ? '\u00A0' : '' }}
+      {{ segment === ' ' ? '\u00A0' : segment }}
+      <template v-if="animateBy === 'words' && index < elements.length - 1">&nbsp;</template>
     </Motion>
   </p>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch, useTemplateRef } from 'vue';
-import { Motion } from 'motion-v';
+import { Motion, type Transition } from 'motion-v';
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue';
 
-type AnimateBy = 'words' | 'letters';
-type Direction = 'top' | 'bottom';
-type AnimationSnapshot = Record<string, string | number>;
-
-interface BlurTextProps {
+type BlurTextProps = {
   text?: string;
   delay?: number;
   className?: string;
-  animateBy?: AnimateBy;
-  direction?: Direction;
+  animateBy?: 'words' | 'letters';
+  direction?: 'top' | 'bottom';
   threshold?: number;
   rootMargin?: string;
-  animationFrom?: AnimationSnapshot;
-  animationTo?: AnimationSnapshot[];
+  animationFrom?: Record<string, string | number>;
+  animationTo?: Array<Record<string, string | number>>;
   easing?: (t: number) => number;
   onAnimationComplete?: () => void;
   stepDuration?: number;
-}
+};
+
+const buildKeyframes = (
+  from: Record<string, string | number>,
+  steps: Array<Record<string, string | number>>
+): Record<string, Array<string | number>> => {
+  const keys = new Set<string>([...Object.keys(from), ...steps.flatMap(s => Object.keys(s))]);
+
+  const keyframes: Record<string, Array<string | number>> = {};
+  keys.forEach(k => {
+    keyframes[k] = [from[k], ...steps.map(s => s[k])];
+  });
+  return keyframes;
+};
 
 const props = withDefaults(defineProps<BlurTextProps>(), {
   text: '',
   delay: 200,
   className: '',
-  animateBy: 'words' as AnimateBy,
-  direction: 'top' as Direction,
+  animateBy: 'words',
+  direction: 'top',
   threshold: 0.1,
   rootMargin: '0px',
   easing: (t: number) => t,
   stepDuration: 0.35
 });
 
-const buildKeyframes = (
-  from: AnimationSnapshot,
-  steps: AnimationSnapshot[]
-): Record<string, Array<string | number>> => {
-  const keys = new Set<string>([...Object.keys(from), ...steps.flatMap(step => Object.keys(step))]);
+const inView = ref(false);
+const rootRef = useTemplateRef<HTMLParagraphElement>('rootRef');
+let observer: IntersectionObserver | null = null;
 
-  const keyframes: Record<string, Array<string | number>> = {};
+onMounted(() => {
+  if (!rootRef.value) return;
 
-  for (const key of keys) {
-    keyframes[key] = [from[key], ...steps.map(step => step[key])];
-  }
+  observer = new IntersectionObserver(
+    ([entry]) => {
+      if (entry.isIntersecting) {
+        inView.value = true;
+        observer?.unobserve(rootRef.value as Element);
+      }
+    },
+    {
+      threshold: props.threshold,
+      rootMargin: props.rootMargin
+    }
+  );
 
-  return keyframes;
-};
+  observer.observe(rootRef.value);
+});
+
+onBeforeUnmount(() => {
+  observer?.disconnect();
+});
 
 const elements = computed(() => (props.animateBy === 'words' ? props.text.split(' ') : props.text.split('')));
 
-const defaultFrom = computed<AnimationSnapshot>(() =>
+const defaultFrom = computed(() =>
   props.direction === 'top' ? { filter: 'blur(10px)', opacity: 0, y: -50 } : { filter: 'blur(10px)', opacity: 0, y: 50 }
 );
 
-const defaultTo = computed<AnimationSnapshot[]>(() => [
+const defaultTo = computed(() => [
   {
     filter: 'blur(5px)',
     opacity: 0.5,
@@ -93,71 +111,21 @@ const toSnapshots = computed(() => props.animationTo ?? defaultTo.value);
 
 const stepCount = computed(() => toSnapshots.value.length + 1);
 const totalDuration = computed(() => props.stepDuration * (stepCount.value - 1));
+
 const times = computed(() =>
   Array.from({ length: stepCount.value }, (_, i) => (stepCount.value === 1 ? 0 : i / (stepCount.value - 1)))
 );
 
-const inView = ref(false);
-const animationKey = ref(0);
-const completionFired = ref(false);
-const rootRef = useTemplateRef<HTMLParagraphElement>('rootRef');
-
-let observer: IntersectionObserver | null = null;
-
-const setupObserver = () => {
-  if (!rootRef.value) return;
-
-  observer = new IntersectionObserver(
-    ([entry]) => {
-      if (entry.isIntersecting) {
-        inView.value = true;
-        observer?.unobserve(rootRef.value as Element);
-      }
-    },
-    {
-      threshold: props.threshold,
-      rootMargin: props.rootMargin
-    }
-  );
-
-  observer.observe(rootRef.value);
-};
-
-const getAnimateKeyframes = () => {
-  return buildKeyframes(fromSnapshot.value, toSnapshots.value);
-};
-
-const getTransition = (index: number) => {
-  return {
-    duration: totalDuration.value,
-    times: times.value,
-    delay: (index * props.delay) / 1000,
-    ease: props.easing
-  };
-};
+const getTransition = (index: number): Transition => ({
+  duration: totalDuration.value,
+  times: times.value,
+  delay: (index * props.delay) / 1000,
+  ease: props.easing
+});
 
 const handleAnimationComplete = (index: number) => {
-  if (index === elements.value.length - 1 && !completionFired.value && props.onAnimationComplete) {
-    completionFired.value = true;
-    props.onAnimationComplete();
+  if (index === elements.value.length - 1) {
+    props.onAnimationComplete?.();
   }
 };
-
-onMounted(() => {
-  setupObserver();
-});
-
-onUnmounted(() => {
-  observer?.disconnect();
-});
-
-watch([() => props.threshold, () => props.rootMargin], () => {
-  observer?.disconnect();
-  setupObserver();
-});
-
-watch([() => props.delay, () => props.stepDuration, () => props.animateBy, () => props.direction], () => {
-  animationKey.value++;
-  completionFired.value = false;
-});
 </script>
