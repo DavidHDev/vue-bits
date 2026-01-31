@@ -1,18 +1,11 @@
 <template>
-  <p
-    ref="textRef"
-    :class="`split-parent overflow-hidden inline-block whitespace-normal ${className}`"
-    :style="{
-      textAlign,
-      wordWrap: 'break-word'
-    }"
-  >
+  <component :is="tag" ref="elRef" :style="styles" :class="classes">
     {{ text }}
-  </p>
+  </component>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, nextTick, useTemplateRef } from 'vue';
+import { ref, onMounted, watch, type CSSProperties, onBeforeUnmount, computed } from 'vue';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText as GSAPSplitText } from 'gsap/SplitText';
@@ -25,25 +18,27 @@ export interface SplitTextProps {
   delay?: number;
   duration?: number;
   ease?: string | ((t: number) => number);
-  splitType?: 'chars' | 'words' | 'lines' | 'words, chars';
+  splitType?: 'chars' | 'words' | 'lines';
   from?: gsap.TweenVars;
   to?: gsap.TweenVars;
   threshold?: number;
   rootMargin?: string;
-  textAlign?: 'left' | 'center' | 'right' | 'justify';
+  tag?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'span';
+  textAlign?: CSSProperties['textAlign'];
   onLetterAnimationComplete?: () => void;
 }
 
 const props = withDefaults(defineProps<SplitTextProps>(), {
   className: '',
-  delay: 100,
-  duration: 0.6,
+  delay: 50,
+  duration: 1.25,
   ease: 'power3.out',
   splitType: 'chars',
   from: () => ({ opacity: 0, y: 40 }),
   to: () => ({ opacity: 1, y: 0 }),
   threshold: 0.1,
   rootMargin: '-100px',
+  tag: 'p',
   textAlign: 'center'
 });
 
@@ -51,144 +46,134 @@ const emit = defineEmits<{
   'animation-complete': [];
 }>();
 
-const textRef = useTemplateRef<HTMLParagraphElement>('textRef');
-const animationCompletedRef = ref(false);
-const scrollTriggerRef = ref<ScrollTrigger | null>(null);
-const timelineRef = ref<gsap.core.Timeline | null>(null);
-const splitterRef = ref<GSAPSplitText | null>(null);
+const elRef = ref<HTMLElement | null>(null);
+const fontsLoaded = ref(false);
+const animationCompleted = ref(false);
 
-const initializeAnimation = async () => {
-  if (typeof window === 'undefined' || !textRef.value || !props.text) return;
+let splitInstance: GSAPSplitText | null = null;
 
-  await nextTick();
-
-  const el = textRef.value;
-
-  animationCompletedRef.value = false;
-
-  const absoluteLines = props.splitType === 'lines';
-  if (absoluteLines) el.style.position = 'relative';
-
-  let splitter: GSAPSplitText;
-  try {
-    splitter = new GSAPSplitText(el, {
-      type: props.splitType,
-      absolute: absoluteLines,
-      linesClass: 'split-line'
+onMounted(() => {
+  if (document.fonts.status === 'loaded') {
+    fontsLoaded.value = true;
+  } else {
+    document.fonts.ready.then(() => {
+      fontsLoaded.value = true;
     });
-    splitterRef.value = splitter;
-  } catch (error) {
-    console.error('Failed to create SplitText:', error);
-    return;
   }
+});
 
-  let targets: Element[];
-  switch (props.splitType) {
-    case 'lines':
-      targets = splitter.lines;
-      break;
-    case 'words':
-      targets = splitter.words;
-      break;
-    case 'chars':
-      targets = splitter.chars;
-      break;
-    default:
-      targets = splitter.chars;
+const runAnimation = () => {
+  if (!elRef.value || !props.text || !fontsLoaded.value) return;
+  if (animationCompleted.value) return;
+
+  const el = elRef.value as HTMLElement & {
+    _rbsplitInstance?: GSAPSplitText;
+  };
+
+  // cleanup previous
+  if (el._rbsplitInstance) {
+    try {
+      el._rbsplitInstance.revert();
+    } catch {}
+    el._rbsplitInstance = undefined;
   }
-
-  if (!targets || targets.length === 0) {
-    console.warn('No targets found for SplitText animation');
-    splitter.revert();
-    return;
-  }
-
-  targets.forEach(t => {
-    (t as HTMLElement).style.willChange = 'transform, opacity';
-  });
 
   const startPct = (1 - props.threshold) * 100;
   const marginMatch = /^(-?\d+(?:\.\d+)?)(px|em|rem|%)?$/.exec(props.rootMargin);
   const marginValue = marginMatch ? parseFloat(marginMatch[1]) : 0;
-  const marginUnit = marginMatch ? marginMatch[2] || 'px' : 'px';
-  const sign = marginValue < 0 ? `-=${Math.abs(marginValue)}${marginUnit}` : `+=${marginValue}${marginUnit}`;
+  const marginUnit = marginMatch?.[2] || 'px';
+
+  const sign =
+    marginValue === 0
+      ? ''
+      : marginValue < 0
+        ? `-=${Math.abs(marginValue)}${marginUnit}`
+        : `+=${marginValue}${marginUnit}`;
+
   const start = `top ${startPct}%${sign}`;
 
-  const tl = gsap.timeline({
-    scrollTrigger: {
-      trigger: el,
-      start,
-      toggleActions: 'play none none none',
-      once: true,
-      onToggle: self => {
-        scrollTriggerRef.value = self;
-      }
-    },
-    smoothChildTiming: true,
-    onComplete: () => {
-      animationCompletedRef.value = true;
-      gsap.set(targets, {
-        ...props.to,
-        clearProps: 'willChange',
-        immediateRender: true
-      });
-      props.onLetterAnimationComplete?.();
-      emit('animation-complete');
+  let targets: Element[] = [];
+
+  const assignTargets = (self: GSAPSplitText) => {
+    if (props.splitType.includes('chars') && self.chars?.length) targets = self.chars;
+    if (!targets.length && props.splitType.includes('words') && self.words?.length) targets = self.words;
+    if (!targets.length && props.splitType.includes('lines') && self.lines?.length) targets = self.lines;
+    if (!targets.length) targets = self.chars || self.words || self.lines;
+  };
+
+  splitInstance = new GSAPSplitText(el, {
+    type: props.splitType,
+    smartWrap: true,
+    autoSplit: props.splitType === 'lines',
+    linesClass: 'split-line',
+    wordsClass: 'split-word',
+    charsClass: 'split-char',
+    reduceWhiteSpace: false,
+    onSplit(self) {
+      assignTargets(self);
+
+      return gsap.fromTo(
+        targets,
+        { ...props.from },
+        {
+          ...props.to,
+          duration: props.duration,
+          ease: props.ease,
+          stagger: props.delay / 1000,
+          scrollTrigger: {
+            trigger: el,
+            start,
+            once: true,
+            fastScrollEnd: true,
+            anticipatePin: 0.4
+          },
+          onComplete() {
+            animationCompleted.value = true;
+            props.onLetterAnimationComplete?.();
+            emit('animation-complete');
+          },
+          willChange: 'transform, opacity',
+          force3D: true
+        }
+      );
     }
   });
 
-  timelineRef.value = tl;
-
-  tl.set(targets, { ...props.from, immediateRender: false, force3D: true });
-  tl.to(targets, {
-    ...props.to,
-    duration: props.duration,
-    ease: props.ease,
-    stagger: props.delay / 1000,
-    force3D: true
-  });
+  el._rbsplitInstance = splitInstance;
 };
-
-const cleanup = () => {
-  if (timelineRef.value) {
-    timelineRef.value.kill();
-    timelineRef.value = null;
-  }
-  if (scrollTriggerRef.value) {
-    scrollTriggerRef.value.kill();
-    scrollTriggerRef.value = null;
-  }
-  if (splitterRef.value) {
-    gsap.killTweensOf(textRef.value);
-    splitterRef.value.revert();
-    splitterRef.value = null;
-  }
-};
-
-onMounted(() => {
-  initializeAnimation();
-});
-
-onUnmounted(() => {
-  cleanup();
-});
 
 watch(
-  [
-    () => props.text,
-    () => props.delay,
-    () => props.duration,
-    () => props.ease,
-    () => props.splitType,
-    () => props.from,
-    () => props.to,
-    () => props.threshold,
-    () => props.rootMargin,
-    () => props.onLetterAnimationComplete
+  () => [
+    props.text,
+    props.delay,
+    props.duration,
+    props.ease,
+    props.splitType,
+    JSON.stringify(props.from),
+    JSON.stringify(props.to),
+    props.threshold,
+    props.rootMargin,
+    fontsLoaded.value
   ],
-  () => {
-    cleanup();
-    initializeAnimation();
-  }
+  runAnimation,
+  { deep: true }
 );
+
+onBeforeUnmount(() => {
+  ScrollTrigger.getAll().forEach(st => {
+    if (st.trigger === elRef.value) st.kill();
+  });
+
+  try {
+    splitInstance?.revert();
+  } catch {}
+});
+
+const styles = computed(() => ({
+  textAlign: props.textAlign,
+  wordWrap: 'break-word',
+  willChange: 'transform, opacity'
+}));
+
+const classes = computed(() => `split-parent overflow-hidden inline-block whitespace-normal ${props.className}`);
 </script>
