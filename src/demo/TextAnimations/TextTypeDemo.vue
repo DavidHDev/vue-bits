@@ -1,7 +1,7 @@
 <template>
   <TabbedLayout>
     <template #preview>
-      <div class="demo-container py-[64px] h-[350px]">
+      <div class="py-[64px] h-[350px] demo-container">
         <TextType
           :key="key"
           :text="texts"
@@ -45,6 +45,7 @@
           :max="150"
           :step="5"
           value-unit="ms"
+          :disabled="!variableSpeedEnabled"
         />
         <PreviewSlider
           v-model="variableSpeedMax"
@@ -53,6 +54,7 @@
           :max="300"
           :step="5"
           value-unit="ms"
+          :disabled="!variableSpeedEnabled"
         />
       </Customize>
 
