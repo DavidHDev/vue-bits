@@ -765,6 +765,14 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/backgrounds/gradient-blinds',
     tags: []
   },
+  'Backgrounds/Grainient': {
+    videoUrl: '/assets/videos/grainient.webm',
+    description: 'Grainy gradient swirls with soft wave distortion.',
+    category: 'Backgrounds',
+    name: 'Grainient',
+    docsUrl: 'https://vue-bits.dev/backgrounds/grainient',
+    tags: []
+  },
   'Backgrounds/GridDistortion': {
     videoUrl: '/assets/videos/griddistortion.webm',
     description: 'Warped grid mesh distorts smoothly reacting to cursor.',

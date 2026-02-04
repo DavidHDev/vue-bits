@@ -127,6 +127,7 @@ const backgrounds = {
   'light-pillar': () => import('../demo/Backgrounds/LightPillarDemo.vue'),
   'pixel-snow': () => import('../demo/Backgrounds/PixelSnowDemo.vue'),
   'grid-scan': () => import('../demo/Backgrounds/GridScanDemo.vue'),
+  'grainient': () => import('../demo/Backgrounds/GrainientDemo.vue'),
 };
 
 export const componentMap = {

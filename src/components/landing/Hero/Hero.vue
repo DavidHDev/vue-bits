@@ -19,10 +19,10 @@
     />
 
     <div class="hero-main-content">
-      <router-link to="/backgrounds/pixel-snow" class="hero-new-badge-container">
-        <span class="hero-new-badge">Christmas Special 🎁</span>
+      <router-link to="/backgrounds/grainient" class="hero-new-badge-container">
+        <span class="hero-new-badge">New 🎉</span>
         <div class="hero-new-badge-text">
-          <span>Pixel Snow</span>
+          <span>Grainient</span>
           <i class="pi-arrow-right pi" style="font-size: 0.8rem"></i>
         </div>
       </router-link>
@@ -83,7 +83,7 @@ const ResponsiveSplitText = defineComponent({
     isMobile: { type: Boolean, required: true },
     text: { type: String, required: true },
     className: { type: String, default: '' },
-    splitType: { type: String as () => 'chars' | 'words' | 'lines' | 'words, chars', default: 'chars' },
+    splitType: { type: String as () => 'chars' | 'words' | 'lines', default: 'chars' },
     delay: { type: Number, default: 100 },
     duration: { type: Number, default: 0.6 },
     ease: { type: String, default: 'power3.out' },
