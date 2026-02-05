@@ -17,7 +17,10 @@ export const UPDATED = ['Metallic Paint'];
 export const CATEGORIES = [
   {
     name: 'Get Started',
-    subcategories: [ 'Index' ],
+    subcategories: [ 
+      'Index', 
+      'MCP'
+    ],
   },
   {
     name: 'Text Animations',
