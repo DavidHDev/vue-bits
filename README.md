@@ -28,11 +28,11 @@ Go to [vue-bits.dev](https://vue-bits.dev/) to view the documentation.
 
 ## About
 
-This is the official Vue port of [React Bits](https://reactbits.dev)!
+This is the official Vue version of [React Bits](https://reactbits.dev)!
 
-Vue Bits is a large collection of animated VueJS UI components made to spice up your web creations. We've got animations, components, backgrounds, and awesome stuff that you won't be able to find anywhere else - all free for you to use!
+Vue Bits is a large library of animated VueJS UI components designed to bring your web creations to life. We offer animations, components, backgrounds, and other unique and exciting content—all free to use!
 
-These components are all enhanced with customization options as props, to make it easy for you to get exactly what you need.
+These components come with rich customization properties, making it easy to get everything you need.
 
 ## Key Features
 
@@ -42,7 +42,7 @@ These components are all enhanced with customization options as props, to make i
 
 ## CLI [![jsrepo](https://jsrepo.com/badges/@ieedan/std)](https://jsrepo.com/packages/@ieedan/std)
 
-Vue Bits uses [jsrepo](https://jsrepo.dev) for installing components via CLI. </br>
+Vue Bits uses [jsrepo](https://jsrepo.dev) for installing components via CLIa and npm. </br>
 The setup steps can be found on each component's page in the [documentation](https://vue-bits.dev/).
 
 ## How To Contribute?

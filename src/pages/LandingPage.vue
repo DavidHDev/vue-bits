@@ -13,6 +13,7 @@
     <Hero />
     <FeatureCards />
     <StartBuilding />
+    <McpServer />
     <Footer />
   </section>
 </template>
@@ -25,6 +26,7 @@ import Footer from '@/components/landing/Footer/Footer.vue';
 import FeatureCards from '@/components/landing/FeatureCards/FeatureCards.vue';
 import StartBuilding from '@/components/landing/StartBuilding/StartBuilding.vue';
 import heroImage from '@/assets/common/hero.webp';
+import McpServer from '@/docs/McpServer.vue';
 const isMobile = ref(false);
 
 const checkIsMobile = () => {

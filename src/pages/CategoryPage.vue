@@ -1,5 +1,6 @@
 <template>
   <IndexPage v-if="isIndexPage" />
+  <McpServer v-else-if="isMcpPage" />
 
   <div class="page-transition-fade" v-else>
     <h2 class="sub-category">{{ decodedLabel }}</h2>
@@ -29,12 +30,14 @@ import { useRoute } from 'vue-router';
 import { componentMap } from '../constants/Components';
 import { decodeLabel } from '../utils/utils';
 import IndexPage from './IndexPage.vue';
+import McpServer from '@/docs/McpServer.vue';
 
 const route = useRoute();
 
 const subcategory = computed(() => route.params.subcategory as string);
 const decodedLabel = computed(() => decodeLabel(subcategory.value));
 const isIndexPage = computed(() => subcategory.value === 'index');
+const isMcpPage = computed(() => subcategory.value === 'mcp');
 
 const SubcategoryComponent = computed(() => {
   const key = subcategory.value as keyof typeof componentMap;
