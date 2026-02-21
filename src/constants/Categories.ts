@@ -78,6 +78,7 @@ export const CATEGORIES = [
       'Star Border',
       'Sticker Peel',
       'Target Cursor',
+      'Orbit Images',
     ],
   },
   {
