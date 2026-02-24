@@ -26,6 +26,7 @@ const animations = {
   'ghost-cursor': () => import('../demo/Animations/GhostCursorDemo.vue'),
   'antigravity': () => import('../demo/Animations/AntigravityDemo.vue'),
   'pixel-trail': () => import('../demo/Animations/PixelTrailDemo.vue'),
+  'orbit-images': () => import('../demo/Animations/OrbitImagesDemo.vue'),
 };
 
 const textAnimations = {
