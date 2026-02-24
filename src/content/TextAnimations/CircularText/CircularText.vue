@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, watchEffect, onUnmounted } from 'vue';
-import { Motion } from 'motion-v';
+import { animate, Motion, MotionValue, useMotionValue } from 'motion-v';
+import { computed, onMounted, watch } from 'vue';
 
 interface CircularTextProps {
   text: string;
@@ -10,87 +10,59 @@ interface CircularTextProps {
 }
 
 const props = withDefaults(defineProps<CircularTextProps>(), {
-  text: '',
   spinDuration: 20,
   onHover: 'speedUp',
   className: ''
 });
 
 const letters = computed(() => Array.from(props.text));
-const isHovered = ref(false);
+const rotation: MotionValue<number> = useMotionValue(0);
 
-const currentRotation = ref(0);
-const animationId = ref<number | null>(null);
-const lastTime = ref<number>(Date.now());
-const rotationSpeed = ref<number>(0);
+let currentAnimation: ReturnType<typeof animate> | null = null;
 
-const getCurrentSpeed = () => {
-  if (isHovered.value && props.onHover === 'pause') return 0;
+const startRotation = (duration: number) => {
+  currentAnimation?.stop();
+  const start = rotation.get();
 
-  const baseDuration = props.spinDuration;
-  const baseSpeed = 360 / baseDuration;
+  currentAnimation = animate(rotation, start + 360, {
+    duration,
+    ease: 'linear',
+    repeat: Infinity
+  });
+};
 
-  if (!isHovered.value) return baseSpeed;
+onMounted(() => {
+  startRotation(props.spinDuration);
+});
+
+watch(
+  () => [props.spinDuration, props.text],
+  () => {
+    startRotation(props.spinDuration);
+  }
+);
+
+const handleHoverStart = () => {
+  if (!props.onHover) return;
 
   switch (props.onHover) {
     case 'slowDown':
-      return baseSpeed / 2;
+      startRotation(props.spinDuration * 2);
+      break;
     case 'speedUp':
-      return baseSpeed * 4;
+      startRotation(props.spinDuration / 4);
+      break;
+    case 'pause':
+      currentAnimation?.stop();
+      break;
     case 'goBonkers':
-      return baseSpeed * 20;
-    default:
-      return baseSpeed;
+      startRotation(props.spinDuration / 20);
+      break;
   }
-};
-
-const getCurrentScale = () => {
-  return isHovered.value && props.onHover === 'goBonkers' ? 0.8 : 1;
-};
-
-const animate = () => {
-  const now = Date.now();
-  const deltaTime = (now - lastTime.value) / 1000;
-  lastTime.value = now;
-
-  const targetSpeed = getCurrentSpeed();
-
-  const speedDiff = targetSpeed - rotationSpeed.value;
-  const smoothingFactor = Math.min(1, deltaTime * 5);
-  rotationSpeed.value += speedDiff * smoothingFactor;
-
-  currentRotation.value = (currentRotation.value + rotationSpeed.value * deltaTime) % 360;
-
-  animationId.value = requestAnimationFrame(animate);
-};
-
-const startAnimation = () => {
-  if (animationId.value) {
-    cancelAnimationFrame(animationId.value);
-  }
-  lastTime.value = Date.now();
-  rotationSpeed.value = getCurrentSpeed();
-  animate();
-};
-
-watchEffect(() => {
-  startAnimation();
-});
-
-startAnimation();
-
-onUnmounted(() => {
-  if (animationId.value) {
-    cancelAnimationFrame(animationId.value);
-  }
-});
-
-const handleHoverStart = () => {
-  isHovered.value = true;
 };
 
 const handleHoverEnd = () => {
-  isHovered.value = false;
+  startRotation(props.spinDuration);
 };
 
 const getLetterTransform = (index: number) => {
@@ -104,28 +76,24 @@ const getLetterTransform = (index: number) => {
 
 <template>
   <Motion
-    :animate="{
-      rotate: currentRotation,
-      scale: getCurrentScale()
+    tag="div"
+    :class="[
+      'm-0 mx-auto rounded-full w-[200px] h-[200px] relative font-black text-white text-center cursor-pointer origin-center',
+      className
+    ]"
+    :style="{
+      rotate: rotation
     }"
-    :transition="{
-      rotate: {
-        duration: 0
-      },
-      scale: {
-        type: 'spring',
-        damping: 20,
-        stiffness: 300
-      }
+    :initial="{
+      rotate: 0
     }"
-    :class="`m-0 mx-auto rounded-full w-[200px] h-[200px] relative font-black text-white text-center cursor-pointer origin-center ${props.className}`"
     @mouseenter="handleHoverStart"
     @mouseleave="handleHoverEnd"
   >
     <span
       v-for="(letter, i) in letters"
       :key="i"
-      class="absolute inline-block inset-0 text-2xl transition-all duration-500 ease-[cubic-bezier(0,0,0,1)]"
+      class="inline-block absolute inset-0 text-2xl transition-all duration-500 ease-[cubic-bezier(0,0,0,1)]"
       :style="{
         transform: getLetterTransform(i),
         WebkitTransform: getLetterTransform(i)

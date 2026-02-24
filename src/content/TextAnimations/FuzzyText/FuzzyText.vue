@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch, nextTick, useTemplateRef } from 'vue';
+import { computed, onBeforeUnmount, onMounted, useSlots, useTemplateRef, watch } from 'vue';
 
 interface FuzzyTextProps {
-  text: string;
   fontSize?: number | string;
   fontWeight?: string | number;
   fontFamily?: string;
@@ -10,78 +9,52 @@ interface FuzzyTextProps {
   enableHover?: boolean;
   baseIntensity?: number;
   hoverIntensity?: number;
+  fuzzRange?: number;
+  fps?: number;
+  direction?: 'horizontal' | 'vertical' | 'both';
+  transitionDuration?: number;
+  clickEffect?: boolean;
+  glitchMode?: boolean;
+  glitchInterval?: number;
+  glitchDuration?: number;
+  gradient?: string[] | null;
+  letterSpacing?: number;
+  className?: string;
 }
 
 const props = withDefaults(defineProps<FuzzyTextProps>(), {
-  text: '',
   fontSize: 'clamp(2rem, 8vw, 8rem)',
   fontWeight: 900,
   fontFamily: 'inherit',
   color: '#fff',
   enableHover: true,
   baseIntensity: 0.18,
-  hoverIntensity: 0.5
+  hoverIntensity: 0.5,
+  fuzzRange: 30,
+  fps: 60,
+  direction: 'horizontal',
+  transitionDuration: 0,
+  clickEffect: false,
+  glitchMode: false,
+  glitchInterval: 2000,
+  glitchDuration: 200,
+  gradient: null,
+  letterSpacing: 0,
+  className: ''
 });
 
-const canvasRef = useTemplateRef<HTMLCanvasElement>('canvasRef');
+const canvasRef = useTemplateRef<HTMLCanvasElement & { cleanupFuzzyText?: () => void }>('canvasRef');
+const slots = useSlots();
+
 let animationFrameId: number;
-let isCancelled = false;
-let cleanup: (() => void) | null = null;
+let glitchTimeoutId: ReturnType<typeof setTimeout>;
+let glitchEndTimeoutId: ReturnType<typeof setTimeout>;
+let clickTimeoutId: ReturnType<typeof setTimeout>;
+let cancelled = false;
 
-const waitForFont = async (fontFamily: string, fontWeight: string | number, fontSize: string): Promise<boolean> => {
-  if (document.fonts?.check) {
-    const fontString = `${fontWeight} ${fontSize} ${fontFamily}`;
+const text = computed(() => (slots.default?.() ?? []).map(v => v.children).join(''));
 
-    if (document.fonts.check(fontString)) {
-      return true;
-    }
-
-    try {
-      await document.fonts.load(fontString);
-      return document.fonts.check(fontString);
-    } catch (error) {
-      console.warn('Font loading failed:', error);
-      return false;
-    }
-  }
-
-  return new Promise(resolve => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      resolve(false);
-      return;
-    }
-
-    ctx.font = `${fontWeight} ${fontSize} ${fontFamily}`;
-    const testWidth = ctx.measureText('M').width;
-
-    let attempts = 0;
-    const checkFont = () => {
-      ctx.font = `${fontWeight} ${fontSize} ${fontFamily}`;
-      const newWidth = ctx.measureText('M').width;
-
-      if (newWidth !== testWidth && newWidth > 0) {
-        resolve(true);
-      } else if (attempts < 20) {
-        attempts++;
-        setTimeout(checkFont, 50);
-      } else {
-        resolve(false);
-      }
-    };
-
-    setTimeout(checkFont, 10);
-  });
-};
-
-const initCanvas = async () => {
-  if (document.fonts?.ready) {
-    await document.fonts.ready;
-  }
-
-  if (isCancelled) return;
-
+const init = async () => {
   const canvas = canvasRef.value;
   if (!canvas) return;
 
@@ -92,184 +65,185 @@ const initCanvas = async () => {
     props.fontFamily === 'inherit' ? window.getComputedStyle(canvas).fontFamily || 'sans-serif' : props.fontFamily;
 
   const fontSizeStr = typeof props.fontSize === 'number' ? `${props.fontSize}px` : props.fontSize;
-  let numericFontSize: number;
 
+  const fontString = `${props.fontWeight} ${fontSizeStr} ${computedFontFamily}`;
+
+  try {
+    await document.fonts.load(fontString);
+  } catch {
+    await document.fonts.ready;
+  }
+
+  if (cancelled) return;
+
+  let numericFontSize: number;
   if (typeof props.fontSize === 'number') {
     numericFontSize = props.fontSize;
   } else {
     const temp = document.createElement('span');
     temp.style.fontSize = props.fontSize;
-    temp.style.fontFamily = computedFontFamily;
     document.body.appendChild(temp);
-    const computedSize = window.getComputedStyle(temp).fontSize;
-    numericFontSize = parseFloat(computedSize);
+    numericFontSize = parseFloat(getComputedStyle(temp).fontSize);
     document.body.removeChild(temp);
   }
 
-  const fontLoaded = await waitForFont(computedFontFamily, props.fontWeight, fontSizeStr);
-  if (!fontLoaded) {
-    console.warn(`Font not loaded: ${computedFontFamily}`);
-  }
-
-  const text = props.text;
-
   const offscreen = document.createElement('canvas');
-  const offCtx = offscreen.getContext('2d');
-  if (!offCtx) return;
-
-  const fontString = `${props.fontWeight} ${fontSizeStr} ${computedFontFamily}`;
+  const offCtx = offscreen.getContext('2d')!;
   offCtx.font = fontString;
+  offCtx.textBaseline = 'alphabetic';
 
-  const testMetrics = offCtx.measureText('M');
-  if (testMetrics.width === 0) {
-    setTimeout(() => {
-      if (!isCancelled) {
-        initCanvas();
-      }
-    }, 100);
-    return;
+  let totalWidth = 0;
+  if (props.letterSpacing !== 0) {
+    for (const char of text.value) {
+      totalWidth += offCtx.measureText(char).width + props.letterSpacing;
+    }
+    totalWidth -= props.letterSpacing;
+  } else {
+    totalWidth = offCtx.measureText(text.value).width;
   }
 
+  const metrics = offCtx.measureText(text.value);
+  const ascent = metrics.actualBoundingBoxAscent ?? numericFontSize;
+  const descent = metrics.actualBoundingBoxDescent ?? numericFontSize * 0.2;
+  const height = Math.ceil(ascent + descent);
+
+  offscreen.width = Math.ceil(totalWidth) + 20;
+  offscreen.height = height;
+
+  offCtx.font = fontString;
   offCtx.textBaseline = 'alphabetic';
-  const metrics = offCtx.measureText(text);
 
-  const actualLeft = metrics.actualBoundingBoxLeft ?? 0;
-  const actualRight = metrics.actualBoundingBoxRight ?? metrics.width;
-  const actualAscent = metrics.actualBoundingBoxAscent ?? numericFontSize;
-  const actualDescent = metrics.actualBoundingBoxDescent ?? numericFontSize * 0.2;
+  if (props.gradient && props.gradient.length >= 2) {
+    const grad = offCtx.createLinearGradient(0, 0, offscreen.width, 0);
+    props.gradient.forEach((c, i) => grad.addColorStop(i / (props.gradient!.length - 1), c));
+    offCtx.fillStyle = grad;
+  } else {
+    offCtx.fillStyle = props.color;
+  }
 
-  const textBoundingWidth = Math.ceil(actualLeft + actualRight);
-  const tightHeight = Math.ceil(actualAscent + actualDescent);
+  let x = 10;
+  for (const char of text.value) {
+    offCtx.fillText(char, x, ascent);
+    x += offCtx.measureText(char).width + props.letterSpacing;
+  }
 
-  const extraWidthBuffer = 10;
-  const offscreenWidth = textBoundingWidth + extraWidthBuffer;
+  const marginX = props.fuzzRange + 20;
+  const marginY = props.direction === 'vertical' || props.direction === 'both' ? props.fuzzRange + 10 : 0;
 
-  offscreen.width = offscreenWidth;
-  offscreen.height = tightHeight;
-
-  const xOffset = extraWidthBuffer / 2;
-  offCtx.font = `${props.fontWeight} ${fontSizeStr} ${computedFontFamily}`;
-  offCtx.textBaseline = 'alphabetic';
-  offCtx.fillStyle = props.color;
-  offCtx.fillText(text, xOffset - actualLeft, actualAscent);
-
-  const horizontalMargin = 50;
-  const verticalMargin = 0;
-  canvas.width = offscreenWidth + horizontalMargin * 2;
-  canvas.height = tightHeight + verticalMargin * 2;
-  ctx.translate(horizontalMargin, verticalMargin);
-
-  const interactiveLeft = horizontalMargin + xOffset;
-  const interactiveTop = verticalMargin;
-  const interactiveRight = interactiveLeft + textBoundingWidth;
-  const interactiveBottom = interactiveTop + tightHeight;
+  canvas.width = offscreen.width + marginX * 2;
+  canvas.height = offscreen.height + marginY * 2;
+  ctx.translate(marginX, marginY);
 
   let isHovering = false;
-  const fuzzRange = 30;
+  let isClicking = false;
+  let isGlitching = false;
+  let currentIntensity = props.baseIntensity;
+  let targetIntensity = props.baseIntensity;
+  let lastFrameTime = 0;
+  const frameDuration = 1000 / props.fps;
 
-  const run = () => {
-    if (isCancelled) return;
-    ctx.clearRect(-fuzzRange, -fuzzRange, offscreenWidth + 2 * fuzzRange, tightHeight + 2 * fuzzRange);
-    const intensity = isHovering ? props.hoverIntensity : props.baseIntensity;
-    for (let j = 0; j < tightHeight; j++) {
-      const dx = Math.floor(intensity * (Math.random() - 0.5) * fuzzRange);
-      ctx.drawImage(offscreen, 0, j, offscreenWidth, 1, dx, j, offscreenWidth, 1);
+  const startGlitch = () => {
+    if (!props.glitchMode || cancelled) return;
+    glitchTimeoutId = setTimeout(() => {
+      isGlitching = true;
+      glitchEndTimeoutId = setTimeout(() => {
+        isGlitching = false;
+        startGlitch();
+      }, props.glitchDuration);
+    }, props.glitchInterval);
+  };
+
+  if (props.glitchMode) startGlitch();
+
+  const run = (ts: number) => {
+    if (cancelled) return;
+
+    if (ts - lastFrameTime < frameDuration) {
+      animationFrameId = requestAnimationFrame(run);
+      return;
     }
-    animationFrameId = window.requestAnimationFrame(run);
+
+    lastFrameTime = ts;
+    ctx.clearRect(-marginX, -marginY, offscreen.width + marginX * 2, offscreen.height + marginY * 2);
+
+    targetIntensity = isClicking || isGlitching ? 1 : isHovering ? props.hoverIntensity : props.baseIntensity;
+
+    if (props.transitionDuration > 0) {
+      const step = 1 / (props.transitionDuration / frameDuration);
+      currentIntensity += Math.sign(targetIntensity - currentIntensity) * step;
+      currentIntensity = Math.min(
+        Math.max(currentIntensity, Math.min(targetIntensity, currentIntensity)),
+        Math.max(targetIntensity, currentIntensity)
+      );
+    } else {
+      currentIntensity = targetIntensity;
+    }
+
+    for (let y = 0; y < offscreen.height; y++) {
+      const dx = props.direction !== 'vertical' ? (Math.random() - 0.5) * currentIntensity * props.fuzzRange : 0;
+      const dy =
+        props.direction !== 'horizontal' ? (Math.random() - 0.5) * currentIntensity * props.fuzzRange * 0.5 : 0;
+
+      ctx.drawImage(offscreen, 0, y, offscreen.width, 1, dx, y + dy, offscreen.width, 1);
+    }
+
+    animationFrameId = requestAnimationFrame(run);
   };
 
-  run();
+  animationFrameId = requestAnimationFrame(run);
 
-  const isInsideTextArea = (x: number, y: number) =>
-    x >= interactiveLeft && x <= interactiveRight && y >= interactiveTop && y <= interactiveBottom;
+  const rectCheck = (x: number, y: number) =>
+    x >= marginX && x <= marginX + offscreen.width && y >= marginY && y <= marginY + offscreen.height;
 
-  const handleMouseMove = (e: MouseEvent) => {
+  const mouseMove = (e: MouseEvent) => {
     if (!props.enableHover) return;
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    isHovering = isInsideTextArea(x, y);
+    isHovering = rectCheck(e.clientX - rect.left, e.clientY - rect.top);
   };
 
-  const handleMouseLeave = () => {
-    isHovering = false;
-  };
+  const mouseLeave = () => (isHovering = false);
 
-  const handleTouchMove = (e: TouchEvent) => {
-    if (!props.enableHover) return;
-    e.preventDefault();
-    const rect = canvas.getBoundingClientRect();
-    const touch = e.touches[0];
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
-    isHovering = isInsideTextArea(x, y);
-  };
-
-  const handleTouchEnd = () => {
-    isHovering = false;
+  const click = () => {
+    if (!props.clickEffect) return;
+    isClicking = true;
+    clearTimeout(clickTimeoutId);
+    clickTimeoutId = setTimeout(() => (isClicking = false), 150);
   };
 
   if (props.enableHover) {
-    canvas.addEventListener('mousemove', handleMouseMove);
-    canvas.addEventListener('mouseleave', handleMouseLeave);
-    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-    canvas.addEventListener('touchend', handleTouchEnd);
+    canvas.addEventListener('mousemove', mouseMove);
+    canvas.addEventListener('mouseleave', mouseLeave);
   }
 
-  cleanup = () => {
-    window.cancelAnimationFrame(animationFrameId);
-    if (props.enableHover) {
-      canvas.removeEventListener('mousemove', handleMouseMove);
-      canvas.removeEventListener('mouseleave', handleMouseLeave);
-      canvas.removeEventListener('touchmove', handleTouchMove);
-      canvas.removeEventListener('touchend', handleTouchEnd);
-    }
-  };
+  if (props.clickEffect) {
+    canvas.addEventListener('click', click);
+  }
+
+  onBeforeUnmount(() => {
+    cancelled = true;
+    cancelAnimationFrame(animationFrameId);
+    clearTimeout(glitchTimeoutId);
+    clearTimeout(glitchEndTimeoutId);
+    clearTimeout(clickTimeoutId);
+    canvas.removeEventListener('mousemove', mouseMove);
+    canvas.removeEventListener('mouseleave', mouseLeave);
+    canvas.removeEventListener('click', click);
+  });
 };
 
-onMounted(() => {
-  nextTick(() => {
-    initCanvas();
-  });
-});
-
-onUnmounted(() => {
-  isCancelled = true;
-  if (animationFrameId) {
-    window.cancelAnimationFrame(animationFrameId);
-  }
-  if (cleanup) {
-    cleanup();
-  }
-});
+onMounted(init);
 
 watch(
-  [
-    () => props.text,
-    () => props.fontSize,
-    () => props.fontWeight,
-    () => props.fontFamily,
-    () => props.color,
-    () => props.enableHover,
-    () => props.baseIntensity,
-    () => props.hoverIntensity
-  ],
+  () => ({ ...props, text: text.value }),
   () => {
-    isCancelled = true;
-    if (animationFrameId) {
-      window.cancelAnimationFrame(animationFrameId);
-    }
-    if (cleanup) {
-      cleanup();
-    }
-    isCancelled = false;
-    nextTick(() => {
-      initCanvas();
-    });
+    cancelled = true;
+    cancelAnimationFrame(animationFrameId);
+    cancelled = false;
+    init();
   }
 );
 </script>
 
 <template>
-  <canvas ref="canvasRef" />
+  <canvas ref="canvasRef" :class="className" />
 </template>

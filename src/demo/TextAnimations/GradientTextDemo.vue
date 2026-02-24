@@ -2,68 +2,76 @@
   <div class="gradient-text-demo">
     <TabbedLayout>
       <template #preview>
-        <h2 class="demo-title-extra">Default</h2>
-
-        <div class="demo-container h-[200px]">
-          <div class="text-[2rem]">
-            <GradientText
-              text="Add a splash of color!"
-              :colors="gradientPreview"
-              :animation-speed="speed"
-              :show-border="false"
-            />
-          </div>
-        </div>
-
-        <h2 class="demo-title-extra">Border Animation</h2>
-
-        <div class="demo-container h-[200px]">
-          <div class="text-[2rem]">
-            <GradientText
-              text="Now with a cool border!"
-              :colors="gradientPreview"
-              :animation-speed="speed"
-              :show-border="true"
-              class-name="custom-gradient-class"
-            />
-          </div>
+        <div class="relative h-[400px] text-5xl demo-container">
+          <GradientText
+            :colors="colors"
+            :animation-speed="animationSpeed"
+            :direction="direction"
+            :pause-on-hover="pauseOnHover"
+            :yoyo="yoyo"
+            :show-border="showBorder"
+          >
+            Gradient Magic
+          </GradientText>
         </div>
 
         <Customize>
-          <PreviewSlider title="Loop Duration" v-model="speed" :min="1" :max="10" :step="0.5" value-unit="s" />
+          <PreviewSlider
+            title="Animation Speed"
+            v-model="animationSpeed"
+            :min="1"
+            :max="20"
+            :step="0.5"
+            value-unit="s"
+          />
+          <PreviewSelect title="Direction" v-model="direction" :options="directionOptions" />
+          <PreviewSwitch title="Yoyo Mode" v-model="yoyo" />
+          <PreviewSwitch title="Pause on Hover" v-model="pauseOnHover" />
+          <PreviewSwitch title="Show Border" v-model="showBorder" />
 
           <div class="flex flex-col gap-0">
-            <div class="mb-4">
-              <label class="block text-sm font-medium mb-2">Colors</label>
+            <label class="block mb-2 font-medium text-sm">Colors</label>
 
-              <input
-                v-model="colors"
-                type="text"
-                placeholder="Enter colors separated by commas"
-                maxlength="100"
-                class="w-[300px] px-3 py-2 bg-[#0b0b0b] border border-[#333] rounded-md text-white focus:outline-none focus:border-[#666]"
-              />
+            <div class="flex flex-wrap gap-2 px-1 pt-1">
+              <div v-for="(color, index) in colors" :key="index" class="relative w-8 h-8">
+                <div
+                  class="relative border-[#222] border-2 rounded-md w-8 h-8 overflow-hidden"
+                  :style="{ backgroundColor: color }"
+                >
+                  <input
+                    type="color"
+                    :value="color"
+                    @input="updateColor(index, ($event.target as HTMLInputElement).value)"
+                    class="absolute inset-0 opacity-0 w-8 h-8 cursor-pointer"
+                  />
+                </div>
+
+                <button
+                  v-if="colors.length > 2"
+                  @click="removeColor(index)"
+                  class="-top-1.5 -right-1.5 absolute flex justify-center items-center bg-[#170D27] border border-[#222] rounded-full w-4 h-4 cursor-pointer"
+                >
+                  <i class="text-[#8BC79A] text-[8px]! pi pi-times" />
+                </button>
+              </div>
+
+              <button
+                v-if="colors.length < 8"
+                @click="addColor"
+                class="flex justify-center items-center border-[#392e4e] border-2 hover:border-[#27FF64] border-dashed rounded-md w-8 h-8 transition-colors cursor-pointer"
+              >
+                <i class="text-[#8BC79A] text-sm pi pi-plus" />
+              </button>
             </div>
 
             <div
-              class="w-[300px] h-3 rounded-md border border-[#333333]"
+              class="mt-3 border border-[#333333] rounded-md w-[300px] h-3"
               :style="{
-                background: `linear-gradient(to right, ${gradientPreview.join(', ')})`
+                background: `linear-gradient(to right, ${gradientPreview})`
               }"
             />
           </div>
         </Customize>
-
-        <p class="demo-extra-info mt-4 flex items-center gap-2">
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fill-rule="evenodd"
-              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-              clip-rule="evenodd"
-            />
-          </svg>
-          For a smoother animation, the gradient should start and end with the same color.
-        </p>
 
         <PropTable :data="propData" />
       </template>
@@ -80,27 +88,57 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import GradientText from '../../content/TextAnimations/GradientText/GradientText.vue';
+import CliInstallation from '@/components/code/CliInstallation.vue';
+import CodeExample from '@/components/code/CodeExample.vue';
+import Customize from '@/components/common/Customize.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable from '@/components/common/PropTable.vue';
+import TabbedLayout from '@/components/common/TabbedLayout.vue';
 import { gradientText } from '@/constants/code/TextAnimations/gradientTextCode';
+import GradientText from '@/content/TextAnimations/GradientText/GradientText.vue';
+import { computed, ref } from 'vue';
 
-const colors = ref('#40ffaa, #4079ff, #40ffaa, #4079ff, #40ffaa');
-const speed = ref(3);
+const colors = ref(['#27FF64', '#27FF64', '#A0FFBC']);
+const animationSpeed = ref(8);
+const direction = ref<'horizontal' | 'vertical' | 'diagonal'>('horizontal');
+const pauseOnHover = ref(false);
+const yoyo = ref(true);
+const showBorder = ref(false);
 
-const gradientPreview = computed(() => colors.value.split(',').map(color => color.trim()));
+const directionOptions = [
+  { value: 'horizontal', label: 'Horizontal' },
+  { value: 'vertical', label: 'Vertical' },
+  { value: 'diagonal', label: 'Diagonal' }
+];
+
+const gradientPreview = computed(() => [...colors.value, colors.value[0]].join(', '));
+
+const updateColor = (index: number, newColor: string) => {
+  const newColors = [...colors.value];
+  newColors[index] = newColor;
+  colors.value = newColors;
+};
+
+const addColor = () => {
+  if (colors.value.length < 8) {
+    colors.value.push('#ffffff');
+  }
+};
+
+const removeColor = (index: number) => {
+  if (colors.value.length > 2) {
+    colors.value.splice(index, 1);
+  }
+};
 
 const propData = [
   {
-    name: 'text',
+    name: 'slot',
     type: 'string',
-    default: '""',
-    description: 'The text content to be displayed with gradient effect.'
+    default: '-',
+    description: 'The content to be displayed inside the gradient text.'
   },
   {
     name: 'className',
@@ -111,20 +149,38 @@ const propData = [
   {
     name: 'colors',
     type: 'string[]',
-    default: '["#ffaa40", "#9c40ff", "#ffaa40"]',
-    description: 'Defines the gradient colors for the text or border.'
+    default: `["#5227FF", "#FF9FFC", "#B19EEF"]`,
+    description: 'Array of colors for the gradient effect.'
   },
   {
     name: 'animationSpeed',
     type: 'number',
     default: '8',
-    description: 'The duration of the gradient animation in seconds.'
+    description: 'Duration of one animation cycle in seconds.'
+  },
+  {
+    name: 'direction',
+    type: `'horizontal' | 'vertical' | 'diagonal'`,
+    default: `'horizontal'`,
+    description: 'Direction of the gradient animation.'
+  },
+  {
+    name: 'pauseOnHover',
+    type: 'boolean',
+    default: 'false',
+    description: 'Pauses the animation when hovering over the text.'
+  },
+  {
+    name: 'yoyo',
+    type: 'boolean',
+    default: 'true',
+    description: 'Reverses animation direction at the end instead of looping.'
   },
   {
     name: 'showBorder',
     type: 'boolean',
     default: 'false',
-    description: 'Determines whether a border with the gradient effect is displayed.'
+    description: 'Displays a gradient border around the text.'
   }
 ];
 </script>
