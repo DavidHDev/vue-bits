@@ -150,9 +150,9 @@ onUnmounted(() => {
         '--glow-color': glowColor
       }"
     >
-      <spanx
+      <span
         class="top-[-10px] left-[-10px] absolute filter-[drop-shadow(0_0_4px_var(--border-color,#fff))] border-[3px] border-(--border-color,#fff) border-r-0 border-b-0 rounded-[3px] w-4 h-4 transition-none"
-      ></spanx>
+      ></span>
 
       <span
         class="top-[-10px] right-[-10px] absolute filter-[drop-shadow(0_0_4px_var(--border-color,#fff))] border-[3px] border-(--border-color,#fff) border-b-0 border-l-0 rounded-[3px] w-4 h-4 transition-none"
