@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { motion } from 'motion-v';
-import { computed, nextTick, onMounted, onUnmounted, ref, watch, useTemplateRef } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch, useTemplateRef, type Ref } from 'vue';
 
 interface TrueFocusProps {
   sentence?: string;
@@ -10,6 +10,8 @@ interface TrueFocusProps {
   glowColor?: string;
   animationDuration?: number;
   pauseBetweenAnimations?: number;
+  index?: Array<number>;
+  syncGroup?: string;
 }
 
 const props = withDefaults(defineProps<TrueFocusProps>(), {
@@ -23,7 +25,8 @@ const props = withDefaults(defineProps<TrueFocusProps>(), {
 });
 
 const words = computed(() => props.sentence.split(' '));
-const currentIndex = ref(0);
+
+const currentIndex = props.syncGroup ? getSyncGroupIndex(props.syncGroup) : ref(-1);
 const lastActiveIndex = ref<number | null>(null);
 const containerRef = useTemplateRef<HTMLDivElement>('containerRef');
 const wordRefs = ref<HTMLSpanElement[]>([]);
@@ -35,12 +38,19 @@ watch(
   [currentIndex, () => words.value.length],
   async () => {
     if (currentIndex.value === null || currentIndex.value === -1) return;
-    if (!wordRefs.value[currentIndex.value] || !containerRef.value) return;
+
+    let actualWordIndex = currentIndex.value;
+    if (props.index) {
+      actualWordIndex = props.index.findIndex(val => val === currentIndex.value);
+      if (actualWordIndex === -1) return;
+    }
+
+    if (!wordRefs.value[actualWordIndex] || !containerRef.value) return;
 
     await nextTick();
 
     const parentRect = containerRef.value.getBoundingClientRect();
-    const activeRect = wordRefs.value[currentIndex.value].getBoundingClientRect();
+    const activeRect = wordRefs.value[actualWordIndex].getBoundingClientRect();
 
     focusRect.value = {
       x: activeRect.left - parentRect.left,
@@ -54,8 +64,9 @@ watch(
 
 const handleMouseEnter = (index: number) => {
   if (props.manualMode) {
-    lastActiveIndex.value = index;
-    currentIndex.value = index;
+    const mappedIndex = props.index ? props.index[index] : index;
+    lastActiveIndex.value = mappedIndex;
+    currentIndex.value = mappedIndex;
   }
 };
 
@@ -66,18 +77,35 @@ const handleMouseLeave = () => {
 };
 
 const setWordRef = (el: HTMLSpanElement | null, index: number) => {
-  if (el) {
-    wordRefs.value[index] = el;
+  if (el) wordRefs.value[index] = el;
+};
+
+const startInterval = () => {
+  if (interval) clearInterval(interval);
+  if (!props.manualMode) {
+    interval = setInterval(
+      () => {
+        currentIndex.value = (currentIndex.value + 1) % words.value.length;
+      },
+      (props.animationDuration + props.pauseBetweenAnimations) * 1000
+    );
   }
 };
 
 onMounted(async () => {
   await nextTick();
 
-  if (wordRefs.value[0] && containerRef.value) {
-    const parentRect = containerRef.value.getBoundingClientRect();
-    const activeRect = wordRefs.value[0].getBoundingClientRect();
+  const isOwner = props.syncGroup ? registerSyncGroup(props.syncGroup) : true;
 
+  let initialWordIndex = 0;
+  if (props.index && currentIndex.value !== null && currentIndex.value !== undefined) {
+    const foundIndex = props.index.findIndex(val => val === currentIndex.value);
+    if (foundIndex !== -1) initialWordIndex = foundIndex;
+  }
+
+  if (wordRefs.value[initialWordIndex] && containerRef.value) {
+    const parentRect = containerRef.value.getBoundingClientRect();
+    const activeRect = wordRefs.value[initialWordIndex].getBoundingClientRect();
     focusRect.value = {
       x: activeRect.left - parentRect.left,
       y: activeRect.top - parentRect.top,
@@ -86,43 +114,63 @@ onMounted(async () => {
     };
   }
 
-  watch(
-    [() => props.manualMode, () => props.animationDuration, () => props.pauseBetweenAnimations, () => words.value],
-    () => {
-      if (interval) {
-        clearInterval(interval);
-        interval = null;
-      }
-
-      if (!props.manualMode) {
-        interval = setInterval(
-          () => {
-            currentIndex.value = (currentIndex.value + 1) % words.value.length;
-          },
-          (props.animationDuration + props.pauseBetweenAnimations) * 1000
-        );
-      }
-    },
-    { immediate: true }
-  );
+  if (isOwner) {
+    watch(
+      [() => props.manualMode, () => props.animationDuration, () => props.pauseBetweenAnimations, () => words.value],
+      () => startInterval(),
+      { immediate: true }
+    );
+  }
 });
 
 onUnmounted(() => {
-  if (interval) {
-    clearInterval(interval);
-  }
+  if (interval) clearInterval(interval);
+  if (props.syncGroup) unregisterSyncGroup(props.syncGroup);
 });
+</script>
+<script lang="ts">
+interface SyncGroupState {
+  index: Ref<number>;
+  count: number;
+}
+
+export const syncGroupMap = new Map<string, SyncGroupState>();
+
+export function getSyncGroupIndex(group: string): Ref<number> {
+  if (!syncGroupMap.has(group)) {
+    syncGroupMap.set(group, { index: ref(-1), count: 0 });
+  }
+  return syncGroupMap.get(group)!.index;
+}
+
+export function registerSyncGroup(group: string): boolean {
+  const state = syncGroupMap.get(group)!;
+  state.count += 1;
+  return state.count === 1;
+}
+
+export function unregisterSyncGroup(group: string): void {
+  if (!syncGroupMap.has(group)) return;
+  const state = syncGroupMap.get(group)!;
+  state.count -= 1;
+  if (state.count <= 0) {
+    syncGroupMap.delete(group);
+  }
+}
 </script>
 
 <template>
   <div class="relative flex flex-wrap justify-center items-center gap-[1em]" ref="containerRef">
     <span
       v-for="(word, index) in words"
-      :key="index"
+      :key="props.index ? props.index[index] : index"
       :ref="el => setWordRef(el as HTMLSpanElement, index)"
       class="relative font-black text-7xl transition-[filter,color] duration-300 ease-in-out cursor-pointer"
       :style="{
-        filter: index === currentIndex ? 'blur(0px)' : `blur(${blurAmount}px)`,
+        filter:
+          currentIndex === -1 || (props.index ? props.index[index] : index) === currentIndex
+            ? 'blur(0px)'
+            : `blur(${blurAmount}px)`,
         '--border-color': borderColor,
         '--glow-color': glowColor,
         transition: `filter ${animationDuration}s ease`
