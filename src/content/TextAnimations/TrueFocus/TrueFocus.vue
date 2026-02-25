@@ -12,6 +12,7 @@ interface TrueFocusProps {
   pauseBetweenAnimations?: number;
   index?: Array<number>;
   syncGroup?: string;
+  defaultBlur?: boolean;
 }
 
 const props = withDefaults(defineProps<TrueFocusProps>(), {
@@ -21,7 +22,8 @@ const props = withDefaults(defineProps<TrueFocusProps>(), {
   borderColor: 'green',
   glowColor: 'rgba(0, 255, 0, 0.6)',
   animationDuration: 0.5,
-  pauseBetweenAnimations: 1
+  pauseBetweenAnimations: 1,
+  defaultBlur: true
 });
 
 const words = computed(() => props.sentence.split(' '));
@@ -72,7 +74,11 @@ const handleMouseEnter = (index: number) => {
 
 const handleMouseLeave = () => {
   if (props.manualMode) {
-    currentIndex.value = lastActiveIndex.value || 0;
+    if (props.defaultBlur) {
+      currentIndex.value = lastActiveIndex.value || 0;
+      return;
+    }
+    currentIndex.value = -1;
   }
 };
 
@@ -128,6 +134,7 @@ onUnmounted(() => {
   if (props.syncGroup) unregisterSyncGroup(props.syncGroup);
 });
 </script>
+
 <script lang="ts">
 interface SyncGroupState {
   index: Ref<number>;

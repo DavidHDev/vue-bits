@@ -16,6 +16,8 @@
 
         <PreviewSwitch title="Apply Sync Group" v-model="syncMode" />
 
+        <PreviewSwitch title="Default Blur" v-model="defaultBlur" />
+
         <PreviewSlider title="Blur Amount" v-model="blurAmount" :min="0" :max="15" :step="0.5" value-unit="px" />
 
         <PreviewSlider
@@ -146,6 +148,13 @@ const propData = [
     default: 'undefined',
     description:
       'A group identifier. All instances sharing the same syncGroup will stay in sync, hovering or animating one will reflect on all others.'
+  },
+  {
+    name: 'defaultBlur',
+    type: 'boolean',
+    default: 'true',
+    description:
+      'In manualMode, determines behavior on mouse leave: true restores focus to the last hovered word, false clears all blur.'
   }
 ];
 </script>
