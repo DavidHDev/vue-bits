@@ -3,7 +3,9 @@
     <template #preview>
       <div class="demo-container h-[400px]">
         <div :key="key" class="flex flex-col justify-center items-center m-8 pl-6 w-full">
-          <TrueFocus :key="key" v-bind="config" />
+          <TrueFocus :key="`${key}-${syncMode}-1`" v-bind="config" />
+          <br />
+          <TrueFocus :key="`${key}-${syncMode}-2`" v-bind="config" />
         </div>
       </div>
 
@@ -11,6 +13,10 @@
         <PreviewColor title="Corners Color" v-model="borderColor" />
 
         <PreviewSwitch title="Hover Mode" v-model="manualMode" />
+
+        <PreviewSwitch title="Apply Sync Group" v-model="syncMode" />
+
+        <PreviewSwitch title="Default Blur" v-model="defaultBlur" />
 
         <PreviewSlider title="Blur Amount" v-model="blurAmount" :min="0" :max="15" :step="0.5" value-unit="px" />
 
@@ -72,6 +78,8 @@ const blurAmount = ref(5);
 const animationDuration = ref(0.5);
 const pauseBetweenAnimations = ref(1);
 const borderColor = ref('#27FF64');
+const syncMode = ref(false);
+const defaultBlur = ref(true);
 
 const config = computed(() => ({
   sentence: 'True Focus',
@@ -79,7 +87,9 @@ const config = computed(() => ({
   blurAmount: blurAmount.value,
   borderColor: borderColor.value,
   animationDuration: animationDuration.value,
-  pauseBetweenAnimations: pauseBetweenAnimations.value
+  pauseBetweenAnimations: pauseBetweenAnimations.value,
+  syncGroup: syncMode.value ? 'sync-group-demo' : undefined,
+  defaultBlur: defaultBlur.value
 }));
 
 const propData = [
@@ -124,6 +134,27 @@ const propData = [
     type: 'number',
     default: '1',
     description: 'Time to pause between focusing on each word (in auto mode).'
+  },
+  {
+    name: 'index',
+    type: 'Array<number>',
+    default: 'undefined',
+    description:
+      'Maps each word to a shared index value, used to coordinate focus position across multiple instances in the same syncGroup.'
+  },
+  {
+    name: 'syncGroup',
+    type: 'string',
+    default: 'undefined',
+    description:
+      'A group identifier. All instances sharing the same syncGroup will stay in sync, hovering or animating one will reflect on all others.'
+  },
+  {
+    name: 'defaultBlur',
+    type: 'boolean',
+    default: 'true',
+    description:
+      'In manualMode, determines behavior on mouse leave: true restores focus to the last hovered word, false clears all blur.'
   }
 ];
 </script>
