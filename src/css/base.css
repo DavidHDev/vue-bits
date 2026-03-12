@@ -102,3 +102,110 @@ body {
     line-height: 1.25 !important;
   }
 }
+
+/* MagicRings demo card */
+.mr-demo-card {
+  width: 340px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  border: 1px solid #271e37;
+  border-radius: 24px;
+  overflow: hidden;
+  font-family: inherit;
+}
+
+.mr-demo-card-visual {
+  background-color: #17251420;
+  border: 1px solid #271e37;
+  position: relative;
+  margin: 14px;
+  border-radius: 16px;
+  overflow: hidden;
+  height: 220px;
+}
+
+.mr-demo-card-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.85;
+  stroke: #aeffc5;
+}
+
+.mr-demo-card-body {
+  padding: 10px 20px 20px;
+}
+
+.mr-demo-card-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #e9f8ff;
+  margin: 0;
+}
+
+.mr-demo-card-subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 2px;
+}
+
+.mr-demo-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 14px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.mr-demo-card-meta span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mr-demo-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.mr-demo-card-cta {
+  flex: 1;
+  padding: 12px 0;
+  background: #aeffc5;
+  color: black;
+  border: none;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    filter 120ms ease,
+    box-shadow 120ms ease;
+  box-shadow: 0 4px 16px rgba(82, 39, 255, 0.25);
+}
+
+.mr-demo-card-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(82, 39, 255, 0.35);
+}
+
+.mr-demo-card-heart {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid #271e37;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 200ms ease;
+}
+
+.mr-demo-card-heart:hover {
+  border-color: #aeffc5;
+}

@@ -1,12 +1,10 @@
 // Highlighted sidebar items
 export const NEW = [
   'Color Bends',
-  'Floating Lines',
-  'Light Pillar',
   'Antigravity',
-  'Reflective Card',
-  'Pixel Snow',
   'Grainient',
+  'Orbit Images',
+  'Magic Rings',
 ];
 export const UPDATED = ['Metallic Paint'];
 
@@ -62,6 +60,7 @@ export const CATEGORIES = [
       'Image Trail',
       'Laser Flow',
       'Logo Loop',
+      'Magic Rings',
       'Magnet',
       'Magnet Lines',
       'Metallic Paint',
