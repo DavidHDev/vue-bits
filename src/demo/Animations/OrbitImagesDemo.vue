@@ -124,6 +124,7 @@ import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
 import PreviewSelect from '../../components/common/PreviewSelect.vue';
 import RefreshButton from '../../components/common/RefreshButton.vue';
 import OrbitImages from '../../content/Animations/OrbitImages/OrbitImages.vue';
+import type { OrbitShape } from '../../content/Animations/OrbitImages/OrbitImages.vue';
 import { orbitImages } from '@/constants/code/Animations/orbitImagesCode';
 import { useForceRerender } from '@/composables/useForceRerender';
 
@@ -138,7 +139,7 @@ const images = [
   'https://picsum.photos/300/300?grayscale&random=6'
 ];
 
-const shape = ref<string>('ellipse');
+const shape = ref<OrbitShape>('ellipse');
 const radiusX = ref(340);
 const radiusY = ref(80);
 const radius = ref(160);
