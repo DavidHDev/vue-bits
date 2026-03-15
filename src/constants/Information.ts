@@ -222,6 +222,14 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/animations/pixel-trail',
     tags: []
   },
+  'Animations/MagicRings': {
+    videoUrl: '/assets/videos/magicrings.webm',
+    description: 'Interactive magic rings effect with customizable parameters.',
+    category: 'Animations',
+    name: 'MagicRings',
+    docsUrl: 'https://vue-bits.dev/animations/magic-rings',
+    tags: []
+  },
 
   //! Text Animations -------------------------------------------------------------------------------------------------------------------------------
 

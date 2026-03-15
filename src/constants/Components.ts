@@ -27,6 +27,7 @@ const animations = {
   'antigravity': () => import('../demo/Animations/AntigravityDemo.vue'),
   'pixel-trail': () => import('../demo/Animations/PixelTrailDemo.vue'),
   'orbit-images': () => import('../demo/Animations/OrbitImagesDemo.vue'),
+  'magic-rings': () => import('../demo/Animations/MagicRingsDemo.vue'),
 };
 
 const textAnimations = {
