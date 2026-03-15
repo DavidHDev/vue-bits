@@ -20,18 +20,20 @@
           class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none bg-white translate-y-[101%]"
           :ref="el => (marqueeRefs[idx] = el as HTMLDivElement)"
         >
-          <div class="h-full w-[200%] flex" :ref="el => (marqueeInnerRefs[idx] = el as HTMLDivElement)">
-            <div class="flex items-center relative h-full w-[200%] will-change-transform animate-marquee">
-              <template v-for="i in 4" :key="`${idx}-${i}`">
-                <span class="text-[#0b0b0b] uppercase font-normal text-[4vh] leading-[1.2] p-[1vh_1vw_0]">
-                  {{ item.text }}
-                </span>
+          <div class="h-full flex" :ref="el => (marqueeInnerRefs[idx] = el as HTMLDivElement)">
+            <div class="flex items-center relative h-full w-max will-change-transform animate-marquee">
+              <div v-for="g in 2" :key="`${idx}-g${g}`" class="flex items-center h-full shrink-0">
+                <template v-for="i in 8" :key="`${idx}-g${g}-${i}`">
+                  <span class="text-[#0b0b0b] uppercase font-normal text-[4vh] leading-[1.2] p-[1vh_1vw_0] whitespace-nowrap">
+                    {{ item.text }}
+                  </span>
 
-                <div
-                  class="w-[200px] h-[7vh] my-[2em] mx-[2vw] p-[1em_0] rounded-[50px] bg-cover bg-center"
-                  :style="{ backgroundImage: `url(${item.image})` }"
-                />
-              </template>
+                  <div
+                    class="w-[200px] h-[7vh] my-[2em] mx-[2vw] p-[1em_0] rounded-[50px] bg-cover bg-center shrink-0"
+                    :style="{ backgroundImage: `url(${item.image})` }"
+                  />
+                </template>
+              </div>
             </div>
           </div>
         </div>
@@ -121,6 +123,6 @@ const handleMouseLeave = (ev: MouseEvent, idx: number) => {
 }
 
 .animate-marquee {
-  animation: marquee 15s linear infinite;
+  animation: marquee 30s linear infinite;
 }
 </style>
