@@ -675,6 +675,14 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/components/staggered-menu',
     tags: []
   },
+  'Components/BorderGlow': {
+    videoUrl: '/assets/videos/borderglow.webm',
+    description: 'Glowing mesh-gradient border that follows cursor direction and intensifies near edges.',
+    category: 'Components',
+    name: 'BorderGlow',
+    docsUrl: 'https://vue-bits.dev/components/border-glow',
+    tags: []
+  },
 
   //! Backgrounds -------------------------------------------------------------------------------------------------------------------------------
   'Backgrounds/Aurora': {
@@ -955,6 +963,38 @@ export const componentMetadata: ComponentMetadata = {
     category: 'Backgrounds',
     name: 'PixelSnow',
     docsUrl: 'https://vue-bits.dev/backgrounds/pixel-snow',
+    tags: []
+  },
+  'Backgrounds/LineWaves': {
+    videoUrl: '/assets/video/linewaves.webm',
+    description: 'Animated line wave pattern with colorful warped distortion.',
+    category: 'Backgrounds',
+    name: 'LineWaves',
+    docsUrl: 'https://reactbits.dev/backgrounds/line-waves',
+    tags: []
+  },
+  'Backgrounds/EvilEye': {
+    videoUrl: '/assets/video/evileye.webm',
+    description: 'Procedural evil eye shader with animated iris, slit pupil, and fiery outer glow.',
+    category: 'Backgrounds',
+    name: 'EvilEye',
+    docsUrl: 'https://reactbits.dev/backgrounds/evil-eye',
+    tags: []
+  },
+  'Backgrounds/Radar': {
+    videoUrl: '/assets/video/radar.webm',
+    description: 'Radar sweep effect with concentric rings, radial spokes, and a rotating beam.',
+    category: 'Backgrounds',
+    name: 'Radar',
+    docsUrl: 'https://reactbits.dev/backgrounds/radar',
+    tags: []
+  },
+  'Backgrounds/SoftAurora': {
+    videoUrl: '/assets/video/softaurora.webm',
+    description: 'Soft aurora borealis shader with 3D Perlin noise and cosine gradient palettes.',
+    category: 'Backgrounds',
+    name: 'SoftAurora',
+    docsUrl: 'https://reactbits.dev/backgrounds/soft-aurora',
     tags: []
   }
 };

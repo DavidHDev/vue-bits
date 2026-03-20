@@ -91,6 +91,7 @@ const components = {
   'bubble-menu': () => import('../demo/Components/BubbleMenuDemo.vue'),
   'staggered-menu': () => import('../demo/Components/StaggeredMenuDemo.vue'),
   'infinite-menu': () => import('../demo/Components/InfiniteMenuDemo.vue'),
+  'border-glow': () => import('../demo/Components/BorderGlowDemo.vue'),
 };
 
 const backgrounds = {
@@ -130,6 +131,10 @@ const backgrounds = {
   'pixel-snow': () => import('../demo/Backgrounds/PixelSnowDemo.vue'),
   'grid-scan': () => import('../demo/Backgrounds/GridScanDemo.vue'),
   'grainient': () => import('../demo/Backgrounds/GrainientDemo.vue'),
+  'line-waves': () => import('../demo/Backgrounds/LineWavesDemo.vue'),
+  'radar': () => import('../demo/Backgrounds/RadarDemo.vue'),
+  'soft-aurora': () => import('../demo/Backgrounds/SoftAuroraDemo.vue'),
+  'evil-eye': () => import('../demo/Backgrounds/EvilEyeDemo.vue'),
 };
 
 export const componentMap = {
