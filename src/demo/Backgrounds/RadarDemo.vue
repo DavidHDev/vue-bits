@@ -89,7 +89,7 @@ const spokeThickness = ref(0.01);
 const sweepSpeed = ref(1.0);
 const sweepWidth = ref(2.0);
 const sweepLobes = ref(1.0);
-const color = ref('#9f29ff');
+const color = ref('#27FF64');
 const backgroundColor = ref('#000000');
 const falloff = ref(2.0);
 const brightness = ref(1.0);
@@ -154,7 +154,7 @@ const propData = [
   {
     name: 'color',
     type: 'string',
-    default: '"#9f29ff"',
+    default: '"#27FF64"',
     description: 'Primary radar color in HEX format.'
   },
   {

@@ -108,7 +108,7 @@ const props = withDefaults(defineProps<RadarProps>(), {
   sweepSpeed: 1.0,
   sweepWidth: 2.0,
   sweepLobes: 1.0,
-  color: '#9f29ff',
+  color: '#27FF64',
   backgroundColor: '#000000',
   falloff: 2.0,
   brightness: 1.0,
