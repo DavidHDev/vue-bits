@@ -30,14 +30,14 @@
 
         <PreviewSlider title="Speed" :min="0.1" :max="5" :step="0.1" v-model="speed" />
         <PreviewSlider title="Scale" :min="0.1" :max="3" :step="0.1" v-model="scale" />
-        <PreviewSlider title="Brightness" :min="1" :max="30" :step="1" v-model="brightness" />
-        <PreviewSlider title="Noise Frequency" :min="1" :max="36" :step="1" v-model="noiseFrequency" />
-        <PreviewSlider title="Noise Amplitude" :min="0.01" :max="0.3" :step="0.01" v-model="noiseAmplitude" />
-        <PreviewSlider title="Band Height" :min="0.01" :max="0.2" :step="0.01" v-model="bandHeight" />
-        <PreviewSlider title="Band Spread" :min="0.1" :max="5" :step="0.1" v-model="bandSpread" />
-        <PreviewSlider title="Octave Decay" :min="1" :max="20" :step="1" v-model="octaveDecay" />
-        <PreviewSlider title="Layer Offset" :min="1" :max="6" :step="1" v-model="layerOffset" />
-        <PreviewSlider title="Color Speed" :min="0.1" :max="3" :step="0.1" v-model="colorSpeed" />
+        <PreviewSlider title="Brightness" :min="0.1" :max="3" :step="0.1" v-model="brightness" />
+        <PreviewSlider title="Noise Frequency" :min="0.5" :max="10" :step="0.5" v-model="noiseFrequency" />
+        <PreviewSlider title="Noise Amplitude" :min="0.5" :max="10" :step="0.5" v-model="noiseAmplitude" />
+        <PreviewSlider title="Band Height" :min="0" :max="1" :step="0.05" v-model="bandHeight" />
+        <PreviewSlider title="Band Spread" :min="0.1" :max="3" :step="0.1" v-model="bandSpread" />
+        <PreviewSlider title="Octave Decay" :min="0.01" :max="0.5" :step="0.01" v-model="octaveDecay" />
+        <PreviewSlider title="Layer Offset" :min="0" :max="1" :step="0.05" v-model="layerOffset" />
+        <PreviewSlider title="Color Speed" :min="0.1" :max="5" :step="0.1" v-model="colorSpeed" />
         <PreviewSwitch title="Mouse Interaction" v-model="enableMouseInteraction" />
         <PreviewSlider
           v-if="enableMouseInteraction"
@@ -54,11 +54,11 @@
     </template>
 
     <template #code>
-      <CodeExample :code-object="radar" />
+      <CodeExample :code-object="softAurora" />
     </template>
 
     <template #cli>
-      <CliInstallation :command="radar.cli" />
+      <CliInstallation :command="softAurora.cli" />
     </template>
   </TabbedLayout>
 </template>
@@ -74,7 +74,7 @@ import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable from '@/components/common/PropTable.vue';
 import TabbedLayout from '@/components/common/TabbedLayout.vue';
-import { radar } from '@/constants/code/Backgrounds/radarCode';
+import { softAurora } from '@/constants/code/Backgrounds/softAuroraCode';
 import SoftAurora from '@/content/Backgrounds/SoftAurora/SoftAurora.vue';
 import { ref } from 'vue';
 
