@@ -1,10 +1,14 @@
 // Highlighted sidebar items
 export const NEW = [
-  'Color Bends',
+  'Evil Eye',
+  'Border Glow',
+  'Soft Aurora',
+  'Radar',
+  'Line Waves',
   'Antigravity',
   'Grainient',
   'Orbit Images',
-  'Magic Rings',
+  'Magic Rings'
 ];
 export const UPDATED = ['Metallic Paint'];
 
@@ -12,7 +16,7 @@ export const UPDATED = ['Metallic Paint'];
 export const CATEGORIES = [
   {
     name: 'Get Started',
-    subcategories: [ 'Index' ],
+    subcategories: ['Index']
   },
   {
     name: 'Text Animations',
@@ -40,8 +44,8 @@ export const CATEGORIES = [
       'Text Trail',
       'Text Type',
       'True Focus',
-      'Variable Proximity',
-    ],
+      'Variable Proximity'
+    ]
   },
   {
     name: 'Animations',
@@ -74,13 +78,14 @@ export const CATEGORIES = [
       'Star Border',
       'Sticker Peel',
       'Target Cursor',
-      'Orbit Images',
-    ],
+      'Orbit Images'
+    ]
   },
   {
     name: 'Components',
     subcategories: [
       'Animated List',
+      'Border Glow',
       'Bounce Cards',
       'Bubble Menu',
       'Card Nav',
@@ -112,8 +117,8 @@ export const CATEGORIES = [
       'Stack',
       'Staggered Menu',
       'Stepper',
-      'Tilted Card',
-    ],
+      'Tilted Card'
+    ]
   },
   {
     name: 'Backgrounds',
@@ -126,6 +131,7 @@ export const CATEGORIES = [
       'Dark Veil',
       'Dither',
       'Dot Grid',
+      'Evil Eye',
       'Faulty Terminal',
       'Floating Lines',
       'Galaxy',
@@ -140,6 +146,7 @@ export const CATEGORIES = [
       'Light Pillar',
       'Light Rays',
       'Lightning',
+      'Line Waves',
       'Liquid Chrome',
       'Liquid Ether',
       'Orb',
@@ -149,11 +156,13 @@ export const CATEGORIES = [
       'Plasma',
       'Prism',
       'Prismatic Burst',
+      'Radar',
       'Ripple Grid',
       'Silk',
+      'Soft Aurora',
       'Squares',
       'Threads',
-      'Waves',
-    ],
-  },
+      'Waves'
+    ]
+  }
 ];
