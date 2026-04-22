@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, useTemplateRef } from 'vue';
+import { ref, onMounted, onUnmounted, watch, useTemplateRef, nextTick } from 'vue';
 import { Renderer, Camera, Geometry, Program, Mesh } from 'ogl';
 
 interface ParticlesProps {
@@ -296,8 +296,10 @@ const cleanup = () => {
   program = null;
 };
 
-onMounted(() => {
-  initParticles();
+// CHANGED onMounted
+onMounted(async () => {
+  await nextTick(); // wait for Vue to flush its DOM updates first
+  initParticles(); 
 });
 
 onUnmounted(() => {
