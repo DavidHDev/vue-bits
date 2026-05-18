@@ -92,6 +92,7 @@ const components = {
   'staggered-menu': () => import('../demo/Components/StaggeredMenuDemo.vue'),
   'infinite-menu': () => import('../demo/Components/InfiniteMenuDemo.vue'),
   'border-glow': () => import('../demo/Components/BorderGlowDemo.vue'),
+  'fluid-glass': () => import('../demo/Components/FluidGlassDemo.vue'),
 };
 
 const backgrounds = {

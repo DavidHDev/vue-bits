@@ -547,6 +547,14 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/components/folder',
     tags: []
   },
+  'Components/FluidGlass': {
+    videoUrl: '',
+    description: 'Scrollable fluid glass refraction scene with lens, bar and cube modes.',
+    category: 'Components',
+    name: 'FluidGlass',
+    docsUrl: 'https://vue-bits.dev/components/fluid-glass',
+    tags: []
+  },
   'Components/GlassIcons': {
     videoUrl: '/assets/videos/glassicons.webm',
     description: 'Icon set styled with frosted glass blur.',
