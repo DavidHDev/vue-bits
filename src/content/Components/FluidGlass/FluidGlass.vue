@@ -1,7 +1,7 @@
 <template>
   <div
     ref="containerRef"
-    :class="['fluid-glass', className]"
+    :class="['fluid-glass', props.className]"
     @pointermove="handlePointerMove"
     @pointerleave="handlePointerLeave"
   >
@@ -48,7 +48,6 @@ interface SharedModeProps {
 }
 
 type LensProps = SharedModeProps;
-
 type CubeProps = SharedModeProps;
 
 interface BarProps extends SharedModeProps {
@@ -63,11 +62,18 @@ interface FluidGlassProps {
   barProps?: BarProps;
   cubeProps?: CubeProps;
   className?: string;
+  text?: string;
 }
 
 const props = withDefaults(defineProps<FluidGlassProps>(), {
   mode: 'lens',
-  images: () => [],
+  images: () => [
+    '/assets/demo/cs1.webp',
+    '/assets/demo/cs2.webp',
+    '/assets/demo/cs3.webp',
+    '/assets/demo/cs1.webp',
+    '/assets/demo/cs2.webp'
+  ],
   title: 'Vue Bits',
   lensProps: () => ({}),
   barProps: () => ({}),
@@ -96,7 +102,7 @@ const BAR_DEFAULTS: Required<Pick<SharedModeProps, 'transmission' | 'roughness' 
 };
 
 const isBarMode = computed(() => props.mode === 'bar');
-const navItems = computed(() => props.barProps.navItems ?? DEFAULT_NAV_ITEMS);
+const navItems = computed(() => props.barProps?.navItems ?? DEFAULT_NAV_ITEMS);
 
 const containerRef = useTemplateRef<HTMLDivElement>('containerRef');
 const stageRef = useTemplateRef<HTMLDivElement>('stageRef');
@@ -156,7 +162,7 @@ const createTitleTexture = (text: string) => {
   canvas.height = 512;
 
   context.clearRect(0, 0, canvas.width, canvas.height);
-  context.font = '700 220px Inter, Arial, sans-serif';
+  context.font = '700 260px Inter, Arial, sans-serif';
   context.textAlign = 'center';
   context.textBaseline = 'middle';
 
@@ -199,7 +205,7 @@ const rebuildTitle = () => {
     currentTitleTexture = null;
   }
 
-  currentTitleTexture = createTitleTexture(props.title);
+  currentTitleTexture = createTitleTexture(props.title ?? 'Vue Bits');
   if (!currentTitleTexture) return;
 
   titleMesh = new THREE.Mesh(
@@ -245,10 +251,10 @@ const rebuildGlassMesh = () => {
       attenuationDistance: props.mode === 'bar' ? 0.25 : 0.8,
       transparent: true,
       metalness: 0,
-      reflectivity: 0.35,
+      reflectivity: 0.45,
       clearcoat: 1,
       clearcoatRoughness: 0.05,
-      iridescence: 0.2,
+      iridescence: 0.3,
       envMapIntensity: 1.2
     })
   );
@@ -595,9 +601,9 @@ onBeforeUnmount(() => {
   overflow-y: auto;
   overflow-x: hidden;
   border-radius: 24px;
-  background:
+  /*background:
     radial-gradient(circle at top, rgba(140, 121, 255, 0.45), transparent 45%),
-    linear-gradient(180deg, #6d51ff 0%, #5227ff 50%, #3512c7 100%);
+    linear-gradient(180deg, #6d51ff 0%, #5227ff 50%, #3512c7 100%);*/
   scrollbar-width: none;
 }
 
