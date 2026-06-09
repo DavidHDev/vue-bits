@@ -683,6 +683,11 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/components/border-glow',
     tags: []
   },
+  'Components/FluidGlass': {
+    name: 'Fluid Glass',
+    description: 'A fluid glass distortion animation with lens, bar, and cube modes.',
+    category: 'Components'
+  },
 
   //! Backgrounds -------------------------------------------------------------------------------------------------------------------------------
   'Backgrounds/Aurora': {
