@@ -230,6 +230,14 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/animations/magic-rings',
     tags: []
   },
+  'Animations/Strands': {
+    videoUrl: '/assets/videos/strands.webm',
+    description: 'Flowing glowing strands woven together with optional refractive glass ball.',
+    category: 'Animations',
+    name: 'Strands',
+    docsUrl: 'https://vue-bits.dev/animations/strands',
+    tags: []
+  },
 
   //! Text Animations -------------------------------------------------------------------------------------------------------------------------------
 

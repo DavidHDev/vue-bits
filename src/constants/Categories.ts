@@ -1,5 +1,6 @@
 // Highlighted sidebar items
 export const NEW = [
+  'Strands',
   'Side Rays',
   'Ferrofluid',
   'Lightfall',
@@ -80,6 +81,7 @@ export const CATEGORIES = [
       'Splash Cursor',
       'Star Border',
       'Sticker Peel',
+      'Strands',
       'Target Cursor',
       'Orbit Images'
     ]
