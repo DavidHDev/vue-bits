@@ -137,6 +137,9 @@ const backgrounds = {
   'radar': () => import('../demo/Backgrounds/RadarDemo.vue'),
   'soft-aurora': () => import('../demo/Backgrounds/SoftAuroraDemo.vue'),
   'evil-eye': () => import('../demo/Backgrounds/EvilEyeDemo.vue'),
+  'side-rays': () => import('../demo/Backgrounds/SideRaysDemo.vue'),
+  'ferrofluid': () => import('../demo/Backgrounds/FerrofluidDemo.vue'),
+  'lightfall': () => import('../demo/Backgrounds/LightfallDemo.vue'),
 };
 
 export const componentMap = {

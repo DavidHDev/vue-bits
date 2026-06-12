@@ -692,9 +692,12 @@ export const componentMetadata: ComponentMetadata = {
     tags: []
   },
   'Components/FluidGlass': {
+    videoUrl: '/assets/videos/fluidglass.webm',
     name: 'Fluid Glass',
     description: 'A fluid glass distortion animation with lens, bar, and cube modes.',
-    category: 'Components'
+    category: 'Components',
+    docsUrl: 'https://vue-bits.dev/components/fluid-glass',
+    tags: []
   },
 
   //! Backgrounds -------------------------------------------------------------------------------------------------------------------------------
@@ -1008,6 +1011,30 @@ export const componentMetadata: ComponentMetadata = {
     category: 'Backgrounds',
     name: 'SoftAurora',
     docsUrl: 'https://reactbits.dev/backgrounds/soft-aurora',
+    tags: []
+  },
+  'Backgrounds/SideRays': {
+    videoUrl: '/assets/video/siderays.webm',
+    description: 'Volumetric corner light rays with adjustable spread, tilt, blend, and falloff.',
+    category: 'Backgrounds',
+    name: 'SideRays',
+    docsUrl: 'https://reactbits.dev/backgrounds/side-rays',
+    tags: []
+  },
+  'Backgrounds/Ferrofluid': {
+    videoUrl: '/assets/video/ferrofluid.webm',
+    description: 'Magnetic ferrofluid shader with glowing rim contours and cursor-driven spikes.',
+    category: 'Backgrounds',
+    name: 'Ferrofluid',
+    docsUrl: 'https://reactbits.dev/backgrounds/ferrofluid',
+    tags: []
+  },
+  'Backgrounds/Lightfall': {
+    videoUrl: '/assets/video/lightfall.webm',
+    description: 'Falling light streaks tunnel with ambient glow and cursor-reactive flares.',
+    category: 'Backgrounds',
+    name: 'Lightfall',
+    docsUrl: 'https://reactbits.dev/backgrounds/lightfall',
     tags: []
   }
 };
