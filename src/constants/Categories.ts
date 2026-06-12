@@ -1,5 +1,8 @@
 // Highlighted sidebar items
 export const NEW = [
+  'Side Rays',
+  'Ferrofluid',
+  'Lightfall',
   'Evil Eye',
   'Border Glow',
   'Soft Aurora',
@@ -133,6 +136,7 @@ export const CATEGORIES = [
       'Dot Grid',
       'Evil Eye',
       'Faulty Terminal',
+      'Ferrofluid',
       'Floating Lines',
       'Galaxy',
       'Gradient Blinds',
@@ -145,6 +149,7 @@ export const CATEGORIES = [
       'Letter Glitch',
       'Light Pillar',
       'Light Rays',
+      'Lightfall',
       'Lightning',
       'Line Waves',
       'Liquid Chrome',
@@ -158,6 +163,7 @@ export const CATEGORIES = [
       'Prismatic Burst',
       'Radar',
       'Ripple Grid',
+      'Side Rays',
       'Silk',
       'Soft Aurora',
       'Squares',
