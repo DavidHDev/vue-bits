@@ -140,6 +140,9 @@ const backgrounds = {
   'side-rays': () => import('../demo/Backgrounds/SideRaysDemo.vue'),
   'ferrofluid': () => import('../demo/Backgrounds/FerrofluidDemo.vue'),
   'lightfall': () => import('../demo/Backgrounds/LightfallDemo.vue'),
+  'dot-field': () => import('../demo/Backgrounds/DotFieldDemo.vue'),
+  'plasma-wave': () => import('../demo/Backgrounds/PlasmaWaveDemo.vue'),
+  'shape-grid': () => import('../demo/Backgrounds/ShapeGridDemo.vue'),
 };
 
 export const componentMap = {
