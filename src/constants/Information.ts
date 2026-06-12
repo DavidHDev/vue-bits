@@ -1036,5 +1036,29 @@ export const componentMetadata: ComponentMetadata = {
     name: 'Lightfall',
     docsUrl: 'https://reactbits.dev/backgrounds/lightfall',
     tags: []
+  },
+  'Backgrounds/DotField': {
+    videoUrl: '/assets/video/dotfield.webm',
+    description: 'Interactive dot field with cursor-driven bulge, glow, sparkle, and wave displacement.',
+    category: 'Backgrounds',
+    name: 'DotField',
+    docsUrl: 'https://vue-bits.dev/backgrounds/dot-field',
+    tags: []
+  },
+  'Backgrounds/PlasmaWave': {
+    videoUrl: '/assets/video/plasmawave.webm',
+    description: 'Raymarched dual plasma wave bands with customizable colors, speed, bend, and rotation.',
+    category: 'Backgrounds',
+    name: 'PlasmaWave',
+    docsUrl: 'https://vue-bits.dev/backgrounds/plasma-wave',
+    tags: []
+  },
+  'Backgrounds/ShapeGrid': {
+    videoUrl: '/assets/video/shapegrid.webm',
+    description: 'Animated grid of squares, hexagons, circles, or triangles with hover trail effect.',
+    category: 'Backgrounds',
+    name: 'ShapeGrid',
+    docsUrl: 'https://vue-bits.dev/backgrounds/shape-grid',
+    tags: []
   }
 };
