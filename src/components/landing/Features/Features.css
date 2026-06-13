@@ -1,0 +1,651 @@
+/* ══════════════════════════════════════════════
+   Features Section
+   ══════════════════════════════════════════════ */
+
+.ln-features-section {
+  position: relative;
+  width: 100%;
+  padding: 80px 0 100px;
+  background: var(--bg-body);
+  z-index: 4;
+}
+
+.ln-features-inner {
+  max-width: 1324px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ─── Title ─── */
+
+.ln-features-title {
+  font-family: 'Geist Pixel Line', sans-serif;
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 0 0 40px;
+}
+
+/* ─── Grid ─── */
+
+.ln-features-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 16px;
+}
+
+.ln-features-card--span-7 {
+  grid-column: span 7;
+}
+.ln-features-card--span-5 {
+  grid-column: span 5;
+}
+.ln-features-card--span-4 {
+  grid-column: span 4;
+}
+.ln-features-card--span-3 {
+  grid-column: span 3;
+}
+
+/* ─── Card ─── */
+
+.ln-features-card {
+  background: rgba(18, 15, 23, 0.45);
+  backdrop-filter: blur(32px) saturate(1.3);
+  -webkit-backdrop-filter: blur(32px) saturate(1.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 4px 32px rgba(0, 0, 0, 0.25),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.06);
+  transition:
+    border-color 0.3s ease,
+    translate 0.3s ease,
+    opacity 0.5s ease,
+    transform 0.5s ease;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+.ln-features-card.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ln-features-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  translate: 0 -2px;
+}
+
+/* ─── Card Visual ─── */
+
+.ln-features-card-visual {
+  height: 180px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ─── Card Body ─── */
+
+.ln-features-card-body {
+  padding: 18px 22px 22px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.ln-features-card-body h3 {
+  font-family: 'Geist', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
+}
+
+.ln-features-card-body p {
+  font-family: 'Geist', sans-serif;
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════
+   1. Component Marquee
+   ═══════════════════════════════════════ */
+
+.ln-feat-marquee {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 0;
+  mask-image: linear-gradient(90deg, transparent 0%, #000 15%, #000 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 15%, #000 85%, transparent 100%);
+}
+
+.ln-feat-marquee-track {
+  overflow: hidden;
+  width: 100%;
+}
+
+.ln-feat-marquee-scroll {
+  display: flex;
+  gap: 8px;
+  width: max-content;
+  animation: marqueeScroll 25s linear infinite;
+}
+
+.ln-feat-marquee-scroll--rev {
+  animation: marqueeScrollRev 28s linear infinite;
+}
+
+@keyframes marqueeScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marqueeScrollRev {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.ln-feat-pill {
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 7px;
+  padding: 5px 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition:
+    border-color 0.2s,
+    color 0.2s;
+}
+
+.ln-feat-pill:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ═══════════════════════════════════════
+   2. Category Orbits
+   ═══════════════════════════════════════ */
+
+.ln-feat-orbit {
+  position: relative;
+  width: 280px;
+  height: 280px;
+}
+
+.ln-feat-orbit-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(26, 21, 32, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 24px rgba(255, 138, 76, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  overflow: hidden;
+}
+
+.ln-feat-orbit-center img {
+  width: auto;
+  height: 22px;
+  opacity: 0.9;
+  display: block;
+}
+
+.ln-feat-orbit-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ln-feat-orbit-ring--1 {
+  width: 140px;
+  height: 140px;
+  margin: -70px 0 0 -70px;
+  animation: spinCW 20s linear infinite;
+}
+
+.ln-feat-orbit-ring--2 {
+  width: 260px;
+  height: 260px;
+  margin: -130px 0 0 -130px;
+  animation: spinCCW 30s linear infinite;
+}
+
+.ln-feat-orbit-node {
+  position: absolute;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.5);
+  z-index: 2;
+}
+
+/* Ring 1 icon positions */
+.ln-feat-orbit-ring--1 .ln-feat-orbit-node--top {
+  top: -21px;
+  left: calc(50% - 21px);
+}
+
+.ln-feat-orbit-ring--1 .ln-feat-orbit-node--right {
+  right: -21px;
+  top: calc(50% - 21px);
+}
+
+.ln-feat-orbit-ring--1 .ln-feat-orbit-node--bottom {
+  bottom: -21px;
+  left: calc(50% - 21px);
+}
+
+.ln-feat-orbit-ring--1 .ln-feat-orbit-node--left {
+  left: -21px;
+  top: calc(50% - 21px);
+}
+
+/* Ring 1 spins CW → icons counter-rotate CCW */
+.ln-feat-orbit-ring--1 .ln-feat-orbit-node svg {
+  animation: spinCCW 20s linear infinite;
+}
+
+/* Ring 2 icon positions — 8 nodes at 45° intervals */
+.ln-feat-orbit-ring--2 .ln-feat-orbit-node--top {
+  top: -21px;
+  left: calc(50% - 21px);
+}
+
+.ln-feat-orbit-ring--2 .ln-feat-orbit-node--tr {
+  top: calc(14.65% - 21px);
+  left: calc(85.35% - 21px);
+}
+
+.ln-feat-orbit-ring--2 .ln-feat-orbit-node--right {
+  top: calc(50% - 21px);
+  left: calc(100% - 21px);
+}
+
+.ln-feat-orbit-ring--2 .ln-feat-orbit-node--br {
+  top: calc(85.35% - 21px);
+  left: calc(85.35% - 21px);
+}
+
+.ln-feat-orbit-ring--2 .ln-feat-orbit-node--bottom {
+  top: calc(100% - 21px);
+  left: calc(50% - 21px);
+}
+
+.ln-feat-orbit-ring--2 .ln-feat-orbit-node--bl {
+  top: calc(85.35% - 21px);
+  left: calc(14.65% - 21px);
+}
+
+.ln-feat-orbit-ring--2 .ln-feat-orbit-node--left {
+  top: calc(50% - 21px);
+  left: -21px;
+}
+
+.ln-feat-orbit-ring--2 .ln-feat-orbit-node--tl {
+  top: calc(14.65% - 21px);
+  left: calc(14.65% - 21px);
+}
+
+/* Ring 2 spins CCW → icons counter-rotate CW */
+.ln-feat-orbit-ring--2 .ln-feat-orbit-node svg {
+  animation: spinCW 30s linear infinite;
+}
+
+@keyframes spinCW {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spinCCW {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+/* ═══════════════════════════════════════
+   3. AI Chat
+   ═══════════════════════════════════════ */
+
+.ln-feat-aichat {
+  width: 100%;
+  height: 100%;
+  padding: 14px;
+  box-sizing: border-box;
+}
+
+.ln-feat-aichat-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.005);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  overflow: hidden;
+  animation: aichatFade 0.3s ease;
+}
+
+@keyframes aichatFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Header bar */
+.ln-feat-aichat-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
+}
+
+.ln-feat-aichat-dots {
+  display: flex;
+  gap: 5px;
+}
+
+.ln-feat-aichat-dots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.ln-feat-aichat-title {
+  font-family: 'Geist', sans-serif;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.25);
+  letter-spacing: 0.03em;
+}
+
+/* Prompt row */
+.ln-feat-aichat-prompt-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  flex-shrink: 0;
+}
+
+.ln-feat-aichat-chevron {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  flex-shrink: 0;
+}
+
+.ln-feat-aichat-prompt {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+  min-height: 1em;
+}
+
+.ln-feat-aichat-cursor {
+  width: 2px;
+  height: 13px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 1px;
+  flex-shrink: 0;
+  animation: cursorBlink 0.8s ease-in-out infinite;
+}
+
+/* Thinking dots */
+.ln-feat-aichat-thinking {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 12px;
+  flex-shrink: 0;
+}
+
+.ln-feat-aichat-thinking span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  opacity: 0.4;
+  animation: thinkPulse 1.2s ease-in-out infinite;
+}
+
+.ln-feat-aichat-thinking span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.ln-feat-aichat-thinking span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes thinkPulse {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+}
+
+/* Code block */
+.ln-feat-aichat-code-block {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+  flex: 1;
+  min-height: 0;
+}
+
+.ln-feat-aichat-code-line {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 3px 12px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  min-height: 22px;
+  white-space: pre;
+  animation: codeLineIn 0.2s ease both;
+}
+
+@keyframes codeLineIn {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.ln-feat-aichat-ln {
+  color: rgba(255, 255, 255, 0.12);
+  width: 20px;
+  flex-shrink: 0;
+  text-align: right;
+  margin-right: 12px;
+  font-size: 10px;
+}
+
+/* Syntax tokens */
+.ac-kw {
+  color: rgba(255, 255, 255, 0.5);
+}
+.ac-comp {
+  color: rgba(255, 255, 255, 0.8);
+}
+.ac-tag {
+  color: rgba(255, 255, 255, 0.45);
+}
+.ac-attr {
+  color: rgba(255, 255, 255, 0.6);
+}
+.ac-punc {
+  color: rgba(255, 255, 255, 0.3);
+}
+.ac-num {
+  color: rgba(255, 255, 255, 0.7);
+}
+.ac-str {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+@keyframes cursorBlink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ═══════════════════════════════════════
+   4. Star Card
+   ═══════════════════════════════════════ */
+
+.ln-feat-stars {
+  width: 100%;
+  height: 100%;
+  padding: 18px 20px 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.ln-feat-stars-label {
+  font-family: 'Geist', sans-serif;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.02em;
+}
+
+.ln-feat-stars-count {
+  font-family: 'Geist Pixel Line', sans-serif;
+  font-size: 52px;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.45) 30%, transparent 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.ln-feat-stars-chart {
+  flex: 1;
+  min-height: 0;
+  margin: 0 -20px;
+  overflow: hidden;
+}
+
+.ln-feat-stars-chart svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.ln-feat-stars-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  pathlength: 1;
+  animation: starsLineDraw 2s ease-out forwards;
+}
+
+@keyframes starsLineDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ═══════════════════════════════════════
+   Responsive
+   ═══════════════════════════════════════ */
+
+@media (max-width: 1024px) {
+  .ln-features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ln-features-card--span-7,
+  .ln-features-card--span-5,
+  .ln-features-card--span-4,
+  .ln-features-card--span-3 {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .ln-features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ln-features-section {
+    padding: 60px 0 80px;
+  }
+
+  .ln-features-inner {
+    padding: 0 16px;
+  }
+
+  .ln-features-title {
+    font-size: 22px;
+  }
+}

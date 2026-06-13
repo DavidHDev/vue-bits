@@ -1,0 +1,54 @@
+:root {
+  /* Background colors */
+  --bg-body: #111;
+  --bg-card: #070f07;
+  --bg-elevated: #070f07;
+  --bg-hover: #2a3a2a;
+
+  /* Border colors */
+  --border-primary: #222222;
+  --border-secondary: #222222;
+  --border-subtle: #222222;
+
+  /* Brand colors — Vue green */
+  --color-primary: #7cff67;
+  --color-accent: #a0ffbc;
+  --color-accent-muted: #a0ffbc;
+
+  /* Text colors */
+  --text-primary: #fff;
+  --text-secondary: #f5f5f5;
+  --text-muted: #aaaaaa;
+  --text-dimmed: #a1a1aa;
+  --text-link: #ffffff;
+
+  /* Radii */
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 50px;
+
+  /* Shadows */
+  --shadow-dropdown: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-primary: 0 2px 8px rgba(66, 184, 131, 0.4);
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.2s ease;
+  --transition-slow: 0.3s ease;
+
+  /* Shared gradient for section titles */
+  --gradient-title: linear-gradient(135deg, #fff 0%, #66c2a4 20%, #7cff67 40%, #66c2a4 60%, #7cff67 80%, #fff 100%);
+}
+
+/* Shared keyframes — used by section titles across multiple components */
+@keyframes gradientShift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}

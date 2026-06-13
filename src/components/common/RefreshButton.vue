@@ -1,39 +1,40 @@
 <template>
-  <Button class="refresh-button" @click="$emit('refresh')" outlined rounded size="small">
+  <button type="button" class="replay-button" :aria-label="label" :title="label" @click="$emit('click')">
     <i class="pi pi-refresh"></i>
-  </Button>
+  </button>
 </template>
 
 <script setup lang="ts">
-import Button from 'primevue/button';
-
-defineEmits<{
-  refresh: [];
-}>();
+const { label = 'Replay animation' } = defineProps<{ label?: string }>();
+defineEmits<{ click: [] }>();
 </script>
 
 <style scoped>
-.refresh-button {
+.replay-button {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  z-index: 2;
-  background-color: #0b0b0b;
-  border: 1px solid #333;
-  color: white;
-  border-radius: 12px;
-  padding: 0.5rem;
-  transition: background-color 0.3s ease;
+  top: 14px;
+  right: 14px;
+  z-index: 10;
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid var(--border-primary);
+  background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
+  color: var(--text-primary);
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
-.refresh-button:hover {
-  background-color: #222 !important;
-  color: #fff !important;
-  border: 1px solid #333 !important;
-  outline: 1px solid transparent !important;
-}
-
-.refresh-button:active {
-  background-color: #0b0b0b;
+.replay-button:hover {
+  border-color: #333;
+  background: #222;
+  color: #fff;
 }
 </style>

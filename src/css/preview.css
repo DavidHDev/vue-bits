@@ -1,0 +1,437 @@
+/* Preview Slider, Switch, Select, Color picker — shared styles.
+   Ported from react-bits with no color changes (uses theme tokens). */
+.scrubber {
+  position: relative;
+  width: 100%;
+  user-select: none;
+}
+
+.scrubber-track {
+  position: relative;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-primary);
+  cursor: pointer;
+  overflow: hidden;
+  touch-action: none;
+  outline: none;
+  outline-offset: 2px;
+}
+
+.scrubber-track:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.scrubber-track[data-disabled='true'] {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.scrubber-fill {
+  position: absolute;
+  inset: 0;
+  right: auto;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+  transition: width 150ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.scrubber-track[data-dragging='true'] .scrubber-fill {
+  transition: none;
+}
+
+.scrubber-ticks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.scrubber-tick {
+  position: absolute;
+  top: 50%;
+  width: 1px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--border-primary);
+  transform: translateX(-50%) translateY(-50%);
+}
+
+.scrubber-thumb-wrapper {
+  position: absolute;
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  margin-left: -6px;
+  pointer-events: none;
+  z-index: 3;
+  transition: left 150ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.scrubber-track[data-dragging='true'] .scrubber-thumb-wrapper {
+  transition: none;
+}
+
+.scrubber-thumb {
+  width: 5px;
+  height: 26px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  opacity: 0.15;
+  transform: scaleX(0.7) scaleY(0.7);
+  transition:
+    opacity 250ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 250ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.scrubber-track[data-active='true'] .scrubber-thumb {
+  opacity: 0.9;
+  transform: scaleX(1) scaleY(1);
+}
+
+.scrubber-label {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-size: 13px;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.scrubber-value {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  color: var(--text-primary);
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  font-weight: 500;
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* Switch */
+.scrubber-track--switch {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  padding: 0;
+}
+
+.scrubber-switch-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-primary);
+  z-index: 4;
+  transition: background 0.2s ease;
+}
+
+.scrubber-track--switch[data-checked='true'] .scrubber-switch-toggle {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.scrubber-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.5);
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+.scrubber-track--switch[data-checked='true'] .scrubber-switch-knob {
+  transform: translateX(16px);
+  background: #fff;
+}
+
+/* Select */
+.scrubber-track--select {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  padding: 0;
+}
+
+.scrubber-track--select .scrubber-value {
+  pointer-events: none;
+  font-family: inherit;
+  font-weight: 400;
+  position: static;
+  transform: none;
+}
+
+.scrubber-select-right {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.scrubber-caret {
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.scrubber-caret--open {
+  transform: rotate(180deg);
+}
+
+.scrubber-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-shadow: var(--shadow-dropdown);
+}
+
+.scrubber-dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: left;
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.scrubber-dropdown-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.scrubber-dropdown-item--active {
+  color: var(--text-primary);
+}
+
+/* Color picker */
+.scrubber-track--color {
+  cursor: default;
+}
+
+.scrubber-color-controls {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 4;
+}
+
+.scrubber-color-text {
+  width: 72px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-primary);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 12px;
+  padding: 0 8px;
+  text-transform: lowercase;
+  outline: none;
+}
+
+.scrubber-color-swatch-preview {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid var(--border-primary);
+  flex-shrink: 0;
+}
+
+/* Input */
+.scrubber-track--input {
+  cursor: default;
+}
+
+.scrubber-input {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 13px;
+  padding: 0 12px 0 40%;
+  text-align: right;
+  text-overflow: ellipsis;
+  z-index: 4;
+}
+
+.scrubber-input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+/* ─── Prop Table ───────────────────────────────────────────────────────────── */
+.prop-table-section {
+  margin-top: 3em;
+}
+
+.prop-table-wrap {
+  margin-top: 1.5em;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.prop-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Geist', sans-serif;
+}
+
+.prop-table thead th {
+  text-align: left;
+  padding: 14px 18px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+}
+
+.prop-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.prop-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.prop-table tbody td {
+  padding: 14px 18px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  vertical-align: middle;
+}
+
+.prop-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.prop-type {
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+  max-width: 340px;
+  line-height: 1.5;
+}
+
+.prop-code {
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: #d4d0dc;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.prop-cards {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 1.5em;
+}
+
+.prop-card {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.prop-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.prop-card-type {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
+
+.prop-card-desc {
+  font-family: 'Geist', sans-serif;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.prop-card-default {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.prop-card-label {
+  font-family: 'Geist', sans-serif;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .prop-table-wrap {
+    display: none;
+  }
+  .prop-cards {
+    display: flex;
+  }
+}
