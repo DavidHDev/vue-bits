@@ -1,7 +1,7 @@
 <!-- Component ported from https://codepen.io/JuanFuentes/full/rgXKGQ -->
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, computed, watch, useTemplateRef } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
 
 interface TextPressureProps {
   text?: string;
@@ -33,7 +33,7 @@ const props = withDefaults(defineProps<TextPressureProps>(), {
   stroke: false,
   scale: false,
   textColor: '#FFFFFF',
-  strokeColor: '#FF0000',
+  strokeColor: '#00FF00',
   strokeWidth: 2,
   className: '',
   minFontSize: 24
@@ -223,7 +223,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div ref="containerRef" class="relative w-full h-full overflow-hidden bg-transparent">
+  <div ref="containerRef" class="relative bg-transparent w-full h-full overflow-hidden">
     <h1
       ref="titleRef"
       :class="`text-pressure-title ${className} ${flex ? 'flex justify-between' : ''} ${stroke ? 'stroke' : ''} uppercase text-center`"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { nextTick, onMounted, useTemplateRef } from 'vue';
 import { gsap } from 'gsap';
+import { nextTick, onMounted, useTemplateRef } from 'vue';
 
 function lerp(a: number, b: number, n: number): number {
   return (1 - n) * a + n * b;

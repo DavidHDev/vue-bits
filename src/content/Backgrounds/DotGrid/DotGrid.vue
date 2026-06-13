@@ -1,15 +1,15 @@
 <template>
   <section :class="`flex items-center justify-center h-full w-full relative ${className}`" :style="style">
-    <div ref="wrapperRef" class="w-full h-full relative">
+    <div ref="wrapperRef" class="relative w-full h-full">
       <canvas ref="canvasRef" class="absolute inset-0 w-full h-full pointer-events-none" />
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch, nextTick, useTemplateRef } from 'vue';
 import { gsap } from 'gsap';
 import { InertiaPlugin } from 'gsap/InertiaPlugin';
+import { computed, nextTick, onMounted, onUnmounted, ref, useTemplateRef, watch, type CSSProperties } from 'vue';
 
 gsap.registerPlugin(InertiaPlugin);
 
@@ -45,7 +45,7 @@ export interface DotGridProps {
   resistance?: number;
   returnDuration?: number;
   className?: string;
-  style?: Record<string, string | number>;
+  style?: CSSProperties;
 }
 
 const props = withDefaults(defineProps<DotGridProps>(), {

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { AnimatePresence, Motion } from 'motion-v';
 import type { MotionProps } from 'motion-v';
+import { AnimatePresence, Motion } from 'motion-v';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 
-type StaggerFrom = 'first' | 'last' | 'center' | 'random' | number;
-type SplitBy = 'characters' | 'words' | 'lines';
+export type StaggerFrom = 'first' | 'last' | 'center' | 'random' | number;
+export type SplitBy = 'characters' | 'words' | 'lines';
 
 type TransitionType = NonNullable<MotionProps['transition']>;
 type InitialType = NonNullable<MotionProps['initial']>;
@@ -196,7 +196,7 @@ defineExpose({
 });
 
 watch(
-  () => [props.auto, props.rotationInterval] as const,
+  () => props,
   () => {
     cleanupInterval();
     startInterval();

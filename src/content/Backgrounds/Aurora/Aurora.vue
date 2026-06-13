@@ -1,33 +1,10 @@
 <template>
-  <div ref="containerRef" :class="className" :style="style" class="relative"></div>
+  <div ref="ctnDom" class="aurora-container" />
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch, type CSSProperties, useTemplateRef } from 'vue';
-import { Renderer, Program, Mesh, Color, Triangle } from 'ogl';
-
-interface AuroraProps {
-  colorStops?: string[];
-  amplitude?: number;
-  blend?: number;
-  time?: number;
-  speed?: number;
-  intensity?: number;
-  className?: string;
-  style?: CSSProperties;
-}
-
-const props = withDefaults(defineProps<AuroraProps>(), {
-  colorStops: () => ['#7cff67', '#171D22', '#7cff67'],
-  amplitude: 1.0,
-  blend: 0.5,
-  speed: 1.0,
-  intensity: 1.0,
-  className: '',
-  style: () => ({})
-});
-
-const containerRef = useTemplateRef<HTMLDivElement>('containerRef');
+import { Color, Mesh, Program, Renderer, Triangle } from 'ogl';
+import { onMounted, onUnmounted, ref } from 'vue';
 
 const VERT = `#version 300 es
 in vec2 position;
@@ -44,7 +21,6 @@ uniform float uAmplitude;
 uniform vec3 uColorStops[3];
 uniform vec2 uResolution;
 uniform float uBlend;
-uniform float uIntensity;
 
 out vec4 fragColor;
 
@@ -74,7 +50,7 @@ float snoise(vec2 v){
           dot(x0, x0),
           dot(x12.xy, x12.xy),
           dot(x12.zw, x12.zw)
-      ), 
+      ),
       0.0
   );
   m = m * m;
@@ -97,53 +73,70 @@ struct ColorStop {
   float position;
 };
 
-#define COLOR_RAMP(colors, factor, finalColor) {              \
-  int index = 0;                                            \
-  for (int i = 0; i < 2; i++) {                               \
-     ColorStop currentColor = colors[i];                    \
-     bool isInBetween = currentColor.position <= factor;    \
-     index = int(mix(float(index), float(i), float(isInBetween))); \
-  }                                                         \
-  ColorStop currentColor = colors[index];                   \
-  ColorStop nextColor = colors[index + 1];                  \
-  float range = nextColor.position - currentColor.position; \
-  float lerpFactor = (factor - currentColor.position) / range; \
-  finalColor = mix(currentColor.color, nextColor.color, lerpFactor); \
+#define COLOR_RAMP(colors, factor, finalColor) {              \\
+  int index = 0;                                            \\
+  for (int i = 0; i < 2; i++) {                               \\
+     ColorStop currentColor = colors[i];                    \\
+     bool isInBetween = currentColor.position <= factor;    \\
+     index = int(mix(float(index), float(i), float(isInBetween))); \\
+  }                                                         \\
+  ColorStop currentColor = colors[index];                   \\
+  ColorStop nextColor = colors[index + 1];                  \\
+  float range = nextColor.position - currentColor.position; \\
+  float lerpFactor = (factor - currentColor.position) / range; \\
+  finalColor = mix(currentColor.color, nextColor.color, lerpFactor); \\
 }
 
 void main() {
   vec2 uv = gl_FragCoord.xy / uResolution;
-  
+
   ColorStop colors[3];
   colors[0] = ColorStop(uColorStops[0], 0.0);
   colors[1] = ColorStop(uColorStops[1], 0.5);
   colors[2] = ColorStop(uColorStops[2], 1.0);
-  
+
   vec3 rampColor;
   COLOR_RAMP(colors, uv.x, rampColor);
-  
+
   float height = snoise(vec2(uv.x * 2.0 + uTime * 0.1, uTime * 0.25)) * 0.5 * uAmplitude;
   height = exp(height);
   height = (uv.y * 2.0 - height + 0.2);
   float intensity = 0.6 * height;
-  
+
   float midPoint = 0.20;
   float auroraAlpha = smoothstep(midPoint - uBlend * 0.5, midPoint + uBlend * 0.5, intensity);
-  
-  vec3 auroraColor = rampColor;
-  
-  float finalAlpha = auroraAlpha * smoothstep(0.0, 0.5, intensity) * uIntensity;
-  
-  fragColor = vec4(auroraColor * finalAlpha, finalAlpha);
+
+  vec3 auroraColor = intensity * rampColor;
+
+  fragColor = vec4(auroraColor * auroraAlpha, auroraAlpha);
 }
 `;
 
-let renderer: Renderer | null = null;
-let animateId = 0;
+interface AuroraProps {
+  colorStops?: string[];
+  amplitude?: number;
+  blend?: number;
+  time?: number;
+  speed?: number;
+}
 
-const initAurora = () => {
-  const container = containerRef.value;
-  if (!container) return;
+const props = withDefaults(defineProps<AuroraProps>(), {
+  colorStops: () => ['#171D22', '#7cff67', '#171D22'],
+  amplitude: 1.0,
+  blend: 0.5,
+  speed: 1.0
+});
+
+const ctnDom = ref<HTMLDivElement | null>(null);
+
+let animateId = 0;
+let renderer: InstanceType<typeof Renderer> | null = null;
+let program: InstanceType<typeof Program> | null = null;
+let resizeHandler: (() => void) | null = null;
+
+onMounted(() => {
+  const ctn = ctnDom.value;
+  if (!ctn) return;
 
   renderer = new Renderer({
     alpha: true,
@@ -157,32 +150,24 @@ const initAurora = () => {
   gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
   gl.canvas.style.backgroundColor = 'transparent';
 
-  // eslint-disable-next-line prefer-const
-  let program: Program | undefined;
-
-  const resize = () => {
-    if (!container) return;
-
-    const parentWidth = container.parentElement?.offsetWidth || container.offsetWidth || window.innerWidth;
-    const parentHeight = container.parentElement?.offsetHeight || container.offsetHeight || window.innerHeight;
-
-    const width = Math.max(parentWidth, 300);
-    const height = Math.max(parentHeight, 300);
-
-    renderer!.setSize(width, height);
+  resizeHandler = () => {
+    if (!ctn || !renderer) return;
+    const width = ctn.offsetWidth;
+    const height = ctn.offsetHeight;
+    renderer.setSize(width, height);
     if (program) {
       program.uniforms.uResolution.value = [width, height];
     }
   };
 
-  window.addEventListener('resize', resize);
+  window.addEventListener('resize', resizeHandler);
 
   const geometry = new Triangle(gl);
   if (geometry.attributes.uv) {
     delete geometry.attributes.uv;
   }
 
-  const colorStopsArray = props.colorStops.map(hex => {
+  const colorStopsArray = props.colorStops.map((hex: string) => {
     const c = new Color(hex);
     return [c.r, c.g, c.b];
   });
@@ -194,104 +179,56 @@ const initAurora = () => {
       uTime: { value: 0 },
       uAmplitude: { value: props.amplitude },
       uColorStops: { value: colorStopsArray },
-      uResolution: {
-        value: [
-          Math.max(container.parentElement?.offsetWidth || container.offsetWidth || window.innerWidth, 300),
-          Math.max(container.parentElement?.offsetHeight || container.offsetHeight || window.innerHeight, 300)
-        ]
-      },
-      uBlend: { value: props.blend },
-      uIntensity: { value: props.intensity }
+      uResolution: { value: [ctn.offsetWidth, ctn.offsetHeight] },
+      uBlend: { value: props.blend }
     }
   });
 
   const mesh = new Mesh(gl, { geometry, program });
-  container.appendChild(gl.canvas);
-
-  gl.canvas.style.width = '100%';
-  gl.canvas.style.height = '100%';
-  gl.canvas.style.display = 'block';
-  gl.canvas.style.position = 'absolute';
-  gl.canvas.style.top = '0';
-  gl.canvas.style.left = '0';
+  ctn.appendChild(gl.canvas);
 
   const update = (t: number) => {
     animateId = requestAnimationFrame(update);
     const time = props.time ?? t * 0.01;
     const speed = props.speed ?? 1.0;
-    if (program) {
+
+    if (program && renderer) {
       program.uniforms.uTime.value = time * speed * 0.1;
       program.uniforms.uAmplitude.value = props.amplitude ?? 1.0;
       program.uniforms.uBlend.value = props.blend ?? 0.5;
-      program.uniforms.uIntensity.value = props.intensity ?? 1.0;
-      const stops = props.colorStops ?? ['#27FF64', '#7cff67', '#27FF64'];
-      program.uniforms.uColorStops.value = stops.map((hex: string) => {
-        const c = new Color(hex);
-        return [c.r, c.g, c.b];
-      });
-      renderer!.render({ scene: mesh });
+      program.uniforms.uColorStops.value = (props.colorStops ?? ['#171D22', '#7cff67', '#171D22']).map(
+        (hex: string) => {
+          const c = new Color(hex);
+          return [c.r, c.g, c.b];
+        }
+      );
+      renderer.render({ scene: mesh });
     }
   };
+
   animateId = requestAnimationFrame(update);
-
-  resize();
-
-  return () => {
-    cancelAnimationFrame(animateId);
-    window.removeEventListener('resize', resize);
-    if (container && gl.canvas.parentNode === container) {
-      container.removeChild(gl.canvas);
-    }
-    gl.getExtension('WEBGL_lose_context')?.loseContext();
-  };
-};
-
-const cleanup = () => {
-  if (animateId) {
-    cancelAnimationFrame(animateId);
-  }
-  if (renderer) {
-    const gl = renderer.gl;
-    const container = containerRef.value;
-    if (container && gl.canvas.parentNode === container) {
-      container.removeChild(gl.canvas);
-    }
-    gl.getExtension('WEBGL_lose_context')?.loseContext();
-  }
-  renderer = null;
-};
-
-onMounted(() => {
-  initAurora();
+  resizeHandler();
 });
 
 onUnmounted(() => {
-  cleanup();
-});
-
-watch(
-  () => [props.amplitude, props.intensity],
-  () => {
-    cleanup();
-    initAurora();
+  cancelAnimationFrame(animateId);
+  if (resizeHandler) {
+    window.removeEventListener('resize', resizeHandler);
   }
-);
+  if (renderer) {
+    const ctn = ctnDom.value;
+    const canvas = renderer.gl.canvas;
+    if (ctn && canvas.parentNode === ctn) {
+      ctn.removeChild(canvas);
+    }
+    renderer.gl.getExtension('WEBGL_lose_context')?.loseContext();
+  }
+});
 </script>
 
 <style scoped>
-div {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-}
-
-:deep(canvas) {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
+.aurora-container {
+  width: 100%;
+  height: 100%;
 }
 </style>

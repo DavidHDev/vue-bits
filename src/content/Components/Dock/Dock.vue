@@ -1,6 +1,36 @@
-<script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, defineComponent, h } from 'vue';
-import { useMotionValue, useSpring, useTransform } from 'motion-v';
+<template>
+  <div :style="outerStyle">
+    <div
+      :style="panelStyle"
+      :class="className"
+      role="toolbar"
+      aria-label="Application dock"
+      @mousemove="handleMouseMove"
+      @mouseleave="handleMouseLeave"
+    >
+      <DockItem
+        v-for="(item, index) in items"
+        :key="index"
+        :onClick="item.onClick"
+        :className="item.className"
+        :mouseX="mouseX"
+        :spring="spring"
+        :distance="distance"
+        :magnification="magnification"
+        :baseItemSize="baseItemSize"
+        :item="item"
+      />
+    </div>
+  </div>
+</template>
+
+<script lang="ts">
+import { AnimatePresence, Motion, useMotionValue, useSpring, useTransform } from 'motion-v';
+import type { ConcreteComponent, CSSProperties, PropType } from 'vue';
+import { computed, defineComponent, h, onMounted, onUnmounted, ref, watch } from 'vue';
+
+const MotionComponent = Motion as unknown as ConcreteComponent;
+const AnimatePresenceComponent = AnimatePresence as unknown as ConcreteComponent;
 
 export type SpringOptions = NonNullable<Parameters<typeof useSpring>[1]>;
 
@@ -22,112 +52,106 @@ export type DockProps = {
   spring?: SpringOptions;
 };
 
-const props = withDefaults(defineProps<DockProps>(), {
-  className: '',
-  distance: 200,
-  panelHeight: 64,
-  baseItemSize: 50,
-  dockHeight: 256,
-  magnification: 70,
-  spring: () => ({ mass: 0.1, stiffness: 150, damping: 12 })
-});
-
-const mouseX = useMotionValue(Infinity);
-const isHovered = useMotionValue(0);
-const currentHeight = ref(props.panelHeight);
-
-const maxHeight = computed(() => Math.max(props.dockHeight, props.magnification + props.magnification / 2 + 4));
-
-const heightRow = useTransform(isHovered, [0, 1], [props.panelHeight, maxHeight.value]);
-const height = useSpring(heightRow, props.spring);
-
-let unsubscribeHeight: (() => void) | null = null;
-
-onMounted(() => {
-  unsubscribeHeight = height.on('change', (latest: number) => {
-    currentHeight.value = latest;
-  });
-});
-
-onUnmounted(() => {
-  if (unsubscribeHeight) {
-    unsubscribeHeight();
+const DockIcon = defineComponent({
+  name: 'DockIcon',
+  props: {
+    className: { type: String, default: '' }
+  },
+  render() {
+    return h(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        } satisfies CSSProperties,
+        class: this.className
+      },
+      this.$slots.default?.()
+    );
   }
 });
 
-const handleMouseMove = (event: MouseEvent) => {
-  isHovered.set(1);
-  mouseX.set(event.pageX);
-};
+const DockLabel = defineComponent({
+  name: 'DockLabel',
+  props: {
+    className: { type: String, default: '' },
+    isHovered: {
+      type: Object as PropType<ReturnType<typeof useMotionValue<number>>>,
+      required: true
+    }
+  },
+  setup(props) {
+    const isVisible = ref(false);
+    let unsubscribe: (() => void) | null = null;
 
-const handleMouseLeave = () => {
-  isHovered.set(0);
-  mouseX.set(Infinity);
-};
-</script>
+    onMounted(() => {
+      unsubscribe = props.isHovered.on('change', (latest: number) => {
+        isVisible.value = latest === 1;
+      });
+    });
 
-<template>
-  <div :style="{ height: currentHeight + 'px', scrollbarWidth: 'none' }" class="flex items-center mx-2 max-w-full">
-    <div
-      @mousemove="handleMouseMove"
-      @mouseleave="handleMouseLeave"
-      :class="`${props.className} absolute bottom-2 left-1/2 transform -translate-x-1/2 flex items-end w-fit gap-4 rounded-2xl border-neutral-700 border-2 pb-2 px-4`"
-      :style="{ height: props.panelHeight + 'px' }"
-      role="toolbar"
-      aria-="Application dock"
-    >
-      <DockItem
-        v-for="(item, index) in props.items"
-        :key="index"
-        :onClick="item.onClick"
-        :className="item.className"
-        :mouseX="mouseX"
-        :spring="props.spring"
-        :distance="props.distance"
-        :magnification="props.magnification"
-        :baseItemSize="props.baseItemSize"
-        :item="item"
-      />
-    </div>
-  </div>
-</template>
+    onUnmounted(() => {
+      unsubscribe?.();
+    });
 
-<script lang="ts">
+    return { isVisible };
+  },
+  render() {
+    const labelStyle: CSSProperties = {
+      position: 'absolute',
+      bottom: '100%',
+      transform: 'translateX(-50%)',
+      marginBottom: '0.5rem',
+      width: 'fit-content',
+      whiteSpace: 'pre',
+      borderRadius: '0.375rem',
+      border: '1px solid #222',
+      backgroundColor: '#222',
+      padding: '0.125rem 0.5rem',
+      fontSize: '0.75rem',
+      color: '#fff'
+    };
+
+    return h(AnimatePresenceComponent, {}, () =>
+      this.isVisible
+        ? [
+            h(
+              MotionComponent,
+              {
+                key: 'label',
+                as: 'div',
+                class: this.className,
+                role: 'tooltip',
+                style: labelStyle,
+                initial: { opacity: 0, y: 0 },
+                animate: { opacity: 1, y: -10 },
+                exit: { opacity: 0, y: 0 },
+                transition: { duration: 0.2 }
+              },
+              () => this.$slots.default?.()
+            )
+          ]
+        : []
+    );
+  }
+});
+
 const DockItem = defineComponent({
   name: 'DockItem',
   props: {
-    className: {
-      type: String,
-      default: ''
-    },
-    onClick: {
-      type: Function,
-      default: () => {}
-    },
+    className: { type: String, default: '' },
+    onClick: { type: Function as PropType<() => void>, default: () => {} },
     mouseX: {
-      type: Object as () => ReturnType<typeof useMotionValue<number>>,
+      type: Object as PropType<ReturnType<typeof useMotionValue<number>>>,
       required: true
     },
-    spring: {
-      type: Object as () => SpringOptions,
-      required: true
-    },
-    distance: {
-      type: Number,
-      required: true
-    },
-    baseItemSize: {
-      type: Number,
-      required: true
-    },
-    magnification: {
-      type: Number,
-      required: true
-    },
-    item: {
-      type: Object as () => DockItemData,
-      required: true
-    }
+    spring: { type: Object as PropType<SpringOptions>, required: true },
+    distance: { type: Number, required: true },
+    baseItemSize: { type: Number, required: true },
+    magnification: { type: Number, required: true },
+    item: { type: Object as PropType<DockItemData>, required: true }
   },
   setup(props) {
     const itemRef = ref<HTMLDivElement>();
@@ -135,19 +159,26 @@ const DockItem = defineComponent({
     const currentSize = ref(props.baseItemSize);
 
     const mouseDistance = useTransform(props.mouseX, (val: number) => {
-      const rect = itemRef.value?.getBoundingClientRect() ?? {
-        x: 0,
-        width: props.baseItemSize
-      };
+      const rect = itemRef.value?.getBoundingClientRect() ?? { x: 0, width: props.baseItemSize };
       return val - rect.x - props.baseItemSize / 2;
     });
 
-    const targetSize = useTransform(
-      mouseDistance,
-      [-props.distance, 0, props.distance],
-      [props.baseItemSize, props.magnification, props.baseItemSize]
-    );
+    const targetSize = useTransform(mouseDistance, (dist: number) => {
+      const { baseItemSize, magnification, distance } = props;
+      const clamped = Math.max(-distance, Math.min(distance, dist));
+      const t = 1 - Math.abs(clamped) / distance;
+      return baseItemSize + (magnification - baseItemSize) * t;
+    });
+
     const size = useSpring(targetSize, props.spring);
+
+    watch(
+      () => props.baseItemSize,
+      newSize => {
+        currentSize.value = newSize;
+        size.set(newSize);
+      }
+    );
 
     let unsubscribeSize: (() => void) | null = null;
 
@@ -158,9 +189,7 @@ const DockItem = defineComponent({
     });
 
     onUnmounted(() => {
-      if (unsubscribeSize) {
-        unsubscribeSize();
-      }
+      unsubscribeSize?.();
     });
 
     const handleHoverStart = () => isHovered.set(1);
@@ -170,7 +199,6 @@ const DockItem = defineComponent({
 
     return {
       itemRef,
-      size,
       currentSize,
       isHovered,
       handleHoverStart,
@@ -180,26 +208,38 @@ const DockItem = defineComponent({
     };
   },
   render() {
-    const icon = typeof this.item.icon === 'function' ? this.item.icon() : this.item.icon;
-    const label = typeof this.item.label === 'function' ? this.item.label() : this.item.label;
+    const icon = typeof this.item.icon === 'function' ? (this.item.icon as () => unknown)() : this.item.icon;
+    const label = typeof this.item.label === 'function' ? (this.item.label as () => unknown)() : this.item.label;
+
+    const itemStyle: CSSProperties = {
+      width: `${this.currentSize}px`,
+      height: `${this.currentSize}px`,
+      position: 'relative',
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: '10px',
+      backgroundColor: '#120F17',
+      border: '1px solid #222',
+      boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)',
+      cursor: 'pointer',
+      outline: 'none'
+    };
 
     return h(
       'div',
       {
         ref: 'itemRef',
-        style: {
-          width: this.currentSize + 'px',
-          height: this.currentSize + 'px'
-        },
+        style: itemStyle,
+        class: this.className,
+        tabindex: 0,
+        role: 'button',
+        'aria-haspopup': 'true',
         onMouseenter: this.handleHoverStart,
         onMouseleave: this.handleHoverEnd,
         onFocus: this.handleFocus,
         onBlur: this.handleBlur,
-        onClick: this.onClick,
-        class: `relative cursor-pointer inline-flex items-center justify-center rounded-full bg-[#111] border-neutral-700 border-2 shadow-md ${this.className}`,
-        tabindex: 0,
-        role: 'button',
-        'aria-haspopup': 'true'
+        onClick: this.onClick
       },
       [
         h(DockIcon, {}, () => [icon]),
@@ -209,79 +249,92 @@ const DockItem = defineComponent({
   }
 });
 
-const DockLabel = defineComponent({
-  name: 'DockLabel',
+export default defineComponent({
+  name: 'Dock',
+  components: { DockItem },
   props: {
-    className: {
-      type: String,
-      default: ''
-    },
-    isHovered: {
-      type: Object as () => ReturnType<typeof useMotionValue<number>>,
-      required: true
+    items: { type: Array as PropType<DockItemData[]>, required: true },
+    className: { type: String, default: '' },
+    distance: { type: Number, default: 200 },
+    panelHeight: { type: Number, default: 68 },
+    baseItemSize: { type: Number, default: 50 },
+    dockHeight: { type: Number, default: 256 },
+    magnification: { type: Number, default: 70 },
+    spring: {
+      type: Object as PropType<SpringOptions>,
+      default: () => ({ mass: 0.1, stiffness: 150, damping: 12 })
     }
   },
   setup(props) {
-    const isVisible = ref(false);
+    const mouseX = useMotionValue(Infinity);
+    const isHovered = useMotionValue(0);
+    const currentHeight = ref(props.panelHeight);
 
-    let unsubscribe: (() => void) | null = null;
+    const maxHeight = computed(() => Math.max(props.dockHeight, props.magnification + props.magnification / 2 + 4));
+
+    const heightRow = useTransform(isHovered, (hovered: number) =>
+      hovered === 1 ? maxHeight.value : props.panelHeight
+    );
+    const height = useSpring(heightRow, props.spring);
+
+    watch([() => props.panelHeight, maxHeight], () => {
+      height.set(isHovered.get() === 1 ? maxHeight.value : props.panelHeight);
+    });
+
+    let unsubscribeHeight: (() => void) | null = null;
 
     onMounted(() => {
-      unsubscribe = props.isHovered.on('change', (latest: number) => {
-        isVisible.value = latest === 1;
+      unsubscribeHeight = height.on('change', (latest: number) => {
+        currentHeight.value = latest;
       });
     });
 
     onUnmounted(() => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
+      unsubscribeHeight?.();
     });
 
-    return {
-      isVisible
+    const handleMouseMove = (event: MouseEvent) => {
+      isHovered.set(1);
+      mouseX.set(event.pageX);
     };
-  },
-  render() {
-    return h(
-      'div',
-      {
-        class: `${this.className} absolute -top-8 left-1/2 w-fit whitespace-pre rounded-md border border-neutral-700 bg-[#111] px-2 py-0.5 text-xs text-white transition-all duration-200`,
-        role: 'tooltip',
-        style: {
-          transform: 'translateX(-50%)',
-          opacity: this.isVisible ? 1 : 0,
-          visibility: this.isVisible ? 'visible' : 'hidden'
-        }
-      },
-      this.$slots.default?.()
-    );
-  }
-});
 
-const DockIcon = defineComponent({
-  name: 'DockIcon',
-  props: {
-    className: {
-      type: String,
-      default: ''
-    }
-  },
-  render() {
-    return h(
-      'div',
-      {
-        class: `flex items-center justify-center ${this.className}`
-      },
-      this.$slots.default?.()
-    );
-  }
-});
+    const handleMouseLeave = () => {
+      isHovered.set(0);
+      mouseX.set(Infinity);
+    };
 
-export default defineComponent({
-  name: 'Dock',
-  components: {
-    DockItem
+    const outerStyle = computed<CSSProperties>(() => ({
+      height: `${currentHeight.value}px`,
+      scrollbarWidth: 'none',
+      margin: '0 0.5rem',
+      display: 'flex',
+      maxWidth: '100%',
+      alignItems: 'center'
+    }));
+
+    const panelStyle = computed<CSSProperties>(() => ({
+      height: `${props.panelHeight}px`,
+      position: 'absolute',
+      bottom: '0.5rem',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      display: 'flex',
+      alignItems: 'flex-end',
+      width: 'fit-content',
+      gap: '1rem',
+      borderRadius: '1rem',
+      backgroundColor: '#120F17',
+      border: '1px solid #222',
+      padding: '0 0.5rem 0.5rem'
+    }));
+
+    return {
+      mouseX,
+      outerStyle,
+      panelStyle,
+      handleMouseMove,
+      handleMouseLeave
+    };
   }
 });
 </script>

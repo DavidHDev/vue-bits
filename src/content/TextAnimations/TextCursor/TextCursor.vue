@@ -4,7 +4,6 @@ import { Motion } from 'motion-v';
 
 interface TextCursorProps {
   text?: string;
-  delay?: number;
   spacing?: number;
   followMouseDirection?: boolean;
   randomFloat?: boolean;
@@ -25,7 +24,6 @@ interface TrailItem {
 
 const props = withDefaults(defineProps<TextCursorProps>(), {
   text: '⚛️',
-  delay: 0.01,
   spacing: 100,
   followMouseDirection: true,
   randomFloat: true,

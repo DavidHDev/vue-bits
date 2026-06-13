@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { mat4, quat, vec2, vec3 } from 'gl-matrix';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 type InfiniteMenuItem = {
   image: string;
@@ -1194,7 +1194,7 @@ watch(
       <div
         @click="handleButtonClick"
         :class="[
-          'absolute left-1/2 z-10 grid place-items-center bg-purple-600 rounded-full cursor-pointer border-4 border-black transition-all ease-in-out',
+          'absolute left-1/2 z-10 grid place-items-center bg-green-600 rounded-full cursor-pointer border-4 border-black transition-all ease-in-out',
           isMoving ? 'pointer-events-none opacity-0 duration-100' : 'opacity-100 pointer-events-auto duration-500'
         ]"
         :style="{

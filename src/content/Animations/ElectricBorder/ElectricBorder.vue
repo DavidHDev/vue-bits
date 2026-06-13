@@ -1,23 +1,23 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, useTemplateRef, watch, type CSSProperties } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch, type CSSProperties } from 'vue';
 
-type ElectricBorderProps = {
+interface ElectricBorderProps {
   color?: string;
   speed?: number;
   chaos?: number;
-  thickness?: number;
+  borderRadius?: number;
   className?: string;
   style?: CSSProperties;
-};
+}
 
 const props = withDefaults(defineProps<ElectricBorderProps>(), {
   color: '#28FF85',
   speed: 1,
-  chaos: 1,
-  thickness: 2
+  chaos: 0.12,
+  borderRadius: 24
 });
 
-function hexToRgba(hex: string, alpha = 1): string {
+function hexToRgba(hex: string, alpha: number = 1): string {
   if (!hex) return `rgba(0,0,0,${alpha})`;
   let h = hex.replace('#', '');
   if (h.length === 3) {
@@ -33,188 +33,365 @@ function hexToRgba(hex: string, alpha = 1): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-const rawId = `id-${crypto.randomUUID().replace(/[:]/g, '')}`;
-const filterId = `turbulent-displace-${rawId}`;
+const canvasRef = useTemplateRef<HTMLCanvasElement>('canvasRef');
+const containerRef = useTemplateRef<HTMLDivElement>('containerRef');
+const animationRef = ref<number | null>(null);
+const timeRef = ref(0);
+const lastFrameTimeRef = ref(0);
 
-const svgRef = useTemplateRef('svgRef');
-const rootRef = useTemplateRef('rootRef');
-const strokeRef = useTemplateRef('strokeRef');
+function random(x: number): number {
+  return (Math.sin(x * 12.9898) * 43758.5453) % 1;
+}
 
-const updateAnim = () => {
-  const svg = svgRef.value;
-  const host = rootRef.value;
-  if (!svg || !host) return;
+function noise2D(x: number, y: number): number {
+  const i = Math.floor(x);
+  const j = Math.floor(y);
+  const fx = x - i;
+  const fy = y - j;
 
-  if (strokeRef.value) {
-    strokeRef.value.style.filter = `url(#${filterId})`;
+  const a = random(i + j * 57);
+  const b = random(i + 1 + j * 57);
+  const c = random(i + (j + 1) * 57);
+  const d = random(i + 1 + (j + 1) * 57);
+
+  const ux = fx * fx * (3.0 - 2.0 * fx);
+  const uy = fy * fy * (3.0 - 2.0 * fy);
+
+  return a * (1 - ux) * (1 - uy) + b * ux * (1 - uy) + c * (1 - ux) * uy + d * ux * uy;
+}
+
+function octavedNoise(
+  x: number,
+  octaves: number,
+  lacunarity: number,
+  gain: number,
+  baseAmplitude: number,
+  baseFrequency: number,
+  time: number,
+  seed: number,
+  baseFlatness: number
+): number {
+  let y = 0;
+  let amplitude = baseAmplitude;
+  let frequency = baseFrequency;
+
+  for (let i = 0; i < octaves; i++) {
+    let octaveAmplitude = amplitude;
+    if (i === 0) {
+      octaveAmplitude *= baseFlatness;
+    }
+    y += octaveAmplitude * noise2D(frequency * x + seed * 100, time * frequency * 0.3);
+    frequency *= lacunarity;
+    amplitude *= gain;
   }
 
-  const width = Math.max(1, Math.round(host.clientWidth || host.getBoundingClientRect().width || 0));
-  const height = Math.max(1, Math.round(host.clientHeight || host.getBoundingClientRect().height || 0));
+  return y;
+}
 
-  const dyAnims = Array.from(svg.querySelectorAll('feOffset > animate[attributeName="dy"]')) as SVGAnimateElement[];
-  if (dyAnims.length >= 2) {
-    dyAnims[0].setAttribute('values', `${height}; 0`);
-    dyAnims[1].setAttribute('values', `0; -${height}`);
+function getCornerPoint(
+  centerX: number,
+  centerY: number,
+  radius: number,
+  startAngle: number,
+  arcLength: number,
+  progress: number
+): { x: number; y: number } {
+  const angle = startAngle + progress * arcLength;
+  return {
+    x: centerX + radius * Math.cos(angle),
+    y: centerY + radius * Math.sin(angle)
+  };
+}
+
+function getRoundedRectPoint(
+  t: number,
+  left: number,
+  top: number,
+  width: number,
+  height: number,
+  radius: number
+): { x: number; y: number } {
+  const straightWidth = width - 2 * radius;
+  const straightHeight = height - 2 * radius;
+  const cornerArc = (Math.PI * radius) / 2;
+  const totalPerimeter = 2 * straightWidth + 2 * straightHeight + 4 * cornerArc;
+  const distance = t * totalPerimeter;
+
+  let accumulated = 0;
+
+  if (distance <= accumulated + straightWidth) {
+    const progress = (distance - accumulated) / straightWidth;
+    return { x: left + radius + progress * straightWidth, y: top };
+  }
+  accumulated += straightWidth;
+
+  if (distance <= accumulated + cornerArc) {
+    const progress = (distance - accumulated) / cornerArc;
+    return getCornerPoint(left + width - radius, top + radius, radius, -Math.PI / 2, Math.PI / 2, progress);
+  }
+  accumulated += cornerArc;
+
+  if (distance <= accumulated + straightHeight) {
+    const progress = (distance - accumulated) / straightHeight;
+    return { x: left + width, y: top + radius + progress * straightHeight };
+  }
+  accumulated += straightHeight;
+
+  if (distance <= accumulated + cornerArc) {
+    const progress = (distance - accumulated) / cornerArc;
+    return getCornerPoint(left + width - radius, top + height - radius, radius, 0, Math.PI / 2, progress);
+  }
+  accumulated += cornerArc;
+
+  if (distance <= accumulated + straightWidth) {
+    const progress = (distance - accumulated) / straightWidth;
+    return { x: left + width - radius - progress * straightWidth, y: top + height };
+  }
+  accumulated += straightWidth;
+
+  if (distance <= accumulated + cornerArc) {
+    const progress = (distance - accumulated) / cornerArc;
+    return getCornerPoint(left + radius, top + height - radius, radius, Math.PI / 2, Math.PI / 2, progress);
+  }
+  accumulated += cornerArc;
+
+  if (distance <= accumulated + straightHeight) {
+    const progress = (distance - accumulated) / straightHeight;
+    return { x: left, y: top + height - radius - progress * straightHeight };
+  }
+  accumulated += straightHeight;
+
+  const progress = (distance - accumulated) / cornerArc;
+  return getCornerPoint(left + radius, top + radius, radius, Math.PI, Math.PI / 2, progress);
+}
+
+function resolveBorderRadius(
+  borderRadius: CSSProperties['borderRadius'] | number | undefined,
+  maxRadius: number,
+  width: number,
+  height: number
+): number {
+  if (typeof borderRadius === 'number') {
+    return Math.min(borderRadius, maxRadius);
   }
 
-  const dxAnims = Array.from(svg.querySelectorAll('feOffset > animate[attributeName="dx"]')) as SVGAnimateElement[];
-  if (dxAnims.length >= 2) {
-    dxAnims[0].setAttribute('values', `${width}; 0`);
-    dxAnims[1].setAttribute('values', `0; -${width}`);
-  }
-
-  const baseDur = 6;
-  const dur = Math.max(0.001, baseDur / (props.speed || 1));
-  [...dyAnims, ...dxAnims].forEach(a => a.setAttribute('dur', `${dur}s`));
-
-  const disp = svg.querySelector('feDisplacementMap');
-  if (disp) disp.setAttribute('scale', String(30 * (props.chaos || 1)));
-
-  const filterEl = svg.querySelector<SVGFilterElement>(`#${CSS.escape(filterId)}`);
-  if (filterEl) {
-    filterEl.setAttribute('x', '-200%');
-    filterEl.setAttribute('y', '-200%');
-    filterEl.setAttribute('width', '500%');
-    filterEl.setAttribute('height', '500%');
-  }
-
-  requestAnimationFrame(() => {
-    [...dyAnims, ...dxAnims].forEach((a: SVGAnimateElement) => {
-      if (typeof a.beginElement === 'function') {
-        try {
-          a.beginElement();
-        } catch {}
+  if (typeof borderRadius === 'string') {
+    const parsed = Number.parseFloat(borderRadius);
+    if (Number.isFinite(parsed)) {
+      if (borderRadius.includes('%')) {
+        return Math.min(maxRadius, (parsed / 100) * Math.min(width, height));
       }
-    });
+
+      return Math.min(parsed, maxRadius);
+    }
+  }
+
+  return Math.min(props.borderRadius, maxRadius);
+}
+
+let cleanup: (() => void) | null = null;
+function setupCanvas() {
+  const canvas = canvasRef.value;
+  const container = containerRef.value;
+  if (!canvas || !container) return;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const octaves = 10;
+  const lacunarity = 1.6;
+  const gain = 0.7;
+  const amplitude = props.chaos;
+  const frequency = 10;
+  const baseFlatness = 0;
+  const displacement = 60;
+  const borderOffset = 60;
+
+  const updateSize = () => {
+    const rect = container.getBoundingClientRect();
+    const width = rect.width + borderOffset * 2;
+    const height = rect.height + borderOffset * 2;
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    ctx.scale(dpr, dpr);
+
+    return { width, height };
+  };
+
+  let { width, height } = updateSize();
+  let lastDpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  const drawElectricBorder = (currentTime: number) => {
+    if (!canvas || !ctx) return;
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    if (dpr !== lastDpr) {
+      lastDpr = dpr;
+      const newSize = updateSize();
+      width = newSize.width;
+      height = newSize.height;
+    }
+
+    const deltaTime = (currentTime - lastFrameTimeRef.value) / 1000;
+    timeRef.value += deltaTime * props.speed;
+    lastFrameTimeRef.value = currentTime;
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.scale(dpr, dpr);
+
+    ctx.strokeStyle = props.color;
+    ctx.lineWidth = 1;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    const scale = displacement;
+    const left = borderOffset;
+    const top = borderOffset;
+    const borderWidth = width - 2 * borderOffset;
+    const borderHeight = height - 2 * borderOffset;
+    const maxRadius = Math.min(borderWidth, borderHeight) / 2;
+    const radius = resolveBorderRadius(
+      props.style?.borderRadius ?? props.borderRadius,
+      maxRadius,
+      borderWidth,
+      borderHeight
+    );
+
+    const approximatePerimeter = 2 * (borderWidth + borderHeight) + 2 * Math.PI * radius;
+    const sampleCount = Math.floor(approximatePerimeter / 2);
+
+    ctx.beginPath();
+
+    for (let i = 0; i <= sampleCount; i++) {
+      const progress = i / sampleCount;
+
+      const point = getRoundedRectPoint(progress, left, top, borderWidth, borderHeight, radius);
+
+      const xNoise = octavedNoise(
+        progress * 8,
+        octaves,
+        lacunarity,
+        gain,
+        amplitude,
+        frequency,
+        timeRef.value,
+        0,
+        baseFlatness
+      );
+      const yNoise = octavedNoise(
+        progress * 8,
+        octaves,
+        lacunarity,
+        gain,
+        amplitude,
+        frequency,
+        timeRef.value,
+        1,
+        baseFlatness
+      );
+
+      const displacedX = point.x + xNoise * scale;
+      const displacedY = point.y + yNoise * scale;
+
+      if (i === 0) {
+        ctx.moveTo(displacedX, displacedY);
+      } else {
+        ctx.lineTo(displacedX, displacedY);
+      }
+    }
+
+    ctx.closePath();
+    ctx.stroke();
+
+    animationRef.value = requestAnimationFrame(drawElectricBorder);
+  };
+
+  const resizeObserver = new ResizeObserver(() => {
+    const newSize = updateSize();
+    width = newSize.width;
+    height = newSize.height;
   });
-};
+  resizeObserver.observe(container);
+
+  animationRef.value = requestAnimationFrame(drawElectricBorder);
+
+  cleanup = () => {
+    if (animationRef.value) {
+      cancelAnimationFrame(animationRef.value);
+    }
+    resizeObserver.disconnect();
+  };
+}
 
 watch(
-  () => [props.speed, props.chaos],
+  () => [
+    props.color,
+    props.speed,
+    props.chaos,
+    props.borderRadius,
+    props.style?.borderRadius,
+    octavedNoise,
+    getRoundedRectPoint
+  ],
   () => {
-    updateAnim();
-  },
-  { deep: true }
+    cleanup?.();
+    requestAnimationFrame(() => {
+      setupCanvas();
+    });
+  }
 );
 
-let ro: ResizeObserver | null = null;
-
 onMounted(() => {
-  if (!rootRef.value) return;
-  ro = new ResizeObserver(() => updateAnim());
-  ro.observe(rootRef.value);
-  updateAnim();
+  setupCanvas();
 });
 
 onBeforeUnmount(() => {
-  if (ro) ro.disconnect();
+  cleanup?.();
 });
 
-const inheritRadius = computed<CSSProperties>(() => {
-  const radius = props.style?.borderRadius;
-
-  if (radius === undefined) {
-    return { borderRadius: 'inherit' };
-  }
-
-  if (typeof radius === 'number') {
-    return { borderRadius: `${radius}px` };
-  }
-
-  return { borderRadius: radius };
-});
-
-const strokeStyle = computed<CSSProperties>(() => ({
-  ...inheritRadius.value,
-  borderWidth: `${props.thickness}px`,
-  borderStyle: 'solid',
-  borderColor: props.color
-}));
-
-const glow1Style = computed<CSSProperties>(() => ({
-  ...inheritRadius.value,
-  borderWidth: `${props.thickness}px`,
-  borderStyle: 'solid',
-  borderColor: hexToRgba(props.color, 0.6),
-  filter: `blur(${0.5 + props.thickness * 0.25}px)`,
-  opacity: 0.5
-}));
-
-const glow2Style = computed<CSSProperties>(() => ({
-  ...inheritRadius.value,
-  borderWidth: `${props.thickness}px`,
-  borderStyle: 'solid',
-  borderColor: props.color,
-  filter: `blur(${2 + props.thickness * 0.5}px)`,
-  opacity: 0.5
-}));
-
-const bgGlowStyle = computed<CSSProperties>(() => ({
-  ...inheritRadius.value,
-  transform: 'scale(1.08)',
-  filter: 'blur(32px)',
-  opacity: 0.3,
-  zIndex: -1,
-  background: `linear-gradient(-30deg, ${hexToRgba(props.color, 0.8)}, transparent, ${props.color})`
+const wrapperStyle = computed<CSSProperties>(() => ({
+  '--electric-border-color': props.color,
+  borderRadius: `${props.borderRadius}px`,
+  ...props.style
 }));
 </script>
 
 <template>
-  <div ref="rootRef" :class="['relative isolate', className]" :style="style">
-    <svg
-      ref="svgRef"
-      class="fixed opacity-0 w-0 h-0 pointer-events-none"
-      style="position: absolute; top: -9999px; left: -9999px"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <defs>
-        <filter :id="filterId" color-interpolation-filters="sRGB" x="-200%" y="-200%" width="500%" height="500%">
-          <feTurbulence type="turbulence" baseFrequency="0.015" numOctaves="8" result="noise1" seed="1" />
-          <feOffset in="noise1" dx="0" dy="0" result="offsetNoise1">
-            <animate attributeName="dy" values="500; 0" dur="6s" repeatCount="indefinite" calcMode="linear" />
-          </feOffset>
-
-          <feTurbulence type="turbulence" baseFrequency="0.015" numOctaves="8" result="noise2" seed="3" />
-          <feOffset in="noise2" dx="0" dy="0" result="offsetNoise2">
-            <animate attributeName="dy" values="0; -500" dur="6s" repeatCount="indefinite" calcMode="linear" />
-          </feOffset>
-
-          <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="6" result="noise3" seed="5" />
-          <feOffset in="noise3" dx="0" dy="0" result="offsetNoise3">
-            <animate attributeName="dx" values="500; 0" dur="6s" repeatCount="indefinite" calcMode="linear" />
-          </feOffset>
-
-          <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="6" result="noise4" seed="7" />
-          <feOffset in="noise4" dx="0" dy="0" result="offsetNoise4">
-            <animate attributeName="dx" values="0; -500" dur="6s" repeatCount="indefinite" calcMode="linear" />
-          </feOffset>
-
-          <feComposite in="offsetNoise1" in2="offsetNoise2" operator="add" result="verticalNoise" />
-          <feComposite in="offsetNoise3" in2="offsetNoise4" operator="add" result="horizontalNoise" />
-          <feBlend in="verticalNoise" in2="horizontalNoise" mode="screen" result="combinedNoise" />
-
-          <feDisplacementMap
-            in="SourceGraphic"
-            in2="combinedNoise"
-            scale="30"
-            xChannelSelector="R"
-            yChannelSelector="G"
-            result="displaced"
-          />
-        </filter>
-      </defs>
-    </svg>
-
-    <div class="absolute inset-0 pointer-events-none" :style="inheritRadius">
-      <div ref="strokeRef" class="box-border absolute inset-0" :style="strokeStyle" />
-      <div class="box-border absolute inset-0" :style="glow1Style" />
-      <div class="box-border absolute inset-0" :style="glow2Style" />
-      <div class="absolute inset-0" :style="bgGlowStyle" />
+  <div ref="containerRef" :class="['relative overflow-visible isolate', className]" :style="wrapperStyle">
+    <div class="top-1/2 left-1/2 z-2 absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+      <canvas ref="canvasRef" class="block" />
     </div>
 
-    <div class="relative" :style="inheritRadius">
+    <div class="z-0 absolute inset-0 rounded-[inherit] pointer-events-none">
+      <div
+        class="absolute inset-0 rounded-[inherit] pointer-events-none"
+        :style="{
+          border: `2px solid ${hexToRgba(color, 0.6)}`,
+          filter: 'blur(1px)'
+        }"
+      />
+      <div
+        class="absolute inset-0 rounded-[inherit] pointer-events-none"
+        :style="{
+          border: `2px solid ${color}`,
+          filter: 'blur(4px)'
+        }"
+      />
+      <div
+        class="-z-[1] absolute inset-0 opacity-30 rounded-[inherit] scale-110 pointer-events-none"
+        :style="{
+          filter: 'blur(32px)',
+          background: `linear-gradient(-30deg, ${color}, transparent, ${color})`
+        }"
+      />
+    </div>
+
+    <div class="z-[1] relative rounded-[inherit]">
       <slot />
     </div>
   </div>

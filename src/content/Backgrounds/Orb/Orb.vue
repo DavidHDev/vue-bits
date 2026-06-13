@@ -1,19 +1,21 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch, useTemplateRef } from 'vue';
-import { Renderer, Program, Mesh, Triangle, Vec3 } from 'ogl';
+import { Mesh, Program, Renderer, Triangle, Vec3 } from 'ogl';
+import { onBeforeUnmount, onMounted, useTemplateRef, watch } from 'vue';
 
 interface OrbProps {
   hue?: number;
   hoverIntensity?: number;
   rotateOnHover?: boolean;
   forceHoverState?: boolean;
+  backgroundColor?: string;
 }
 
 const props = withDefaults(defineProps<OrbProps>(), {
   hue: 0,
   hoverIntensity: 0.2,
   rotateOnHover: true,
-  forceHoverState: false
+  forceHoverState: false,
+  backgroundColor: '#000000'
 });
 
 const ctnDom = useTemplateRef<HTMLDivElement>('ctnDom');
@@ -38,6 +40,7 @@ const frag = /* glsl */ `
     uniform float hover;
     uniform float rot;
     uniform float hoverIntensity;
+    uniform vec3 backgroundColor;
     varying vec2 vUv;
 
     vec3 rgb2yiq(vec3 c) {
@@ -130,11 +133,16 @@ const frag = /* glsl */ `
       float len = length(uv);
       float invLen = len > 0.0 ? 1.0 / len : 0.0;
       
+      float bgLuminance = dot(backgroundColor, vec3(0.299, 0.587, 0.114));
+      
       float n0 = snoise3(vec3(uv * noiseScale, iTime * 0.5)) * 0.5 + 0.5;
       float r0 = mix(mix(innerRadius, 1.0, 0.4), mix(innerRadius, 1.0, 0.6), n0);
       float d0 = distance(uv, (r0 * invLen) * uv);
       float v0 = light1(1.0, 10.0, d0);
+
       v0 *= smoothstep(r0 * 1.05, r0, len);
+      float innerFade = smoothstep(r0 * 0.8, r0 * 0.95, len);
+      v0 *= mix(innerFade, 1.0, bgLuminance * 0.7);
       float cl = cos(ang + iTime * 2.0) * 0.5 + 0.5;
       
       float a = iTime * -1.0;
@@ -146,12 +154,20 @@ const frag = /* glsl */ `
       float v2 = smoothstep(1.0, mix(innerRadius, 1.0, n0 * 0.5), len);
       float v3 = smoothstep(innerRadius, mix(innerRadius, 1.0, 0.5), len);
       
-      vec3 col = mix(color1, color2, cl);
-      col = mix(color3, col, v0);
-      col = (col + v1) * v2 * v3;
-      col = clamp(col, 0.0, 1.0);
+      vec3 colBase = mix(color1, color2, cl);
+      float fadeAmount = mix(1.0, 0.1, bgLuminance);
       
-      return extractAlpha(col);
+      vec3 darkCol = mix(color3, colBase, v0);
+      darkCol = (darkCol + v1) * v2 * v3;
+      darkCol = clamp(darkCol, 0.0, 1.0);
+      
+      vec3 lightCol = (colBase + v1) * mix(1.0, v2 * v3, fadeAmount);
+      lightCol = mix(backgroundColor, lightCol, v0);
+      lightCol = clamp(lightCol, 0.0, 1.0);
+      
+      vec3 finalCol = mix(darkCol, lightCol, bgLuminance);
+      
+      return extractAlpha(finalCol);
     }
     
     vec4 mainImage(vec2 fragCoord) {
@@ -177,8 +193,56 @@ const frag = /* glsl */ `
     }
   `;
 
-let cleanupAnimation: (() => void) | null = null;
+function hslToRgb(h: number, s: number, l: number) {
+  let r, g, b;
 
+  if (s === 0) {
+    r = g = b = l;
+  } else {
+    const hue2rgb = (p: number, q: number, t: number) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1 / 6) return p + (q - p) * 6 * t;
+      if (t < 1 / 2) return q;
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+      return p;
+    };
+
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1 / 3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1 / 3);
+  }
+
+  return new Vec3(r, g, b);
+}
+
+function hexToVec3(color: string) {
+  if (color.startsWith('#')) {
+    const r = parseInt(color.slice(1, 3), 16) / 255;
+    const g = parseInt(color.slice(3, 5), 16) / 255;
+    const b = parseInt(color.slice(5, 7), 16) / 255;
+    return new Vec3(r, g, b);
+  }
+
+  const rgbMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if (rgbMatch) {
+    return new Vec3(parseInt(rgbMatch[1]) / 255, parseInt(rgbMatch[2]) / 255, parseInt(rgbMatch[3]) / 255);
+  }
+
+  const hslMatch = color.match(/hsla?\((\d+),\s*(\d+)%,\s*(\d+)%/);
+  if (hslMatch) {
+    const h = parseInt(hslMatch[1]) / 360;
+    const s = parseInt(hslMatch[2]) / 100;
+    const l = parseInt(hslMatch[3]) / 100;
+    return hslToRgb(h, s, l);
+  }
+
+  return new Vec3(0, 0, 0);
+}
+
+let cleanupAnimation: (() => void) | null = null;
 const setupAnimation = () => {
   const container = ctnDom.value;
   if (!container) return;
@@ -200,7 +264,8 @@ const setupAnimation = () => {
       hue: { value: props.hue },
       hover: { value: 0 },
       rot: { value: 0 },
-      hoverIntensity: { value: props.hoverIntensity }
+      hoverIntensity: { value: props.hoverIntensity },
+      backgroundColor: { value: hexToVec3(props.backgroundColor) }
     }
   });
 
@@ -266,6 +331,7 @@ const setupAnimation = () => {
       currentRot += dt * rotationSpeed;
     }
     program.uniforms.rot.value = currentRot;
+    program.uniforms.backgroundColor.value = hexToVec3(props.backgroundColor);
 
     renderer.render({ scene: mesh });
   };
@@ -285,20 +351,14 @@ onMounted(() => {
   setupAnimation();
 });
 
-onUnmounted(() => {
-  if (cleanupAnimation) {
-    cleanupAnimation();
-    cleanupAnimation = null;
-  }
+onBeforeUnmount(() => {
+  cleanupAnimation?.();
 });
 
 watch(
   () => props,
   () => {
-    if (cleanupAnimation) {
-      cleanupAnimation();
-      cleanupAnimation = null;
-    }
+    cleanupAnimation?.();
     setupAnimation();
   },
   { deep: true }
