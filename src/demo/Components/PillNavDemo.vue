@@ -1,5 +1,13 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Pill Nav</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="pillNav.usage"
+    :source="pillNavSource"
+    component-name="PillNav"
+    :props-table="props"
+  >
     <template #preview>
       <div
         class="relative overflow-hidden demo-container demo-container-dots"
@@ -21,45 +29,47 @@
           activeHref="/"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSelect title="Example" :options="themeOptions" v-model="theme" />
         <PreviewSwitch title="Initial Load Animation" v-model="initialLoadAnimation" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['gsap']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="pillNav" />
+      <DemoCodeTab slug="pill-nav" :usage="pillNav.usage!" :source="pillNavSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="pillNav.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import logoDark from '@/assets/logos/vue-bits-logo-small-dark.svg';
+import logoLight from '@/assets/logos/vue-bits-logo-small.svg';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
 import { pillNav } from '@/constants/code/Components/pillNavCode';
-import { computed, ref, watch } from 'vue';
-import logoDark from '../../assets/logos/vue-bits-logo-small-dark.svg';
-import logoLight from '../../assets/logos/vue-bits-logo-small.svg';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSelect from '../../components/common/PreviewSelect.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PillNav from '../../content/Components/PillNav/PillNav.vue';
+import PillNav from '@/content/Components/PillNav/PillNav.vue';
+import pillNavSource from '@/content/Components/PillNav/PillNav.vue?raw';
+import { computed, ref } from 'vue';
 
 const { rerenderKey: key, forceRerender } = useForceRerender();
 
 type ThemeKey = 'light' | 'dark' | 'color';
+const DEFAULT = {
+  theme: 'light' as ThemeKey,
+  initialLoadAnimation: true
+};
 
 interface ThemeConfig {
   logo: string;
@@ -70,8 +80,14 @@ interface ThemeConfig {
   backgroundColor: string;
 }
 
-const theme = ref<ThemeKey>('light');
-const initialLoadAnimation = ref(false);
+const theme = ref<ThemeKey>(DEFAULT.theme);
+const initialLoadAnimation = ref(DEFAULT.initialLoadAnimation);
+
+const themeOptions = [
+  { value: 'light', label: 'Light Mode' },
+  { value: 'dark', label: 'Dark Mode' },
+  { value: 'color', label: 'Colorful' }
+];
 
 const themeConfigs: Record<ThemeKey, ThemeConfig> = {
   light: {
@@ -100,23 +116,19 @@ const themeConfigs: Record<ThemeKey, ThemeConfig> = {
   }
 };
 
-const themeOptions = [
-  { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark' },
-  { value: 'color', label: 'Color' }
-];
-
 const currentTheme = computed(() => themeConfigs[theme.value]);
 
-watch(
-  [currentTheme, initialLoadAnimation],
-  () => {
-    forceRerender();
-  },
-  { immediate: true }
+const hasChanges = computed(
+  () => theme.value !== DEFAULT.theme || initialLoadAnimation.value !== DEFAULT.initialLoadAnimation
 );
 
-const propData = [
+function reset() {
+  theme.value = DEFAULT.theme;
+  initialLoadAnimation.value = DEFAULT.initialLoadAnimation;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'logo',
     type: 'string',

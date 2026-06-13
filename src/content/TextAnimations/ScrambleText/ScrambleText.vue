@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch, useTemplateRef } from 'vue';
 import { gsap } from 'gsap';
-import { SplitText } from 'gsap/SplitText';
 import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
+import { SplitText } from 'gsap/SplitText';
+import { onMounted, onUnmounted, useTemplateRef, watch, type CSSProperties } from 'vue';
 
 gsap.registerPlugin(SplitText, ScrambleTextPlugin);
 
@@ -12,7 +12,7 @@ interface ScrambleTextProps {
   speed?: number;
   scrambleChars?: string;
   className?: string;
-  style?: Record<string, string | number>;
+  style?: CSSProperties;
 }
 
 const props = withDefaults(defineProps<ScrambleTextProps>(), {
@@ -92,14 +92,21 @@ onUnmounted(() => {
   cleanup();
 });
 
-watch([() => props.radius, () => props.duration, () => props.speed, () => props.scrambleChars], () => {
-  cleanup();
-  initializeScrambleText();
-});
+watch(
+  () => props,
+  () => {
+    cleanup();
+    initializeScrambleText();
+  }
+);
 </script>
 
 <template>
-  <div ref="rootRef" :class="`scramble-text ${className}`" :style="style">
+  <div
+    ref="rootRef"
+    :class="`m-[7vw] max-w-[800px] font-mono text-[clamp(14px,4vw,32px)] text-white ${className}`"
+    :style="style"
+  >
     <p>
       <slot></slot>
     </p>

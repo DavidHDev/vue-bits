@@ -1,39 +1,61 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Glass Icons</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="glassIcons.usage"
+    :source="glassIconsSource"
+    component-name="GlassIcons"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[500px] overflow-hidden">
+      <div class="h-[500px] overflow-hidden demo-container">
         <GlassIcons :items="items" class="my-glass-icons" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSwitch title="Colorful" v-model="colorful" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="glassIcons" />
+      <DemoCodeTab slug="glass-icons" :usage="glassIcons.usage!" :source="glassIconsSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="glassIcons.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import GlassIcons from '../../content/Components/GlassIcons/GlassIcons.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { glassIcons } from '@/constants/code/Components/glassIconsCode';
+import GlassIcons from '@/content/Components/GlassIcons/GlassIcons.vue';
+import glassIconsSource from '@/content/Components/GlassIcons/GlassIcons.vue?raw';
+import { computed, ref } from 'vue';
 
-const colorful = ref(false);
+const { forceRerender } = useForceRerender();
+
+const DEFAULTS = {
+  colorful: false
+};
+
+const colorful = ref(DEFAULTS.colorful);
+
+const hasChanges = computed(() => colorful.value !== DEFAULTS.colorful);
+
+function reset() {
+  colorful.value = DEFAULTS.colorful;
+  forceRerender();
+}
 
 const items = computed(() => [
   { icon: 'pi pi-file', color: colorful.value ? 'blue' : '#444', label: 'Files' },
@@ -44,7 +66,7 @@ const items = computed(() => [
   { icon: 'pi pi-chart-bar', color: colorful.value ? 'green' : '#444', label: 'Stats' }
 ]);
 
-const propData = [
+const props: PropRow[] = [
   {
     name: 'items',
     type: 'GlassIconsItem[]',

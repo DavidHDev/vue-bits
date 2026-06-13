@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Metallic Paint</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="metallicPaint.usage"
+    :source="metallicPaintSource"
+    component-name="MetallicPaint"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[400px] overflow-hidden">
+      <div class="h-[400px] overflow-hidden demo-container">
         <MetallicPaint
           :key="rerenderKey"
           :image-src="logo"
@@ -27,92 +35,149 @@
           :tint-color="tintColor"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <div class="flex flex-wrap gap-4">
-          <div class="flex-1 min-w-full md:min-w-[200px] lg:min-w-[180px]">
-            <PreviewColor title="Tint Color" v-model="tintColor" class="mb-2" />
-            <PreviewColor title="Dark Color" v-model="darkColor" class="mb-2" />
-            <PreviewColor title="Light Color" v-model="lightColor" class="mb-2" />
-            <PreviewSlider title="Seed" v-model="seed" :min="0" :max="200" :step="0.01" />
-            <PreviewSlider title="Scale" v-model="scale" :min="0.5" :max="5" :step="0.1" />
-            <PreviewSlider title="Refraction" v-model="refraction" :min="0" :max="0.1" :step="0.001" />
-            <PreviewSlider title="Blur" v-model="blur" :min="0" :max="0.1" :step="0.001" />
-          </div>
-
-          <div class="flex-1 min-w-full md:min-w-[200px] lg:min-w-[180px]">
-            <PreviewSlider title="Speed" v-model="speed" :min="0" :max="1" :step="0.01" />
-            <PreviewSlider title="Brightness" v-model="brightness" :min="0.5" :max="2" :step="0.05" />
-            <PreviewSlider title="Contrast" v-model="contrast" :min="0.5" :max="2" :step="0.05" />
-            <PreviewSlider title="Angle" v-model="angle" :min="-180" :max="180" :step="1" />
-            <PreviewSlider title="Fresnel" v-model="fresnel" :min="0" :max="3" :step="0.1" />
-            <PreviewSlider title="Pattern Sharpness" v-model="patternSharpness" :min="0.1" :max="2" :step="0.1" />
-            <PreviewSlider title="Wave Amplitude" v-model="waveAmplitude" :min="0" :max="3" :step="0.1" />
-          </div>
-
-          <div class="flex-1 min-w-full md:min-w-[200px] lg:min-w-[180px]">
-            <PreviewSlider title="Liquid" v-model="liquid" :min="0" :max="1" :step="0.01" />
-            <PreviewSlider title="Noise Scale" v-model="noiseScale" :min="0" :max="3" :step="0.1" />
-            <PreviewSlider title="Chromatic Spread" v-model="chromaticSpread" :min="0" :max="3" :step="0.1" />
-            <PreviewSlider title="Distortion" v-model="distortion" :min="0" :max="1" :step="0.05" />
-            <PreviewSlider title="Contour" v-model="contour" :min="0" :max="1" :step="0.05" />
-            <PreviewSwitch title="Mouse Animation" v-model="mouseAnimation" />
-          </div>
-        </div>
+        <PreviewColorPicker title="Tint Color" v-model="tintColor" />
+        <PreviewSlider title="Scale" :min="0.5" :max="10" :step="0.1" v-model="scale" />
+        <PreviewSlider title="Liquid" :min="0" :max="2" :step="0.05" v-model="liquid" />
+        <PreviewSlider title="Speed" :min="0" :max="2" :step="0.05" v-model="speed" />
+        <PreviewSlider title="Brightness" :min="0" :max="5" :step="0.1" v-model="brightness" />
+        <PreviewSlider title="Contrast" :min="0" :max="2" :step="0.05" v-model="contrast" />
+        <PreviewSlider title="Refraction" :min="0" :max="0.1" :step="0.005" v-model="refraction" />
+        <PreviewSlider title="Blur" :min="0" :max="0.1" :step="0.005" v-model="blur" />
+        <PreviewSlider title="Fresnel" :min="0" :max="5" :step="0.1" v-model="fresnel" />
+        <PreviewSlider title="Pattern Sharpness" :min="0" :max="3" :step="0.1" v-model="patternSharpness" />
+        <PreviewSlider title="Wave Amplitude" :min="0" :max="3" :step="0.1" v-model="waveAmplitude" />
+        <PreviewSlider title="Noise Scale" :min="0" :max="2" :step="0.05" v-model="noiseScale" />
+        <PreviewSlider title="Chromatic Spread" :min="0" :max="5" :step="0.1" v-model="chromaticSpread" />
+        <PreviewSlider title="Distortion" :min="0" :max="3" :step="0.05" v-model="distortion" />
+        <PreviewSlider title="Contour" :min="0" :max="1" :step="0.05" v-model]="contour" />
+        <PreviewSwitch title="Mouse Animation" v-model="mouseAnimation" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="metallicPaint" />
+      <DemoCodeTab slug="metallic-paint" :usage="metallicPaint.usage!" :source="metallicPaintSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="metallicPaint.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
 import logo from '@/assets/logos/vue-bits-logo-small-dark.svg';
-import PreviewColor from '@/components/common/PreviewColor.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
 import { metallicPaint } from '@/constants/code/Animations/metallicPaintCode';
-import { ref } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import MetallicPaint from '../../content/Animations/MetallicPaint/MetallicPaint.vue';
+import { computed, ref } from 'vue';
+import MetallicPaint from '@/content/Animations/MetallicPaint/MetallicPaint.vue';
+import metallicPaintSource from '@/content/Animations/MetallicPaint/MetallicPaint.vue?raw';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
 
-const seed = ref<number>(42);
-const scale = ref<number>(2);
-const refraction = ref<number>(0.01);
-const blur = ref<number>(0.015);
-const liquid = ref<number>(0.75);
-const speed = ref<number>(0.3);
-const brightness = ref<number>(2);
-const contrast = ref<number>(0.5);
-const angle = ref<number>(0);
-const fresnel = ref<number>(1);
-const patternSharpness = ref<number>(1);
-const waveAmplitude = ref<number>(1);
-const noiseScale = ref<number>(0.5);
-const chromaticSpread = ref<number>(2);
-const distortion = ref<number>(1);
-const contour = ref<number>(0.2);
-const mouseAnimation = ref<boolean>(false);
-const lightColor = ref<string>('#ffffff');
-const darkColor = ref<string>('#000000');
-const tintColor = ref<string>('#27FF64');
+const { rerenderKey, forceRerender } = useForceRerender();
 
-const { rerenderKey } = useForceRerender();
+const DEFAULTS = {
+  seed: 42,
+  scale: 4,
+  refraction: 0.01,
+  blur: 0.015,
+  liquid: 0.75,
+  speed: 0.3,
+  brightness: 2,
+  contrast: 0.5,
+  angle: 0,
+  fresnel: 1,
+  lightColor: '#ffffff',
+  darkColor: '#000000',
+  patternSharpness: 1,
+  waveAmplitude: 1,
+  noiseScale: 0.5,
+  chromaticSpread: 2,
+  mouseAnimation: false,
+  distortion: 1,
+  contour: 0.2,
+  tintColor: '#27FF64'
+};
 
-const propData = [
+const seed = ref<number>(DEFAULTS.seed);
+const scale = ref<number>(DEFAULTS.scale);
+const refraction = ref<number>(DEFAULTS.refraction);
+const blur = ref<number>(DEFAULTS.blur);
+const liquid = ref<number>(DEFAULTS.liquid);
+const speed = ref<number>(DEFAULTS.speed);
+const brightness = ref<number>(DEFAULTS.brightness);
+const contrast = ref<number>(DEFAULTS.contrast);
+const angle = ref<number>(DEFAULTS.angle);
+const fresnel = ref<number>(DEFAULTS.fresnel);
+const patternSharpness = ref<number>(DEFAULTS.patternSharpness);
+const waveAmplitude = ref<number>(DEFAULTS.waveAmplitude);
+const noiseScale = ref<number>(DEFAULTS.noiseScale);
+const chromaticSpread = ref<number>(DEFAULTS.chromaticSpread);
+const distortion = ref<number>(DEFAULTS.distortion);
+const contour = ref<number>(DEFAULTS.contour);
+const mouseAnimation = ref<boolean>(DEFAULTS.mouseAnimation);
+const lightColor = ref<string>(DEFAULTS.lightColor);
+const darkColor = ref<string>(DEFAULTS.darkColor);
+const tintColor = ref<string>(DEFAULTS.tintColor);
+
+const hasChanges = computed(
+  () =>
+    seed.value !== DEFAULTS.seed ||
+    scale.value !== DEFAULTS.scale ||
+    refraction.value !== DEFAULTS.refraction ||
+    blur.value !== DEFAULTS.blur ||
+    liquid.value !== DEFAULTS.liquid ||
+    speed.value !== DEFAULTS.speed ||
+    brightness.value !== DEFAULTS.brightness ||
+    contrast.value !== DEFAULTS.contrast ||
+    angle.value !== DEFAULTS.angle ||
+    fresnel.value !== DEFAULTS.fresnel ||
+    patternSharpness.value !== DEFAULTS.patternSharpness ||
+    waveAmplitude.value !== DEFAULTS.waveAmplitude ||
+    noiseScale.value !== DEFAULTS.noiseScale ||
+    chromaticSpread.value !== DEFAULTS.chromaticSpread ||
+    distortion.value !== DEFAULTS.distortion ||
+    contour.value !== DEFAULTS.contour ||
+    mouseAnimation.value !== DEFAULTS.mouseAnimation ||
+    lightColor.value !== DEFAULTS.lightColor ||
+    darkColor.value !== DEFAULTS.darkColor ||
+    tintColor.value !== DEFAULTS.tintColor
+);
+
+function reset() {
+  seed.value = DEFAULTS.seed;
+  scale.value = DEFAULTS.scale;
+  refraction.value = DEFAULTS.refraction;
+  blur.value = DEFAULTS.blur;
+  liquid.value = DEFAULTS.liquid;
+  speed.value = DEFAULTS.speed;
+  brightness.value = DEFAULTS.brightness;
+  contrast.value = DEFAULTS.contrast;
+  angle.value = DEFAULTS.angle;
+  fresnel.value = DEFAULTS.fresnel;
+  patternSharpness.value = DEFAULTS.patternSharpness;
+  waveAmplitude.value = DEFAULTS.waveAmplitude;
+  noiseScale.value = DEFAULTS.noiseScale;
+  chromaticSpread.value = DEFAULTS.chromaticSpread;
+  distortion.value = DEFAULTS.distortion;
+  contour.value = DEFAULTS.contour;
+  mouseAnimation.value = DEFAULTS.mouseAnimation;
+  lightColor.value = DEFAULTS.lightColor;
+  darkColor.value = DEFAULTS.darkColor;
+  tintColor.value = DEFAULTS.tintColor;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'imageSrc',
     type: 'string',

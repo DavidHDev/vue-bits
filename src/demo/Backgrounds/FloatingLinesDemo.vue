@@ -1,83 +1,142 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Floating Lines</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="floatingLines.usage"
+    :source="floatingLinesSource"
+    component-name="FloatingLines"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="relative p-0 h-[600px] overflow-hidden demo-container">
+      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
         <FloatingLines
           :enabled-waves="enabledWaves"
           :line-count="lineCount"
           :line-distance="lineDistance"
+          :animation-speed="animationSpeed"
+          :interactive="interactive"
           :bend-radius="bendRadius"
           :bend-strength="bendStrength"
+          :lines-gradient="[gradientStart, gradientMid, gradientEnd]"
         />
-
         <BackgroundContent pill-text="New Background" headline="Waves are cool! Even cooler with lines!" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewSwitch
-          title="Top Wave"
-          :model-value="enabledWaves.includes('top')"
-          @update:model-value="_ => toggleWave('top')"
-        />
-        <PreviewSwitch
-          title="Middle Wave"
-          :model-value="enabledWaves.includes('middle')"
-          @update:model-value="_ => toggleWave('middle')"
-        />
-        <PreviewSwitch
-          title="Bottom Wave"
-          :model-value="enabledWaves.includes('bottom')"
-          @update:model-value="_ => toggleWave('bottom')"
-        />
+        <PreviewSwitch title="Top Wave" v-model="enableTop" />
+        <PreviewSwitch title="Middle Wave" v-model="enableMiddle" />
+        <PreviewSwitch title="Bottom Wave" v-model="enableBottom" />
         <PreviewSlider :min="1" :max="20" :step="1" v-model="lineCount" title="Line Count" />
         <PreviewSlider :min="1" :max="100" :step="0.5" v-model="lineDistance" title="Line Distance" />
+        <PreviewSlider :min="0.1" :max="5" :step="0.1" v-model="animationSpeed" title="Animation Speed" />
+        <PreviewSwitch v-model="interactive" title="Interactive" />
         <PreviewSlider :min="1" :max="30" :step="0.5" v-model="bendRadius" title="Bend Radius" />
         <PreviewSlider :min="-15" :max="15" :step="0.5" v-model="bendStrength" title="Bend Strength" />
+        <PreviewColorPicker title="Gradient Start" v-model="gradientStart" />
+        <PreviewColorPicker title="Gradient Mid" v-model="gradientMid" />
+        <PreviewColorPicker title="Gradient End" v-model="gradientEnd" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['three']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="floatingLines" />
+      <DemoCodeTab slug="floating-lines" :usage="floatingLines.usage!" :source="floatingLinesSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="floatingLines.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { floatingLines } from '@/constants/code/Backgrounds/floatingLinesCode';
-import { ref } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import BackgroundContent from '../../components/common/BackgroundContent.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import FloatingLines from '../../content/Backgrounds/FloatingLines/FloatingLines.vue';
+import FloatingLines from '@/content/Backgrounds/FloatingLines/FloatingLines.vue';
+import floatingLinesSource from '@/content/Backgrounds/FloatingLines/FloatingLines.vue?raw';
+import { computed, ref } from 'vue';
 
-type WaveLayer = 'top' | 'middle' | 'bottom';
+const { forceRerender } = useForceRerender();
 
-const enabledWaves = ref<Array<WaveLayer>>(['top', 'middle', 'bottom']);
-const lineCount = ref<number>(5);
-const lineDistance = ref<number>(5);
-const bendRadius = ref<number>(5);
-const bendStrength = ref<number>(-0.5);
-
-const toggleWave = (wave: WaveLayer) => {
-  enabledWaves.value = enabledWaves.value.includes(wave)
-    ? enabledWaves.value.filter(w => w !== wave)
-    : [...enabledWaves.value, wave];
+const DEFAULTS = {
+  enableTop: true,
+  enableMiddle: true,
+  enableBottom: true,
+  lineCount: 8,
+  lineDistance: 8,
+  animationSpeed: 1,
+  interactive: true,
+  bendRadius: 8,
+  bendStrength: -2,
+  gradientStart: '#A7EF9E',
+  gradientMid: '#747d67',
+  gradientEnd: '#6a6a6a'
 };
 
-const propData = [
+const animationSpeed = ref(DEFAULTS.animationSpeed);
+const interactive = ref(DEFAULTS.interactive);
+const bendRadius = ref(DEFAULTS.bendRadius);
+const bendStrength = ref(DEFAULTS.bendStrength);
+const lineCount = ref(DEFAULTS.lineCount);
+const lineDistance = ref(DEFAULTS.lineDistance);
+const enableTop = ref(DEFAULTS.enableTop);
+const enableMiddle = ref(DEFAULTS.enableMiddle);
+const enableBottom = ref(DEFAULTS.enableBottom);
+const gradientStart = ref(DEFAULTS.gradientStart);
+const gradientMid = ref(DEFAULTS.gradientMid);
+const gradientEnd = ref(DEFAULTS.gradientEnd);
+
+const enabledWaves = computed(() =>
+  [
+    enableTop.value ? ('top' as const) : null,
+    enableMiddle.value ? ('middle' as const) : null,
+    enableBottom.value ? ('bottom' as const) : null
+  ].filter((v): v is 'top' | 'middle' | 'bottom' => v !== null)
+);
+
+const hasChanges = computed(
+  () =>
+    animationSpeed.value !== DEFAULTS.animationSpeed ||
+    interactive.value !== DEFAULTS.interactive ||
+    bendRadius.value !== DEFAULTS.bendRadius ||
+    bendStrength.value !== DEFAULTS.bendStrength ||
+    lineCount.value !== DEFAULTS.lineCount ||
+    lineDistance.value !== DEFAULTS.lineDistance ||
+    enableTop.value !== DEFAULTS.enableTop ||
+    enableMiddle.value !== DEFAULTS.enableMiddle ||
+    enableBottom.value !== DEFAULTS.enableBottom ||
+    gradientStart.value !== DEFAULTS.gradientStart ||
+    gradientMid.value !== DEFAULTS.gradientMid ||
+    gradientEnd.value !== DEFAULTS.gradientEnd
+);
+
+function reset() {
+  animationSpeed.value = DEFAULTS.animationSpeed;
+  interactive.value = DEFAULTS.interactive;
+  bendRadius.value = DEFAULTS.bendRadius;
+  bendStrength.value = DEFAULTS.bendStrength;
+  lineCount.value = DEFAULTS.lineCount;
+  lineDistance.value = DEFAULTS.lineDistance;
+  enableTop.value = DEFAULTS.enableTop;
+  enableMiddle.value = DEFAULTS.enableMiddle;
+  enableBottom.value = DEFAULTS.enableBottom;
+  gradientStart.value = DEFAULTS.gradientStart;
+  gradientMid.value = DEFAULTS.gradientMid;
+  gradientEnd.value = DEFAULTS.gradientEnd;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'linesGradient',
     type: 'string[]',

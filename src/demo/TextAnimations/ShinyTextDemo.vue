@@ -1,5 +1,13 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Shiny Text</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="shinyText.usage"
+    :source="shinyTextSource"
+    component-name="ShinyText"
+    :props-table="props"
+  >
     <template #preview>
       <div class="h-[400px] text-3xl demo-container">
         <ShinyText
@@ -15,62 +23,98 @@
           :disabled="disabled"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSlider title="Speed" v-model="speed" :min="0.5" :max="5" :step="0.1" value-unit="s" />
         <PreviewSlider title="Delay" v-model="delay" :min="0" :max="3" :step="0.1" value-unit="s" />
         <PreviewSlider title="Spread" v-model="spread" :min="0" :max="180" :step="5" value-unit="deg" />
-        <PreviewColor title="Color" v-model="color" class="mb-2" />
-        <PreviewColor title="Shine Color" v-model="shineColor" class="mb-2" />
-        <PreviewSelect title="Direction" v-model="direction" :options="directionOptions" />
+        <PreviewColorPicker title="Color" v-model="color" />
+        <PreviewColorPicker title="Shine Color" v-model="shineColor" />
+        <PreviewSelect title="Direction" v-model="direction" :options="['left', 'right']" />
         <PreviewSwitch title="Yoyo Mode" v-model="yoyo" />
         <PreviewSwitch title="Pause on Hover" v-model="pauseOnHover" />
         <PreviewSwitch title="Disabled" v-model="disabled" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="shinyText" />
+      <DemoCodeTab slug="shiny-text" :usage="shinyText.usage!" :source="shinyTextSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="shinyText.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import CliInstallation from '@/components/code/CliInstallation.vue';
-import CodeExample from '@/components/code/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import PreviewColor from '@/components/common/PreviewColor.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
-import PropTable from '@/components/common/PropTable.vue';
-import TabbedLayout from '@/components/common/TabbedLayout.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { shinyText } from '@/constants/code/TextAnimations/shinyTextCode';
 import ShinyText from '@/content/TextAnimations/ShinyText/ShinyText.vue';
-import { ref } from 'vue';
+import shinyTextSource from '@/content/TextAnimations/ShinyText/ShinyText.vue?raw';
+import { computed, ref } from 'vue';
 
-const speed = ref(2);
-const delay = ref(0);
-const color = ref('#b5b5b5');
-const shineColor = ref('#ffffff');
-const spread = ref(120);
-const direction = ref<'left' | 'right'>('left');
-const yoyo = ref(false);
-const pauseOnHover = ref(false);
-const disabled = ref(false);
+const { forceRerender } = useForceRerender();
 
-const directionOptions = [
-  { value: 'left', label: 'Left' },
-  { value: 'right', label: 'Right' }
-];
+const DEFAULTS = {
+  speed: 2,
+  delay: 0,
+  color: '#b5b5b5',
+  shineColor: '#ffffff',
+  spread: 120,
+  direction: 'left' as 'left' | 'right',
+  yoyo: false,
+  pauseOnHover: false,
+  disabled: false
+};
 
-const propData = [
+const speed = ref(DEFAULTS.speed);
+const delay = ref(DEFAULTS.delay);
+const color = ref(DEFAULTS.color);
+const shineColor = ref(DEFAULTS.shineColor);
+const spread = ref(DEFAULTS.spread);
+const direction = ref<'left' | 'right'>(DEFAULTS.direction);
+const yoyo = ref(DEFAULTS.yoyo);
+const pauseOnHover = ref(DEFAULTS.pauseOnHover);
+const disabled = ref(DEFAULTS.disabled);
+
+const hasChanges = computed(
+  () =>
+    speed.value !== DEFAULTS.speed ||
+    delay.value !== DEFAULTS.delay ||
+    color.value !== DEFAULTS.color ||
+    shineColor.value !== DEFAULTS.shineColor ||
+    spread.value !== DEFAULTS.spread ||
+    direction.value !== DEFAULTS.direction ||
+    yoyo.value !== DEFAULTS.yoyo ||
+    pauseOnHover.value !== DEFAULTS.pauseOnHover ||
+    disabled.value !== DEFAULTS.disabled
+);
+
+function reset() {
+  speed.value = DEFAULTS.speed;
+  delay.value = DEFAULTS.delay;
+  color.value = DEFAULTS.color;
+  shineColor.value = DEFAULTS.shineColor;
+  spread.value = DEFAULTS.spread;
+  direction.value = DEFAULTS.direction;
+  yoyo.value = DEFAULTS.yoyo;
+  pauseOnHover.value = DEFAULTS.pauseOnHover;
+  disabled.value = DEFAULTS.disabled;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'text',
     type: 'string',

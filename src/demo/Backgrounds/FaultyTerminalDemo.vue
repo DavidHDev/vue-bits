@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Faulty Terminal</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="faultyTerminal.usage"
+    :source="faultyTerminalSource"
+    component-name="FaultyTerminal"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="relative p-0 h-[600px] overflow-hidden demo-container">
+      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
         <FaultyTerminal
           :key="key"
           :scale="scale"
@@ -18,9 +26,11 @@
         />
         <BackgroundContent pill-text="New Background" headline="It works on my machine, please check again" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewColor title="Tint Color" v-model="tint" />
+        <PreviewColorPicker title="Tint Color" v-model="tint" />
         <PreviewSlider :min="1" :max="3" :step="0.1" v-model="scale" title="Scale" />
         <PreviewSlider :min="0.5" :max="3" :step="0.1" v-model="digitSize" title="Digit Size" />
         <PreviewSlider :min="0" :max="3" :step="0.1" v-model="timeScale" title="Speed" />
@@ -32,52 +42,92 @@
         <PreviewSwitch title="Mouse React" v-model="mouseReact" />
         <PreviewSwitch title="Page Load Animation" v-model="pageLoadAnimation" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['ogl']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="faultyTerminal" />
+      <DemoCodeTab slug="faulty-terminal" :usage="faultyTerminal.usage!" :source="faultyTerminalSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="faultyTerminal.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
-import { ref } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import BackgroundContent from '../../components/common/BackgroundContent.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewColor from '../../components/common/PreviewColor.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import { faultyTerminal } from '../../constants/code/Backgrounds/faultyTerminalCode';
-import FaultyTerminal from '../../content/Backgrounds/FaultyTerminal/FaultyTerminal.vue';
+import { faultyTerminal } from '@/constants/code/Backgrounds/faultyTerminalCode';
+import FaultyTerminal from '@/content/Backgrounds/FaultyTerminal/FaultyTerminal.vue';
+import faultyTerminalSource from '@/content/Backgrounds/FaultyTerminal/FaultyTerminal.vue?raw';
+import { computed, ref } from 'vue';
 
-const { rerenderKey: key } = useForceRerender();
+const { rerenderKey: key, forceRerender } = useForceRerender();
 
-const scale = ref(1.5);
-const digitSize = ref(1.2);
-const timeScale = ref(0.5);
-const scanlineIntensity = ref(0.5);
-const curvature = ref(0.1);
-const tint = ref('#A7EF9E');
-const mouseReact = ref(true);
-const mouseStrength = ref(0.5);
-const pageLoadAnimation = ref(true);
-const noiseAmp = ref(1);
-const brightness = ref(0.6);
+const DEFAULTS = {
+  scale: 1.5,
+  digitSize: 1.2,
+  timeScale: 0.5,
+  scanlineIntensity: 0.5,
+  curvature: 0.1,
+  tint: '#A7EF9E',
+  mouseReact: true,
+  mouseStrength: 0.5,
+  pageLoadAnimation: true,
+  noiseAmp: 1,
+  brightness: 0.6
+};
 
-const propData = [
+const scale = ref(DEFAULTS.scale);
+const digitSize = ref(DEFAULTS.digitSize);
+const timeScale = ref(DEFAULTS.timeScale);
+const scanlineIntensity = ref(DEFAULTS.scanlineIntensity);
+const curvature = ref(DEFAULTS.curvature);
+const tint = ref(DEFAULTS.tint);
+const mouseReact = ref(DEFAULTS.mouseReact);
+const mouseStrength = ref(DEFAULTS.mouseStrength);
+const pageLoadAnimation = ref(DEFAULTS.pageLoadAnimation);
+const noiseAmp = ref(DEFAULTS.noiseAmp);
+const brightness = ref(DEFAULTS.brightness);
+
+const hasChanges = computed(
+  () =>
+    scale.value !== DEFAULTS.scale ||
+    digitSize.value !== DEFAULTS.digitSize ||
+    timeScale.value !== DEFAULTS.timeScale ||
+    scanlineIntensity.value !== DEFAULTS.scanlineIntensity ||
+    curvature.value !== DEFAULTS.curvature ||
+    tint.value !== DEFAULTS.tint ||
+    mouseReact.value !== DEFAULTS.mouseReact ||
+    mouseStrength.value !== DEFAULTS.mouseStrength ||
+    pageLoadAnimation.value !== DEFAULTS.pageLoadAnimation ||
+    noiseAmp.value !== DEFAULTS.noiseAmp ||
+    brightness.value !== DEFAULTS.brightness
+);
+
+function reset() {
+  scale.value = DEFAULTS.scale;
+  digitSize.value = DEFAULTS.digitSize;
+  timeScale.value = DEFAULTS.timeScale;
+  scanlineIntensity.value = DEFAULTS.scanlineIntensity;
+  curvature.value = DEFAULTS.curvature;
+  tint.value = DEFAULTS.tint;
+  mouseReact.value = DEFAULTS.mouseReact;
+  mouseStrength.value = DEFAULTS.mouseStrength;
+  pageLoadAnimation.value = DEFAULTS.pageLoadAnimation;
+  noiseAmp.value = DEFAULTS.noiseAmp;
+  brightness.value = DEFAULTS.brightness;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'scale',
     type: 'number',
@@ -188,7 +238,7 @@ const propData = [
   },
   {
     name: 'style',
-    type: 'object',
+    type: 'CSSProperties',
     default: '{}',
     description: 'Inline styles.'
   }

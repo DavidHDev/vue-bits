@@ -1,15 +1,22 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Electric Border</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="electricBorder.usage"
+    :source="electricBorderSource"
+    component-name="ElectricBorder"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[500px] overflow-hidden">
+      <div class="h-[500px] overflow-hidden demo-container">
         <ElectricBorder
           v-if="example === 'card'"
           :color="cardProps.color"
           :speed="cardProps.speed"
           :chaos="cardProps.chaos"
-          :thickness="cardProps.thickness"
           :style="{
-            borderRadius: cardProps.radius
+            borderRadius: `${cardProps.radius}px`
           }"
         >
           <div :style="{ width: '300px', height: '360px' }" class="eb-demo-card">
@@ -28,14 +35,20 @@
           :color="buttonProps.color"
           :speed="buttonProps.speed"
           :chaos="buttonProps.chaos"
-          :thickness="buttonProps.thickness"
           :style="{
-            borderRadius: buttonProps.radius
+            borderRadius: `${buttonProps.radius}px`
           }"
           class-name="eb-button-container"
         >
           <div class="eb-demo-button-wrap">
-            <button class="eb-demo-button">Learn More</button>
+            <button
+              class="eb-demo-button"
+              :style="{
+                borderRadius: `${buttonProps.radius}px`
+              }"
+            >
+              Learn More
+            </button>
           </div>
         </ElectricBorder>
         <ElectricBorder
@@ -43,50 +56,81 @@
           :color="circleProps.color"
           :speed="circleProps.speed"
           :chaos="circleProps.chaos"
-          :thickness="circleProps.thickness"
           :style="{
-            borderRadius: circleProps.radius
+            borderRadius: `${circleProps.radius}px`
           }"
         >
           <div style="width: 200px; height: 200px; border-radius: 50%" />
         </ElectricBorder>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSelect title="Example" v-model="example" :options="exampleOptions" />
-        <PreviewColor title="Color" v-model="activeProps.color" />
+        <PreviewColorPicker title="Color" v-model="activeProps.color" />
         <PreviewSlider title="Speed" :min="0.1" :max="3" :step="0.1" v-model="activeProps.speed" />
-        <PreviewSlider title="Chaos" :min="0.1" :max="1" :step="0.1" v-model="activeProps.chaos" />
-        <PreviewSlider title="Thickness" :min="1" :max="5" :step="1" v-model="activeProps.thickness" value-unit="px" />
+        <PreviewSlider title="Chaos" :min="0.01" :max="0.3" :step="0.01" v-model="activeProps.chaos" />
+        <PreviewSlider
+          title="Border Radius"
+          :min="0"
+          :max="100"
+          :step="1"
+          v-model="activeProps.radius"
+          value-unit="px"
+        />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="electricBorder" />
+      <DemoCodeTab slug="electric-border" :usage="electricBorder.usage!" :source="electricBorderSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="electricBorder.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
+import { electricBorder } from '@/constants/code/Animations/electricBorderCode';
+import ElectricBorder from '@/content/Animations/ElectricBorder/ElectricBorder.vue';
+import electricBorderSource from '@/content/Animations/ElectricBorder/ElectricBorder.vue?raw';
 import { computed, reactive, ref } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewColor from '../../components/common/PreviewColor.vue';
-import PreviewSelect from '../../components/common/PreviewSelect.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import { electricBorder } from '../../constants/code/Animations/electricBorderCode';
-import ElectricBorder from '../../content/Animations/ElectricBorder/ElectricBorder.vue';
 
-const example = ref('card');
+const { forceRerender } = useForceRerender();
+
+const DEFAULTS = {
+  example: 'card',
+  cardProps: {
+    color: '#85FF80',
+    speed: 1,
+    chaos: 0.12,
+    borderRadius: 16
+  },
+  buttonProps: {
+    color: '#9EF1CC',
+    speed: 1,
+    chaos: 0.12,
+    borderRadius: 999
+  },
+  circleProps: {
+    color: '#85FF80',
+    speed: 1,
+    chaos: 0.12,
+    borderRadius: 999
+  }
+};
+
+const example = ref(DEFAULTS.example);
 const exampleOptions = [
   { label: 'Card', value: 'card' },
   { label: 'Button', value: 'button' },
@@ -94,20 +138,23 @@ const exampleOptions = [
 ];
 
 const cardProps = reactive({
-  color: '#85FF80',
-  speed: 1,
-  chaos: 0.5,
-  thickness: 2,
-  radius: 16
+  color: DEFAULTS.cardProps.color,
+  speed: DEFAULTS.cardProps.speed,
+  chaos: DEFAULTS.cardProps.chaos,
+  radius: DEFAULTS.cardProps.borderRadius
 });
 const buttonProps = reactive({
-  color: '#9EF1CC',
-  speed: 1,
-  chaos: 0.5,
-  thickness: 2,
-  radius: 999
+  color: DEFAULTS.buttonProps.color,
+  speed: DEFAULTS.buttonProps.speed,
+  chaos: DEFAULTS.buttonProps.chaos,
+  radius: DEFAULTS.buttonProps.borderRadius
 });
-const circleProps = reactive({ color: '#85FF80', speed: 1, chaos: 0.5, thickness: 2, radius: '50%' });
+const circleProps = reactive({
+  color: DEFAULTS.circleProps.color,
+  speed: DEFAULTS.circleProps.speed,
+  chaos: DEFAULTS.circleProps.chaos,
+  radius: DEFAULTS.circleProps.borderRadius
+});
 
 const activeProps = computed(() => {
   if (example.value === 'card') return cardProps;
@@ -115,7 +162,41 @@ const activeProps = computed(() => {
   return circleProps;
 });
 
-const propData = [
+const hasChanges = computed(
+  () =>
+    example.value !== DEFAULTS.example ||
+    cardProps.color !== DEFAULTS.cardProps.color ||
+    buttonProps.color !== DEFAULTS.buttonProps.color ||
+    circleProps.color !== DEFAULTS.circleProps.color ||
+    cardProps.speed !== DEFAULTS.cardProps.speed ||
+    buttonProps.speed !== DEFAULTS.buttonProps.speed ||
+    circleProps.speed !== DEFAULTS.circleProps.speed ||
+    cardProps.chaos !== DEFAULTS.cardProps.chaos ||
+    buttonProps.chaos !== DEFAULTS.buttonProps.chaos ||
+    circleProps.chaos !== DEFAULTS.circleProps.chaos ||
+    cardProps.radius !== DEFAULTS.cardProps.borderRadius ||
+    buttonProps.radius !== DEFAULTS.buttonProps.borderRadius ||
+    circleProps.radius !== DEFAULTS.circleProps.borderRadius
+);
+
+function reset() {
+  example.value = DEFAULTS.example;
+  cardProps.color = DEFAULTS.cardProps.color;
+  buttonProps.color = DEFAULTS.buttonProps.color;
+  circleProps.color = DEFAULTS.circleProps.color;
+  cardProps.speed = DEFAULTS.cardProps.speed;
+  buttonProps.speed = DEFAULTS.buttonProps.speed;
+  circleProps.speed = DEFAULTS.circleProps.speed;
+  cardProps.chaos = DEFAULTS.cardProps.chaos;
+  buttonProps.chaos = DEFAULTS.buttonProps.chaos;
+  circleProps.chaos = DEFAULTS.circleProps.chaos;
+  cardProps.radius = DEFAULTS.cardProps.borderRadius;
+  buttonProps.radius = DEFAULTS.buttonProps.borderRadius;
+  circleProps.radius = DEFAULTS.circleProps.borderRadius;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'color',
     type: 'string',
@@ -131,14 +212,14 @@ const propData = [
   {
     name: 'chaos',
     type: 'number',
-    default: '1',
-    description: 'Distortion intensity from the SVG displacement (0 disables warp).'
+    default: '0.12',
+    description: 'Distortion intensity (0 = no distortion, higher = more chaotic).'
   },
   {
-    name: 'thickness',
+    name: 'borderRadius',
     type: 'number',
-    default: '2',
-    description: 'Border width in pixels.'
+    default: '24',
+    description: 'Border radius in pixels for the electric border path.'
   },
   {
     name: 'className',
@@ -148,13 +229,13 @@ const propData = [
   },
   {
     name: 'style',
-    type: 'React.CSSProperties',
+    type: 'CSSProperties',
     default: '—',
-    description: 'Inline styles for the wrapper. Set borderRadius here to round corners.'
+    description: 'Inline styles for the wrapper.'
   },
   {
     name: 'children',
-    type: 'ReactNode',
+    type: 'slot',
     default: '—',
     description: 'Content rendered inside the bordered container.'
   }

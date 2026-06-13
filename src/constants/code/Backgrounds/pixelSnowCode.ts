@@ -1,15 +1,21 @@
-import code from '@content/Backgrounds/PixelSnow/PixelSnow.vue?raw';
-import { createCodeObject } from '../../../types/code';
+import code from '@/content/Backgrounds/PixelSnow/PixelSnow.vue?raw';
+import { createCodeObject } from '@/types/code';
 
 export const pixelSnow = createCodeObject(code, 'Backgrounds/PixelSnow', {
   installation: `npm install three`,
   usage: `<template>
-  <div style="width: 100%; height: 600px; position: relative">
+  <div
+    style="
+      width: 100%;
+      height: 600px;
+      position: relative;
+    "
+  >
     <PixelSnow
       color="#ffffff"
-      :flakeSize="0.01"
-      :minFlakeSize="1.25"
-      :pixelResolution="200"
+      :flake-size="0.01"
+      :min-flake-size="1.25"
+      :pixel-resolution="200"
       :speed="1.25"
       :density="0.3"
       :direction="125"
@@ -18,7 +24,7 @@ export const pixelSnow = createCodeObject(code, 'Backgrounds/PixelSnow', {
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import PixelSnow from './PixelSnow.vue'
 </script>`
 });

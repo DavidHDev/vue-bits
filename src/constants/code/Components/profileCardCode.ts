@@ -1,5 +1,5 @@
-import code from '@content/Components/ProfileCard/ProfileCard.vue?raw';
-import { createCodeObject } from '../../../types/code';
+import code from '@/content/Components/ProfileCard/ProfileCard.vue?raw';
+import { createCodeObject } from '@/types/code';
 
 export const profileCard = createCodeObject(code, 'Components/ProfileCard', {
   usage: `<template>
@@ -9,21 +9,19 @@ export const profileCard = createCodeObject(code, 'Components/ProfileCard', {
     handle="javicodes"
     status="Online"
     contact-text="Contact Me"
-    avatar-url="/assets/person.png"
-    icon-url="/assets/iconpattern.png"
-    grain-url="/assets/grain.webp"
+    avatar-url="/path/to/avatar.jpg"
     :show-user-info="true"
-    :show-behind-gradient="true"
     :enable-tilt="true"
+    :enable-mobile-tilt="false"
     @contact-click="handleContactClick"
   />
 </template>
 
-<script setup lang="ts">
-  import ProfileCard from "./ProfileCard.vue";
+<script setup>
+import ProfileCard from './ProfileCard.vue'
 
-  const handleContactClick = () => {
-    console.log('Contact button clicked!');
-  };
+const handleContactClick = () => {
+  console.log('Contact clicked')
+}
 </script>`
 });

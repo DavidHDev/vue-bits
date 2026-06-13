@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Prism</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="prism.usage"
+    :source="prismSource"
+    component-name="Prism"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="relative p-0 h-[600px] overflow-hidden demo-container">
+      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
         <Prism
           :animation-type="animationType"
           :time-scale="timeScale"
@@ -13,10 +21,11 @@
           :hue-shift="hueShift"
           :color-frequency="colorFrequency"
         />
-
         <BackgroundContent pill-text="New Background" headline="A spectrum of colors that spark creativity" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSelect title="Animation Type" v-model="animationType" :options="animationOptions" />
         <PreviewSlider title="Time Scale" :min="0.1" :max="2" :step="0.1" v-model="timeScale" />
@@ -28,34 +37,55 @@
         <PreviewSlider title="Hue Shift" :min="-3.1416" :max="3.1416" :step="0.1" v-model="hueShift" />
         <PreviewSlider title="Color Frequency" :min="0.25" :max="4" :step="0.05" v-model="colorFrequency" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['ogl']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="prism" />
+      <DemoCodeTab slug="prism" :usage="prism.usage!" :source="prismSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="prism.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { prism } from '@/constants/code/Backgrounds/prismCode';
-import { ref } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import BackgroundContent from '../../components/common/BackgroundContent.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSelect from '../../components/common/PreviewSelect.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import Prism from '../../content/Backgrounds/Prism/Prism.vue';
+import Prism from '@/content/Backgrounds/Prism/Prism.vue';
+import prismSource from '@/content/Backgrounds/Prism/Prism.vue?raw';
+import { computed, ref } from 'vue';
+
+const { forceRerender } = useForceRerender();
+
+const DEFAULTS = {
+  animationType: 'rotate' as 'rotate' | 'hover' | '3drotate',
+  timeScale: 0.5,
+  scale: 3.6,
+  noise: 0,
+  glow: 1,
+  height: 3.5,
+  baseWidth: 5.5,
+  hueShift: 0,
+  colorFrequency: 1
+};
+
+const animationType = ref<'rotate' | 'hover' | '3drotate'>(DEFAULTS.animationType);
+const timeScale = ref(DEFAULTS.timeScale);
+const scale = ref(DEFAULTS.scale);
+const noise = ref(DEFAULTS.noise);
+const glow = ref(DEFAULTS.glow);
+const height = ref(DEFAULTS.height);
+const baseWidth = ref(DEFAULTS.baseWidth);
+const hueShift = ref(DEFAULTS.hueShift);
+const colorFrequency = ref(DEFAULTS.colorFrequency);
 
 const animationOptions = [
   { value: 'rotate', label: 'Rotate' },
@@ -63,17 +93,33 @@ const animationOptions = [
   { value: '3drotate', label: '3D Rotate' }
 ];
 
-const animationType = ref<'rotate' | 'hover' | '3drotate'>('rotate');
-const timeScale = ref(0.5);
-const scale = ref(3.6);
-const noise = ref(0);
-const glow = ref(1);
-const height = ref(3.5);
-const baseWidth = ref(5.5);
-const hueShift = ref(0);
-const colorFrequency = ref(1);
+const hasChanges = computed(
+  () =>
+    animationType.value !== DEFAULTS.animationType ||
+    timeScale.value !== DEFAULTS.timeScale ||
+    scale.value !== DEFAULTS.scale ||
+    noise.value !== DEFAULTS.noise ||
+    glow.value !== DEFAULTS.glow ||
+    height.value !== DEFAULTS.height ||
+    baseWidth.value !== DEFAULTS.baseWidth ||
+    hueShift.value !== DEFAULTS.hueShift ||
+    colorFrequency.value !== DEFAULTS.colorFrequency
+);
 
-const propData = [
+function reset() {
+  animationType.value = DEFAULTS.animationType;
+  timeScale.value = DEFAULTS.timeScale;
+  scale.value = DEFAULTS.scale;
+  noise.value = DEFAULTS.noise;
+  glow.value = DEFAULTS.glow;
+  height.value = DEFAULTS.height;
+  baseWidth.value = DEFAULTS.baseWidth;
+  hueShift.value = DEFAULTS.hueShift;
+  colorFrequency.value = DEFAULTS.colorFrequency;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'height',
     type: 'number',

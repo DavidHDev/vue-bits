@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Pixel Snow</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="pixelSnow.usage"
+    :source="pixelSnowSource"
+    component-name="PixelSnow"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="relative p-0 h-[600px] overflow-hidden demo-container">
+      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
         <PixelSnow
           :color="color"
           :flake-size="flakeSize"
@@ -16,13 +24,14 @@
           :variant="variant"
           :direction="direction"
         />
-
         <BackgroundContent pill-text="New Background" headline="Oh, the weather outside is frightful!" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewSelect title="Variant" v-model="variant" :options="variantOptions" />
-        <PreviewColor title="Color" v-model="color" />
+        <PreviewSelect title="Variant" v-model="variant" :options="['square', 'round', 'snowflake']" />
+        <PreviewColorPicker title="Color" v-model="color" />
         <PreviewSlider title="Pixel Resolution" v-model="pixelResolution" :min="50" :max="500" :step="10" />
         <PreviewSlider title="Speed" v-model="speed" :min="0" :max="5" :step="0.1" />
         <PreviewSlider title="Density" v-model="density" :min="0.1" :max="1" :step="0.05" />
@@ -32,56 +41,96 @@
         <PreviewSlider title="Far Plane" v-model="farPlane" :min="5" :max="50" :step="1" />
         <PreviewSlider title="Direction" v-model="direction" :min="0" :max="360" :step="5" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['three']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="pixelSnow" />
+      <DemoCodeTab slug="pixel-snow" :usage="pixelSnow.usage!" :source="pixelSnowSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="pixelSnow.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { pixelSnow } from '@/constants/code/Backgrounds/pixelSnowCode';
 import PixelSnow from '@/content/Backgrounds/PixelSnow/PixelSnow.vue';
-import { ref } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import BackgroundContent from '../../components/common/BackgroundContent.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewColor from '../../components/common/PreviewColor.vue';
-import PreviewSelect from '../../components/common/PreviewSelect.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
+import pixelSnowSource from '@/content/Backgrounds/PixelSnow/PixelSnow.vue?raw';
+import { computed, ref } from 'vue';
 
-const color = ref('#FFFFFF');
-const flakeSize = ref(0.01);
-const minFlakeSize = ref(1.25);
-const pixelResolution = ref(200);
-const speed = ref(1.25);
-const depthFade = ref(8);
-const farPlane = ref(20);
-const brightness = ref(1);
-const gamma = ref(0.4545);
-const density = ref(0.3);
-const variant = ref<'square' | 'round'>('square');
-const direction = ref(125);
+const { forceRerender } = useForceRerender();
 
-const variantOptions = [
-  { label: 'Square', value: 'square' },
-  { label: 'Round', value: 'round' },
-  { label: 'Snowflake', value: 'snowflake' }
-];
+const DEFAULTS = {
+  color: '#ffffff',
+  flakeSize: 0.01,
+  minFlakeSize: 1.25,
+  pixelResolution: 200,
+  speed: 1.25,
+  depthFade: 8,
+  farPlane: 20,
+  brightness: 1,
+  gamma: 0.4545,
+  density: 0.3,
+  variant: 'square' as 'square' | 'round' | 'snowflake',
+  direction: 125
+};
 
-const propData = [
+const color = ref(DEFAULTS.color);
+const flakeSize = ref(DEFAULTS.flakeSize);
+const minFlakeSize = ref(DEFAULTS.minFlakeSize);
+const pixelResolution = ref(DEFAULTS.pixelResolution);
+const speed = ref(DEFAULTS.speed);
+const depthFade = ref(DEFAULTS.depthFade);
+const farPlane = ref(DEFAULTS.farPlane);
+const brightness = ref(DEFAULTS.brightness);
+const gamma = ref(DEFAULTS.gamma);
+const density = ref(DEFAULTS.density);
+const variant = ref<'square' | 'round' | 'snowflake'>(DEFAULTS.variant);
+const direction = ref(DEFAULTS.direction);
+
+const hasChanges = computed(
+  () =>
+    color.value !== DEFAULTS.color ||
+    flakeSize.value !== DEFAULTS.flakeSize ||
+    minFlakeSize.value !== DEFAULTS.minFlakeSize ||
+    pixelResolution.value !== DEFAULTS.pixelResolution ||
+    speed.value !== DEFAULTS.speed ||
+    depthFade.value !== DEFAULTS.depthFade ||
+    farPlane.value !== DEFAULTS.farPlane ||
+    brightness.value !== DEFAULTS.brightness ||
+    gamma.value !== DEFAULTS.gamma ||
+    density.value !== DEFAULTS.density ||
+    variant.value !== DEFAULTS.variant ||
+    direction.value !== DEFAULTS.direction
+);
+
+function reset() {
+  color.value = DEFAULTS.color;
+  flakeSize.value = DEFAULTS.flakeSize;
+  minFlakeSize.value = DEFAULTS.minFlakeSize;
+  pixelResolution.value = DEFAULTS.pixelResolution;
+  speed.value = DEFAULTS.speed;
+  depthFade.value = DEFAULTS.depthFade;
+  farPlane.value = DEFAULTS.farPlane;
+  brightness.value = DEFAULTS.brightness;
+  gamma.value = DEFAULTS.gamma;
+  density.value = DEFAULTS.density;
+  variant.value = DEFAULTS.variant;
+  direction.value = DEFAULTS.direction;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'color',
     type: 'string',
@@ -162,7 +211,7 @@ const propData = [
   },
   {
     name: 'style',
-    type: 'object',
+    type: 'CSSProperties',
     default: '{}',
     description: 'Additional inline styles'
   }

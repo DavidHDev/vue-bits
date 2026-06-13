@@ -1,8 +1,28 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Border Glow</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="borderGlow.usage"
+    :source="borderGlowSource"
+    component-name="BorderGlow"
+    :props-table="props"
+  >
     <template #preview>
       <div class="h-[500px] overflow-hidden demo-container">
-        <BorderGlow v-bind="props">
+        <BorderGlow
+          v-bind="{
+            edgeSensitivity,
+            glowColor,
+            backgroundColor,
+            borderRadius,
+            glowRadius,
+            glowIntensity,
+            coneSpread,
+            animated
+          }"
+          :colors="colors"
+        >
           <div class="flex flex-col justify-center items-start p-[2em] min-h-[200px]">
             <i class="pi pi-sparkles" style="font-size: 34px; margin-bottom: 12px"></i>
             <p class="font-semibold text-[1.4rem] tracking-[-0.5px]">Hover Near the Edges</p>
@@ -12,7 +32,9 @@
           </div>
         </BorderGlow>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSlider title="Edge Sensitivity" :min="0" :max="80" :step="1" v-model="edgeSensitivity" />
         <PreviewSlider title="Border Radius" :min="0" :max="50" :step="1" v-model="borderRadius" />
@@ -20,84 +42,96 @@
         <PreviewSlider title="Glow Intensity" :min="0.1" :max="3" :step="0.1" v-model="glowIntensity" />
         <PreviewSlider title="Cone Spread" :min="5" :max="45" :step="1" v-model="coneSpread" />
         <PreviewSwitch title="Animated Intro" v-model="animated" />
-        <PreviewColor title="Background" v-model="backgroundColor" class="mb-2" />
-
-        <div class="flex flex-col gap-0">
-          <span class="block font-medium text-sm">Gradient Colors</span>
-
-          <div class="flex flex-wrap gap-2 px-1 pt-1">
-            <label
-              v-for="(color, index) in colors"
-              :key="index"
-              class="border-[#222] border-2 rounded-md w-12 h-12 overflow-hidden cursor-pointer"
-              :style="{ backgroundColor: color }"
-            >
-              <input
-                type="color"
-                :value="color"
-                @input="updateColor(index, ($event.target as HTMLInputElement).value)"
-                class="opacity-0 w-full h-full cursor-pointer"
-              />
-            </label>
-          </div>
-        </div>
+        <PreviewColorPicker title="Background" v-model="backgroundColor" />
+        <p class="mt-4 text-sm">Gradient Colors</p>
+        <PreviewColorPicker
+          v-for="(color, index) in colors"
+          :key="index"
+          :title="`Color ${index + 1}`"
+          :model-value="color"
+          @update:model-value="updateColors(index, $event)"
+        />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="borderGlow" />
+      <DemoCodeTab slug="border-glow" :usage="borderGlow.usage!" :source="borderGlowSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="borderGlow.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import CliInstallation from '@/components/code/CliInstallation.vue';
-import CodeExample from '@/components/code/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import PreviewColor from '@/components/common/PreviewColor.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
-import PropTable from '@/components/common/PropTable.vue';
-import TabbedLayout from '@/components/common/TabbedLayout.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { borderGlow } from '@/constants/code/Components/borderGlowCode';
 import BorderGlow from '@/content/Components/BorderGlow/BorderGlow.vue';
+import borderGlowSource from '@/content/Components/BorderGlow/BorderGlow.vue?raw';
 import { computed, ref } from 'vue';
 
-const colors = ref(['#c084fc', '#f472b6', '#38bdf8']);
-const edgeSensitivity = ref(30);
-const glowColor = ref('40 80 80');
-const backgroundColor = ref('#070F07');
-const borderRadius = ref(28);
-const glowRadius = ref(40);
-const glowIntensity = ref(1.0);
-const coneSpread = ref(25);
-const animated = ref(false);
+const { forceRerender } = useForceRerender();
 
-const props = computed(() => ({
-  edgeSensitivity: edgeSensitivity.value,
-  glowColor: glowColor.value,
-  backgroundColor: backgroundColor.value,
-  borderRadius: borderRadius.value,
-  glowRadius: glowRadius.value,
-  glowIntensity: glowIntensity.value,
-  coneSpread: coneSpread.value,
-  animated: animated.value,
-  colors: colors.value
-}));
-
-const updateColor = (index: number, newColor: string) => {
-  const newColors = [...colors.value];
-  newColors[index] = newColor;
-  colors.value = newColors;
+const DEFAULTS = {
+  edgeSensitivity: 30,
+  glowColor: '40 80 80',
+  backgroundColor: '#070F07',
+  borderRadius: 28,
+  glowRadius: 40,
+  glowIntensity: 1.0,
+  coneSpread: 25,
+  animated: false
 };
 
-const propData = [
+const colors = ref(['#c084fc', '#f472b6', '#38bdf8']);
+const edgeSensitivity = ref(DEFAULTS.edgeSensitivity);
+const glowColor = ref(DEFAULTS.glowColor);
+const backgroundColor = ref(DEFAULTS.backgroundColor);
+const borderRadius = ref(DEFAULTS.borderRadius);
+const glowRadius = ref(DEFAULTS.glowRadius);
+const glowIntensity = ref(DEFAULTS.glowIntensity);
+const coneSpread = ref(DEFAULTS.coneSpread);
+const animated = ref(DEFAULTS.animated);
+
+const updateColors = (index: number, value: string) => {
+  const next = [...colors.value];
+  next[index] = value;
+  colors.value = next;
+};
+
+const hasChanges = computed(
+  () =>
+    edgeSensitivity.value !== DEFAULTS.edgeSensitivity ||
+    glowColor.value !== DEFAULTS.glowColor ||
+    backgroundColor.value !== DEFAULTS.backgroundColor ||
+    borderRadius.value !== DEFAULTS.borderRadius ||
+    glowRadius.value !== DEFAULTS.glowRadius ||
+    glowIntensity.value !== DEFAULTS.glowIntensity ||
+    coneSpread.value !== DEFAULTS.coneSpread ||
+    animated.value !== DEFAULTS.animated
+);
+
+function reset() {
+  edgeSensitivity.value = DEFAULTS.edgeSensitivity;
+  glowColor.value = DEFAULTS.glowColor;
+  backgroundColor.value = DEFAULTS.backgroundColor;
+  borderRadius.value = DEFAULTS.borderRadius;
+  glowRadius.value = DEFAULTS.glowRadius;
+  glowIntensity.value = DEFAULTS.glowIntensity;
+  coneSpread.value = DEFAULTS.coneSpread;
+  animated.value = DEFAULTS.animated;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   { name: 'children', type: 'slot', default: '-', description: 'Content rendered inside the card.' },
   { name: 'className', type: 'string', default: '""', description: 'Additional CSS classes for the outer wrapper.' },
   {

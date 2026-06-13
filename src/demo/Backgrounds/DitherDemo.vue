@@ -1,5 +1,13 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Dither</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="dither.usage"
+    :source="ditherSource"
+    component-name="Dither"
+    :props-table="props"
+  >
     <template #preview>
       <div class="relative h-[600px] overflow-hidden demo-container">
         <Dither
@@ -16,92 +24,94 @@
         />
         <BackgroundContent pillText="Retro Background" headline="Dithered waves with vintage charm" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewSwitch title="Mouse Interaction" v-model="enableMouseInteraction" />
-
+        <PreviewSlider title="Wave Speed" :min="0" :max="0.5" :step="0.005" v-model="waveSpeed" />
+        <PreviewSlider title="Wave Frequency" :min="0.5" :max="10" :step="0.1" v-model="waveFrequency" />
+        <PreviewSlider title="Wave Amplitude" :min="0" :max="1" :step="0.01" v-model="waveAmplitude" />
+        <PreviewSlider title="Color Num" :min="2" :max="16" :step="1" v-model="colorNum" />
+        <PreviewSlider title="Pixel Size" :min="1" :max="10" :step="1" v-model="pixelSize" />
+        <PreviewSlider title="Mouse Radius" :min="0.1" :max="3" :step="0.05" v-model="mouseRadius" />
         <PreviewSwitch title="Disable Animation" v-model="disableAnimation" />
-
-        <PreviewSlider title="Wave Speed" :min="0.01" :max="0.2" :step="0.01" v-model="waveSpeed" />
-
-        <PreviewSlider title="Wave Frequency" :min="1" :max="8" :step="0.5" v-model="waveFrequency" />
-
-        <PreviewSlider title="Wave Amplitude" :min="0.1" :max="0.8" :step="0.1" v-model="waveAmplitude" />
-
-        <PreviewSlider title="Color Count" :min="2" :max="16" :step="1" v-model="colorNum" />
-
-        <PreviewSlider title="Pixel Size" :min="1" :max="8" :step="1" v-model="pixelSize" />
-
-        <PreviewSlider title="Mouse Radius" :min="0.1" :max="2" :step="0.1" v-model="mouseRadius" />
-
-        <PreviewSlider title="Wave Color R" v-model="waveColor[0]" :min="0" :max="1" :step="0.1" />
-
-        <PreviewSlider title="Wave Color G" v-model="waveColor[1]" :min="0" :max="1" :step="0.1" />
-
-        <PreviewSlider title="Wave Color B" v-model="waveColor[2]" :min="0" :max="1" :step="0.1" />
+        <PreviewSwitch title="Mouse Interaction" v-model="enableMouseInteraction" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['ogl']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="dither" />
+      <DemoCodeTab slug="dither" :usage="dither.usage!" :source="ditherSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="dither.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
-import { ref, watch } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import BackgroundContent from '../../components/common/BackgroundContent.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
 import { dither } from '@/constants/code/Backgrounds/ditherCode';
-import Dither from '../../content/Backgrounds/Dither/Dither.vue';
+import Dither from '@/content/Backgrounds/Dither/Dither.vue';
+import ditherSource from '@/content/Backgrounds/Dither/Dither.vue?raw';
+import { computed, ref } from 'vue';
 
 const { rerenderKey, forceRerender } = useForceRerender();
 
-const waveSpeed = ref(0.1);
-const waveFrequency = ref(2.5);
-const waveAmplitude = ref(0.2);
-const waveColor = ref<[number, number, number]>([0.1, 0.7, 0.5]);
-const colorNum = ref(4);
-const pixelSize = ref(3);
-const disableAnimation = ref(false);
-const enableMouseInteraction = ref(true);
-const mouseRadius = ref(0.5);
+const DEFAULTS = {
+  waveColor: [0.1, 0.7, 0.5] as [number, number, number],
+  mouseRadius: 0.3,
+  colorNum: 4,
+  pixelSize: 2,
+  waveAmplitude: 0.3,
+  waveFrequency: 3,
+  waveSpeed: 0.05,
+  enableMouseInteraction: true,
+  disableAnimation: false
+};
 
-watch(
-  [
-    waveSpeed,
-    waveFrequency,
-    waveAmplitude,
-    waveColor,
-    colorNum,
-    pixelSize,
-    disableAnimation,
-    enableMouseInteraction,
-    mouseRadius
-  ],
-  () => {
-    forceRerender();
-  },
-  { deep: true }
+const waveSpeed = ref(DEFAULTS.waveSpeed);
+const waveFrequency = ref(DEFAULTS.waveFrequency);
+const waveAmplitude = ref(DEFAULTS.waveAmplitude);
+const waveColor = ref<[number, number, number]>(DEFAULTS.waveColor);
+const colorNum = ref(DEFAULTS.colorNum);
+const pixelSize = ref(DEFAULTS.pixelSize);
+const disableAnimation = ref(DEFAULTS.disableAnimation);
+const enableMouseInteraction = ref(DEFAULTS.enableMouseInteraction);
+const mouseRadius = ref(DEFAULTS.mouseRadius);
+
+const hasChanges = computed(
+  () =>
+    waveSpeed.value !== DEFAULTS.waveSpeed ||
+    waveFrequency.value !== DEFAULTS.waveFrequency ||
+    waveAmplitude.value !== DEFAULTS.waveAmplitude ||
+    waveColor.value !== DEFAULTS.waveColor ||
+    colorNum.value !== DEFAULTS.colorNum ||
+    disableAnimation.value !== DEFAULTS.disableAnimation ||
+    enableMouseInteraction.value !== DEFAULTS.enableMouseInteraction ||
+    mouseRadius.value !== DEFAULTS.mouseRadius
 );
 
-const propData = [
+function reset() {
+  waveSpeed.value = DEFAULTS.waveSpeed;
+  waveFrequency.value = DEFAULTS.waveFrequency;
+  waveAmplitude.value = DEFAULTS.waveAmplitude;
+  waveColor.value = DEFAULTS.waveColor;
+  colorNum.value = DEFAULTS.colorNum;
+  disableAnimation.value = DEFAULTS.disableAnimation;
+  enableMouseInteraction.value = DEFAULTS.enableMouseInteraction;
+  mouseRadius.value = DEFAULTS.mouseRadius;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'waveSpeed',
     type: 'number',

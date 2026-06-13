@@ -1,11 +1,11 @@
-import code from '@content/Components/BubbleMenu/BubbleMenu.vue?raw';
-import { createCodeObject } from '../../../types/code';
+import code from '@/content/Components/BubbleMenu/BubbleMenu.vue?raw';
+import { createCodeObject } from '@/types/code';
 
 export const bubbleMenu = createCodeObject(code, 'Components/BubbleMenu', {
   installation: `npm install gsap`,
   usage: `<template>
   <BubbleMenu
-    :logo="() => h('span', { style: { fontWeight: 700 } }, 'VB')"
+    :logo="logoVNode"
     :items="items"
     menu-aria-label="Toggle navigation"
     menu-bg="#ffffff"
@@ -18,8 +18,8 @@ export const bubbleMenu = createCodeObject(code, 'Components/BubbleMenu', {
 </template>
 
 <script setup>
-import BubbleMenu from './BubbleMenu.vue'
 import { h } from 'vue'
+import BubbleMenu from './BubbleMenu.vue'
 
 const items = [
   {
@@ -58,5 +58,7 @@ const items = [
     hoverStyles: { bgColor: '#8b5cf6', textColor: '#ffffff' }
   }
 ]
+
+const logoVNode = h('span', { style: { fontWeight: 700 } }, 'RB')
 </script>`
 });

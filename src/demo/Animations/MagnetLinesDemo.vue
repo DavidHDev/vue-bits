@@ -1,80 +1,102 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Magnet Lines</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="magnetLines.usage"
+    :source="magnetLinesSource"
+    component-name="MagnetLines"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[600px] overflow-hidden">
+      <div class="justify-center items-center h-[600px] overflow-hidden demo-container">
         <MagnetLines
           :rows="rows"
           :columns="columns"
-          container-size="500px"
-          :line-width="lineWidthPx"
-          :line-height="lineHeightPx"
+          :container-size="containerSize"
+          :line-width="lineWidth"
+          :line-height="lineHeight"
           :line-color="lineColor"
           :base-angle="baseAngle"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewColor title="Line Color" v-model="lineColor" />
-
-        <PreviewSlider title="Rows" v-model="rows" :min="5" :max="maxRows" :step="1" />
-
-        <PreviewSlider title="Columns" v-model="columns" :min="5" :max="15" :step="1" />
-
-        <PreviewSlider title="Line Height (px)" v-model="lineHeight" :min="10" :max="50" :step="5" />
-
-        <PreviewSlider title="Line Width (px)" v-model="lineWidth" :min="1" :max="5" :step="1" />
-
-        <PreviewSlider title="Base Angle (°)" v-model="baseAngle" :min="-45" :max="45" :step="1" />
+        <PreviewColorPicker title="Line Color" v-model="lineColor" />
+        <PreviewSlider title="Rows" v-model="rows" :min="3" :max="20" :step="1" />
+        <PreviewSlider title="Columns" v-model="columns" :min="3" :max="20" :step="1" />
+        <PreviewSlider title="Base Angle (°)" v-model="baseAngle" :min="-180" :max="180" :step="5" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="magnetLines" />
+      <DemoCodeTab slug="magnet-lines" :usage="magnetLines.usage!" :source="magnetLinesSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="magnetLines.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewColor from '../../components/common/PreviewColor.vue';
-import MagnetLines from '../../content/Animations/MagnetLines/MagnetLines.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { magnetLines } from '@/constants/code/Animations/magnetLinesCode';
+import MagnetLines from '@/content/Animations/MagnetLines/MagnetLines.vue';
+import magnetLinesSource from '@/content/Animations/MagnetLines/MagnetLines.vue?raw';
+import { computed, ref } from 'vue';
 
-const lineHeight = ref(30);
-const lineWidth = ref(2);
-const lineColor = ref('#efefef');
-const baseAngle = ref(-10);
-const columns = ref(12);
+const { forceRerender } = useForceRerender();
 
-const lineWidthPx = computed(() => `${lineWidth.value}px`);
-const lineHeightPx = computed(() => `${lineHeight.value}px`);
+const DEFAULTS = {
+  rows: 10,
+  columns: 12,
+  containerSize: '40vmin',
+  lineWidth: '2px',
+  lineHeight: '30px',
+  baseAngle: -10,
+  lineColor: '#efefef'
+};
 
-const maxRows = computed(() => {
-  const containerHeight = 500;
-  return Math.floor(containerHeight / lineHeight.value);
-});
+const rows = ref(DEFAULTS.rows);
+const columns = ref(DEFAULTS.columns);
+const containerSize = ref(DEFAULTS.containerSize);
+const lineHeight = ref(DEFAULTS.lineHeight);
+const lineWidth = ref(DEFAULTS.lineWidth);
+const lineColor = ref(DEFAULTS.lineColor);
+const baseAngle = ref(DEFAULTS.baseAngle);
 
-const rows = ref(Math.min(10, maxRows.value));
+const hasChanges = computed(
+  () =>
+    rows.value !== DEFAULTS.rows ||
+    columns.value !== DEFAULTS.columns ||
+    containerSize.value !== DEFAULTS.containerSize ||
+    lineWidth.value !== DEFAULTS.lineWidth ||
+    lineHeight.value !== DEFAULTS.lineHeight ||
+    lineColor.value !== DEFAULTS.lineColor ||
+    baseAngle.value !== DEFAULTS.baseAngle
+);
 
-watch(lineHeight, () => {
-  nextTick(() => {
-    rows.value = Math.min(rows.value, maxRows.value);
-  });
-});
+function reset() {
+  rows.value = DEFAULTS.rows;
+  columns.value = DEFAULTS.columns;
+  containerSize.value = DEFAULTS.containerSize;
+  lineWidth.value = DEFAULTS.lineWidth;
+  lineHeight.value = DEFAULTS.lineHeight;
+  lineColor.value = DEFAULTS.lineColor;
+  baseAngle.value = DEFAULTS.baseAngle;
+  forceRerender();
+}
 
-const propData = [
+const props: PropRow[] = [
   {
     name: 'rows',
     type: 'number',

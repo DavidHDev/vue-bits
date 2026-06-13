@@ -1,17 +1,29 @@
-import code from '@content/Backgrounds/Galaxy/Galaxy.vue?raw';
-import { createCodeObject } from '../../../types/code';
+import code from '@/content/Backgrounds/Galaxy/Galaxy.vue?raw';
+import { createCodeObject } from '@/types/code';
 
 export const galaxy = createCodeObject(code, 'Backgrounds/Galaxy', {
   installation: `npm install ogl`,
   usage: `<template>
-  // Basic usage
-  <div class="relative w-full h-[600px]">
+  <!-- Basic usage -->
+  <div
+    style="
+      width: 100%;
+      height: 600px;
+      position: relative;
+    "
+  >
     <Galaxy />
   </div>
-  
-  // With custom prop values
-  <div class="relative w-full h-[600px]">
-    <Galaxy 
+
+  <!-- With custom prop values -->
+  <div
+    style="
+      width: 100%;
+      height: 600px;
+      position: relative;
+    "
+  >
+    <Galaxy
       :mouse-repulsion="true"
       :mouse-interaction="true"
       :density="1.5"
@@ -23,6 +35,6 @@ export const galaxy = createCodeObject(code, 'Backgrounds/Galaxy', {
 </template>
 
 <script setup lang="ts">
-  import Galaxy from "./Galaxy.vue";
+import Galaxy from './Galaxy.vue'
 </script>`
 });

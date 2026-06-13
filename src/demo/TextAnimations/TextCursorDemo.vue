@@ -1,85 +1,92 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Text Cursor</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="textCursor.usage"
+    :source="textCursorSource"
+    component-name="TextCursor"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[500px]">
+      <div class="relative h-[400px] demo-container">
         <TextCursor
           :key="key"
           :text="text"
           :follow-mouse-direction="followMouseDirection"
           :random-float="randomFloat"
         />
-
         <div
-          class="absolute inset-0 flex items-center justify-center pointer-events-none text-[4rem] font-[900] text-[#222] select-none"
+          class="absolute inset-0 flex justify-center items-center font-[900] text-[#222] text-[4rem] pointer-events-none select-none"
         >
           Hover Around!
         </div>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-2">Text</label>
-
-          <input
-            v-model="text"
-            type="text"
-            placeholder="Enter text..."
-            maxlength="10"
-            class="w-[160px] px-3 py-2 bg-[#0b0b0b] border border-[#333] rounded-md text-white focus:outline-none focus:border-[#666]"
-          />
-        </div>
-
+        <PreviewInput title="Text" v-model="text" placeholder="Enter text..." />
         <PreviewSwitch title="Follow Mouse Direction" v-model="followMouseDirection" />
-
         <PreviewSwitch title="Enable Random Floating" v-model="randomFloat" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-
-      <Dependencies :dependency-list="['motion-v']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="textCursor" />
+      <DemoCodeTab slug="text-cursor" :usage="textCursor.usage!" :source="textCursorSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="textCursor.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import TextCursor from '../../content/TextAnimations/TextCursor/TextCursor.vue';
-import { textCursor } from '@/constants/code/TextAnimations/textCursorCode';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewInput from '@/components/common/PreviewInput.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
+import { textCursor } from '@/constants/code/TextAnimations/textCursorCode';
+import TextCursor from '@/content/TextAnimations/TextCursor/TextCursor.vue';
+import textCursorSource from '@/content/TextAnimations/TextCursor/TextCursor.vue?raw';
+import { computed, ref } from 'vue';
 
-const { rerenderKey: key } = useForceRerender();
+const { rerenderKey: key, forceRerender } = useForceRerender();
 
-const text = ref('💚');
-const followMouseDirection = ref(true);
-const randomFloat = ref(true);
+const DEFAULTS = {
+  text: '💚',
+  followMouseDirection: true,
+  randomFloat: true
+};
 
-const propData = [
+const text = ref(DEFAULTS.text);
+const followMouseDirection = ref(DEFAULTS.followMouseDirection);
+const randomFloat = ref(DEFAULTS.randomFloat);
+
+const hasChanges = computed(
+  () =>
+    text.value !== DEFAULTS.text ||
+    followMouseDirection.value !== DEFAULTS.followMouseDirection ||
+    randomFloat.value !== DEFAULTS.randomFloat
+);
+
+function reset() {
+  text.value = DEFAULTS.text;
+  followMouseDirection.value = DEFAULTS.followMouseDirection;
+  randomFloat.value = DEFAULTS.randomFloat;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'text',
     type: 'string',
-    default: '⚛️',
+    default: '💚',
     description: 'The text string to display as the trail.'
-  },
-  {
-    name: 'delay',
-    type: 'number',
-    default: '0.01',
-    description: 'The entry stagger delay in seconds for the fade-out animation.'
   },
   {
     name: 'spacing',

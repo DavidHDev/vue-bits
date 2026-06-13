@@ -1,5 +1,6 @@
-import { defineConfig, type RegistryItem } from 'jsrepo';
-import { distributed } from 'jsrepo/outputs';
+import { output as shadcnOutput } from '@jsrepo/shadcn';
+import { defineConfig, RegistryItem } from 'jsrepo';
+import { componentDependenciesOutput } from './scripts/component-dependencies-output';
 import { componentMetadata } from './src/constants/Information';
 
 export default defineConfig({
@@ -28,7 +29,10 @@ export default defineConfig({
       'components-library'
     ],
     excludeDeps: ['vue'],
-    outputs: [distributed({ dir: 'public/r' })],
+    outputs: [
+      shadcnOutput({ dir: 'public/r', format: true }),
+      componentDependenciesOutput({ path: 'src/constants/componentDependencies.ts' })
+    ],
     items: [
       ...Object.values(componentMetadata).map(component =>
         defineComponent({
@@ -37,18 +41,20 @@ export default defineConfig({
           category: component.category
         })
       )
-    ].flat()
+    ]
+      .flat()
+      .sort((a, b) => a.name.localeCompare(b.name))
   }
 });
 
-/**
- * Define a component to be exposed from the registry. Creates a single variant of the component.
- *
- * @param title The title of the component.
- * @param description The description of the component.
- * @param category The category of the component.
- * @returns An array with a single RegistryItem object.
- */
+// /**
+//  * Define a component to be exposed from the registry. Creates a single variant of the component.
+//  *
+//  * @param title The title of the component.
+//  * @param description The description of the component.
+//  * @param category The category of the component.
+//  * @returns An array with a single RegistryItem object.
+//  */
 function defineComponent({
   title,
   description,
@@ -60,16 +66,12 @@ function defineComponent({
 }): RegistryItem[] {
   return [
     {
-      name: title,
       title,
       description,
+      name: title,
       type: 'registry:component',
       categories: [category],
-      files: [
-        {
-          path: `src/content/${category}/${title}`
-        }
-      ]
+      files: [{ path: `src/content/${category}/${title}` }]
     }
   ];
 }

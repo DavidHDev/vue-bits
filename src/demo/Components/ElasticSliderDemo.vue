@@ -1,58 +1,93 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Elastic Slider</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="elasticSlider.usage"
+    :source="elasticSliderSource"
+    component-name="ElasticSlider"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-section">
-        <div class="demo-container h-[300px] overflow-hidden">
-          <ElasticSlider />
-        </div>
+      <div class="h-[400px] demo-container">
+        <ElasticSlider
+          :default-value="defaultValue"
+          :starting-value="startingValue"
+          :max-value="maxValue"
+          :is-stepped="isStepped"
+          :step-size="stepSize"
+        />
       </div>
+    </template>
 
-      <div class="demo-section">
-        <h2 class="demo-title-extra">Using Steps</h2>
+    <template #customize>
+      <Customize>
+        <PreviewSlider title="Default Value" :min="0" :max="1000" :step="10" v-model="defaultValue" />
+        <PreviewSlider title="Starting Value" :min="0" :max="500" :step="10" v-model="startingValue" />
+        <PreviewSlider title="Max Value" :min="10" :max="1000" :step="10" v-model="maxValue" />
+        <PreviewSwitch title="Stepped" v-model="isStepped" />
+        <PreviewSlider title="Step Size" :min="1" :max="50" :step="1" v-model="stepSize" />
+      </Customize>
+    </template>
 
-        <div class="demo-container h-[300px] overflow-hidden">
-          <ElasticSlider :is-stepped="true" :step-size="10" />
-        </div>
-      </div>
-
-      <div class="demo-section">
-        <h2 class="demo-title-extra">Custom Range & Icons</h2>
-
-        <div class="demo-container h-[300px] overflow-hidden">
-          <ElasticSlider :starting-value="500" :default-value="750" :max-value="1000">
-            <template #left-icon>
-              <i class="pi pi-thumbs-down text-xl"></i>
-            </template>
-
-            <template #right-icon>
-              <i class="pi pi-thumbs-up text-xl"></i>
-            </template>
-          </ElasticSlider>
-        </div>
-      </div>
-
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="elasticSlider" />
+      <DemoCodeTab slug="elastic-slider" :usage="elasticSlider.usage!" :source="elasticSliderSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation v-bind="elasticSlider" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import TabbedLayout from '@/components/common/TabbedLayout.vue';
-import PropTable from '@/components/common/PropTable.vue';
-import CodeExample from '@/components/code/CodeExample.vue';
-import CliInstallation from '@/components/code/CliInstallation.vue';
-import ElasticSlider from '@/content/Components/ElasticSlider/ElasticSlider.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { elasticSlider } from '@/constants/code/Components/elasticSliderCode';
+import ElasticSlider from '@/content/Components/ElasticSlider/ElasticSlider.vue';
+import elasticSliderSource from '@/content/Components/ElasticSlider/ElasticSlider.vue?raw';
+import { computed, ref } from 'vue';
 
-const propData = [
+const { forceRerender } = useForceRerender();
+
+const DEFAULTS = {
+  defaultValue: 50,
+  startingValue: 0,
+  maxValue: 100,
+  isStepped: false,
+  stepSize: 10
+};
+
+const defaultValue = ref(DEFAULTS.defaultValue);
+const startingValue = ref(DEFAULTS.startingValue);
+const maxValue = ref(DEFAULTS.maxValue);
+const isStepped = ref(DEFAULTS.isStepped);
+const stepSize = ref(DEFAULTS.stepSize);
+
+const hasChanges = computed(
+  () =>
+    defaultValue.value !== DEFAULTS.defaultValue ||
+    startingValue.value !== DEFAULTS.startingValue ||
+    maxValue.value !== DEFAULTS.maxValue ||
+    isStepped.value !== DEFAULTS.isStepped ||
+    stepSize.value !== DEFAULTS.stepSize
+);
+
+function reset() {
+  defaultValue.value = DEFAULTS.defaultValue;
+  startingValue.value = DEFAULTS.startingValue;
+  maxValue.value = DEFAULTS.maxValue;
+  isStepped.value = DEFAULTS.isStepped;
+  stepSize.value = DEFAULTS.stepSize;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'defaultValue',
     type: 'number',
@@ -74,7 +109,7 @@ const propData = [
   {
     name: 'className',
     type: 'string',
-    default: "''",
+    default: '',
     description: 'Allows passing custom class names to style the component.'
   },
   {
@@ -93,13 +128,13 @@ const propData = [
     name: 'leftIcon',
     type: 'Component | string',
     default: "'-'",
-    description: 'Custom Vue component or string to display on the left side of the slider.'
+    description: 'Custom JSX or HTML code to display on the left side of the slider.'
   },
   {
     name: 'rightIcon',
     type: 'Component | string',
     default: "'+'",
-    description: 'Custom Vue component or string to display on the right side of the slider.'
+    description: 'Custom JSX or HTML code to display on the right side of the slider.'
   }
 ];
 </script>

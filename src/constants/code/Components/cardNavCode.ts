@@ -1,29 +1,29 @@
-import code from '@content/Components/CardNav/CardNav.vue?raw';
-import { createCodeObject } from '../../../types/code';
+import code from '@/content/Components/CardNav/CardNav.vue?raw';
+import { createCodeObject } from '@/types/code';
 
 export const cardNav = createCodeObject(code, 'Components/CardNav', {
   installation: `npm install gsap`,
   usage: `<template>
   <CardNav
     :logo="logo"
-    logoAlt="Company Logo"
+    logo-alt="Company Logo"
     :items="items"
-    baseColor="#fff"
-    menuColor="#000"
-    buttonBgColor="#111"
-    buttonTextColor="#fff"
+    base-color="#fff"
+    menu-color="#000"
+    button-bg-color="#111"
+    button-text-color="#fff"
     ease="power3.out"
   />
 </template>
 
-<script setup lang='ts'>
+<script setup>
 import CardNav from './CardNav.vue'
 import logo from './logo.svg'
 
 const items = [
   {
     label: "About",
-    bgColor: "#0D0716",
+    bgColor: "#1B1722",
     textColor: "#fff",
     links: [
       { label: "Company", ariaLabel: "About Company" },
@@ -31,8 +31,8 @@ const items = [
     ]
   },
   {
-    label: "Projects",
-    bgColor: "#170D27",
+    label: "Projects", 
+    bgColor: "#2F293A",
     textColor: "#fff",
     links: [
       { label: "Featured", ariaLabel: "Featured Projects" },
@@ -41,7 +41,7 @@ const items = [
   },
   {
     label: "Contact",
-    bgColor: "#271E37",
+    bgColor: "#2F293A", 
     textColor: "#fff",
     links: [
       { label: "Email", ariaLabel: "Email us" },

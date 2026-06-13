@@ -1,0 +1,414 @@
+/* Misc styles shared across landing + docs */
+
+/* Announcement bar (used in docs/landing if we ship one) */
+.announcement-bar {
+  max-width: 1440px;
+  width: calc(100% - 4em);
+  position: fixed;
+  bottom: 2em;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-primary);
+  color: white;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  gap: 12px;
+}
+
+.announcement-content {
+  width: 100%;
+  text-align: left;
+  padding-right: 50px;
+}
+
+.announcement-link {
+  color: white;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+  transition: all 0.2s ease;
+}
+
+.announcement-link:hover {
+  text-decoration-thickness: 2px;
+  opacity: 0.9;
+}
+
+.announcement-link:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.3);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.announcement-actions {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.announcement-share,
+.announcement-close {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50px;
+  transition:
+    background-color 0.2s ease,
+    border 0.2s ease;
+}
+
+.announcement-close {
+  position: absolute;
+  background-color: #111;
+  top: 16px;
+  right: 16px;
+}
+
+.announcement-share {
+  font-size: 12px;
+  white-space: nowrap;
+  gap: 4px;
+  width: 100%;
+  border: 2px solid transparent;
+  background-color: #111;
+  padding: 8px 16px;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.announcement-share:hover {
+  border: 2px solid #111;
+}
+
+.announcement-share:focus,
+.announcement-close:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.3);
+  outline-offset: 2px;
+}
+
+.announcement-share-text {
+  display: inline;
+}
+
+@media (min-width: 768px) {
+  .announcement-bar {
+    padding: 16px;
+    font-size: 14px;
+    border-radius: 50px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0;
+  }
+  .announcement-content {
+    flex: 1;
+    padding-right: 12px;
+  }
+  .announcement-actions {
+    width: auto;
+    gap: 8px;
+  }
+  .announcement-close {
+    position: static;
+  }
+  .announcement-share {
+    padding: 4px 8px;
+    gap: 4px;
+    font-size: 13px;
+    width: auto;
+    background-color: transparent;
+    border-radius: 50px;
+    margin-top: 0;
+  }
+  .announcement-share-text {
+    display: inline;
+  }
+}
+
+.announcement-padding {
+  padding-top: 48px;
+  transition: padding-top 0.3s ease;
+}
+
+/* Shared scrollbar styling for results / docs lists */
+.results-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.results-container::-webkit-scrollbar-track {
+  background: var(--bg-body);
+}
+
+.results-container::-webkit-scrollbar-thumb {
+  background: var(--border-primary);
+  border-radius: 4px;
+}
+
+.results-container {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-primary) var(--bg-body);
+}
+
+/* Background content glass effect (used by background showcase wrappers) */
+.bg-content-glass {
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  backdrop-filter: blur(20px) saturate(1.4);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Electric Border demo card */
+.eb-demo-card {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  color: #e9f8ff;
+}
+
+.eb-demo-badge {
+  align-self: flex-start;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.eb-demo-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.eb-demo-desc {
+  margin: 0;
+  opacity: 0.7;
+  font-size: 14px;
+}
+
+.eb-demo-row {
+  display: flex;
+  gap: 6px;
+  margin-top: auto;
+}
+
+.eb-demo-chip {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.eb-demo-cta {
+  margin-top: 6px;
+  align-self: flex-start;
+  font-size: 14px;
+  font-weight: 600;
+  width: 100%;
+  color: #2e2e2e;
+  background: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    filter 120ms ease,
+    box-shadow 120ms ease;
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.15);
+}
+
+.eb-demo-cta:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.98);
+  box-shadow: 0 6px 24px rgba(125, 249, 255, 0.25);
+}
+
+.eb-demo-button-wrap {
+  width: 150px;
+  height: 50px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eb-demo-button {
+  font-size: 16px;
+  line-height: 0;
+  letter-spacing: -0.5px;
+  color: var(--color-accent);
+  border: none;
+  border-radius: 999px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.eb-button-container {
+  transition: 0.3s ease;
+}
+
+.eb-button-container:hover {
+  transform: scale(1.1);
+  background-color: rgba(177, 158, 239, 0.1);
+  box-shadow: 0 8px 16px rgba(177, 158, 239, 0.1);
+  transition: 0.3s ease;
+  filter: saturate(1.5);
+}
+
+/* MagicRings demo card */
+.mr-demo-card {
+  width: 340px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  font-family: inherit;
+}
+
+.mr-demo-card-visual {
+  position: relative;
+  background-color: #14251e91;
+  border: 1px solid var(--border-primary);
+  margin: 14px;
+  border-radius: 16px;
+  overflow: hidden;
+  height: 220px;
+}
+
+.mr-demo-card-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.85;
+  stroke: var(--color-accent);
+}
+
+.mr-demo-card-body {
+  padding: 10px 20px 20px;
+}
+
+.mr-demo-card-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #e9f8ff;
+  margin: 0;
+}
+
+.mr-demo-card-subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 2px;
+}
+
+.mr-demo-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 14px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.mr-demo-card-meta span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mr-demo-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.mr-demo-card-cta {
+  flex: 1;
+  padding: 12px 0;
+  background: var(--color-primary);
+  color: #000;
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    filter 120ms ease,
+    box-shadow 120ms ease;
+  box-shadow: 0 4px 16px rgba(82, 39, 255, 0.25);
+}
+
+.mr-demo-card-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(82, 39, 255, 0.35);
+}
+
+.mr-demo-card-heart {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 200ms ease;
+}
+
+.mr-demo-card-heart:hover {
+  border-color: var(--color-accent);
+}
+
+.demo-container-dots {
+  position: relative;
+}
+
+.demo-container-dots::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(circle, var(--color-primary) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+  z-index: 0;
+  mask:
+    linear-gradient(to right, transparent 0%, black 35%, black 55%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, black 35%, black 55%, transparent 100%);
+  mask-composite: intersect;
+  -webkit-mask:
+    linear-gradient(to right, transparent 0%, black 35%, black 55%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, black 35%, black 55%, transparent 100%);
+  -webkit-mask-composite: source-in;
+}

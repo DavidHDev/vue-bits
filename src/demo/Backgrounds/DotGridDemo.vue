@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Dot Grid</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="dotGrid.usage"
+    :source="dotGridSource"
+    component-name="DotGrid"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="h-[600px] overflow-hidden demo-container">
+      <div class="relative h-[500px] overflow-hidden demo-container">
         <DotGrid
           :key="rerenderKey"
           :dot-size="dotSize"
@@ -9,87 +17,104 @@
           :base-color="baseColor"
           :active-color="activeColor"
           :proximity="proximity"
-          :speed-trigger="speedTrigger"
           :shock-radius="shockRadius"
           :shock-strength="shockStrength"
-          :max-speed="maxSpeed"
           :resistance="resistance"
           :return-duration="returnDuration"
-          class-name="dot-grid-demo-canvas"
         />
         <BackgroundContent pillText="New Background" headline="Organized chaos with every cursor movement!" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <div class="flex gap-4 mb-4">
-          <PreviewColor title="Base Color" v-model="baseColor" />
-
-          <PreviewColor title="Active Color" v-model="activeColor" />
-        </div>
-
+        <PreviewColorPicker title="Base Color" v-model="baseColor" />
+        <PreviewColorPicker title="Active Color" v-model="activeColor" />
         <PreviewSlider title="Dot Size" v-model="dotSize" :min="2" :max="50" :step="1" />
-
         <PreviewSlider title="Gap" v-model="gap" :min="5" :max="100" :step="1" />
-
         <PreviewSlider title="Proximity" v-model="proximity" :min="50" :max="500" :step="10" />
-
-        <PreviewSlider title="Speed Trigger" v-model="speedTrigger" :min="50" :max="500" :step="10" />
-
         <PreviewSlider title="Shock Radius" v-model="shockRadius" :min="50" :max="500" :step="10" />
-
         <PreviewSlider title="Shock Strength" v-model="shockStrength" :min="1" :max="20" :step="1" />
-
-        <PreviewSlider title="Max Speed" v-model="maxSpeed" :min="1000" :max="10000" :step="100" />
-
         <PreviewSlider title="Resistance (Inertia)" v-model="resistance" :min="100" :max="2000" :step="50" />
-
         <PreviewSlider title="Return Duration (Inertia)" v-model="returnDuration" :min="0.1" :max="5" :step="0.1" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-
-      <Dependencies :dependency-list="['gsap']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="dotGrid" />
+      <DemoCodeTab slug="dot-grid" :usage="dotGrid.usage!" :source="dotGridSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="dotGrid.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
 import { dotGrid } from '@/constants/code/Backgrounds/dotGridCode';
-import { ref } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import BackgroundContent from '../../components/common/BackgroundContent.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewColor from '../../components/common/PreviewColor.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import DotGrid from '../../content/Backgrounds/DotGrid/DotGrid.vue';
+import DotGrid from '@/content/Backgrounds/DotGrid/DotGrid.vue';
+import dotGridSource from '@/content/Backgrounds/DotGrid/DotGrid.vue?raw';
+import { computed, ref } from 'vue';
 
-const dotSize = ref(5);
-const gap = ref(15);
-const baseColor = ref('#333333');
-const activeColor = ref('#27FF64');
-const proximity = ref(120);
-const speedTrigger = ref(100);
-const shockRadius = ref(250);
-const shockStrength = ref(5);
-const maxSpeed = ref(5000);
-const resistance = ref(750);
-const returnDuration = ref(1.5);
-const { rerenderKey } = useForceRerender();
+const { rerenderKey, forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  dotSize: 5,
+  gap: 15,
+  baseColor: '#333333',
+  activeColor: '#27FF64',
+  proximity: 120,
+  shockRadius: 250,
+  shockStrength: 5,
+  resistance: 750,
+  returnDuration: 1.5
+};
+
+const dotSize = ref(DEFAULTS.dotSize);
+const gap = ref(DEFAULTS.gap);
+const baseColor = ref(DEFAULTS.baseColor);
+const activeColor = ref(DEFAULTS.activeColor);
+const proximity = ref(DEFAULTS.proximity);
+const shockRadius = ref(DEFAULTS.shockRadius);
+const shockStrength = ref(DEFAULTS.shockStrength);
+const resistance = ref(DEFAULTS.resistance);
+const returnDuration = ref(DEFAULTS.returnDuration);
+
+const hasChanges = computed(
+  () =>
+    dotSize.value !== DEFAULTS.dotSize ||
+    gap.value !== DEFAULTS.gap ||
+    baseColor.value !== DEFAULTS.baseColor ||
+    activeColor.value !== DEFAULTS.activeColor ||
+    proximity.value !== DEFAULTS.proximity ||
+    shockRadius.value !== DEFAULTS.shockRadius ||
+    shockStrength.value !== DEFAULTS.shockStrength ||
+    resistance.value !== DEFAULTS.resistance ||
+    returnDuration.value !== DEFAULTS.returnDuration
+);
+
+function reset() {
+  dotSize.value = DEFAULTS.dotSize;
+  gap.value = DEFAULTS.gap;
+  baseColor.value = DEFAULTS.baseColor;
+  activeColor.value = DEFAULTS.activeColor;
+  proximity.value = DEFAULTS.proximity;
+  shockRadius.value = DEFAULTS.shockRadius;
+  shockStrength.value = DEFAULTS.shockStrength;
+  resistance.value = DEFAULTS.resistance;
+  returnDuration.value = DEFAULTS.returnDuration;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   { name: 'dotSize', type: 'number', default: '16', description: 'Size of each dot in pixels.' },
   { name: 'gap', type: 'number', default: '32', description: 'Gap between each dot in pixels.' },
   { name: 'baseColor', type: 'string', default: "'#27FF64'", description: 'Base color of the dots.' },
@@ -122,13 +147,6 @@ const propData = [
     description: 'Duration for dots to return to their original position after inertia.'
   },
   { name: 'className', type: 'string', default: "''", description: 'Additional CSS classes for the component.' },
-  { name: 'style', type: 'object', default: '{}', description: 'Inline styles for the component.' }
+  { name: 'style', type: 'CSSProperties', default: '{}', description: 'Inline styles for the component.' }
 ];
 </script>
-
-<style scoped>
-.dot-grid-demo-canvas {
-  width: 100%;
-  height: 100%;
-}
-</style>

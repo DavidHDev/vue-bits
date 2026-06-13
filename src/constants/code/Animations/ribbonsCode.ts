@@ -1,26 +1,28 @@
-import code from '@content/Animations/Ribbons/Ribbons.vue?raw';
-import { createCodeObject } from '../../../types/code';
+import code from '@/content/Animations/Ribbons/Ribbons.vue?raw';
+import { createCodeObject } from '@/types/code';
 
 export const ribbons = createCodeObject(code, 'Animations/Ribbons', {
   installation: `npm install ogl`,
   usage: `<template>
-  <Ribbons
-    :colors="['#ff9346', '#7cff67', '#ffee51', '#27FF64']"
-    :base-spring="0.03"
-    :base-friction="0.9"
-    :base-thickness="30"
-    :offset-factor="0.05"
-    :max-age="500"
-    :point-count="50"
-    :speed-multiplier="0.6"
-    :enable-fade="false"
-    :enable-shader-effect="false"
-    :effect-amplitude="2"
-    :background-color="[0, 0, 0, 0]"
-  />
+  <div
+    style="
+      height: 500px;
+      position: relative;
+      overflow: hidden;
+    "
+  >
+    <Ribbons
+      :base-thickness="30"
+      :colors="['#ffffff']"
+      :speed-multiplier="0.5"
+      :max-age="500"
+      :enable-fade="false"
+      :enable-shader-effect="true"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
-  import Ribbons from "./Ribbons.vue";
+import Ribbons from './Ribbons.vue'
 </script>`
 });

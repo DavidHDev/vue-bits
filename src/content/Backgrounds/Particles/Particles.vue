@@ -1,10 +1,10 @@
 <template>
-  <div ref="containerRef" :class="className" class="relative"></div>
+  <div ref="containerRef" :class="['relative w-full h-full', className]"></div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, useTemplateRef, nextTick } from 'vue';
-import { Renderer, Camera, Geometry, Program, Mesh } from 'ogl';
+import { Camera, Geometry, Mesh, Program, Renderer } from 'ogl';
+import { onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue';
 
 interface ParticlesProps {
   particleCount?: number;
@@ -18,6 +18,7 @@ interface ParticlesProps {
   sizeRandomness?: number;
   cameraDistance?: number;
   disableRotation?: boolean;
+  pixelRatio?: number;
   className?: string;
 }
 
@@ -25,7 +26,7 @@ const props = withDefaults(defineProps<ParticlesProps>(), {
   particleCount: 200,
   particleSpread: 10,
   speed: 0.1,
-  particleColors: () => ['#ffffff'],
+  particleColors: () => ['#ffffff', '#ffffff', '#ffffff'],
   moveParticlesOnHover: false,
   particleHoverFactor: 1,
   alphaParticles: false,
@@ -33,21 +34,12 @@ const props = withDefaults(defineProps<ParticlesProps>(), {
   sizeRandomness: 1,
   cameraDistance: 20,
   disableRotation: false,
+  pixelRatio: 1,
   className: ''
 });
 
 const containerRef = useTemplateRef<HTMLDivElement>('containerRef');
-const mouseRef = ref({ x: 0, y: 0 });
-
-let renderer: Renderer | null = null;
-let camera: Camera | null = null;
-let particles: Mesh | null = null;
-let program: Program | null = null;
-let animationFrameId: number | null = null;
-let lastTime = 0;
-let elapsed = 0;
-
-const defaultColors = ['#ffffff', '#ffffff', '#ffffff'];
+const mouseRef = ref<{ x: number; y: number }>({ x: 0, y: 0 });
 
 const hexToRgb = (hex: string): [number, number, number] => {
   hex = hex.replace(/^#/, '');
@@ -94,7 +86,14 @@ const vertex = /* glsl */ `
     mPos.z += sin(t * random.w + 6.28 * random.y) * mix(0.1, 1.5, random.z);
     
     vec4 mvPos = viewMatrix * mPos;
-    gl_PointSize = (uBaseSize * (1.0 + uSizeRandomness * (random.x - 0.5))) / length(mvPos.xyz);
+
+    if (uSizeRandomness == 0.0) {
+      gl_PointSize = uBaseSize;
+    } else {
+      gl_PointSize = (uBaseSize * (1.0 + uSizeRandomness * (random.x - 0.5))) / length(mvPos.xyz);
+    }
+    
+    gl_Position = projectionMatrix * mvPos;
     gl_Position = projectionMatrix * mvPos;
   }
 `;
@@ -123,56 +122,34 @@ const fragment = /* glsl */ `
   }
 `;
 
-const handleMouseMove = (e: MouseEvent) => {
+let cleanup: (() => void) | null = null;
+const init = () => {
   const container = containerRef.value;
   if (!container) return;
 
-  const rect = container.getBoundingClientRect();
-  const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-  const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
-  mouseRef.value = { x, y };
-};
-
-const initParticles = () => {
-  const container = containerRef.value;
-  if (!container) return;
-
-  renderer = new Renderer({ depth: false, alpha: true });
+  const renderer = new Renderer({ dpr: props.pixelRatio, depth: false, alpha: true });
   const gl = renderer.gl;
   container.appendChild(gl.canvas);
   gl.clearColor(0, 0, 0, 0);
 
-  gl.canvas.style.width = '100%';
-  gl.canvas.style.height = '100%';
-  gl.canvas.style.display = 'block';
-  gl.canvas.style.position = 'absolute';
-  gl.canvas.style.top = '0';
-  gl.canvas.style.left = '0';
-
-  camera = new Camera(gl, { fov: 15 });
+  const camera = new Camera(gl, { fov: 15 });
   camera.position.set(0, 0, props.cameraDistance);
 
   const resize = () => {
-    if (!container) return;
-
-    const parentWidth = container.parentElement?.offsetWidth || container.offsetWidth || window.innerWidth;
-    const parentHeight = container.parentElement?.offsetHeight || container.offsetHeight || window.innerHeight;
-
-    const width = Math.max(parentWidth, 300);
-    const height = Math.max(parentHeight, 300);
-
-    renderer!.setSize(width, height);
-    camera!.perspective({ aspect: width / height });
-
-    gl.canvas.style.width = '100%';
-    gl.canvas.style.height = '100%';
-    gl.canvas.style.display = 'block';
-    gl.canvas.style.position = 'absolute';
-    gl.canvas.style.top = '0';
-    gl.canvas.style.left = '0';
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    renderer.setSize(width, height);
+    camera.perspective({ aspect: gl.canvas.width / gl.canvas.height });
   };
   window.addEventListener('resize', resize, false);
   resize();
+
+  const handleMouseMove = (e: MouseEvent) => {
+    const rect = container.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+    mouseRef.value = { x, y };
+  };
 
   if (props.moveParticlesOnHover) {
     container.addEventListener('mousemove', handleMouseMove);
@@ -182,7 +159,7 @@ const initParticles = () => {
   const positions = new Float32Array(count * 3);
   const randoms = new Float32Array(count * 4);
   const colors = new Float32Array(count * 3);
-  const palette = props.particleColors && props.particleColors.length > 0 ? props.particleColors : defaultColors;
+  const palette = props.particleColors;
 
   for (let i = 0; i < count; i++) {
     let x: number, y: number, z: number, len: number;
@@ -205,13 +182,13 @@ const initParticles = () => {
     color: { size: 3, data: colors }
   });
 
-  program = new Program(gl, {
+  const program = new Program(gl, {
     vertex,
     fragment,
     uniforms: {
       uTime: { value: 0 },
       uSpread: { value: props.particleSpread },
-      uBaseSize: { value: props.particleBaseSize },
+      uBaseSize: { value: props.particleBaseSize * props.pixelRatio },
       uSizeRandomness: { value: props.sizeRandomness },
       uAlphaParticles: { value: props.alphaParticles ? 1 : 0 }
     },
@@ -219,131 +196,65 @@ const initParticles = () => {
     depthTest: false
   });
 
-  particles = new Mesh(gl, { mode: gl.POINTS, geometry, program });
+  const particles = new Mesh(gl, { mode: gl.POINTS, geometry, program });
 
-  lastTime = performance.now();
-  elapsed = 0;
+  let animationFrameId: number;
+  let lastTime = performance.now();
+  let elapsed = 0;
 
   const update = (t: number) => {
-    if (!animationFrameId) return;
     animationFrameId = requestAnimationFrame(update);
     const delta = t - lastTime;
     lastTime = t;
     elapsed += delta * props.speed;
 
-    if (program) {
-      program.uniforms.uTime.value = elapsed * 0.001;
-      program.uniforms.uSpread.value = props.particleSpread;
-      program.uniforms.uBaseSize.value = props.particleBaseSize;
-      program.uniforms.uSizeRandomness.value = props.sizeRandomness;
-      program.uniforms.uAlphaParticles.value = props.alphaParticles ? 1 : 0;
+    program.uniforms.uTime.value = elapsed * 0.001;
+
+    if (props.moveParticlesOnHover) {
+      particles.position.x = -mouseRef.value.x * props.particleHoverFactor;
+      particles.position.y = -mouseRef.value.y * props.particleHoverFactor;
+    } else {
+      particles.position.x = 0;
+      particles.position.y = 0;
     }
 
-    if (particles) {
-      if (props.moveParticlesOnHover) {
-        particles.position.x = -mouseRef.value.x * props.particleHoverFactor;
-        particles.position.y = -mouseRef.value.y * props.particleHoverFactor;
-      } else {
-        particles.position.x = 0;
-        particles.position.y = 0;
-      }
-
-      if (!props.disableRotation) {
-        particles.rotation.x = Math.sin(elapsed * 0.0002) * 0.1;
-        particles.rotation.y = Math.cos(elapsed * 0.0005) * 0.15;
-        particles.rotation.z += 0.01 * props.speed;
-      }
+    if (!props.disableRotation) {
+      particles.rotation.x = Math.sin(elapsed * 0.0002) * 0.1;
+      particles.rotation.y = Math.cos(elapsed * 0.0005) * 0.15;
+      particles.rotation.z += 0.01 * props.speed;
     }
 
-    if (renderer && camera && particles) {
-      renderer.render({ scene: particles, camera });
-    }
+    renderer.render({ scene: particles, camera });
   };
 
   animationFrameId = requestAnimationFrame(update);
 
-  return () => {
+  cleanup = () => {
     window.removeEventListener('resize', resize);
     if (props.moveParticlesOnHover) {
       container.removeEventListener('mousemove', handleMouseMove);
     }
-    if (animationFrameId) {
-      cancelAnimationFrame(animationFrameId);
-      animationFrameId = null;
-    }
+    cancelAnimationFrame(animationFrameId);
     if (container.contains(gl.canvas)) {
       container.removeChild(gl.canvas);
     }
   };
 };
 
-const cleanup = () => {
-  if (animationFrameId) {
-    cancelAnimationFrame(animationFrameId);
-    animationFrameId = null;
-  }
-  if (renderer) {
-    const container = containerRef.value;
-    const gl = renderer.gl;
-    if (container && gl.canvas.parentNode === container) {
-      container.removeChild(gl.canvas);
-    }
-    gl.getExtension('WEBGL_lose_context')?.loseContext();
-  }
-  renderer = null;
-  camera = null;
-  particles = null;
-  program = null;
-};
-
-// CHANGED onMounted
-onMounted(async () => {
-  await nextTick(); // wait for Vue to flush its DOM updates first
-  initParticles(); 
+onMounted(() => {
+  init();
 });
 
-onUnmounted(() => {
-  cleanup();
+onBeforeUnmount(() => {
+  cleanup?.();
 });
 
 watch(
-  () => [props.particleCount, props.particleColors],
+  () => props,
   () => {
-    cleanup();
-    initParticles();
+    cleanup?.();
+    init();
   },
   { deep: true }
 );
-
-watch(
-  () => [
-    props.particleSpread,
-    props.speed,
-    props.particleBaseSize,
-    props.sizeRandomness,
-    props.alphaParticles,
-    props.moveParticlesOnHover,
-    props.particleHoverFactor,
-    props.disableRotation
-  ],
-  () => {}
-);
 </script>
-
-<style scoped>
-div {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-}
-
-:deep(canvas) {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-}
-</style>

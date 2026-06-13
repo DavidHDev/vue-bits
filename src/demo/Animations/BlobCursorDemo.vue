@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Blob Cursor</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="blobCursor.usage"
+    :source="blobCursorSource"
+    component-name="BlobCursor"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[400px]">
+      <div class="h-[400px] demo-container">
         <BlobCursor
           :blobType="blobType"
           :fillColor="fillColor"
@@ -19,24 +27,14 @@
           :zIndex="zIndex"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <button
-          @click="
-            () => {
-              blobType = blobType === 'circle' ? 'square' : 'circle';
-            }
-          "
-          class="bg-[#0b0b0b] hover:bg-[#222] px-3 border border-[#333] rounded-[10px] h-8 text-white text-xs transition mb-[1.5rem]"
-        >
-          Blob Type:
-          <span class="ml-1 text-gray-400">{{ blobType }}</span>
-        </button>
-
-        <PreviewColor title="Fill Color" v-model="fillColor" class="mb-4" />
-        <PreviewColor title="Inner Color" v-model="innerColor" class="mb-4" />
-        <PreviewColor title="Shadow Color" v-model="shadowColor" />
-
+        <PreviewSelect title="Blob Type" v-model="blobType" :options="['circle', 'square']" />
+        <PreviewColorPicker title="Fill Color" v-model="fillColor" />
+        <PreviewColorPicker title="Inner Color" v-model="innerColor" />
+        <PreviewColorPicker title="Shadow Color" v-model="shadowColor" />
         <PreviewSlider
           title="Trail Count"
           :min="1"
@@ -61,7 +59,6 @@
             }
           "
         />
-
         <PreviewSlider
           title="Lead Blob Size"
           :min="10"
@@ -70,7 +67,6 @@
           v-model="sizes[0]"
           :isDisabled="trailCount < 1"
         />
-
         <PreviewSlider
           title="Lead Inner Dot Size"
           :min="1"
@@ -79,7 +75,6 @@
           v-model="innerSizes[0]"
           :isDisabled="trailCount < 1"
         />
-
         <PreviewSlider
           title="Lead Blob Opacity"
           :min="0.1"
@@ -88,17 +83,11 @@
           v-model="opacities[0]"
           :isDisabled="trailCount < 1"
         />
-
         <PreviewSlider title="Shadow Blur" :min="0" :max="50" :step="1" v-model="shadowBlur" />
-
         <PreviewSlider title="Shadow Offset X" :min="-50" :max="50" :step="1" v-model="shadowOffsetX" />
-
         <PreviewSlider title="Shadow Offset Y" :min="-50" :max="50" :step="1" v-model="shadowOffsetY" />
-
         <PreviewSlider title="Fast Duration (Lead)" :min="0.01" :max="2" :step="0.01" v-model="fastDuration" />
-
         <PreviewSlider title="Slow Duration (Trail)" :min="0.01" :max="3" :step="0.01" v-model="slowDuration" />
-
         <PreviewSlider title="Z-Index" :min="0" :max="1000" :step="10" v-model="zIndex" />
       </Customize>
 
@@ -106,50 +95,103 @@
         <i class="pi pi-exclamation-triangle"></i>
         SVG filters are not fully supported on Safari.
       </p>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['gsap']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="blobCursor" />
+      <DemoCodeTab slug="blob-cursor" :usage="blobCursor.usage!" :source="blobCursorSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="blobCursor.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import { blobCursor } from '../../constants/code/Animations/blobCursorCode';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewColor from '../../components/common/PreviewColor.vue';
-import BlobCursor from '../../content/Animations/BlobCursor/BlobCursor.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
+import { blobCursor } from '@/constants/code/Animations/blobCursorCode';
+import BlobCursor from '@/content/Animations/BlobCursor/BlobCursor.vue';
+import blobCursorSource from '@/content/Animations/BlobCursor/BlobCursor.vue?raw';
+import { computed, ref } from 'vue';
 
-const blobType = ref<'circle' | 'square'>('circle');
-const fillColor = ref<string>('#27FF64');
-const trailCount = ref<number>(3);
-const sizes = ref<number[]>([60, 125, 75]);
-const innerSizes = ref<number[]>([20, 35, 25]);
-const innerColor = ref<string>('rgba(255,255,255,0.8)');
-const opacities = ref<number[]>([0.6, 0.6, 0.6]);
-const shadowColor = ref<string>('rgba(0,0,0,0.75)');
-const shadowBlur = ref<number>(5);
-const shadowOffsetX = ref<number>(10);
-const shadowOffsetY = ref<number>(10);
-const fastDuration = ref<number>(0.1);
-const slowDuration = ref<number>(0.5);
-const zIndex = ref<number>(100);
+const { forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  blobType: 'circle' as 'circle' | 'square',
+  fillColor: '#27FF64',
+  trailCount: 3,
+  sizes: [60, 125, 75],
+  innerSizes: [20, 35, 25],
+  innerColor: 'rgba(255,255,255,0.8)',
+  opacities: [0.6, 0.6, 0.6],
+  shadowColor: 'rgba(0,0,0,0.75)',
+  shadowBlur: 5,
+  shadowOffsetX: 10,
+  shadowOffsetY: 10,
+  fastDuration: 0.1,
+  slowDuration: 0.5,
+  zIndex: 100
+};
+
+const blobType = ref<'circle' | 'square'>(DEFAULTS.blobType);
+const fillColor = ref<string>(DEFAULTS.fillColor);
+const trailCount = ref<number>(DEFAULTS.trailCount);
+const sizes = ref<number[]>(DEFAULTS.sizes);
+const innerSizes = ref<number[]>(DEFAULTS.innerSizes);
+const innerColor = ref<string>(DEFAULTS.innerColor);
+const opacities = ref<number[]>(DEFAULTS.opacities);
+const shadowColor = ref<string>(DEFAULTS.shadowColor);
+const shadowBlur = ref<number>(DEFAULTS.shadowBlur);
+const shadowOffsetX = ref<number>(DEFAULTS.shadowOffsetX);
+const shadowOffsetY = ref<number>(DEFAULTS.shadowOffsetY);
+const fastDuration = ref<number>(DEFAULTS.fastDuration);
+const slowDuration = ref<number>(DEFAULTS.slowDuration);
+const zIndex = ref<number>(DEFAULTS.zIndex);
+
+const hasChanges = computed(
+  () =>
+    blobType.value !== DEFAULTS.blobType ||
+    fillColor.value !== DEFAULTS.fillColor ||
+    trailCount.value !== DEFAULTS.trailCount ||
+    sizes.value !== DEFAULTS.sizes ||
+    innerSizes.value !== DEFAULTS.innerSizes ||
+    innerColor.value !== DEFAULTS.innerColor ||
+    opacities.value !== DEFAULTS.opacities ||
+    shadowColor.value !== DEFAULTS.shadowColor ||
+    shadowBlur.value !== DEFAULTS.shadowBlur ||
+    shadowOffsetX.value !== DEFAULTS.shadowOffsetX ||
+    shadowOffsetY.value !== DEFAULTS.shadowOffsetY ||
+    fastDuration.value !== DEFAULTS.fastDuration ||
+    slowDuration.value !== DEFAULTS.slowDuration ||
+    zIndex.value !== DEFAULTS.zIndex
+);
+
+function reset() {
+  blobType.value = DEFAULTS.blobType;
+  fillColor.value = DEFAULTS.fillColor;
+  trailCount.value = DEFAULTS.trailCount;
+  sizes.value = DEFAULTS.sizes;
+  innerSizes.value = DEFAULTS.innerSizes;
+  innerColor.value = DEFAULTS.innerColor;
+  opacities.value = DEFAULTS.opacities;
+  shadowColor.value = DEFAULTS.shadowColor;
+  shadowBlur.value = DEFAULTS.shadowBlur;
+  shadowOffsetX.value = DEFAULTS.shadowOffsetX;
+  shadowOffsetY.value = DEFAULTS.shadowOffsetY;
+  fastDuration.value = DEFAULTS.fastDuration;
+  slowDuration.value = DEFAULTS.slowDuration;
+  zIndex.value = DEFAULTS.zIndex;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   { name: 'blobType', type: "'circle' | 'square'", default: "'circle'", description: 'Shape of the blobs.' },
   { name: 'fillColor', type: 'string', default: "'#27FF64'", description: 'Background color of each blob.' },
   { name: 'trailCount', type: 'number', default: '3', description: 'How many trailing blobs.' },

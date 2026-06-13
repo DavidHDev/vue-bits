@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Beams</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="beams.usage"
+    :source="beamsSource"
+    component-name="Beams"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="h-[600px] overflow-hidden demo-container">
+      <div class="relative h-[500px] overflow-hidden demo-container">
         <Beams
           :beam-width="beamWidth"
           :beam-height="beamHeight"
@@ -14,64 +22,92 @@
         />
         <BackgroundContent pillText="New Background" headline="Radiant beams for creative user interfaces" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewColor title="Color" v-model="lightColor" />
-
+        <PreviewColorPicker title="Color" v-model="lightColor" />
         <PreviewSlider title="Beam Width" v-model="beamWidth" :min="0.1" :max="10" :step="0.1" />
-
         <PreviewSlider title="Beam Height" v-model="beamHeight" :min="1" :max="25" :step="1" />
-
         <PreviewSlider title="Beam Count" v-model="beamNumber" :min="1" :max="50" :step="1" />
-
         <PreviewSlider title="Speed" v-model="speed" :min="0.1" :max="10" :step="0.1" />
-
         <PreviewSlider title="Noise Intensity" v-model="noiseIntensity" :min="0" :max="5" :step="0.05" />
-
         <PreviewSlider title="Noise Scale" v-model="scale" :min="0.01" :max="1" :step="0.01" />
-
         <PreviewSlider title="Rotation" v-model="rotation" :min="0" :max="360" :step="1" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-
-      <Dependencies :dependency-list="['three']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="beams" />
+      <DemoCodeTab slug="beams" :usage="beams.usage!" :source="beamsSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="beams.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import CliInstallation from '@/components/code/CliInstallation.vue';
-import CodeExample from '@/components/code/CodeExample.vue';
-import Dependencies from '@/components/code/Dependencies.vue';
+import BackgroundContent from '@/components/common/BackgroundContent.vue';
 import Customize from '@/components/common/Customize.vue';
-import PreviewColor from '@/components/common/PreviewColor.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
-import PropTable from '@/components/common/PropTable.vue';
-import TabbedLayout from '@/components/common/TabbedLayout.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { beams } from '@/constants/code/Backgrounds/beamsCode';
 import Beams from '@/content/Backgrounds/Beams/Beams.vue';
-import { ref } from 'vue';
-import BackgroundContent from '../../components/common/BackgroundContent.vue';
+import beamsSource from '@/content/Backgrounds/Beams/Beams.vue?raw';
+import { computed, ref } from 'vue';
 
-const beamWidth = ref(3);
-const beamHeight = ref(30);
-const beamNumber = ref(20);
-const lightColor = ref('#ffffff');
-const speed = ref(2);
-const noiseIntensity = ref(1.75);
-const scale = ref(0.2);
-const rotation = ref(30);
+const { forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  beamWidth: 3,
+  beamHeight: 30,
+  beamNumber: 20,
+  lightColor: '#ffffff',
+  speed: 2,
+  noiseIntensity: 1.75,
+  scale: 0.2,
+  rotation: 30
+};
+
+const beamWidth = ref(DEFAULTS.beamWidth);
+const beamHeight = ref(DEFAULTS.beamHeight);
+const beamNumber = ref(DEFAULTS.beamNumber);
+const lightColor = ref(DEFAULTS.lightColor);
+const speed = ref(DEFAULTS.speed);
+const noiseIntensity = ref(DEFAULTS.noiseIntensity);
+const scale = ref(DEFAULTS.scale);
+const rotation = ref(DEFAULTS.rotation);
+
+const hasChanges = computed(
+  () =>
+    beamWidth.value !== DEFAULTS.beamWidth ||
+    beamHeight.value !== DEFAULTS.beamHeight ||
+    beamNumber.value !== DEFAULTS.beamNumber ||
+    lightColor.value !== DEFAULTS.lightColor ||
+    speed.value !== DEFAULTS.speed ||
+    noiseIntensity.value !== DEFAULTS.noiseIntensity ||
+    scale.value !== DEFAULTS.scale ||
+    rotation.value !== DEFAULTS.rotation
+);
+
+function reset() {
+  beamWidth.value = DEFAULTS.beamWidth;
+  beamHeight.value = DEFAULTS.beamHeight;
+  beamNumber.value = DEFAULTS.beamNumber;
+  lightColor.value = DEFAULTS.lightColor;
+  speed.value = DEFAULTS.speed;
+  noiseIntensity.value = DEFAULTS.noiseIntensity;
+  scale.value = DEFAULTS.scale;
+  rotation.value = DEFAULTS.rotation;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'beamWidth',
     type: 'number',

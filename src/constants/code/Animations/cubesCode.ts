@@ -1,4 +1,4 @@
-import code from '@content/Animations/Cubes/Cubes.vue?raw';
+import code from '@/content/Animations/Cubes/Cubes.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const cubes = createCodeObject(code, 'Animations/Cubes', {
@@ -8,23 +8,27 @@ export const cubes = createCodeObject(code, 'Animations/Cubes', {
 // https://cantastemel.com
 
 <template>
-  <Cubes 
-    :grid-size="10"
-    :max-angle="45"
-    :radius="3"
-    easing="power3.out"
-    :duration="{ enter: 0.3, leave: 0.6 }"
-    border-style="1px solid #fff"
-    face-color="#0b0b0b"
-    :shadow="false"
-    :auto-animate="true"
-    :ripple-on-click="true"
-    ripple-color="#fff"
-    :ripple-speed="2"
-  />
+  <div
+    style="
+      height: 600px;
+      position: relative;
+    "
+  >
+    <Cubes
+      :grid-size="8"
+      :max-angle="60"
+      :radius="4"
+      border-style="2px dashed #5227FF"
+      face-color="#0b0b0b"
+      ripple-color="#ff6b6b"
+      :ripple-speed="1.5"
+      :auto-animate="true"
+      :ripple-on-click="true"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
-  import Cubes from "./Cubes.vue";
+import Cubes from './Cubes.vue'
 </script>`
 });

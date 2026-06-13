@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Gooey Nav</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="gooeyNav.usage"
+    :source="gooeyNavSource"
+    component-name="GooeyNav"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[500px] overflow-hidden">
+      <div class="h-[400px] overflow-hidden demo-container">
         <GooeyNav
           :key="rerenderKey"
           :items="navItems"
@@ -11,47 +19,51 @@
           :particle-r="particleR"
           :time-variance="timeVariance"
           :initial-active-index="0"
-          :colors="[1, 2, 3, 1, 2, 3, 1, 4]"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSlider title="Particle Count" v-model="particleCount" :min="1" :max="50" :step="1" />
-
         <PreviewSlider title="Animation Variance" v-model="timeVariance" :min="0" :max="2000" :step="100" />
-
         <PreviewSlider title="Radius Factor" v-model="particleR" :min="0" :max="1000" :step="100" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="gooeyNav" />
+      <DemoCodeTab slug="gooey-nav" :usage="gooeyNav.usage!" :source="gooeyNavSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="gooeyNav.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import GooeyNav from '../../content/Components/GooeyNav/GooeyNav.vue';
-import { gooeyNav } from '@/constants/code/Components/gooeyNavCode';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
+import { gooeyNav } from '@/constants/code/Components/gooeyNavCode';
+import GooeyNav from '@/content/Components/GooeyNav/GooeyNav.vue';
+import gooeyNavSource from '@/content/Components/GooeyNav/GooeyNav.vue?raw';
+import { computed, ref } from 'vue';
 
-const particleCount = ref(15);
-const timeVariance = ref(300);
-const particleR = ref(100);
-const { rerenderKey } = useForceRerender();
+const { rerenderKey, forceRerender } = useForceRerender();
+
+const DEFAULTS = {
+  particleCount: 15,
+  timeVariance: 300,
+  particleR: 100
+};
+
+const particleCount = ref(DEFAULTS.particleCount);
+const timeVariance = ref(DEFAULTS.timeVariance);
+const particleR = ref(DEFAULTS.particleR);
 
 const navItems = [
   { label: 'Home', href: null },
@@ -59,12 +71,26 @@ const navItems = [
   { label: 'Contact', href: null }
 ];
 
-const propData = [
+const hasChanges = computed(
+  () =>
+    particleCount.value !== DEFAULTS.particleCount ||
+    timeVariance.value !== DEFAULTS.timeVariance ||
+    particleR.value !== DEFAULTS.particleR
+);
+
+function reset() {
+  particleCount.value = DEFAULTS.particleCount;
+  timeVariance.value = DEFAULTS.timeVariance;
+  particleR.value = DEFAULTS.particleR;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'items',
     type: 'GooeyNavItem[]',
     default: '[]',
-    description: 'Array of navigation items with label and href properties.'
+    description: 'Array of navigation items.'
   },
   {
     name: 'animationTime',

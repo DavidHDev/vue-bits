@@ -1,5 +1,13 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Ghost Cursor</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="ghostCursor.usage"
+    :source="ghostCursorSource"
+    component-name="GhostCursor"
+    :props-table="props"
+  >
     <template #preview>
       <div class="relative w-full h-[600px] overflow-hidden demo-container">
         <GhostCursor
@@ -14,62 +22,102 @@
           :fade-delay-ms="fadeDelayMs"
           :fade-duration-ms="fadeDurationMs"
         />
-
-        <h3 class="z-11 absolute font-black text-[#060000] text-[clamp(3rem,8vw,8rem)] select-none">Boo!</h3>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewColor title="Color" v-model="color" />
-        <PreviewSlider title="Trail Length" :min="10" :max="50" :step="5" v-model="trailLength" />
-        <PreviewSlider title="Inertia" :min="0" :max="0.99" :step="0.01" v-model="inertia" />
+        <PreviewColorPicker title="Color" v-model="color" />
+        <PreviewSlider title="Trail Length" :min="5" :max="150" :step="1" v-model="trailLength" />
+        <PreviewSlider title="Inertia" :min="0" :max="1" :step="0.05" v-model="inertia" />
+        <PreviewSlider title="Brightness" :min="0.5" :max="5" :step="0.1" v-model="brightness" />
         <PreviewSlider title="Grain Intensity" :min="0" :max="0.5" :step="0.01" v-model="grainIntensity" />
-        <PreviewSlider title="Bloom Strength" :min="0" :max="10" :step="0.05" v-model="bloomStrength" />
-        <PreviewSlider title="Bloom Radius" :min="0" :max="10" :step="0.05" v-model="bloomRadius" />
+        <PreviewSlider title="Bloom Strength" :min="0" :max="1" :step="0.05" v-model="bloomStrength" />
+        <PreviewSlider title="Bloom Radius" :min="0" :max="3" :step="0.1" v-model="bloomRadius" />
         <PreviewSlider title="Bloom Threshold" :min="0" :max="1" :step="0.01" v-model="bloomThreshold" />
-        <PreviewSlider title="Brightness" :min="0" :max="10" :step="0.1" v-model="brightness" />
-        <PreviewSlider title="Fade Delay (ms)" :min="0" :max="3000" :step="100" v-model="fadeDelayMs" />
+        <PreviewSlider title="Fade Delay (ms)" :min="0" :max="5000" :step="100" v-model="fadeDelayMs" />
         <PreviewSlider title="Fade Duration (ms)" :min="100" :max="5000" :step="100" v-model="fadeDurationMs" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['three']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="ghostCursor" />
+      <DemoCodeTab slug="ghost-cursor" :usage="ghostCursor.usage!" :source="ghostCursorSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="ghostCursor.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender.ts';
 import { ghostCursor } from '@/constants/code/Animations/ghostCursorCode';
-import { ref } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewColor from '../../components/common/PreviewColor.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import GhostCursor from '../../content/Animations/GhostCursor/GhostCursor.vue';
+import GhostCursor from '@/content/Animations/GhostCursor/GhostCursor.vue';
+import ghostCursorSource from '@/content/Animations/GhostCursor/GhostCursor.vue?raw';
+import { computed, ref } from 'vue';
 
-const trailLength = ref(50);
-const inertia = ref(0.5);
-const grainIntensity = ref(0.05);
-const bloomStrength = ref(0.1);
-const bloomRadius = ref(1.0);
-const bloomThreshold = ref(0.025);
-const brightness = ref(2);
-const color = ref('#A0FFBC');
-const fadeDelayMs = ref(1000);
-const fadeDurationMs = ref(1500);
+const { forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  trailLength: 50,
+  inertia: 0.5,
+  grainIntensity: 0.05,
+  bloomStrength: 0.1,
+  bloomRadius: 1.0,
+  bloomThreshold: 0.025,
+  brightness: 2,
+  color: '#A0FFBC',
+  fadeDelayMs: 1000,
+  fadeDurationMs: 1500
+};
+
+const trailLength = ref(DEFAULTS.trailLength);
+const inertia = ref(DEFAULTS.inertia);
+const grainIntensity = ref(DEFAULTS.grainIntensity);
+const bloomStrength = ref(DEFAULTS.bloomStrength);
+const bloomRadius = ref(DEFAULTS.bloomRadius);
+const bloomThreshold = ref(DEFAULTS.bloomThreshold);
+const brightness = ref(DEFAULTS.brightness);
+const color = ref(DEFAULTS.color);
+const fadeDelayMs = ref(DEFAULTS.fadeDelayMs);
+const fadeDurationMs = ref(DEFAULTS.fadeDurationMs);
+
+const hasChanges = computed(
+  () =>
+    trailLength.value !== DEFAULTS.trailLength ||
+    inertia.value !== DEFAULTS.inertia ||
+    grainIntensity.value !== DEFAULTS.grainIntensity ||
+    bloomStrength.value !== DEFAULTS.bloomStrength ||
+    bloomRadius.value !== DEFAULTS.bloomRadius ||
+    bloomThreshold.value !== DEFAULTS.bloomThreshold ||
+    brightness.value !== DEFAULTS.brightness ||
+    color.value !== DEFAULTS.color ||
+    fadeDelayMs.value !== DEFAULTS.fadeDelayMs ||
+    fadeDurationMs.value !== DEFAULTS.fadeDurationMs
+);
+
+function reset() {
+  trailLength.value = DEFAULTS.trailLength;
+  inertia.value = DEFAULTS.inertia;
+  grainIntensity.value = DEFAULTS.grainIntensity;
+  bloomStrength.value = DEFAULTS.bloomStrength;
+  bloomRadius.value = DEFAULTS.bloomRadius;
+  bloomThreshold.value = DEFAULTS.bloomThreshold;
+  brightness.value = DEFAULTS.brightness;
+  color.value = DEFAULTS.color;
+  fadeDelayMs.value = DEFAULTS.fadeDelayMs;
+  fadeDurationMs.value = DEFAULTS.fadeDurationMs;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   { name: 'className', type: 'string', default: "''", description: 'Additional CSS class names for the container.' },
   {
     name: 'style',
@@ -159,9 +207,3 @@ const propData = [
   }
 ];
 </script>
-
-<style scoped>
-.demo-container {
-  padding: 0;
-}
-</style>

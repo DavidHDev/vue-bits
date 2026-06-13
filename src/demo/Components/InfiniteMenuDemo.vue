@@ -1,37 +1,48 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Infinite Menu</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="infiniteMenu.usage"
+    :source="infiniteMenuSource"
+    component-name="InfiniteMenu"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[500px] overflow-hidden">
+      <div class="h-[500px] overflow-hidden demo-container">
         <InfiniteMenu :items="demoItems" :scale="scaleFactor" />
       </div>
+    </template>
+
+    <template #customize>
       <Customize>
-        <PreviewSlider title="Scale" v-model="scaleFactor" :min="1" :max="10" :step="1" />
+        <PreviewSlider title="Scale" v-model="scaleFactor" :min="0.1" :max="3" :step="0.1" />
       </Customize>
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['gl-matrix']" />
+    </template>
+
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="infiniteMenu" />
+      <DemoCodeTab slug="infinite-menu" :usage="infiniteMenu.usage!" :source="infiniteMenuSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="infiniteMenu.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import { infiniteMenu } from '../../constants/code/Components/infiniteMenuCode';
-import InfiniteMenu from '../../content/Components/InfiniteMenu/InfiniteMenu.vue';
-import { ref } from 'vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import Customize from '../../components/common/Customize.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
+import { infiniteMenu } from '@/constants/code/Components/infiniteMenuCode';
+import InfiniteMenu from '@/content/Components/InfiniteMenu/InfiniteMenu.vue';
+import infiniteMenuSource from '@/content/Components/InfiniteMenu/InfiniteMenu.vue?raw';
+import { computed, ref } from 'vue';
+
+const { forceRerender } = useForceRerender();
 
 const demoItems = [
   {
@@ -60,9 +71,20 @@ const demoItems = [
   }
 ];
 
-const scaleFactor = ref<number>(3);
+const DEFAULTS = {
+  scale: 1.0
+};
 
-const propData = [
+const scaleFactor = ref<number>(DEFAULTS.scale);
+
+const hasChanges = computed(() => scaleFactor.value !== DEFAULTS.scale);
+
+function reset() {
+  scaleFactor.value = DEFAULTS.scale;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'items',
     type: 'InfiniteMenuItem[]',
@@ -72,7 +94,7 @@ const propData = [
   {
     name: 'scale',
     type: 'number',
-    default: '3',
+    default: '1.0',
     description: 'scale camera position'
   }
 ];

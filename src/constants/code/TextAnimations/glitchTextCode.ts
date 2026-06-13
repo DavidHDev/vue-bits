@@ -4,14 +4,16 @@ import { createCodeObject } from '@/types/code';
 export const glitchText = createCodeObject(code, 'TextAnimations/GlitchText', {
   usage: `<template>
   <GlitchText
-    children="Vue Bits"
-    :speed="0.5"
+    :speed="1"
     :enable-shadows="true"
-    :enable-on-hover="false"
-  />
+    :enable-on-hover="true"
+    class="custom-class"
+  >
+    React Bits
+  </GlitchText>
 </template>
 
-<script setup lang="ts">
-  import GlitchText from "./GlitchText.vue";
+<script setup>
+import GlitchText from './GlitchText.vue'
 </script>`
 });
