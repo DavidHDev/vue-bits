@@ -5,29 +5,22 @@ export const animatedContent = createCodeObject(code, 'Animations/AnimatedConten
   installation: `npm install gsap`,
   usage: `<template>
   <AnimatedContent
-    :distance="100"
-    direction="vertical"
+    :distance="150"
+    direction="horizontal"
     :reverse="false"
-    :duration="0.8"
-    ease="power3.out"
-    :initial-opacity="0"
+    :duration="1.2"
+    ease="bounce.out"
+    :initial-opacity="0.2"
     :animate-opacity="true"
-    :scale="1"
-    :threshold="0.1"
-    :delay="0"
-    @complete="handleComplete"
+    :scale="1.1"
+    :threshold="0.2"
+    :delay="0.3"
   >
-    <div class="your-content">
-      Content to animate
-    </div>
+    <div>Content to Animate</div>
   </AnimatedContent>
 </template>
 
 <script setup lang="ts">
-  import AnimatedContent from "./AnimatedContent.vue";
-  
-  const handleComplete = () => {
-    console.log("Animation completed!");,
-});
+import AnimatedContent from './AnimatedContent.vue'
 </script>`
 });

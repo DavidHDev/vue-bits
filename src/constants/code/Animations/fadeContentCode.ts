@@ -1,4 +1,4 @@
-import code from '@content/Animations/FadeContent/FadeContent.vue?raw';
+import code from '@/content/Animations/FadeContent/FadeContent.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const fadeContent = createCodeObject(code, 'Animations/FadeContent', {
@@ -6,20 +6,17 @@ export const fadeContent = createCodeObject(code, 'Animations/FadeContent', {
   <FadeContent
     :blur="true"
     :duration="1000"
-    :delay="200"
-    :threshold="0.1"
-    :initial-opacity="0"
     easing="ease-out"
-    class-name="my-fade-content"
+    :initial-opacity="0"
   >
-    <div class="content-to-fade">
-      <h2>This content will fade in!</h2>
-      <p>It appears when scrolled into view.</p>
+    <!-- Anything placed inside this container will fade into view -->
+    <div>
+      Anything placed inside this container will fade into view
     </div>
   </FadeContent>
 </template>
 
 <script setup lang="ts">
-  import FadeContent from "./FadeContent.vue";
+import FadeContent from './FadeContent.vue'
 </script>`
 });

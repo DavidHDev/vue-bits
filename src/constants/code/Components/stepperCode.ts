@@ -1,4 +1,4 @@
-import code from '@content/Components/Stepper/Stepper.vue?raw';
+import code from '@/content/Components/Stepper/Stepper.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const stepper = createCodeObject(code, 'Components/Stepper', {
@@ -6,10 +6,10 @@ export const stepper = createCodeObject(code, 'Components/Stepper', {
   usage: `<template>
   <Stepper
     :initial-step="1"
-    :on-step-change="handleStepChange"
-    :on-final-step-completed="handleFinalStepCompleted"
-    back-button-text="Previous"
-    next-button-text="Next"
+    :back-button-text="'Previous'"
+    :next-button-text="'Next'"
+    @step-change="handleStepChange"
+    @final-step-completed="handleFinalStepCompleted"
   >
     <div>
       <h2>Welcome to the Vue Bits stepper!</h2>
@@ -43,17 +43,17 @@ export const stepper = createCodeObject(code, 'Components/Stepper', {
 </template>
 
 <script setup lang="ts">
-  import { ref } from 'vue'
-  import Stepper from "./Stepper.vue"
+import { ref } from 'vue'
+import Stepper from './Stepper.vue'
 
-  const name = ref('')
+const name = ref('')
 
-  const handleStepChange = (step) => {
-    console.log('Step changed to:', step)
-  }
+const handleStepChange = (step) => {
+  console.log(step)
+}
 
-  const handleFinalStepCompleted = () => {
-    console.log('Stepper completed!')
-  }
+const handleFinalStepCompleted = () => {
+  console.log('All steps completed!')
+}
 </script>`
 });

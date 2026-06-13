@@ -1,10 +1,16 @@
-import code from '@content/Animations/Strands/Strands.vue?raw';
+import code from '@/content/Animations/Strands/Strands.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const strands = createCodeObject(code, 'Animations/Strands', {
   installation: `npm install ogl`,
   usage: `<template>
-  <div class="w-full h-[600px] relative">
+  <div
+    style="
+      width: 100%;
+      height: 600px;
+      position: relative;
+    "
+  >
     <Strands
       :colors="['#FF4242', '#7C3AED', '#06B6D4', '#EAB308']"
       :count="3"
@@ -28,6 +34,6 @@ export const strands = createCodeObject(code, 'Animations/Strands', {
 </template>
 
 <script setup lang="ts">
-import Strands from "./Strands.vue";
+import Strands from './Strands.vue'
 </script>`
 });
