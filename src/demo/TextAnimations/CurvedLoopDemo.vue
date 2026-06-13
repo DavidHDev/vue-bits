@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Curved Loop</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="curvedLoop.usage"
+    :source="curvedLoopSource"
+    component-name="CurvedLoop"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[500px] overflow-hidden">
+      <div class="h-[500px] overflow-hidden demo-container">
         <CurvedLoop
           :key="rerenderKey"
           :marquee-text="marqueeText"
@@ -10,61 +18,72 @@
           :interactive="interactive"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-2">Marquee Text</label>
-
-          <input
-            v-model="marqueeText"
-            type="text"
-            placeholder="Enter text..."
-            class="w-[300px] px-3 py-2 bg-[#0b0b0b] border border-[#333] rounded-md text-white focus:outline-none focus:border-[#666]"
-            @input="forceRerender"
-          />
-        </div>
-
+        <PreviewInput title="Marquee Text" v-model="marqueeText" placeholder="Enter text..." />
         <PreviewSlider title="Speed" v-model="speed" :min="0" :max="10" :step="0.1" />
-
         <PreviewSlider title="Curve Amount" v-model="curveAmount" :min="-400" :max="400" :step="10" value-unit="px" />
-
         <PreviewSwitch title="Draggable" v-model="interactive" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="curvedLoop" />
+      <DemoCodeTab slug="curved-loop" :usage="curvedLoop.usage!" :source="curvedLoopSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="curvedLoop.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import CurvedLoop from '../../content/TextAnimations/CurvedLoop/CurvedLoop.vue';
-import { curvedLoop } from '@/constants/code/TextAnimations/curvedLoopCode';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewInput from '@/components/common/PreviewInput.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
-
-const marqueeText = ref('Be ✦ Creative ✦ With ✦ Vue ✦ Bits ✦');
-const speed = ref(2);
-const curveAmount = ref(400);
-const interactive = ref(true);
+import { curvedLoop } from '@/constants/code/TextAnimations/curvedLoopCode';
+import CurvedLoop from '@/content/TextAnimations/CurvedLoop/CurvedLoop.vue';
+import curvedLoopSource from '@/content/TextAnimations/CurvedLoop/CurvedLoop.vue?raw';
+import { computed, ref } from 'vue';
 
 const { rerenderKey, forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  marqueeText: 'Be ✦ Creative ✦ With ✦ Vue ✦ Bits ✦',
+  speed: 2,
+  curveAmount: 400,
+  interactive: true
+};
+
+const marqueeText = ref(DEFAULTS.marqueeText);
+const speed = ref(DEFAULTS.speed);
+const curveAmount = ref(DEFAULTS.curveAmount);
+const interactive = ref(DEFAULTS.interactive);
+
+const hasChanges = computed(
+  () =>
+    marqueeText.value !== DEFAULTS.marqueeText ||
+    speed.value !== DEFAULTS.speed ||
+    curveAmount.value !== DEFAULTS.curveAmount ||
+    interactive.value !== DEFAULTS.interactive
+);
+
+function reset() {
+  marqueeText.value = DEFAULTS.marqueeText;
+  speed.value = DEFAULTS.speed;
+  curveAmount.value = DEFAULTS.curveAmount;
+  interactive.value = DEFAULTS.interactive;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'marqueeText',
     type: 'string',

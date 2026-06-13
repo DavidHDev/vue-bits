@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Line Waves</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="lineWaves.usage"
+    :source="lineWavesSource"
+    component-name="LineWaves"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="relative p-0 h-[600px] overflow-hidden demo-container">
+      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
         <LineWaves
           :speed="speed"
           :inner-line-count="innerLineCount"
@@ -17,17 +25,15 @@
           :enable-mouse-interaction="enableMouseInteraction"
           :mouse-influence="mouseInfluence"
         />
-
         <BackgroundContent pill-text="New Background" headline="Ride the waves of your creativity!" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <div class="flex items-center gap-4 mt-4">
-          <PreviewColor title="Color 1" v-model="color1" />
-          <PreviewColor title="Color 2" v-model="color2" />
-          <PreviewColor title="Color 3" v-model="color3" />
-        </div>
-
+        <PreviewColorPicker title="Color 1" v-model="color1" />
+        <PreviewColorPicker title="Color 2" v-model="color2" />
+        <PreviewColorPicker title="Color 3" v-model="color3" />
         <PreviewSlider title="Speed" :min="0.1" :max="3" :step="0.1" v-model="speed" />
         <PreviewSlider title="Inner Line Count" :min="2" :max="40" :step="1" v-model="innerLineCount" />
         <PreviewSlider title="Outer Line Count" :min="2" :max="40" :step="1" v-model="outerLineCount" />
@@ -46,51 +52,100 @@
           v-model="mouseInfluence"
         />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['ogl']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="lineWaves" />
+      <DemoCodeTab slug="line-waves" :usage="lineWaves.usage!" :source="lineWavesSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="lineWaves.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import CliInstallation from '@/components/code/CliInstallation.vue';
-import CodeExample from '@/components/code/CodeExample.vue';
-import Dependencies from '@/components/code/Dependencies.vue';
 import BackgroundContent from '@/components/common/BackgroundContent.vue';
 import Customize from '@/components/common/Customize.vue';
-import PreviewColor from '@/components/common/PreviewColor.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
-import PropTable from '@/components/common/PropTable.vue';
-import TabbedLayout from '@/components/common/TabbedLayout.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { lineWaves } from '@/constants/code/Backgrounds/lineWavesCode';
 import LineWaves from '@/content/Backgrounds/LineWaves/LineWaves.vue';
-import { ref } from 'vue';
+import lineWavesSource from '@/content/Backgrounds/LineWaves/LineWaves.vue?raw';
+import { computed, ref } from 'vue';
 
-const speed = ref(0.3);
-const innerLineCount = ref(32.0);
-const outerLineCount = ref(36.0);
-const warpIntensity = ref(1.0);
-const rotation = ref(-45);
-const edgeFadeWidth = ref(0.0);
-const colorCycleSpeed = ref(1.0);
-const brightness = ref(0.2);
-const color1 = ref('#ffffff');
-const color2 = ref('#ffffff');
-const color3 = ref('#ffffff');
-const enableMouseInteraction = ref(true);
-const mouseInfluence = ref(2.0);
+const { forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  speed: 0.3,
+  innerLineCount: 32.0,
+  outerLineCount: 36.0,
+  warpIntensity: 1.0,
+  rotation: -45,
+  edgeFadeWidth: 0.0,
+  colorCycleSpeed: 1.0,
+  brightness: 0.2,
+  color1: '#ffffff',
+  color2: '#ffffff',
+  color3: '#ffffff',
+  enableMouseInteraction: true,
+  mouseInfluence: 2.0
+};
+
+const speed = ref(DEFAULTS.speed);
+const innerLineCount = ref(DEFAULTS.innerLineCount);
+const outerLineCount = ref(DEFAULTS.outerLineCount);
+const warpIntensity = ref(DEFAULTS.warpIntensity);
+const rotation = ref(DEFAULTS.rotation);
+const edgeFadeWidth = ref(DEFAULTS.edgeFadeWidth);
+const colorCycleSpeed = ref(DEFAULTS.colorCycleSpeed);
+const brightness = ref(DEFAULTS.brightness);
+const color1 = ref(DEFAULTS.color1);
+const color2 = ref(DEFAULTS.color2);
+const color3 = ref(DEFAULTS.color3);
+const enableMouseInteraction = ref(DEFAULTS.enableMouseInteraction);
+const mouseInfluence = ref(DEFAULTS.mouseInfluence);
+
+const hasChanges = computed(
+  () =>
+    speed.value !== DEFAULTS.speed ||
+    innerLineCount.value !== DEFAULTS.innerLineCount ||
+    outerLineCount.value !== DEFAULTS.outerLineCount ||
+    warpIntensity.value !== DEFAULTS.warpIntensity ||
+    rotation.value !== DEFAULTS.rotation ||
+    edgeFadeWidth.value !== DEFAULTS.edgeFadeWidth ||
+    colorCycleSpeed.value !== DEFAULTS.colorCycleSpeed ||
+    brightness.value !== DEFAULTS.brightness ||
+    color1.value !== DEFAULTS.color1 ||
+    color2.value !== DEFAULTS.color2 ||
+    color3.value !== DEFAULTS.color3 ||
+    enableMouseInteraction.value !== DEFAULTS.enableMouseInteraction ||
+    mouseInfluence.value !== DEFAULTS.mouseInfluence
+);
+
+function reset() {
+  speed.value = DEFAULTS.speed;
+  innerLineCount.value = DEFAULTS.innerLineCount;
+  outerLineCount.value = DEFAULTS.outerLineCount;
+  warpIntensity.value = DEFAULTS.warpIntensity;
+  rotation.value = DEFAULTS.rotation;
+  edgeFadeWidth.value = DEFAULTS.edgeFadeWidth;
+  colorCycleSpeed.value = DEFAULTS.colorCycleSpeed;
+  brightness.value = DEFAULTS.brightness;
+  color1.value = DEFAULTS.color1;
+  color2.value = DEFAULTS.color2;
+  color3.value = DEFAULTS.color3;
+  enableMouseInteraction.value = DEFAULTS.enableMouseInteraction;
+  mouseInfluence.value = DEFAULTS.mouseInfluence;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'speed',
     type: 'number',

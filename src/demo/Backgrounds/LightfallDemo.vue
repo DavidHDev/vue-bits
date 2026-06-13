@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Lightfall</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="lightfall.usage"
+    :source="lightfallSource"
+    component-name="Lightfall"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="relative p-0 h-[600px] overflow-hidden demo-container" style="background: #000">
+      <div class="relative p-0 h-[500px] overflow-hidden demo-container" style="background: #000">
         <Lightfall
           :colors="colors"
           :background-color="backgroundColor"
@@ -18,20 +26,17 @@
           :mouse-strength="mouseStrength"
           :mouse-radius="mouseRadius"
         />
-
         <BackgroundContent pill-text="New Background" headline="Let the light rain down" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <div class="flex items-center gap-4 mt-4 flex-wrap">
-          <PreviewColor title="Color 1" v-model="color1" />
-          <PreviewColor title="Color 2" v-model="color2" />
-          <PreviewColor title="Color 3" v-model="color3" />
-          <PreviewColor title="Background" v-model="backgroundColor" />
-        </div>
-
+        <PreviewColorPicker title="Color 1" v-model="color1" />
+        <PreviewColorPicker title="Color 2" v-model="color2" />
+        <PreviewColorPicker title="Color 3" v-model="color3" />
+        <PreviewColorPicker title="Background" v-model="backgroundColor" />
         <PreviewSwitch title="Cursor Light" v-model="mouseInteraction" />
-
         <PreviewSlider title="Speed" :min="0" :max="4" :step="0.1" v-model="speed" />
         <PreviewSlider title="Streak Count" :min="1" :max="16" :step="1" v-model="streakCount" />
         <PreviewSlider title="Streak Width" :min="0.2" :max="4" :step="0.1" v-model="streakWidth" />
@@ -44,56 +49,114 @@
         <PreviewSlider title="Cursor Strength" :min="0" :max="3" :step="0.1" v-model="mouseStrength" />
         <PreviewSlider title="Cursor Radius" :min="0.1" :max="2" :step="0.05" v-model="mouseRadius" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['ogl']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="lightfall" />
+      <DemoCodeTab slug="lightfall" :usage="lightfall.usage!" :source="lightfallSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="lightfall.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import CliInstallation from '@/components/code/CliInstallation.vue';
-import CodeExample from '@/components/code/CodeExample.vue';
-import Dependencies from '@/components/code/Dependencies.vue';
 import BackgroundContent from '@/components/common/BackgroundContent.vue';
 import Customize from '@/components/common/Customize.vue';
-import PreviewColor from '@/components/common/PreviewColor.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
-import PropTable from '@/components/common/PropTable.vue';
-import TabbedLayout from '@/components/common/TabbedLayout.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { lightfall } from '@/constants/code/Backgrounds/lightfallCode';
 import Lightfall from '@/content/Backgrounds/Lightfall/Lightfall.vue';
+import lightfallSource from '@/content/Backgrounds/Lightfall/Lightfall.vue?raw';
+import { computed, ref } from 'vue';
 
-const color1 = ref('#A8FFB6');
-const color2 = ref('#27FF64');
-const color3 = ref('#7CFF67');
-const backgroundColor = ref('#0A4A2A');
-const speed = ref(0.5);
-const streakCount = ref(2);
-const streakWidth = ref(1);
-const streakLength = ref(1);
-const glow = ref(1);
-const density = ref(0.6);
-const twinkle = ref(1);
-const zoom = ref(3);
-const backgroundGlow = ref(0.5);
-const mouseInteraction = ref(true);
-const mouseStrength = ref(0.5);
-const mouseRadius = ref(1);
+const { forceRerender } = useForceRerender();
+
+const DEFAULTS = {
+  color1: '#A8FFB6',
+  color2: '#27FF64',
+  color3: '#7CFF67',
+  backgroundColor: '#0A4A2A',
+  speed: 0.5,
+  streakCount: 2,
+  streakWidth: 1,
+  streakLength: 1,
+  glow: 1,
+  density: 0.6,
+  twinkle: 1,
+  zoom: 3,
+  backgroundGlow: 0.5,
+  mouseInteraction: true,
+  mouseStrength: 0.5,
+  mouseRadius: 1
+};
+
+const color1 = ref(DEFAULTS.color1);
+const color2 = ref(DEFAULTS.color2);
+const color3 = ref(DEFAULTS.color3);
+const backgroundColor = ref(DEFAULTS.backgroundColor);
+const speed = ref(DEFAULTS.speed);
+const streakCount = ref(DEFAULTS.streakCount);
+const streakWidth = ref(DEFAULTS.streakWidth);
+const streakLength = ref(DEFAULTS.streakLength);
+const glow = ref(DEFAULTS.glow);
+const density = ref(DEFAULTS.density);
+const twinkle = ref(DEFAULTS.twinkle);
+const zoom = ref(DEFAULTS.zoom);
+const backgroundGlow = ref(DEFAULTS.backgroundGlow);
+const mouseInteraction = ref(DEFAULTS.mouseInteraction);
+const mouseStrength = ref(DEFAULTS.mouseStrength);
+const mouseRadius = ref(DEFAULTS.mouseRadius);
 
 const colors = computed(() => [color1.value, color2.value, color3.value]);
 
-const propData = [
+const hasChanges = computed(
+  () =>
+    color1.value !== DEFAULTS.color1 ||
+    color2.value !== DEFAULTS.color2 ||
+    color3.value !== DEFAULTS.color3 ||
+    backgroundColor.value !== DEFAULTS.backgroundColor ||
+    speed.value !== DEFAULTS.speed ||
+    streakCount.value !== DEFAULTS.streakCount ||
+    streakWidth.value !== DEFAULTS.streakWidth ||
+    streakLength.value !== DEFAULTS.streakLength ||
+    glow.value !== DEFAULTS.glow ||
+    density.value !== DEFAULTS.density ||
+    twinkle.value !== DEFAULTS.twinkle ||
+    zoom.value !== DEFAULTS.zoom ||
+    backgroundGlow.value !== DEFAULTS.backgroundGlow ||
+    mouseInteraction.value !== DEFAULTS.mouseInteraction ||
+    mouseStrength.value !== DEFAULTS.mouseStrength ||
+    mouseRadius.value !== DEFAULTS.mouseRadius
+);
+
+function reset() {
+  color1.value = DEFAULTS.color1;
+  color2.value = DEFAULTS.color2;
+  color3.value = DEFAULTS.color3;
+  backgroundColor.value = DEFAULTS.backgroundColor;
+  speed.value = DEFAULTS.speed;
+  streakCount.value = DEFAULTS.streakCount;
+  streakWidth.value = DEFAULTS.streakWidth;
+  streakLength.value = DEFAULTS.streakLength;
+  glow.value = DEFAULTS.glow;
+  density.value = DEFAULTS.density;
+  twinkle.value = DEFAULTS.twinkle;
+  zoom.value = DEFAULTS.zoom;
+  backgroundGlow.value = DEFAULTS.backgroundGlow;
+  mouseInteraction.value = DEFAULTS.mouseInteraction;
+  mouseStrength.value = DEFAULTS.mouseStrength;
+  mouseRadius.value = DEFAULTS.mouseRadius;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'colors',
     type: 'string[]',
@@ -115,7 +178,12 @@ const propData = [
     description: 'Number of streak layers rendered per cell (1–16). Higher = busier.'
   },
   { name: 'streakWidth', type: 'number', default: '1', description: 'Thickness of each light streak.' },
-  { name: 'streakLength', type: 'number', default: '1', description: 'Length of the glowing tail trailing each streak.' },
+  {
+    name: 'streakLength',
+    type: 'number',
+    default: '1',
+    description: 'Length of the glowing tail trailing each streak.'
+  },
   {
     name: 'glow',
     type: 'number',
@@ -134,7 +202,12 @@ const propData = [
     default: '1',
     description: 'Amount of per-streak brightness flicker. 0 = constant brightness.'
   },
-  { name: 'zoom', type: 'number', default: '3', description: 'Field of view into the tunnel. Higher values zoom further in.' },
+  {
+    name: 'zoom',
+    type: 'number',
+    default: '3',
+    description: 'Field of view into the tunnel. Higher values zoom further in.'
+  },
   { name: 'backgroundGlow', type: 'number', default: '0.5', description: 'Intensity of the ambient background glow.' },
   { name: 'opacity', type: 'number', default: '1', description: 'Overall alpha of the rendered canvas.' },
   {

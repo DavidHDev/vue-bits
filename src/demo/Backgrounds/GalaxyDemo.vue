@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Galaxy</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="galaxy.usage"
+    :source="galaxySource"
+    component-name="Galaxy"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="relative p-0 h-[600px] overflow-hidden demo-container">
+      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
         <Galaxy
           :density="density"
           :glow-intensity="glowIntensity"
@@ -18,7 +26,9 @@
         />
         <BackgroundContent pill-text="New Background" headline="Components you shall have, young padawan." />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSwitch title="Mouse Interaction" v-model="mouseInteraction" />
         <PreviewSwitch title="Mouse Repulsion" v-model="mouseRepulsion" />
@@ -33,49 +43,94 @@
         <PreviewSlider :min="0.1" :max="2" :step="0.1" v-model="starSpeed" title="Star Speed" />
         <PreviewSlider :min="0.1" :max="3" :step="0.1" v-model="speed" title="Animation Speed" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['ogl']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="galaxy" />
+      <DemoCodeTab slug="galaxy" :usage="galaxy.usage!" :source="galaxySource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="galaxy.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import BackgroundContent from '../../components/common/BackgroundContent.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import { galaxy } from '../../constants/code/Backgrounds/galaxyCode';
-import Galaxy from '../../content/Backgrounds/Galaxy/Galaxy.vue';
+import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
+import { galaxy } from '@/constants/code/Backgrounds/galaxyCode';
+import Galaxy from '@/content/Backgrounds/Galaxy/Galaxy.vue';
+import galaxySource from '@/content/Backgrounds/Galaxy/Galaxy.vue?raw';
+import { computed, ref } from 'vue';
 
-const density = ref(1);
-const glowIntensity = ref(0.3);
-const saturation = ref(0.0);
-const hueShift = ref(140);
-const twinkleIntensity = ref(0.3);
-const rotationSpeed = ref(0.1);
-const repulsionStrength = ref(2);
-const autoCenterRepulsion = ref(0);
-const starSpeed = ref(0.5);
-const speed = ref(1.0);
-const mouseRepulsion = ref(true);
-const mouseInteraction = ref(true);
+const { forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  density: 1,
+  glowIntensity: 0.3,
+  saturation: 0.0,
+  hueShift: 140,
+  twinkleIntensity: 0.3,
+  rotationSpeed: 0.1,
+  repulsionStrength: 2,
+  autoCenterRepulsion: 0,
+  starSpeed: 0.5,
+  speed: 1.0,
+  mouseRepulsion: true,
+  mouseInteraction: true
+};
+
+const density = ref(DEFAULTS.density);
+const glowIntensity = ref(DEFAULTS.glowIntensity);
+const saturation = ref(DEFAULTS.saturation);
+const hueShift = ref(DEFAULTS.hueShift);
+const twinkleIntensity = ref(DEFAULTS.twinkleIntensity);
+const rotationSpeed = ref(DEFAULTS.rotationSpeed);
+const repulsionStrength = ref(DEFAULTS.repulsionStrength);
+const autoCenterRepulsion = ref(DEFAULTS.autoCenterRepulsion);
+const starSpeed = ref(DEFAULTS.starSpeed);
+const speed = ref(DEFAULTS.speed);
+const mouseRepulsion = ref(DEFAULTS.mouseRepulsion);
+const mouseInteraction = ref(DEFAULTS.mouseInteraction);
+
+const hasChanges = computed(
+  () =>
+    density.value !== DEFAULTS.density ||
+    glowIntensity.value !== DEFAULTS.glowIntensity ||
+    saturation.value !== DEFAULTS.saturation ||
+    hueShift.value !== DEFAULTS.hueShift ||
+    twinkleIntensity.value !== DEFAULTS.twinkleIntensity ||
+    rotationSpeed.value !== DEFAULTS.rotationSpeed ||
+    repulsionStrength.value !== DEFAULTS.repulsionStrength ||
+    autoCenterRepulsion.value !== DEFAULTS.autoCenterRepulsion ||
+    starSpeed.value !== DEFAULTS.starSpeed ||
+    speed.value !== DEFAULTS.speed ||
+    mouseRepulsion.value !== DEFAULTS.mouseRepulsion ||
+    mouseInteraction.value !== DEFAULTS.mouseInteraction
+);
+
+function reset() {
+  density.value = DEFAULTS.density;
+  glowIntensity.value = DEFAULTS.glowIntensity;
+  saturation.value = DEFAULTS.saturation;
+  hueShift.value = DEFAULTS.hueShift;
+  twinkleIntensity.value = DEFAULTS.twinkleIntensity;
+  rotationSpeed.value = DEFAULTS.rotationSpeed;
+  repulsionStrength.value = DEFAULTS.repulsionStrength;
+  autoCenterRepulsion.value = DEFAULTS.autoCenterRepulsion;
+  starSpeed.value = DEFAULTS.starSpeed;
+  speed.value = DEFAULTS.speed;
+  mouseRepulsion.value = DEFAULTS.mouseRepulsion;
+  mouseInteraction.value = DEFAULTS.mouseInteraction;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'focal',
     type: '[number, number]',

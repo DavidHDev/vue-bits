@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Bubble Menu</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="bubbleMenu.usage"
+    :source="bubbleMenuSource"
+    component-name="BubbleMenu"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container demo-container-dots h-[800px] overflow-hidden">
+      <div class="h-[800px] overflow-hidden demo-container demo-container-dots">
         <BubbleMenu
           :logo="logo"
           :menu-bg="menuBg"
@@ -11,64 +19,86 @@
           :stagger-delay="staggerDelay"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewSelect title="Ease" :options="easeOptions" v-model="animationEase" />
-        <PreviewColor title="Menu BG" v-model="menuBg" />
-        <PreviewColor title="Content Color" v-model="menuContentColor" />
+        <PreviewSelect
+          title="Ease"
+          :options="['back.out(1.5)', 'power3.out', 'power2.out', 'elastic.out(1,0.5)', 'bounce.out']"
+          v-model="animationEase"
+        />
+        <PreviewColorPicker title="Menu BG" v-model="menuBg" />
+        <PreviewColorPicker title="Content Color" v-model="menuContentColor" />
         <PreviewSlider title="Anim Duration" v-model="animationDuration" :min="0.1" :max="2" :step="0.05" />
         <PreviewSlider title="Stagger" v-model="staggerDelay" :min="0" :max="0.5" :step="0.01" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['gsap']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="bubbleMenu" />
+      <DemoCodeTab slug="bubble-menu" :usage="bubbleMenu.usage!" :source="bubbleMenuSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="bubbleMenu.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import logo from '@/assets/logos/vuebits-gh-black.svg';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { bubbleMenu } from '@/constants/code/Components/bubbleMenuCode';
-import { ref } from 'vue';
-import logo from '../../assets/logos/vuebits-gh-black.svg';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewColor from '../../components/common/PreviewColor.vue';
-import PreviewSelect from '../../components/common/PreviewSelect.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import BubbleMenu from '../../content/Components/BubbleMenu/BubbleMenu.vue';
+import BubbleMenu from '@/content/Components/BubbleMenu/BubbleMenu.vue';
+import bubbleMenuSource from '@/content/Components/BubbleMenu/BubbleMenu.vue?raw';
+import { computed, ref } from 'vue';
+
+const { forceRerender } = useForceRerender();
 
 type EaseKey = 'back.out(1.5)' | 'power3.out' | 'power2.out' | 'elastic.out(1,0.5)' | 'bounce.out';
+const DEFAULTS = {
+  animationEase: 'back.out(1.5)' as EaseKey,
+  menuBg: '#ffffff',
+  menuContentColor: '#111111',
+  animationDuration: 0.5,
+  staggerDelay: 0.12
+};
 
-const animationEase = ref<EaseKey>('back.out(1.5)');
-const menuBg = ref('#ffffff');
-const menuContentColor = ref('#111111');
-const animationDuration = ref(0.5);
-const staggerDelay = ref(0.12);
+const animationEase = ref<EaseKey>(DEFAULTS.animationEase);
+const menuBg = ref(DEFAULTS.menuBg);
+const menuContentColor = ref(DEFAULTS.menuContentColor);
+const animationDuration = ref(DEFAULTS.animationDuration);
+const staggerDelay = ref(DEFAULTS.staggerDelay);
 
-const easeOptions = [
-  { value: 'back.out(1.5)', label: 'back.out(1.5)' },
-  { value: 'power3.out', label: 'power3.out' },
-  { value: 'power2.out', label: 'power2.out' },
-  { value: 'elastic.out(1,0.5)', label: 'elastic.out(1,0.5)' },
-  { value: 'bounce.out', label: 'bounce.out' }
-];
+const hasChanges = computed(
+  () =>
+    animationEase.value !== DEFAULTS.animationEase ||
+    menuBg.value !== DEFAULTS.menuBg ||
+    menuContentColor.value !== DEFAULTS.menuContentColor ||
+    animationDuration.value !== DEFAULTS.animationDuration ||
+    staggerDelay.value !== DEFAULTS.staggerDelay
+);
 
-const propData = [
+function reset() {
+  animationEase.value = DEFAULTS.animationEase;
+  menuBg.value = DEFAULTS.menuBg;
+  menuContentColor.value = DEFAULTS.menuContentColor;
+  animationDuration.value = DEFAULTS.animationDuration;
+  staggerDelay.value = DEFAULTS.staggerDelay;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'logo',
-    type: 'ReactNode | string',
+    type: 'string',
     default: '—',
     description: 'Logo content shown in the central bubble (string src or JSX).'
   },

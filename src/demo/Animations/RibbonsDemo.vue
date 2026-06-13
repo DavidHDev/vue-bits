@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Ribbons</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="ribbons.usage"
+    :source="ribbonsSource"
+    component-name="Ribbons"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[500px] overflow-hidden">
+      <div class="h-[500px] overflow-hidden demo-container">
         <div class="hover-text">Hover Me.</div>
         <Ribbons
           :base-thickness="baseThickness"
@@ -9,89 +17,105 @@
           :speed-multiplier="speedMultiplier"
           :max-age="maxAge"
           :enable-fade="enableFade"
-          :enable-shader-effect="enableWaves"
+          :enable-shader-effect="enableShaderEffect"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <div class="count-controls">
-          <span class="count-label">Count</span>
-          <button @click="removeColor" :disabled="colors.length <= 1" class="count-button">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-          </button>
-          <span class="count-value">{{ colors.length }}</span>
-          <button @click="addColor" :disabled="colors.length >= 10" class="count-button">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-          </button>
-        </div>
-
+        <PreviewSlider title="Ribbon Count" :min="1" :max="10" :step="1" v-model="ribbonCount" />
         <PreviewSlider title="Thickness" v-model="baseThickness" :min="1" :max="60" :step="1" />
-
         <PreviewSlider title="Speed" v-model="speedMultiplier" :min="0.3" :max="0.7" :step="0.01" />
-
         <PreviewSlider title="Max Age" v-model="maxAge" :min="300" :max="1000" :step="100" />
-
         <PreviewSwitch title="Enable Fade" v-model="enableFade" />
-
-        <PreviewSwitch title="Enable Waves" v-model="enableWaves" />
+        <PreviewSwitch title="Enable Waves" v-model="enableShaderEffect" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-
-      <Dependencies :dependency-list="['ogl']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="ribbons" />
+      <DemoCodeTab slug="ribbons" :usage="ribbons.usage!" :source="ribbonsSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="ribbons.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import Ribbons from '../../content/Animations/Ribbons/Ribbons.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { ribbons } from '@/constants/code/Animations/ribbonsCode';
+import Ribbons from '@/content/Animations/Ribbons/Ribbons.vue';
+import ribbonsSource from '@/content/Animations/Ribbons/Ribbons.vue?raw';
+import { computed, ref } from 'vue';
 
-const baseThickness = ref(30);
-const colors = ref(['#27FF64']);
-const speedMultiplier = ref(0.5);
-const maxAge = ref(500);
-const enableFade = ref(false);
-const enableWaves = ref(false);
+const { forceRerender } = useForceRerender();
 
-const addColor = () => {
-  if (colors.value.length < 10) {
-    const newColor = `#${Math.floor(Math.random() * 16777215)
-      .toString(16)
-      .padStart(6, '0')}`;
-    colors.value.push(newColor);
+const DEFAULTS = {
+  baseThickness: 30,
+  colors: ['#27FF64'] as string[],
+  speedMultiplier: 0.5,
+  maxAge: 500,
+  enableFade: false,
+  enableShaderEffect: false
+};
+
+const baseThickness = ref(DEFAULTS.baseThickness);
+const colors = ref([...DEFAULTS.colors]);
+const speedMultiplier = ref(DEFAULTS.speedMultiplier);
+const maxAge = ref(DEFAULTS.maxAge);
+const enableFade = ref(DEFAULTS.enableFade);
+const enableShaderEffect = ref(DEFAULTS.enableShaderEffect);
+
+const updateColors = (val: number) => {
+  if (val > colors.value.length) {
+    const newColors = [...colors.value];
+    while (newColors.length < val) {
+      newColors.push(
+        `#${Math.floor(Math.random() * 16777215)
+          .toString(16)
+          .padStart(6, '0')}`
+      );
+    }
+    colors.value = newColors;
+  } else if (val < colors.value.length) {
+    colors.value = colors.value.slice(0, val);
   }
 };
 
-const removeColor = () => {
-  if (colors.value.length > 1) {
-    colors.value.pop();
-  }
-};
+const ribbonCount = computed({
+  get: () => colors.value.length,
+  set: updateColors
+});
 
-const propData = [
+const hasChanges = computed(
+  () =>
+    baseThickness.value !== DEFAULTS.baseThickness ||
+    JSON.stringify(colors.value) !== JSON.stringify(DEFAULTS.colors) ||
+    speedMultiplier.value !== DEFAULTS.speedMultiplier ||
+    maxAge.value !== DEFAULTS.maxAge ||
+    enableFade.value !== DEFAULTS.enableFade ||
+    enableShaderEffect.value !== DEFAULTS.enableShaderEffect
+);
+
+function reset() {
+  baseThickness.value = DEFAULTS.baseThickness;
+  colors.value = [...DEFAULTS.colors];
+  speedMultiplier.value = DEFAULTS.speedMultiplier;
+  maxAge.value = DEFAULTS.maxAge;
+  enableFade.value = DEFAULTS.enableFade;
+  enableShaderEffect.value = DEFAULTS.enableShaderEffect;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'colors',
     type: 'string[]',
@@ -173,47 +197,6 @@ const propData = [
   font-size: clamp(2rem, 6vw, 6rem);
   font-weight: 900;
   color: #222;
-  z-index: 1;
   pointer-events: none;
-}
-
-.count-controls {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  margin-top: 1rem;
-}
-
-.count-label {
-  font-size: 0.875rem;
-}
-
-.count-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  background: #1b1b1b;
-  border: 1px solid #333;
-  border-radius: 10px;
-  color: #fff;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.count-button:hover:not(:disabled) {
-  background: #222;
-}
-
-.count-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.count-value {
-  font-size: 0.875rem;
-  min-width: 1.5rem;
-  text-align: center;
 }
 </style>

@@ -1,45 +1,68 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Folder</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="folder.usage"
+    :source="folderSource"
+    component-name="Folder"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[500px]">
-        <Folder :size="size" :color="color"></Folder>
+      <div class="h-[400px] demo-container">
+        <Folder :size="size" :color="color" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewColor title="Folder Color" v-model="color" />
-        <PreviewSlider title="Folder Size" v-model="size" :min="1" :max="3" :step="0.1" />
+        <PreviewColorPicker title="Folder Color" v-model="color" />
+        <PreviewSlider title="Folder Size" v-model="size" :min="0.1" :max="3" :step="0.1" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="folder" />
+      <DemoCodeTab slug="folder" :usage="folder.usage!" :source="folderSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="folder.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { folder } from '@/constants/code/Components/folderCode';
-
-import Folder from '@/content/Components/Folder/Folder.vue';
-import CliInstallation from '@/components/code/CliInstallation.vue';
-import CodeExample from '@/components/code/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import PreviewColor from '@/components/common/PreviewColor.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
-import PropTable from '@/components/common/PropTable.vue';
-import TabbedLayout from '@/components/common/TabbedLayout.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
+import { folder } from '@/constants/code/Components/folderCode';
+import Folder from '@/content/Components/Folder/Folder.vue';
+import folderSource from '@/content/Components/Folder/Folder.vue?raw';
+import { computed, ref } from 'vue';
 
-const color = ref('#27FF64');
-const size = ref(2);
+const { forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  color: '#27FF64',
+  size: 2
+};
+
+const color = ref(DEFAULTS.color);
+const size = ref(DEFAULTS.size);
+
+const hasChanges = computed(() => color.value !== DEFAULTS.color || size.value !== DEFAULTS.size);
+
+function reset() {
+  color.value = DEFAULTS.color;
+  size.value = DEFAULTS.size;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'color',
     type: 'string',

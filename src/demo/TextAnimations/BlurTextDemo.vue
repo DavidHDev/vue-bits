@@ -1,12 +1,19 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Blur Text</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="blurText.usage"
+    :source="blurTextSource"
+    component-name="BlurText"
+    :props-table="props"
+  >
     <template #preview>
       <div class="h-[400px] overflow-hidden demo-container">
-        <RefreshButton @refresh="forceRerender" />
-
+        <RefreshButton @click="forceRerender" />
         <BlurText
           :key="rerenderKey"
-          text="Isn't this so cool?!"
+          :text="text"
           :animate-by="animateBy"
           :direction="direction"
           :delay="delay"
@@ -14,83 +21,54 @@
           @animation-complete="showToast"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <div class="flex flex-wrap gap-4">
-          <button
-            class="bg-[#0b0b0b] hover:bg-[#222] px-3 border border-[#333] rounded-[10px] h-8 text-white text-xs transition-colors cursor-pointer"
-            @click="toggleAnimateBy"
-          >
-            Animate By:
-            <span class="text-[#a1a1aa]">&nbsp;{{ animateBy }}</span>
-          </button>
-
-          <button
-            class="bg-[#0b0b0b] hover:bg-[#222] px-3 border border-[#333] rounded-[10px] h-8 text-white text-xs transition-colors cursor-pointer"
-            @click="toggleDirection"
-          >
-            Direction:
-            <span class="text-[#a1a1aa]">&nbsp;{{ direction }}</span>
-          </button>
-        </div>
-
-        <PreviewSlider
-          title="Delay"
-          v-model="delay"
-          :min="50"
-          :max="500"
-          :step="10"
-          value-unit="ms"
-          @update:model-value="forceRerender"
-        />
+        <PreviewSelect title="Animate By" v-model="animateBy" :options="['words', 'letters']" />
+        <PreviewSelect title="Direction" v-model="direction" :options="['top', 'bottom']" />
+        <PreviewSlider title="Delay" v-model="delay" :min="50" :max="500" :step="10" value-unit="ms" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-
-      <Dependencies :dependency-list="['motion-v']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="blurText" />
+      <DemoCodeTab slug="blur-text" :usage="blurText.usage!" :source="blurTextSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="blurText.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import CliInstallation from '@/components/code/CliInstallation.vue';
-import CodeExample from '@/components/code/CodeExample.vue';
-import Dependencies from '@/components/code/Dependencies.vue';
 import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
-import PropTable from '@/components/common/PropTable.vue';
-import RefreshButton from '@/components/common/RefreshButton.vue';
-import TabbedLayout from '@/components/common/TabbedLayout.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
 import { blurText } from '@/constants/code/TextAnimations/blurTextCode';
 import BlurText from '@/content/TextAnimations/BlurText/BlurText.vue';
+import blurTextSource from '@/content/TextAnimations/BlurText/BlurText.vue?raw';
 import { useToast } from 'primevue/usetoast';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 const { rerenderKey, forceRerender } = useForceRerender();
 const toast = useToast();
 
-const animateBy = ref<'words' | 'letters'>('words');
-const direction = ref<'top' | 'bottom'>('top');
-const delay = ref(200);
-
-const toggleAnimateBy = () => {
-  animateBy.value = animateBy.value === 'words' ? 'letters' : 'words';
-  forceRerender();
+const DEFAULTS = {
+  text: "Isn't this so cool?!",
+  animateBy: 'words' as 'words' | 'letters',
+  direction: 'top' as 'top' | 'bottom',
+  delay: 200
 };
 
-const toggleDirection = () => {
-  direction.value = direction.value === 'top' ? 'bottom' : 'top';
-  forceRerender();
-};
+const text = ref(DEFAULTS.text);
+const animateBy = ref<'words' | 'letters'>(DEFAULTS.animateBy);
+const direction = ref<'top' | 'bottom'>(DEFAULTS.direction);
+const delay = ref(DEFAULTS.delay);
 
 const showToast = () => {
   toast.add({
@@ -100,7 +78,23 @@ const showToast = () => {
   });
 };
 
-const propData = [
+const hasChanges = computed(
+  () =>
+    text.value !== DEFAULTS.text ||
+    animateBy.value !== DEFAULTS.animateBy ||
+    direction.value !== DEFAULTS.direction ||
+    delay.value !== DEFAULTS.delay
+);
+
+function reset() {
+  text.value = DEFAULTS.text;
+  animateBy.value = DEFAULTS.animateBy;
+  direction.value = DEFAULTS.direction;
+  delay.value = DEFAULTS.delay;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'text',
     type: 'string',
@@ -151,3 +145,17 @@ const propData = [
   }
 ];
 </script>
+
+<style scoped>
+.blur-text-demo {
+  font-size: 5rem;
+  font-weight: bolder;
+}
+
+@media only screen and (max-width: 967px) {
+  .blur-text-demo {
+    font-size: 2rem;
+    font-weight: bolder;
+  }
+}
+</style>

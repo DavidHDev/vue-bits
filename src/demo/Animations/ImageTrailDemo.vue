@@ -1,72 +1,66 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Image Trail</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="imageTrail.usage"
+    :source="imageTrailSource"
+    component-name="ImageTrail"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[500px] overflow-hidden">
-        <ImageTrail :key="key" :items="items" :variant="variant" />
+      <div class="h-[500px] overflow-hidden demo-container">
+        <ImageTrail :key="variant" :items="items" :variant="+variant" />
 
         <div class="absolute flex flex-col justify-center items-center">
           <p class="mb-0 font-black text-[#333] text-[clamp(2rem,6vw,6rem)]">Hover Me.</p>
           <p class="mt-0 font-black text-[#a6a6a6] text-[18px]">Variant {{ variant }}</p>
         </div>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <div class="inline-flex gap-2" role="group">
-          <button
-            class="bg-[#0b0b0b] rounded px-3 border border-[#333] h-8 font-bold text-white text-xs cursor-not-allowed"
-            disabled
-          >
-            Variant
-          </button>
-
-          <button
-            v-for="num in 8"
-            :key="num"
-            :class="[
-              'text-xs h-8 px-3 border border-[#333] font-bold rounded cursor-pointer hover:bg-[#222] transition-colors',
-              variant === num ? 'bg-[#27FF64] text-black' : 'bg-[#0b0b0b]'
-            ]"
-            @click="
-              () => {
-                variant = num;
-                forceRerender();
-              }
-            "
-          >
-            {{ num }}
-          </button>
-        </div>
+        <PreviewSelect title="Variant" v-model="variant" :options="['1', '2', '3', '4', '5', '6', '7', '8']" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['gsap']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="imageTrail" />
+      <DemoCodeTab slug="image-trail" :usage="imageTrail.usage!" :source="imageTrailSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="imageTrail.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import { imageTrail } from '../../constants/code/Animations/imageTrailCode';
-import ImageTrail from '../../content/Animations/ImageTrail/ImageTrail.vue';
-import Customize from '../../components/common/Customize.vue';
-import { ref } from 'vue';
+import { imageTrail } from '@/constants/code/Animations/imageTrailCode';
+import ImageTrail from '@/content/Animations/ImageTrail/ImageTrail.vue';
+import imageTrailSource from '@/content/Animations/ImageTrail/ImageTrail.vue?raw';
+import { computed, ref } from 'vue';
 
-const { rerenderKey: key, forceRerender } = useForceRerender();
+const { forceRerender } = useForceRerender();
 
-const variant = ref(1);
+const DEFAULTS = {
+  variant: '1'
+};
+
+const variant = ref(DEFAULTS.variant);
+
+const hasChanges = computed(() => variant.value !== DEFAULTS.variant);
+
+function reset() {
+  variant.value = DEFAULTS.variant;
+  forceRerender();
+}
 
 const items = [
   'https://picsum.photos/id/287/300/300',
@@ -79,7 +73,7 @@ const items = [
   'https://picsum.photos/id/1030/300/300'
 ];
 
-const propData = [
+const props: PropRow[] = [
   {
     name: 'items',
     type: 'string[]',

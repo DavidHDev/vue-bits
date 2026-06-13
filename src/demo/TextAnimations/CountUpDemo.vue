@@ -1,107 +1,116 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Count Up</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="countUp.usage"
+    :source="countUpSource"
+    component-name="CountUp"
+    :props-table="props"
+  >
     <template #preview>
-      <h2 class="demo-title-extra">Default</h2>
-
-      <div class="demo-container h-[200px]">
+      <div class="relative h-[200px] overflow-hidden demo-container">
         <CountUp
-          :key="keyDefault"
+          :key="rerenderKey"
           :from="from"
           :to="to"
           :direction="direction"
           :delay="delay"
           :duration="duration"
+          :separator="separator"
           class-name="count-up-text"
         />
-
-        <RefreshButton @click="forceRerenderDefault" />
+        <RefreshButton @click="forceRerender" />
       </div>
+    </template>
 
-      <h2 class="demo-title-extra">Start Programmatically</h2>
-
-      <div class="demo-container h-[200px] flex-col justify-center items-center">
-        <button
-          class="bg-[#0b0b0b] cursor-pointer rounded-[10px] border border-[#222] text-white px-4 py-2"
-          @click="setStartCounting(true)"
-        >
-          Count to 500!
-        </button>
-
-        <CountUp
-          :key="keyProgrammatically"
-          :from="100"
-          :to="500"
-          :start-when="startCounting"
-          :duration="5"
-          class-name="count-up-text"
-        />
-
-        <RefreshButton v-if="startCounting" @click="forceRerenderProgrammatically" />
-      </div>
-
+    <template #customize>
       <Customize>
         <PreviewSlider title="From" v-model="from" :min="0" :max="100" :step="10" />
-
-        <PreviewSlider title="To" v-model="to" :min="100" :max="500" :step="100" />
-
-        <PreviewSelect title="Direction" v-model="direction" :options="directionOptions" />
-
+        <PreviewSlider title="To" v-model="to" :min="0" :max="10000" :step="100" />
         <PreviewSlider title="Duration" v-model="duration" :min="0.5" :max="10" :step="0.5" value-unit="s" />
-
         <PreviewSlider title="Delay" v-model="delay" :min="0" :max="5" :step="0.5" value-unit="s" />
+        <PreviewSelect title="Direction" v-model="direction" :options="['up', 'down']" />
+        <PreviewInput title="Separator" v-model="separator" placeholder="," :maxlength="1" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="countup" />
+      <DemoCodeTab slug="count-up" :usage="countUp.usage!" :source="countUpSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="countup.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import RefreshButton from '../../components/common/RefreshButton.vue';
-import CountUp from '../../content/TextAnimations/CountUp/CountUp.vue';
-import { countup } from '@/constants/code/TextAnimations/countUpCode';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewInput from '@/components/common/PreviewInput.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSelect from '../../components/common/PreviewSelect.vue';
+import { countUp } from '@/constants/code/TextAnimations/countUpCode';
+import CountUp from '@/content/TextAnimations/CountUp/CountUp.vue';
+import countUpSource from '@/content/TextAnimations/CountUp/CountUp.vue?raw';
+import { computed, ref } from 'vue';
 
-const startCounting = ref(false);
+const { rerenderKey, forceRerender } = useForceRerender();
 
-const { rerenderKey: keyDefault, forceRerender: forceRerenderDefault } = useForceRerender();
-const { rerenderKey: keyProgrammatically, forceRerender: forceRerenderProgrammatically } = useForceRerender();
+// const startCounting = ref(false);
 
-const setStartCounting = (value: boolean) => {
-  startCounting.value = value;
-  if (value) {
-    forceRerenderProgrammatically();
-  }
+// const { rerenderKey: keyDefault, forceRerender: forceRerenderDefault } = useForceRerender();
+// const { rerenderKey: keyProgrammatically, forceRerender: forceRerenderProgrammatically } = useForceRerender();
+
+// const setStartCounting = (value: boolean) => {
+//   startCounting.value = value;
+//   if (value) {
+//     forceRerenderProgrammatically();
+//   }
+// };
+
+const DEFAULTS = {
+  from: 0,
+  to: 100,
+  duration: 1,
+  delay: 0,
+  direction: 'up' as 'up' | 'down',
+  separator: ','
 };
 
-const from = ref(50);
-const to = ref(100);
-const direction = ref<'up' | 'down'>('up');
-const duration = ref(2);
-const delay = ref(0);
+const from = ref(DEFAULTS.from);
+const to = ref(DEFAULTS.to);
+const duration = ref(DEFAULTS.duration);
+const delay = ref(DEFAULTS.delay);
+const direction = ref<'up' | 'down'>(DEFAULTS.direction);
+const separator = ref(DEFAULTS.separator);
 
-const directionOptions = [
-  { label: 'Up', value: 'up' },
-  { label: 'Down', value: 'down' }
-];
+const hasChanges = computed(
+  () =>
+    from.value !== DEFAULTS.from ||
+    to.value !== DEFAULTS.to ||
+    duration.value !== DEFAULTS.duration ||
+    delay.value !== DEFAULTS.delay ||
+    direction.value !== DEFAULTS.direction ||
+    separator.value !== DEFAULTS.separator
+);
 
-const propData = [
+function reset() {
+  from.value = DEFAULTS.from;
+  to.value = DEFAULTS.to;
+  duration.value = DEFAULTS.duration;
+  delay.value = DEFAULTS.delay;
+  direction.value = DEFAULTS.direction;
+  separator.value = DEFAULTS.separator;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'to',
     type: 'number',
@@ -166,3 +175,10 @@ const propData = [
   }
 ];
 </script>
+
+<style scoped>
+.count-up-text {
+  font-size: 4rem;
+  font-weight: bold;
+}
+</style>

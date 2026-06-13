@@ -1,72 +1,102 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Scroll Velocity</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="scrollVelocity.usage"
+    :source="scrollVelocitySource"
+    component-name="ScrollVelocity"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[500px] overflow-hidden">
+      <div class="relative h-[400px] overflow-hidden demo-container">
         <div class="relative flex justify-center items-center">
           <ScrollVelocity
             :texts="['Vue Bits', 'Scroll Down']"
             :velocity="velocity"
+            :num-copies="numCopies"
             :damping="damping"
             :stiffness="stiffness"
-            :velocity-mapping="velocityMapping"
             class-name="custom-scroll-text"
           />
         </div>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSlider title="Velocity" v-model="velocity" :min="10" :max="500" :step="10" />
+        <PreviewSlider title="Num Copies" v-model="numCopies" :min="2" :max="12" :step="1" />
         <PreviewSlider title="Damping" v-model="damping" :min="10" :max="100" :step="10" />
         <PreviewSlider title="Stiffness" v-model="stiffness" :min="100" :max="1000" :step="50" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-
-      <Dependencies :dependency-list="['gsap']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="scrollVelocity" />
+      <DemoCodeTab slug="scroll-velocity" :usage="scrollVelocity.usage!" :source="scrollVelocitySource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="scrollVelocity.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import ScrollVelocity from '../../content/TextAnimations/ScrollVelocity/ScrollVelocity.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { scrollVelocity } from '@/constants/code/TextAnimations/scrollVelocityCode';
+import ScrollVelocity from '@/content/TextAnimations/ScrollVelocity/ScrollVelocity.vue';
+import scrollVelocitySource from '@/content/TextAnimations/ScrollVelocity/ScrollVelocity.vue?raw';
+import { computed, ref } from 'vue';
 
-const velocity = ref(100);
-const damping = ref(50);
-const stiffness = ref(400);
-const velocityMapping = ref<{ input: [number, number]; output: [number, number] }>({
-  input: [0, 1000],
-  output: [0, 5]
-});
+const { forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  velocity: 100,
+  numCopies: 6,
+  damping: 50,
+  stiffness: 400
+};
+
+const velocity = ref(DEFAULTS.velocity);
+const numCopies = ref(DEFAULTS.numCopies);
+const damping = ref(DEFAULTS.damping);
+const stiffness = ref(DEFAULTS.stiffness);
+
+const hasChanges = computed(
+  () =>
+    velocity.value !== DEFAULTS.velocity ||
+    numCopies.value !== DEFAULTS.numCopies ||
+    damping.value !== DEFAULTS.damping ||
+    stiffness.value !== DEFAULTS.stiffness
+);
+
+function reset() {
+  velocity.value = DEFAULTS.velocity;
+  numCopies.value = DEFAULTS.numCopies;
+  damping.value = DEFAULTS.damping;
+  stiffness.value = DEFAULTS.stiffness;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'scrollContainerRef',
-    type: 'HTMLElement | null',
-    default: 'null',
+    type: 'HTMLElement',
+    default: 'undefined',
     description: 'Optional ref for a custom scroll container to track scroll position.'
   },
   {
     name: 'texts',
     type: 'string[]',
     default: '[]',
-    description: 'Array of strings to display as scrolling text.'
+    description:
+      'Array of items to display as scrolling content. Accepts strings, JSX elements, icons, or any valid React node.'
   },
   {
     name: 'velocity',
@@ -93,33 +123,39 @@ const propData = [
     description: 'Stiffness value for the spring animation.'
   },
   {
+    name: 'numCopies',
+    type: 'number',
+    default: '6',
+    description: 'Number of copies of the text rendered for a continuous scrolling effect.'
+  },
+  {
     name: 'velocityMapping',
-    type: '{ input: [number, number]; output: [number, number] }',
+    type: '{ input: number[]; output: number[] }',
     default: '{ input: [0, 1000], output: [0, 5] }',
     description: 'Mapping from scroll velocity to a movement multiplier for dynamic scrolling.'
   },
   {
     name: 'parallaxClassName',
     type: 'string',
-    default: '""',
+    default: '"parallax"',
     description: 'CSS class for the parallax container.'
   },
   {
     name: 'scrollerClassName',
     type: 'string',
-    default: '""',
+    default: '"scroller"',
     description: 'CSS class for the scroller container.'
   },
   {
     name: 'parallaxStyle',
-    type: 'Record<string, string | number>',
-    default: '{}',
+    type: 'CSSProperties',
+    default: 'undefined',
     description: 'Inline styles for the parallax container.'
   },
   {
     name: 'scrollerStyle',
-    type: 'Record<string, string | number>',
-    default: '{}',
+    type: 'CSSProperties',
+    default: 'undefined',
     description: 'Inline styles for the scroller container.'
   }
 ];

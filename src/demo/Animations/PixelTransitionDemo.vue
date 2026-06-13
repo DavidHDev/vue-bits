@@ -1,35 +1,45 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Pixel Transition</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="pixelTransition.usage"
+    :source="pixelTransitionSource"
+    component-name="PixelTransition"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[400px]">
+      <div class="h-[400px] demo-container">
         <PixelTransition
           :key="key"
           :grid-size="gridSize"
           :pixel-color="pixelColor"
           :animation-step-duration="animationStepDuration"
+          :once="once"
           class-name="custom-pixel-card"
         >
-          <template #firstContent>
+          <template #first>
             <img
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/1200px-Cat03.jpg"
+              src="https://i.kym-cdn.com/entries/icons/original/000/054/270/rigrig.jpg"
               alt="Default"
               style="width: 100%; height: 100%; object-fit: cover"
             />
           </template>
 
-          <template #secondContent>
+          <template #second>
             <div style="width: 100%; height: 100%; display: grid; place-items: center; background-color: #111">
               <p style="font-weight: 900; font-size: 3rem; color: #fff">Meow!</p>
             </div>
           </template>
         </PixelTransition>
 
-        <div class="mt-2 absolute bottom-[1em] text-[#a6a6a6]">Psst, hover the image!</div>
+        <div class="bottom-[1em] absolute mt-2 text-[#a6a6a6]">Psst, hover the image!</div>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSlider title="Grid Size" v-model="gridSize" :min="2" :max="50" :step="1" width="200" />
-
         <PreviewSlider
           title="Animation Duration"
           v-model="animationStepDuration"
@@ -39,54 +49,75 @@
           value-unit="s"
           width="200"
         />
-
-        <PreviewColor title="Pixel Color" v-model="pixelColor" />
+        <PreviewColorPicker title="Pixel Color" v-model="pixelColor" />
+        <PreviewSwitch title="Once" v-model="once" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-
-      <Dependencies :dependency-list="['gsap']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="pixelTransition" />
+      <DemoCodeTab slug="pixel-transition" :usage="pixelTransition.usage!" :source="pixelTransitionSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="pixelTransition.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PixelTransition from '../../content/Animations/PixelTransition/PixelTransition.vue';
-import { pixelTransition } from '@/constants/code/Animations/pixelTransitionCode';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
-import PreviewColor from '../../components/common/PreviewColor.vue';
+import { pixelTransition } from '@/constants/code/Animations/pixelTransitionCode';
+import PixelTransition from '@/content/Animations/PixelTransition/PixelTransition.vue';
+import pixelTransitionSource from '@/content/Animations/PixelTransition/PixelTransition.vue?raw';
+import { computed, ref } from 'vue';
 
-const { rerenderKey: key } = useForceRerender();
-const gridSize = ref(8);
-const pixelColor = ref('#ffffff');
-const animationStepDuration = ref(0.4);
+const { rerenderKey: key, forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  gridSize: 8,
+  pixelColor: '#ffffff',
+  animationStepDuration: 0.4,
+  once: false
+};
+
+const gridSize = ref(DEFAULTS.gridSize);
+const pixelColor = ref(DEFAULTS.pixelColor);
+const animationStepDuration = ref(DEFAULTS.animationStepDuration);
+const once = ref(DEFAULTS.once);
+
+const hasChanges = computed(
+  () =>
+    gridSize.value !== DEFAULTS.gridSize ||
+    pixelColor.value !== DEFAULTS.pixelColor ||
+    animationStepDuration.value !== DEFAULTS.animationStepDuration ||
+    once.value !== DEFAULTS.once
+);
+
+function reset() {
+  gridSize.value = DEFAULTS.gridSize;
+  pixelColor.value = DEFAULTS.pixelColor;
+  animationStepDuration.value = DEFAULTS.animationStepDuration;
+  once.value = DEFAULTS.once;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'firstContent',
-    type: 'VNode | string',
+    type: 'slot #first',
     default: '—',
     description: 'Content to show by default (e.g., an <img> or text).'
   },
   {
     name: 'secondContent',
-    type: 'VNode | string',
+    type: 'slot #second',
     default: '—',
     description: 'Content revealed upon hover or click.'
   },
@@ -111,8 +142,14 @@ const propData = [
   {
     name: 'aspectRatio',
     type: 'string',
-    default: '"100%"',
+    default: `"100%"`,
     description: "Sets the 'padding-top' (or aspect-ratio) for the container."
+  },
+  {
+    name: 'once',
+    type: 'boolean',
+    default: 'false',
+    description: 'If true, the transition will not revert on mouse leave or subsequent clicks.'
   },
   {
     name: 'className',

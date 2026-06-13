@@ -1,5 +1,13 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Staggered Menu</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="staggeredMenu.usage"
+    :source="staggeredMenuSource"
+    component-name="StaggeredMenu"
+    :props-table="props"
+  >
     <template #preview>
       <div class="h-[800px] overflow-hidden demo-container demo-container-dots">
         <StaggeredMenu
@@ -14,57 +22,57 @@
           :position="position"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewSelect title="Position" :options="positionOptions" v-model="position" />
-        <PreviewColor title="Accent Color" v-model="accentColor" class="mb-4" />
-        <PreviewColor title="Menu Button Color" v-model="menuButtonColor" />
+        <PreviewSelect title="Position" :options="['left', 'right']" v-model="position" />
+        <PreviewColorPicker title="Accent Color" v-model="accentColor" />
+        <PreviewColorPicker title="Menu Button Color" v-model="menuButtonColor" />
         <PreviewSwitch title="Display Socials" v-model="displaySocials" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['gsap']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="staggeredMenu" />
+      <DemoCodeTab slug="staggered-menu" :usage="staggeredMenu.usage!" :source="staggeredMenuSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="staggeredMenu.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import logo from '@/assets/logos/vuebits-gh-white.svg';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
 import { staggeredMenu } from '@/constants/code/Components/staggeredMenuCode';
-import { ref } from 'vue';
-import logo from '../../assets/logos/vuebits-gh-white.svg';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewColor from '../../components/common/PreviewColor.vue';
-import PreviewSelect from '../../components/common/PreviewSelect.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import StaggeredMenu from '../../content/Components/StaggeredMenu/StaggeredMenu.vue';
+import StaggeredMenu from '@/content/Components/StaggeredMenu/StaggeredMenu.vue';
+import staggeredMenuSource from '@/content/Components/StaggeredMenu/StaggeredMenu.vue?raw';
+import { computed, ref } from 'vue';
 
-const { rerenderKey: key } = useForceRerender();
+const { rerenderKey: key, forceRerender } = useForceRerender();
 
 type PositionKey = 'left' | 'right';
 
-const displaySocials = ref(true);
-const accentColor = ref('#27FF64');
-const menuButtonColor = ref('#ffffff');
-const position = ref<PositionKey>('right');
+const DEFAULTS = {
+  displaySocials: true,
+  accentColor: '#27FF64',
+  menuButtonColor: '#ffffff',
+  position: 'right' as PositionKey
+};
 
-const positionOptions = [
-  { value: 'right', label: 'Right' },
-  { value: 'left', label: 'Left' }
-];
+const displaySocials = ref(DEFAULTS.displaySocials);
+const accentColor = ref(DEFAULTS.accentColor);
+const menuButtonColor = ref(DEFAULTS.menuButtonColor);
+const position = ref<PositionKey>(DEFAULTS.position);
 
 const items = [
   { label: 'Home', ariaLabel: 'Go to Home section', link: '#home' },
@@ -79,7 +87,23 @@ const socialItems = [
   { label: 'LinkedIn', link: 'https://linkedin.com/in/your-handle' }
 ];
 
-const propData = [
+const hasChanges = computed(
+  () =>
+    displaySocials.value !== DEFAULTS.displaySocials ||
+    accentColor.value !== DEFAULTS.accentColor ||
+    menuButtonColor.value !== DEFAULTS.menuButtonColor ||
+    position.value !== DEFAULTS.position
+);
+
+function reset() {
+  displaySocials.value = DEFAULTS.displaySocials;
+  accentColor.value = DEFAULTS.accentColor;
+  menuButtonColor.value = DEFAULTS.menuButtonColor;
+  position.value = DEFAULTS.position;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'position',
     type: '"left" | "right"',
@@ -163,6 +187,12 @@ const propData = [
     type: '() => void',
     default: 'undefined',
     description: 'Callback function called when menu closes.'
+  },
+  {
+    name: 'closeOnClickAway',
+    type: 'boolean',
+    default: 'true',
+    description: 'Whether to close the menu when clicking outside.'
   }
 ];
 </script>

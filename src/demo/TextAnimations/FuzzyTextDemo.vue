@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Fuzzy Text</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="fuzzyText.usage"
+    :source="fuzzyTextSource"
+    component-name="FuzzyText"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="h-[500px] overflow-hidden demo-container">
+      <div class="h-[400px] overflow-hidden demo-container">
         <div class="flex flex-col justify-center items-center h-full">
           <FuzzyText
             :base-intensity="baseIntensity"
@@ -41,7 +49,9 @@
           </FuzzyText>
         </div>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSlider title="Base Intensity" v-model="baseIntensity" :min="0" :max="1" :step="0.01" />
         <PreviewSlider title="Hover Intensity" v-model="hoverIntensity" :min="0" :max="2" :step="0.01" />
@@ -49,7 +59,7 @@
         <PreviewSlider title="FPS" v-model="fps" :min="10" :max="120" :step="5" />
         <PreviewSlider title="Transition Duration" v-model="transitionDuration" :min="0" :max="60" :step="1" />
         <PreviewSlider title="Letter Spacing" v-model="letterSpacing" :min="-10" :max="50" :step="1" />
-        <PreviewSelect title="Direction" v-model="direction" :options="directionOptions" />
+        <PreviewSelect title="Direction" v-model="direction" :options="['horizontal', 'vertical', 'both']" />
         <PreviewSwitch title="Enable Hover" v-model="enableHover" />
         <PreviewSwitch title="Click Effect" v-model="clickEffect" />
         <PreviewSwitch title="Glitch Mode" v-model="glitchMode" />
@@ -70,52 +80,95 @@
           :disabled="!glitchMode"
         />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="fuzzyText" />
+      <DemoCodeTab slug="fuzzy-text" :usage="fuzzyText.usage!" :source="fuzzyTextSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="fuzzyText.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import CliInstallation from '@/components/code/CliInstallation.vue';
-import CodeExample from '@/components/code/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
-import PropTable from '@/components/common/PropTable.vue';
-import TabbedLayout from '@/components/common/TabbedLayout.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { fuzzyText } from '@/constants/code/TextAnimations/fuzzyTextCode';
 import FuzzyText from '@/content/TextAnimations/FuzzyText/FuzzyText.vue';
-import { ref } from 'vue';
+import fuzzyTextSource from '@/content/TextAnimations/FuzzyText/FuzzyText.vue?raw';
+import { computed, ref } from 'vue';
 
-const baseIntensity = ref(0.2);
-const hoverIntensity = ref(0.5);
-const enableHover = ref(true);
-const fuzzRange = ref(30);
-const fps = ref(60);
-const direction = ref<'horizontal' | 'vertical' | 'both'>('horizontal');
-const transitionDuration = ref(0);
-const clickEffect = ref(false);
-const glitchMode = ref(false);
-const glitchInterval = ref(2000);
-const glitchDuration = ref(200);
-const letterSpacing = ref(0);
+const { forceRerender } = useForceRerender();
 
-const directionOptions = [
-  { value: 'horizontal', label: 'Horizontal' },
-  { value: 'vertical', label: 'Vertical' },
-  { value: 'both', label: 'Both' }
-];
+const DEFAULTS = {
+  baseIntensity: 0.2,
+  hoverIntensity: 0.5,
+  enableHover: true,
+  fuzzRange: 30,
+  fps: 60,
+  direction: 'horizontal' as 'horizontal' | 'vertical' | 'both',
+  transitionDuration: 0,
+  clickEffect: false,
+  glitchMode: false,
+  glitchInterval: 2000,
+  glitchDuration: 200,
+  letterSpacing: 0
+};
 
-const propData = [
+const baseIntensity = ref(DEFAULTS.baseIntensity);
+const hoverIntensity = ref(DEFAULTS.hoverIntensity);
+const enableHover = ref(DEFAULTS.enableHover);
+const fuzzRange = ref(DEFAULTS.fuzzRange);
+const fps = ref(DEFAULTS.fps);
+const direction = ref<'horizontal' | 'vertical' | 'both'>(DEFAULTS.direction);
+const transitionDuration = ref(DEFAULTS.transitionDuration);
+const clickEffect = ref(DEFAULTS.clickEffect);
+const glitchMode = ref(DEFAULTS.glitchMode);
+const glitchInterval = ref(DEFAULTS.glitchInterval);
+const glitchDuration = ref(DEFAULTS.glitchDuration);
+const letterSpacing = ref(DEFAULTS.letterSpacing);
+
+const hasChanges = computed(
+  () =>
+    baseIntensity.value !== DEFAULTS.baseIntensity ||
+    hoverIntensity.value !== DEFAULTS.hoverIntensity ||
+    enableHover.value !== DEFAULTS.enableHover ||
+    fuzzRange.value !== DEFAULTS.fuzzRange ||
+    fps.value !== DEFAULTS.fps ||
+    direction.value !== DEFAULTS.direction ||
+    transitionDuration.value !== DEFAULTS.transitionDuration ||
+    clickEffect.value !== DEFAULTS.clickEffect ||
+    glitchMode.value !== DEFAULTS.glitchMode ||
+    glitchInterval.value !== DEFAULTS.glitchInterval ||
+    glitchDuration.value !== DEFAULTS.glitchDuration ||
+    letterSpacing.value !== DEFAULTS.letterSpacing
+);
+
+function reset() {
+  baseIntensity.value = DEFAULTS.baseIntensity;
+  hoverIntensity.value = DEFAULTS.hoverIntensity;
+  enableHover.value = DEFAULTS.enableHover;
+  fuzzRange.value = DEFAULTS.fuzzRange;
+  fps.value = DEFAULTS.fps;
+  direction.value = DEFAULTS.direction;
+  transitionDuration.value = DEFAULTS.transitionDuration;
+  clickEffect.value = DEFAULTS.clickEffect;
+  glitchMode.value = DEFAULTS.glitchMode;
+  glitchInterval.value = DEFAULTS.glitchInterval;
+  glitchDuration.value = DEFAULTS.glitchDuration;
+  letterSpacing.value = DEFAULTS.letterSpacing;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'slot',
     type: 'string',

@@ -1,56 +1,109 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Noise</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="noise.usage"
+    :source="noiseSource"
+    component-name="Noise"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container overflow-hidden h-[400px]">
-        <div class="text-[#27FF64] text-[6rem] font-extrabold text-center opacity-50">Ooh, edgy!</div>
-        <Noise :pattern-alpha="patternAlpha" :mix-blend-mode="mixBlendMode" />
+      <div class="relative h-[400px] overflow-hidden demo-container">
+        <div class="opacity-50 font-extrabold text-[#27FF64] text-[6rem] text-center">Ooh, edgy!</div>
+        <Noise
+          :key="key"
+          :pattern-size="patternSize"
+          :pattern-scale-x="patternScaleX"
+          :pattern-scale-y="patternScaleY"
+          :pattern-alpha="patternAlpha"
+        />
+        <RefreshButton @click="forceRerender" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewSlider title="Noise Alpha" v-model="patternAlpha" :min="0" :max="100" :step="5" />
-        <PreviewSelect title="Mix Blend Mode" v-model="mixBlendMode" :options="blendModeOptions" />
+        <PreviewSlider title="Pattern Size" :min="50" :max="500" :step="10" v-model="patternSize" valueUnit="px" />
+        <PreviewSlider title="Scale X" :min="0.1" :max="5" :step="0.1" v-model="patternScaleX" />
+        <PreviewSlider title="Scale Y" :min="0.1" :max="5" :step="0.1" v-model="patternScaleY" />
+        <PreviewSlider title="Pattern Alpha" :min="0" :max="25" :step="5" v-model="patternAlpha" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="noise" />
+      <DemoCodeTab slug="noise" :usage="noise.usage!" :source="noiseSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="noise.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSelect from '../../components/common/PreviewSelect.vue';
-import Noise from '../../content/Animations/Noise/Noise.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { noise } from '@/constants/code/Animations/noiseCode';
+import Noise from '@/content/Animations/Noise/Noise.vue';
+import noiseSource from '@/content/Animations/Noise/Noise.vue?raw';
+import { computed, ref } from 'vue';
 
-const patternAlpha = ref(15);
-const mixBlendMode = ref('normal');
+const { rerenderKey: key, forceRerender } = useForceRerender();
 
-const blendModeOptions = [
-  { label: 'Normal', value: 'normal' },
-  { label: 'Overlay', value: 'overlay' }
-];
+const DEFAULTS = {
+  patternSize: 250,
+  patternScaleX: 2,
+  patternScaleY: 2,
+  patternAlpha: 15
+};
 
-watch(mixBlendMode, newValue => {
-  if (newValue === 'overlay') {
-    patternAlpha.value = 50;
-  }
+const patternSize = ref(DEFAULTS.patternSize);
+const patternScaleX = ref(DEFAULTS.patternScaleX);
+const patternScaleY = ref(DEFAULTS.patternScaleY);
+const patternAlpha = ref(DEFAULTS.patternAlpha);
+
+const hasChanges = computed(() => {
+  return (
+    patternSize.value !== DEFAULTS.patternSize ||
+    patternScaleX.value !== DEFAULTS.patternScaleX ||
+    patternScaleY.value !== DEFAULTS.patternScaleY ||
+    patternAlpha.value !== DEFAULTS.patternAlpha
+  );
 });
 
-const propData = [
+function reset() {
+  patternSize.value = DEFAULTS.patternSize;
+  patternScaleX.value = DEFAULTS.patternScaleX;
+  patternScaleY.value = DEFAULTS.patternScaleY;
+  patternAlpha.value = DEFAULTS.patternAlpha;
+  forceRerender();
+}
+
+const props: PropRow[] = [
+  {
+    name: 'patternSize',
+    type: 'number',
+    default: '250',
+    description: 'Defines the size of the grain pattern.'
+  },
+  {
+    name: 'patternScaleX',
+    type: 'number',
+    default: '1',
+    description: 'Scaling factor for the X-axis of the grain pattern.'
+  },
+  {
+    name: 'patternScaleY',
+    type: 'number',
+    default: '1',
+    description: 'Scaling factor for the Y-axis of the grain pattern.'
+  },
   {
     name: 'patternRefreshInterval',
     type: 'number',
@@ -60,14 +113,8 @@ const propData = [
   {
     name: 'patternAlpha',
     type: 'number',
-    default: '10',
+    default: '15',
     description: 'Opacity of the grain pattern (0-255).'
-  },
-  {
-    name: 'mixBlendMode',
-    type: 'string',
-    default: 'normal',
-    description: 'CSS mix-blend-mode value for how the noise blends with content behind it.'
   }
 ];
 </script>

@@ -1,10 +1,18 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Carousel</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="carousel.usage"
+    :source="carouselSource"
+    component-name="Carousel"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container relative h-[500px] overflow-hidden flex items-center justify-center">
+      <div class="relative h-[400px] overflow-hidden demo-container">
         <Carousel
           :key="rerenderKey"
-          :base-width="width"
+          :base-width="baseWidth"
           :autoplay="autoplay"
           :autoplay-delay="autoplayDelay"
           :pause-on-hover="pauseOnHover"
@@ -12,16 +20,14 @@
           :round="round"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewSlider title="Width" v-model="width" :min="250" :max="330" :step="10" />
-
+        <PreviewSlider title="Width" v-model="baseWidth" :min="250" :max="330" :step="10" />
         <PreviewSwitch title="Round Variant" v-model="round" />
-
         <PreviewSwitch title="Loop" v-model="loop" />
-
         <PreviewSwitch title="Autoplay" v-model="autoplay" />
-
         <PreviewSlider
           title="Delay"
           v-model="autoplayDelay"
@@ -30,49 +36,72 @@
           :step="1000"
           :disabled="!autoplay"
         />
-
         <PreviewSwitch title="Pause On Hover" v-model="pauseOnHover" :disabled="!autoplay" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-
-      <Dependencies :dependency-list="['motion-v']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="carousel" />
+      <DemoCodeTab slug="carousel" :usage="carousel.usage!" :source="carouselSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="carousel.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import Carousel from '../../content/Components/Carousel/Carousel.vue';
-import { carousel } from '@/constants/code/Components/carouselCode';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
-
-const width = ref(300);
-const autoplay = ref(false);
-const autoplayDelay = ref(3000);
-const pauseOnHover = ref(false);
-const loop = ref(false);
-const round = ref(false);
+import { carousel } from '@/constants/code/Components/carouselCode';
+import Carousel from '@/content/Components/Carousel/Carousel.vue';
+import carouselSource from '@/content/Components/Carousel/Carousel.vue?raw';
+import { computed, ref } from 'vue';
 
 const { rerenderKey, forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  baseWidth: 300,
+  autoplay: false,
+  autoplayDelay: 3000,
+  pauseOnHover: false,
+  loop: false,
+  round: false
+};
+
+const baseWidth = ref(DEFAULTS.baseWidth);
+const autoplay = ref(DEFAULTS.autoplay);
+const autoplayDelay = ref(DEFAULTS.autoplayDelay);
+const pauseOnHover = ref(DEFAULTS.pauseOnHover);
+const loop = ref(DEFAULTS.loop);
+const round = ref(DEFAULTS.round);
+
+const hasChanges = computed(
+  () =>
+    baseWidth.value !== DEFAULTS.baseWidth ||
+    autoplay.value !== DEFAULTS.autoplay ||
+    autoplayDelay.value !== DEFAULTS.autoplayDelay ||
+    pauseOnHover.value !== DEFAULTS.pauseOnHover ||
+    loop.value !== DEFAULTS.loop ||
+    round.value !== DEFAULTS.round
+);
+
+function reset() {
+  baseWidth.value = DEFAULTS.baseWidth;
+  autoplay.value = DEFAULTS.autoplay;
+  autoplayDelay.value = DEFAULTS.autoplayDelay;
+  pauseOnHover.value = DEFAULTS.pauseOnHover;
+  loop.value = DEFAULTS.loop;
+  round.value = DEFAULTS.round;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'items',
     type: 'CarouselItem[]',
@@ -112,15 +141,8 @@ const propData = [
   {
     name: 'round',
     type: 'boolean',
-    default: 'false',
+    default: 'true',
     description: 'When true, the carousel is rendered with a 1:1 aspect ratio and circular container/items.'
   }
 ];
-
-watch(
-  () => [pauseOnHover.value, loop.value],
-  () => {
-    forceRerender();
-  }
-);
 </script>

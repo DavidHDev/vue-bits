@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Gradient Blinds</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="gradientBlinds.usage"
+    :source="gradientBlindsSource"
+    component-name="Gradient Blinds"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="relative p-0 h-[600px] overflow-hidden demo-container">
+      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
         <GradientBlinds
           :gradient-colors="gradientColors"
           :angle="angle"
@@ -13,17 +21,15 @@
           :mouse-dampening="mouseDampening"
           :shine-direction="shineDirection"
         />
-
         <BackgroundContent pill-text="New Background" headline="Smooth gradients make everything better" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <div class="flex gap-4">
-          <PreviewColor title="Color 1" v-model="color1" />
-          <PreviewColor title="Color 2" v-model="color2" />
-        </div>
-
-        <PreviewSelect title="Light Direction" v-model="shineDirection" :options="directionOptions" />
+        <PreviewColorPicker title="Color 1" v-model="color1" />
+        <PreviewColorPicker title="Color 2" v-model="color2" />
+        <PreviewSelect title="Light Direction" v-model="shineDirection" :options="['left', 'right']" />
         <PreviewSlider title="Blinds Angle" :min="0" :max="360" :step="1" v-model="angle" />
         <PreviewSlider title="Noise Amount" :min="0" :max="1" :step="0.01" v-model="noise" />
         <PreviewSlider title="Blinds Count" :min="1" :max="64" :step="1" v-model="blindCount" />
@@ -32,57 +38,92 @@
         <PreviewSlider title="Distort" :min="0" :max="100" :step="1" v-model="distortAmount" />
         <PreviewSlider title="Mouse Damp" :min="0" :max="1" :step="0.01" v-model="mouseDampening" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['ogl']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="gradientBlinds" />
+      <DemoCodeTab slug="gradientblinds" :usage="gradientBlinds.usage!" :source="gradientBlindsSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="gradientBlinds.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { gradientBlinds } from '@/constants/code/Backgrounds/gradientBlindsCode';
+import GradientBlinds from '@/content/Backgrounds/GradientBlinds/GradientBlinds.vue';
+import gradientBlindsSource from '@/content/Backgrounds/GradientBlinds/GradientBlinds.vue?raw';
 import { computed, ref } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import BackgroundContent from '../../components/common/BackgroundContent.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewColor from '../../components/common/PreviewColor.vue';
-import PreviewSelect from '../../components/common/PreviewSelect.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import GradientBlinds from '../../content/Backgrounds/GradientBlinds/GradientBlinds.vue';
+
+const { forceRerender } = useForceRerender();
 
 type DirectionKey = 'left' | 'right';
 
-const directionOptions = [
-  { label: 'Left', value: 'left' },
-  { label: 'Right', value: 'right' }
-];
+const DEFAULTS = {
+  color1: '#1EA03F',
+  color2: '#182FFF',
+  angle: 20,
+  noise: 0.5,
+  blindCount: 16,
+  blindMinWidth: 60,
+  spotlightRadius: 0.5,
+  distortAmount: 0,
+  mouseDampening: 0.15,
+  shineDirection: 'left' as DirectionKey
+};
 
-const color1 = ref('#1EA03F');
-const color2 = ref('#182FFF');
-const angle = ref(20);
-const noise = ref(0.5);
-const blindCount = ref(16);
-const blindMinWidth = ref(60);
-const spotlightRadius = ref(0.5);
-const distortAmount = ref(0);
-const mouseDampening = ref(0.15);
-const shineDirection = ref<DirectionKey>('left');
+const color1 = ref(DEFAULTS.color1);
+const color2 = ref(DEFAULTS.color2);
+const angle = ref(DEFAULTS.angle);
+const noise = ref(DEFAULTS.noise);
+const blindCount = ref(DEFAULTS.blindCount);
+const blindMinWidth = ref(DEFAULTS.blindMinWidth);
+const spotlightRadius = ref(DEFAULTS.spotlightRadius);
+const distortAmount = ref(DEFAULTS.distortAmount);
+const mouseDampening = ref(DEFAULTS.mouseDampening);
+const shineDirection = ref<DirectionKey>(DEFAULTS.shineDirection);
 
 const gradientColors = computed(() => [color1.value, color2.value]);
 
-const propData = [
+const hasChanges = computed(
+  () =>
+    color1.value !== DEFAULTS.color1 ||
+    color2.value !== DEFAULTS.color2 ||
+    angle.value !== DEFAULTS.angle ||
+    noise.value !== DEFAULTS.noise ||
+    blindCount.value !== DEFAULTS.blindCount ||
+    blindMinWidth.value !== DEFAULTS.blindMinWidth ||
+    spotlightRadius.value !== DEFAULTS.spotlightRadius ||
+    distortAmount.value !== DEFAULTS.distortAmount ||
+    mouseDampening.value !== DEFAULTS.mouseDampening ||
+    shineDirection.value !== DEFAULTS.shineDirection
+);
+
+function reset() {
+  color1.value = DEFAULTS.color1;
+  color2.value = DEFAULTS.color2;
+  angle.value = DEFAULTS.angle;
+  noise.value = DEFAULTS.noise;
+  blindCount.value = DEFAULTS.blindCount;
+  blindMinWidth.value = DEFAULTS.blindMinWidth;
+  spotlightRadius.value = DEFAULTS.spotlightRadius;
+  distortAmount.value = DEFAULTS.distortAmount;
+  mouseDampening.value = DEFAULTS.mouseDampening;
+  shineDirection.value = DEFAULTS.shineDirection;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'gradientColors',
     type: 'string[]',
@@ -100,7 +141,7 @@ const propData = [
     name: 'noise',
     type: 'number',
     default: '0.3',
-    description: 'Strength of per‑pixel noise added to the final color (0 = clean).'
+    description: 'Strength of per-pixel noise added to the final color (0 = clean).'
   },
   {
     name: 'blindCount',
@@ -124,7 +165,7 @@ const propData = [
     name: 'mirrorGradient',
     type: 'boolean',
     default: 'false',
-    description: 'Creates a mirrored ping‑pong gradient progression instead of a linear wrap.'
+    description: 'Creates a mirrored ping-pong gradient progression instead of a linear wrap.'
   },
   {
     name: 'spotlightRadius',

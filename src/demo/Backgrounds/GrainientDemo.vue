@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Grainient</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="grainient.usage"
+    :source="grainientSource"
+    component-name="Grainient"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="relative p-0 h-[600px] overflow-hidden demo-container">
+      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
         <Grainient
           :key="rerenderKey"
           :color1="color1"
@@ -27,96 +35,164 @@
           :centerY="centerY"
           :zoom="zoom"
         />
-
         <BackgroundContent pill-text="New Background" headline="Grainy gradient colors with soft motion." />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <div class="gap-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mb-4">
-          <PreviewColor title="Color 1" v-model="color1" />
-          <PreviewColor title="Color 2" v-model="color2" />
-          <PreviewColor title="Color 3" v-model="color3" />
-        </div>
-
-        <div class="gap-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          <PreviewSlider title="Time Speed" :min="0" :max="5" :step="0.05" v-model="timeSpeed" />
-          <PreviewSlider title="Color Balance" :min="-1" :max="1" :step="0.01" v-model="colorBalance" />
-          <PreviewSlider title="Warp Strength" :min="0" :max="4" :step="0.05" v-model="warpStrength" />
-          <PreviewSlider title="Warp Frequency" :min="0" :max="12" :step="0.1" v-model="warpFrequency" />
-          <PreviewSlider title="Warp Speed" :min="0" :max="6" :step="0.1" v-model="warpSpeed" />
-          <PreviewSlider title="Warp Amplitude" :min="5" :max="80" :step="1" v-model="warpAmplitude" />
-          <PreviewSlider title="Blend Angle" :min="-180" :max="180" :step="1" v-model="blendAngle" />
-          <PreviewSlider title="Blend Softness" :min="0" :max="1" :step="0.01" v-model="blendSoftness" />
-          <PreviewSlider title="Rotation Amount" :min="0" :max="1440" :step="10" v-model="rotationAmount" />
-          <PreviewSlider title="Noise Scale" :min="0" :max="4" :step="0.05" v-model="noiseScale" />
-          <PreviewSlider title="Grain Amount" :min="0" :max="0.4" :step="0.01" v-model="grainAmount" />
-          <PreviewSlider title="Grain Scale" :min="0.2" :max="8" :step="0.1" v-model="grainScale" />
-          <PreviewSwitch title="Grain Animated" v-model="grainAnimated" />
-          <PreviewSlider title="Contrast" :min="0" :max="2.5" :step="0.05" v-model="contrast" />
-          <PreviewSlider title="Gamma" :min="0.4" :max="2.5" :step="0.05" v-model="gamma" />
-          <PreviewSlider title="Saturation" :min="0" :max="2.5" :step="0.05" v-model="saturation" />
-          <PreviewSlider title="Center Offset X" :min="-1" :max="1" :step="0.01" v-model="centerX" />
-          <PreviewSlider title="Center Offset Y" :min="-1" :max="1" :step="0.01" v-model="centerY" />
-          <PreviewSlider title="Zoom" :min="0.3" :max="3" :step="0.05" v-model="zoom" />
-        </div>
+        <PreviewColorPicker title="Color 1" v-model="color1" />
+        <PreviewColorPicker title="Color 2" v-model="color2" />
+        <PreviewColorPicker title="Color 3" v-model="color3" />
+        <PreviewSlider title="Time Speed" :min="0" :max="5" :step="0.05" v-model="timeSpeed" />
+        <PreviewSlider title="Color Balance" :min="-1" :max="1" :step="0.01" v-model="colorBalance" />
+        <PreviewSlider title="Warp Strength" :min="0" :max="4" :step="0.05" v-model="warpStrength" />
+        <PreviewSlider title="Warp Frequency" :min="0" :max="12" :step="0.1" v-model="warpFrequency" />
+        <PreviewSlider title="Warp Speed" :min="0" :max="6" :step="0.1" v-model="warpSpeed" />
+        <PreviewSlider title="Warp Amplitude" :min="5" :max="80" :step="1" v-model="warpAmplitude" />
+        <PreviewSlider title="Blend Angle" :min="-180" :max="180" :step="1" v-model="blendAngle" />
+        <PreviewSlider title="Blend Softness" :min="0" :max="1" :step="0.01" v-model="blendSoftness" />
+        <PreviewSlider title="Rotation Amount" :min="0" :max="1440" :step="10" v-model="rotationAmount" />
+        <PreviewSlider title="Noise Scale" :min="0" :max="4" :step="0.05" v-model="noiseScale" />
+        <PreviewSlider title="Grain Amount" :min="0" :max="0.4" :step="0.01" v-model="grainAmount" />
+        <PreviewSlider title="Grain Scale" :min="0.2" :max="8" :step="0.1" v-model="grainScale" />
+        <PreviewSwitch title="Grain Animated" v-model="grainAnimated" />
+        <PreviewSlider title="Contrast" :min="0" :max="2.5" :step="0.05" v-model="contrast" />
+        <PreviewSlider title="Gamma" :min="0.4" :max="2.5" :step="0.05" v-model="gamma" />
+        <PreviewSlider title="Saturation" :min="0" :max="2.5" :step="0.05" v-model="saturation" />
+        <PreviewSlider title="Center Offset X" :min="-1" :max="1" :step="0.01" v-model="centerX" />
+        <PreviewSlider title="Center Offset Y" :min="-1" :max="1" :step="0.01" v-model="centerY" />
+        <PreviewSlider title="Zoom" :min="0.3" :max="3" :step="0.05" v-model="zoom" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['ogl']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="grainient" />
+      <DemoCodeTab slug="grainient" :usage="grainient.usage!" :source="grainientSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="grainient.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import CliInstallation from '@/components/code/CliInstallation.vue';
-import CodeExample from '@/components/code/CodeExample.vue';
-import Dependencies from '@/components/code/Dependencies.vue';
 import BackgroundContent from '@/components/common/BackgroundContent.vue';
 import Customize from '@/components/common/Customize.vue';
-import PreviewColor from '@/components/common/PreviewColor.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
-import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
-import PropTable from '@/components/common/PropTable.vue';
-import TabbedLayout from '@/components/common/TabbedLayout.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
 import { grainient } from '@/constants/code/Backgrounds/grainientCode';
 import Grainient from '@/content/Backgrounds/Grainient/Grainient.vue';
-import { ref } from 'vue';
+import grainientSource from '@/content/Backgrounds/Grainient/Grainient.vue?raw';
+import { computed, ref } from 'vue';
 
-const { rerenderKey } = useForceRerender();
+const { rerenderKey, forceRerender } = useForceRerender();
 
-const color1 = ref('#5227FF');
-const color2 = ref('#FF9FFC');
-const color3 = ref('#B19EEF');
-const timeSpeed = ref(0.25);
-const colorBalance = ref(0.0);
-const warpStrength = ref(1.0);
-const warpFrequency = ref(5.0);
-const warpSpeed = ref(2.0);
-const warpAmplitude = ref(50.0);
-const blendAngle = ref(0.0);
-const blendSoftness = ref(0.05);
-const rotationAmount = ref(500.0);
-const noiseScale = ref(2.0);
-const grainAmount = ref(0.1);
-const grainScale = ref(2.0);
-const grainAnimated = ref(false);
-const contrast = ref(1.5);
-const gamma = ref(1.0);
-const saturation = ref(1.0);
-const centerX = ref(0.0);
-const centerY = ref(0.0);
-const zoom = ref(0.9);
+const DEFAULTS = {
+  color1: '#48FF28',
+  color2: '#2c3d32',
+  color3: '#65a865',
+  timeSpeed: 0.25,
+  colorBalance: 0.0,
+  warpStrength: 1.0,
+  warpFrequency: 5.0,
+  warpSpeed: 2.0,
+  warpAmplitude: 50.0,
+  blendAngle: 0.0,
+  blendSoftness: 0.05,
+  rotationAmount: 500.0,
+  noiseScale: 2.0,
+  grainAmount: 0.1,
+  grainScale: 2.0,
+  grainAnimated: false,
+  contrast: 1.5,
+  gamma: 1.0,
+  saturation: 1.0,
+  centerX: 0.0,
+  centerY: 0.0,
+  zoom: 0.9
+};
 
-const propData = [
+const color1 = ref(DEFAULTS.color1);
+const color2 = ref(DEFAULTS.color2);
+const color3 = ref(DEFAULTS.color3);
+const timeSpeed = ref(DEFAULTS.timeSpeed);
+const colorBalance = ref(DEFAULTS.colorBalance);
+const warpStrength = ref(DEFAULTS.warpStrength);
+const warpFrequency = ref(DEFAULTS.warpFrequency);
+const warpSpeed = ref(DEFAULTS.warpSpeed);
+const warpAmplitude = ref(DEFAULTS.warpAmplitude);
+const blendAngle = ref(DEFAULTS.blendAngle);
+const blendSoftness = ref(DEFAULTS.blendSoftness);
+const rotationAmount = ref(DEFAULTS.rotationAmount);
+const noiseScale = ref(DEFAULTS.noiseScale);
+const grainAmount = ref(DEFAULTS.grainAmount);
+const grainScale = ref(DEFAULTS.grainScale);
+const grainAnimated = ref(DEFAULTS.grainAnimated);
+const contrast = ref(DEFAULTS.contrast);
+const gamma = ref(DEFAULTS.gamma);
+const saturation = ref(DEFAULTS.saturation);
+const centerX = ref(DEFAULTS.centerX);
+const centerY = ref(DEFAULTS.centerY);
+const zoom = ref(DEFAULTS.zoom);
+
+const hasChanges = computed(
+  () =>
+    color1.value !== DEFAULTS.color1 ||
+    color2.value !== DEFAULTS.color2 ||
+    color3.value !== DEFAULTS.color3 ||
+    timeSpeed.value !== DEFAULTS.timeSpeed ||
+    colorBalance.value !== DEFAULTS.colorBalance ||
+    warpStrength.value !== DEFAULTS.warpStrength ||
+    warpFrequency.value !== DEFAULTS.warpFrequency ||
+    warpSpeed.value !== DEFAULTS.warpSpeed ||
+    warpAmplitude.value !== DEFAULTS.warpAmplitude ||
+    blendAngle.value !== DEFAULTS.blendAngle ||
+    blendSoftness.value !== DEFAULTS.blendSoftness ||
+    rotationAmount.value !== DEFAULTS.rotationAmount ||
+    noiseScale.value !== DEFAULTS.noiseScale ||
+    grainAmount.value !== DEFAULTS.grainAmount ||
+    grainScale.value !== DEFAULTS.grainScale ||
+    grainAnimated.value !== DEFAULTS.grainAnimated ||
+    contrast.value !== DEFAULTS.contrast ||
+    gamma.value !== DEFAULTS.gamma ||
+    saturation.value !== DEFAULTS.saturation ||
+    centerX.value !== DEFAULTS.centerX ||
+    centerY.value !== DEFAULTS.centerY ||
+    zoom.value !== DEFAULTS.zoom
+);
+
+function reset() {
+  color1.value = DEFAULTS.color1;
+  color2.value = DEFAULTS.color2;
+  color3.value = DEFAULTS.color3;
+  timeSpeed.value = DEFAULTS.timeSpeed;
+  colorBalance.value = DEFAULTS.colorBalance;
+  warpStrength.value = DEFAULTS.warpStrength;
+  warpFrequency.value = DEFAULTS.warpFrequency;
+  warpSpeed.value = DEFAULTS.warpSpeed;
+  warpAmplitude.value = DEFAULTS.warpAmplitude;
+  blendAngle.value = DEFAULTS.blendAngle;
+  blendSoftness.value = DEFAULTS.blendSoftness;
+  rotationAmount.value = DEFAULTS.rotationAmount;
+  noiseScale.value = DEFAULTS.noiseScale;
+  grainAmount.value = DEFAULTS.grainAmount;
+  grainScale.value = DEFAULTS.grainScale;
+  grainAnimated.value = DEFAULTS.grainAnimated;
+  contrast.value = DEFAULTS.contrast;
+  gamma.value = DEFAULTS.gamma;
+  saturation.value = DEFAULTS.saturation;
+  centerX.value = DEFAULTS.centerX;
+  centerY.value = DEFAULTS.centerY;
+  zoom.value = DEFAULTS.zoom;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'color1',
     type: 'string',
@@ -126,13 +202,13 @@ const propData = [
   {
     name: 'color2',
     type: 'string',
-    default: "'#A2FFC6'",
+    default: "'#2c3d32'",
     description: 'Secondary accent color used in the gradient blend.'
   },
   {
     name: 'color3',
     type: 'string',
-    default: "'#9EF19E'",
+    default: "'#65a865'",
     description: 'Deep base color used in the gradient blend.'
   },
   {

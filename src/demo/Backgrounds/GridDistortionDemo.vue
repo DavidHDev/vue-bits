@@ -1,10 +1,18 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Grid Distortion</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="gridDistortion.usage"
+    :source="gridDistortionSource"
+    component-name="GridDistortion"
+    :props-table="props"
+  >
     <template #preview>
       <div class="relative p-0 h-[600px] overflow-hidden demo-container" ref="containerRef">
         <GridDistortion
           :key="key"
-          imageSrc="https://picsum.photos/1920/1080"
+          imageSrc="https://images.unsplash.com/photo-1681577997228-8c558352ffa7?q=80&w=3264&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
           :grid="grid"
           :mouse="mouse"
           :strength="0.15"
@@ -13,57 +21,59 @@
         />
         <BackgroundContent pillText="New Background" headline="Don't just sit there, move your cursor!" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSlider title="Grid Size" :min="6" :max="200" :step="1" v-model="grid" />
-
         <PreviewSlider title="Mouse Size" :min="0.1" :max="0.5" :step="0.01" v-model="mouse" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['three']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="gridDistortion" />
+      <DemoCodeTab slug="grid-distortion" :usage="gridDistortion.usage!" :source="gridDistortionSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="gridDistortion.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
-import { ref, watch, useTemplateRef } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import { gridDistortion } from '../../constants/code/Backgrounds/gridDistortionCode';
-import GridDistortion from '../../content/Backgrounds/GridDistortion/GridDistortion.vue';
-import BackgroundContent from '../../components/common/BackgroundContent.vue';
+import { gridDistortion } from '@/constants/code/Backgrounds/gridDistortionCode';
+import GridDistortion from '@/content/Backgrounds/GridDistortion/GridDistortion.vue';
+import gridDistortionSource from '@/content/Backgrounds/GridDistortion/GridDistortion.vue?raw';
+import { computed, ref, useTemplateRef } from 'vue';
 
 const { rerenderKey: key, forceRerender } = useForceRerender();
 
-const grid = ref(10);
-const mouse = ref(0.25);
+const DEFAULTS = {
+  grid: 10,
+  mouse: 0.25
+};
+
+const grid = ref(DEFAULTS.grid);
+const mouse = ref(DEFAULTS.mouse);
 
 const containerRef = useTemplateRef<HTMLDivElement>('containerRef');
 
-watch(
-  () => [grid, mouse],
-  () => {
-    forceRerender();
-  },
-  { deep: true }
-);
+const hasChanges = computed(() => grid.value !== DEFAULTS.grid || mouse.value !== DEFAULTS.mouse);
 
-const propData = [
+function reset() {
+  grid.value = DEFAULTS.grid;
+  mouse.value = DEFAULTS.mouse;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'imgageSrc',
     type: 'string',

@@ -1,76 +1,121 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Counter</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="counter.usage"
+    :source="counterSource"
+    component-name="Counter"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[400px] overflow-hidden">
+      <div class="relative h-[500px] overflow-hidden demo-container">
         <Counter
           :value="value"
-          :places="[100, 10, 1]"
-          gradientFrom="#0b0b0b"
-          :fontSize="fontSize"
+          gradient-from="#0b0b0b"
+          :font-size="fontSize"
           :padding="5"
           :gap="gap"
-          :borderRadius="10"
-          :horizontalPadding="15"
-          textColor="white"
-          :fontWeight="900"
+          :border-radius="10"
+          :horizontal-padding="15"
+          text-color="white"
+          :font-weight="900"
+          v-bind="digitPlaceHolders ? { places: [100, 10, 1, '.', 0.1] } : {}"
         />
 
-        <div class="flex gap-4 bottom-4 justify-center mt-4 absolute left-1/2 transform -translate-x-1/2">
+        <div class="bottom-[1em] absolute flex justify-center gap-4 mt-4">
           <button
-            class="cursor-pointer bg-[#0b0b0b] rounded-[10px] border border-[#333] hover:bg-[#222] text-white h-10 w-10 transition-colors"
-            @click="value > 0 && value--"
+            class="bg-[#0b0b0b] hover:bg-[#222] border border-[#333] rounded-[10px] w-16 h-10 text-white transition-colors cursor-pointer"
+            @click="() => (value = roundToTenth(value - 0.4))"
+          >
+            - 0.4
+          </button>
+          <button
+            class="bg-[#0b0b0b] hover:bg-[#222] border border-[#333] rounded-[10px] w-16 h-10 text-white transition-colors cursor-pointer"
+            @click="() => (value = roundToTenth(value - 1))"
           >
             -
           </button>
           <button
-            class="cursor-pointer bg-[#0b0b0b] rounded-[10px] border border-[#333] hover:bg-[#222] text-white h-10 w-10 transition-colors"
-            @click="value < 999 && value++"
+            class="bg-[#0b0b0b] hover:bg-[#222] border border-[#333] rounded-[10px] w-16 h-10 text-white transition-colors cursor-pointer"
+            @click="() => (value = roundToTenth(value + 1))"
           >
             +
           </button>
+          <button
+            class="bg-[#0b0b0b] hover:bg-[#222] border border-[#333] rounded-[10px] w-16 h-10 text-white transition-colors cursor-pointer"
+            @click="() => (value = roundToTenth(value + 0.4))"
+          >
+            + 0.4
+          </button>
         </div>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
+        <PreviewSwitch title="Digit Place Holders" v-model="digitPlaceHolders" />
         <PreviewSlider title="Value" v-model="value" :min="0" :max="999" :step="1" />
-
-        <PreviewSlider title="Gap" v-model="gap" :min="0" :max="50" :step="5" />
-
+        <PreviewSlider title="Gap" v-model="gap" :min="0" :max="50" :step="10" />
         <PreviewSlider title="Font Size" v-model="fontSize" :min="40" :max="200" :step="10" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['motion-v']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="counter" />
+      <DemoCodeTab slug="counter" :usage="counter.usage!" :source="counterSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="counter.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
+import { counter } from '@/constants/code/Components/counterCode';
+import Counter from '@/content/Components/Counter/Counter.vue';
+import counterSource from '@/content/Components/Counter/Counter.vue?raw';
+import { computed, ref } from 'vue';
 
-import Counter from '../../content/Components/Counter/Counter.vue';
-import { counter } from '../../constants/code/Components/counterCode';
+const { forceRerender } = useForceRerender();
+const roundToTenth = (num: number) => Math.round(num * 10) / 10;
 
-const value = ref(123);
-const fontSize = ref(80);
-const gap = ref(10);
+const DEFAULTS = {
+  digitPlaceHolders: true,
+  value: 1,
+  fontSize: 80,
+  gap: 10
+};
 
-const propData = [
+const digitPlaceHolders = ref(DEFAULTS.digitPlaceHolders);
+const value = ref(DEFAULTS.value);
+const fontSize = ref(DEFAULTS.fontSize);
+const gap = ref(DEFAULTS.gap);
+
+const hasChanges = computed(
+  () =>
+    digitPlaceHolders.value !== DEFAULTS.digitPlaceHolders ||
+    value.value !== DEFAULTS.value ||
+    fontSize.value !== DEFAULTS.fontSize ||
+    gap.value !== DEFAULTS.gap
+);
+
+function reset() {
+  digitPlaceHolders.value = DEFAULTS.digitPlaceHolders;
+  value.value = DEFAULTS.value;
+  fontSize.value = DEFAULTS.fontSize;
+  gap.value = DEFAULTS.gap;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'value',
     type: 'number',
@@ -92,8 +137,9 @@ const propData = [
   {
     name: 'places',
     type: 'number[]',
-    default: '[100, 10, 1]',
-    description: 'An array of place values to determine which digits to display.'
+    default: '[100, 10, 1 , "." , 0.1]',
+    description:
+      'Defines which digit positions to display. Include whole number and decimal place values (use "." for the decimal point). If omitted, place values will be detected automatically.'
   },
   {
     name: 'gap',

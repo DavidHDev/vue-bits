@@ -1,7 +1,16 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Text Pressure</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="textPressure.usage"
+    :source="textPressureSource"
+    component-name="TextPressure"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[400px]">
+      <div class="relative h-[400px] demo-container">
+        <RefreshButton @click="forceRerender" />
         <TextPressure
           :key="rerenderKey"
           :text="text"
@@ -16,82 +25,98 @@
           :min-font-size="36"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-2">Text</label>
-
-          <input
-            v-model="text"
-            type="text"
-            placeholder="Your text here..."
-            maxlength="10"
-            class="w-[200px] px-3 py-2 bg-[#0b0b0b] border border-[#333] rounded-md text-white focus:outline-none focus:border-[#666]"
-          />
-        </div>
-
-        <div class="color-controls">
-          <PreviewColor title="Text Color" v-model="textColor" />
-
-          <PreviewColor title="Stroke Color" v-model="strokeColor" />
-        </div>
-
-        <p class="mt-6 text-[#999] text-sm">Animation Settings</p>
-
-        <div class="flex gap-4 flex-wrap">
-          <PreviewSwitch title="Flex" v-model="flex" />
-
-          <PreviewSwitch title="Alpha" v-model="alpha" />
-
-          <PreviewSwitch title="Stroke" v-model="stroke" />
-
-          <PreviewSwitch title="Width" v-model="width" />
-
-          <PreviewSwitch title="Weight" v-model="weight" />
-
-          <PreviewSwitch title="Italic" v-model="italic" />
-        </div>
+        <PreviewColorPicker title="Text Color" v-model="textColor" />
+        <PreviewColorPicker title="Stroke Color" v-model="strokeColor" />
+        <PreviewInput title="Text" v-model="text" placeholder="Enter text..." :maxlength="10" />
+        <PreviewSwitch title="Flex" v-model="flex" />
+        <PreviewSwitch title="Alpha" v-model="alpha" />
+        <PreviewSwitch title="Stroke" v-model="stroke" />
+        <PreviewSwitch title="Width" v-model="width" />
+        <PreviewSwitch title="Weight" v-model="weight" />
+        <PreviewSwitch title="Italic" v-model="italic" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="textPressure" />
+      <DemoCodeTab slug="text-pressure" :usage="textPressure.usage!" :source="textPressureSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="textPressure.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PreviewColor from '../../components/common/PreviewColor.vue';
-import TextPressure from '../../content/TextAnimations/TextPressure/TextPressure.vue';
-import { textPressure } from '@/constants/code/TextAnimations/textPressureCode';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewInput from '@/components/common/PreviewInput.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
-
-const text = ref('Hello!');
-const flex = ref(true);
-const alpha = ref(false);
-const stroke = ref(false);
-const width = ref(true);
-const weight = ref(true);
-const italic = ref(true);
-const textColor = ref('#ffffff');
-const strokeColor = ref('#27FF64');
+import { textPressure } from '@/constants/code/TextAnimations/textPressureCode';
+import TextPressure from '@/content/TextAnimations/TextPressure/TextPressure.vue';
+import textPressureSource from '@/content/TextAnimations/TextPressure/TextPressure.vue?raw';
+import { computed, ref } from 'vue';
 
 const { rerenderKey, forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  text: 'Hello!',
+  flex: true,
+  alpha: false,
+  stroke: false,
+  width: true,
+  weight: true,
+  italic: true,
+  textColor: '#ffffff',
+  strokeColor: '#27FF64'
+};
+
+const text = ref(DEFAULTS.text);
+const flex = ref(DEFAULTS.flex);
+const alpha = ref(DEFAULTS.alpha);
+const stroke = ref(DEFAULTS.stroke);
+const width = ref(DEFAULTS.width);
+const weight = ref(DEFAULTS.weight);
+const italic = ref(DEFAULTS.italic);
+const textColor = ref(DEFAULTS.textColor);
+const strokeColor = ref(DEFAULTS.strokeColor);
+
+const hasChanges = computed(
+  () =>
+    text.value !== DEFAULTS.text ||
+    flex.value !== DEFAULTS.flex ||
+    alpha.value !== DEFAULTS.alpha ||
+    stroke.value !== DEFAULTS.stroke ||
+    width.value !== DEFAULTS.width ||
+    weight.value !== DEFAULTS.weight ||
+    italic.value !== DEFAULTS.italic ||
+    textColor.value !== DEFAULTS.textColor ||
+    strokeColor.value !== DEFAULTS.strokeColor
+);
+
+function reset() {
+  text.value = DEFAULTS.text;
+  flex.value = DEFAULTS.flex;
+  alpha.value = DEFAULTS.alpha;
+  stroke.value = DEFAULTS.stroke;
+  width.value = DEFAULTS.width;
+  weight.value = DEFAULTS.weight;
+  italic.value = DEFAULTS.italic;
+  textColor.value = DEFAULTS.textColor;
+  strokeColor.value = DEFAULTS.strokeColor;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'text',
     type: 'string',
@@ -101,7 +126,7 @@ const propData = [
   {
     name: 'fontFamily',
     type: 'string',
-    default: 'Compressa VF',
+    default: '',
     description: 'Name of the variable font family.'
   },
   {
@@ -155,19 +180,19 @@ const propData = [
   {
     name: 'textColor',
     type: 'string',
-    default: '#FFFFFF',
+    default: 'true',
     description: 'The fill color of the text'
   },
   {
     name: 'strokeColor',
     type: 'string',
-    default: '#FF0000',
+    default: '#FFFFFF',
     description: 'The stroke color that will be applied to the text when "stroke" is set to true'
   },
   {
     name: 'className',
     type: 'string',
-    default: "''",
+    default: '#00FF00',
     description: 'Additional class for styling the <h1> wrapper.'
   },
   {
@@ -177,13 +202,6 @@ const propData = [
     description: 'Sets a minimum font-size to avoid overly tiny text on smaller screens.'
   }
 ];
-
-watch(
-  () => [flex.value, alpha.value, stroke.value, width.value, weight.value, italic.value],
-  () => {
-    forceRerender();
-  }
-);
 </script>
 
 <style scoped>

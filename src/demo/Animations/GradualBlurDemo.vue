@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Gradual Blur</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="gradualBlur.usage"
+    :source="gradualBlurSource"
+    component-name="GradualBlur"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container demo-container-dots h-[500px] overflow-hidden">
+      <div class="h-[500px] overflow-hidden demo-container demo-container-dots">
         <div
           ref="scrollRef"
           class="relative flex flex-col items-center px-6 py-[100px] w-full h-full overflow-x-hidden overflow-y-auto scrollContainer"
@@ -16,67 +24,104 @@
         </div>
 
         <GradualBlur
-          v-bind="blurProps"
-          :style="{
-            zIndex: 10,
-            width: blurProps.position === 'left' || blurProps.position === 'right' ? '8rem' : '100%',
-            height: blurProps.position === 'top' || blurProps.position === 'bottom' ? blurProps.height : '100%'
-          }"
+          :position="position"
+          :strength="strength"
+          :height="position === 'top' || position === 'bottom' ? height : '100%'"
+          :divCount="divCount"
+          :curve="curve"
+          :target="target"
+          :exponential="exponential"
+          :opacity="opacity"
+          :zIndex="10"
+          :width="position === 'left' || position === 'right' ? '8rem' : '100%'"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewSelect title="Position" v-model="blurProps.position" :options="positionOptions" />
-        <PreviewSwitch title="Exponential" v-model="blurProps.exponential" />
-        <PreviewSlider title="Strength" :min="1" :max="5" :step="0.5" v-model="blurProps.strength" />
-        <PreviewSlider title="Div Count" :min="1" :max="10" :step="1" v-model="blurProps.divCount" />
-        <PreviewSlider title="Opacity" :min="0.1" :max="1" :step="0.1" v-model="blurProps.opacity" />
+        <PreviewSelect title="Position" v-model="position" :options="['top', 'bottom', 'left', 'right']" />
+        <PreviewSelect title="Target" v-model="target" :options="['parent', 'page']" />
+        <PreviewSwitch title="Exponential" v-model="exponential" />
+        <PreviewSlider title="Strength" :min="1" :max="5" :step="0.5" v-model="strength" />
+        <PreviewSlider title="Div Count" :min="1" :max="10" :step="1" v-model="divCount" />
+        <PreviewSlider title="Opacity" :min="0.1" :max="1" :step="0.1" v-model="opacity" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['mathjs']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="gradualBlur" />
+      <DemoCodeTab slug="gradual-blur" :usage="gradualBlur.usage!" :source="gradualBlurSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="gradualBlur.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { gradualBlur } from '@/constants/code/Animations/gradualBlurCode';
+import GradualBlur from '@/content/Animations/GradualBlur/GradualBlur.vue';
+import gradualBlurSource from '@/content/Animations/GradualBlur/GradualBlur.vue?raw';
 import Lenis from 'lenis';
-import { onBeforeMount, onMounted, reactive, useTemplateRef } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSelect from '../../components/common/PreviewSelect.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import GradualBlur, { type GradualBlurProps } from '../../content/Animations/GradualBlur/GradualBlur.vue';
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue';
 
-const positionOptions = [
-  { label: 'Top', value: 'top' },
-  { label: 'Bottom', value: 'bottom' }
-];
+const { forceRerender } = useForceRerender();
 
-const blurProps = reactive<GradualBlurProps>({
-  position: 'bottom',
+type Position = 'top' | 'bottom' | 'left' | 'right';
+type Curve = 'bezier' | 'ease-out' | 'linear' | 'ease-in' | 'ease-in-out';
+type Target = 'parent' | 'page';
+const DEFAULTS = {
+  position: 'bottom' as Position,
   strength: 2,
   height: '7rem',
   divCount: 5,
-  curve: 'bezier',
-  target: 'parent',
+  curve: 'bezier' as Curve,
+  target: 'parent' as Target,
   exponential: true,
   opacity: 1
-});
+};
+
+const position = ref<Position>(DEFAULTS.position);
+const strength = ref(DEFAULTS.strength);
+const height = ref(DEFAULTS.height);
+const divCount = ref(DEFAULTS.divCount);
+const curve = ref<Curve>(DEFAULTS.curve);
+const target = ref<Target>(DEFAULTS.target);
+const exponential = ref(DEFAULTS.exponential);
+const opacity = ref(DEFAULTS.opacity);
+
+const hasChanges = computed(
+  () =>
+    position.value !== DEFAULTS.position ||
+    strength.value !== DEFAULTS.strength ||
+    height.value !== DEFAULTS.height ||
+    divCount.value !== DEFAULTS.divCount ||
+    curve.value !== DEFAULTS.curve ||
+    target.value !== DEFAULTS.target ||
+    exponential.value !== DEFAULTS.exponential ||
+    opacity.value !== DEFAULTS.opacity
+);
+
+function reset() {
+  position.value = DEFAULTS.position;
+  strength.value = DEFAULTS.strength;
+  height.value = DEFAULTS.height;
+  divCount.value = DEFAULTS.divCount;
+  curve.value = DEFAULTS.curve;
+  target.value = DEFAULTS.target;
+  exponential.value = DEFAULTS.exponential;
+  opacity.value = DEFAULTS.opacity;
+  forceRerender();
+}
 
 const scrollRef = useTemplateRef('scrollRef');
 
@@ -92,7 +137,7 @@ onMounted(() => {
 
   const lenis = new Lenis({
     wrapper: el,
-    content: el.firstElementChild ?? el,
+    content: el.firstElementChild as HTMLElement | Element | undefined,
     duration: 2,
     smoothWheel: true,
     touchMultiplier: 1.2,
@@ -113,11 +158,11 @@ onMounted(() => {
   };
 });
 
-onBeforeMount(() => {
+onBeforeUnmount(() => {
   cleanup?.();
 });
 
-const propData = [
+const props: PropRow[] = [
   {
     name: 'position',
     type: `"top" | "bottom" | "left" | "right"`,
