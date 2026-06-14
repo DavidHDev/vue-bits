@@ -94,6 +94,7 @@ const components = {
   'infinite-menu': () => import('../demo/Components/InfiniteMenuDemo.vue'),
   'border-glow': () => import('../demo/Components/BorderGlowDemo.vue'),
   'fluid-glass': () => import('../demo/Components/FluidGlassDemo.vue'),
+  'model-viewer': () => import('../demo/Components/ModelViewerDemo.vue'),
 };
 
 const backgrounds = {
