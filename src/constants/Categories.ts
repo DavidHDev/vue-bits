@@ -1,5 +1,6 @@
 // Highlighted sidebar items
 export const NEW = [
+  'Model Viewer',
   'Strands',
   'Side Rays',
   'Ferrofluid',
@@ -113,6 +114,7 @@ export const CATEGORIES = [
       'Infinite Scroll',
       'Magic Bento',
       'Masonry',
+      'Model Viewer',
       'Pill Nav',
       'Pixel Card',
       'Profile Card',

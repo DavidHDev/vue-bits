@@ -699,6 +699,14 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/components/fluid-glass',
     tags: []
   },
+  'Components/ModelViewer': {
+    videoUrl: '/assets/videos/modelviewer.webm',
+    name: 'Model Viewer',
+    description: 'Interactive 3D model viewer with orbit zoom, parallax, hover rotation and lighting presets.',
+    category: 'Components',
+    docsUrl: 'https://vue-bits.dev/components/model-viewer',
+    tags: []
+  },
 
   //! Backgrounds -------------------------------------------------------------------------------------------------------------------------------
   'Backgrounds/Aurora': {
