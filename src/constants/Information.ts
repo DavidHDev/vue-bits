@@ -635,6 +635,14 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/components/profile-card',
     tags: []
   },
+  'Components/ReflectiveCard': {
+    videoUrl: '/assets/videos/reflectivecard.webm',
+    description: 'Metallic card with live webcam reflection and SVG displacement filter.',
+    category: 'Components',
+    name: 'ReflectiveCard',
+    docsUrl: 'https://vue-bits.dev/components/reflective-card',
+    tags: []
+  },
   'Components/ScrollStack': {
     videoUrl: '/assets/videos/scrollstack.webm',
     description: 'Overlapping card stack reveals on scroll with depth layering.',
