@@ -79,7 +79,7 @@
   transform: translate(-50%, -50%);
   width: 70%;
   height: 120%;
-  background: radial-gradient(ellipse, rgba(76, 255, 85, 0.05) 0%, transparent 70%);
+  background: radial-gradient(ellipse, rgba(0, 255, 169, 0.05) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
@@ -89,7 +89,7 @@
   z-index: 1;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(29, 24, 20, 0.6);
+  background: rgba(18, 15, 23, 0.6);
   backdrop-filter: blur(32px) saturate(1.3);
   -webkit-backdrop-filter: blur(32px) saturate(1.3);
   box-shadow:
@@ -151,7 +151,7 @@
 
 .ln-qs-tab--active {
   color: rgba(255, 255, 255, 0.85);
-  border-bottom-color: rgba(103, 255, 76, 0.7);
+  border-bottom-color: rgba(0, 255, 169, 0.7);
 }
 
 .ln-qs-tab--active .ln-qs-tab-logo {
@@ -256,8 +256,8 @@
 }
 
 .ln-qs-runner-item.active {
-  color: rgba(82, 255, 76, 0.95);
-  background: rgba(85, 255, 76, 0.08);
+  color: rgba(0, 255, 169, 0.95);
+  background: rgba(0, 255, 169, 0.08);
 }
 
 /* ── Command area ── */
@@ -324,9 +324,9 @@
 }
 
 .ln-qs-copy--done {
-  color: rgba(100, 255, 76, 0.85);
-  border-color: rgba(76, 255, 94, 0.3);
-  background: rgba(68, 255, 0, 0.08);
+  color: rgba(0, 255, 169, 0.85);
+  border-color: rgba(0, 255, 169, 0.3);
+  background: rgba(0, 255, 169, 0.08);
 }
 
 /* ── Hint ── */
@@ -352,14 +352,14 @@
 }
 
 .ln-qs-hint a {
-  color: rgba(76, 255, 118, 0.85);
+  color: rgba(0, 255, 169, 0.85);
   text-decoration: none;
-  border-bottom: 1px solid rgba(85, 255, 76, 0.3);
+  border-bottom: 1px solid rgba(0, 255, 169, 0.3);
 }
 
 .ln-qs-hint a:hover {
-  color: rgb(118, 255, 76);
-  border-bottom-color: rgba(109, 255, 76, 0.6);
+  color: rgb(0, 255, 169);
+  border-bottom-color: rgba(0, 255, 169, 0.6);
 }
 
 /* ═══════════════════════════════════════

@@ -30,7 +30,7 @@ const SNIPPET_DEFS: SnippetDef[] = [
     label: 'ColorBends',
     component: 'ColorBends',
     props: [
-      { name: 'color', type: 'color', default: '#84CC16' },
+      { name: 'color', type: 'color', default: '#00ffa9' },
       { name: 'speed', type: 'number', default: 0.2, min: 0.1, max: 1, step: 0.1 },
       { name: 'frequency', type: 'number', default: 1, min: 1, max: 3, step: 0.1 },
       { name: 'noise', type: 'number', default: 0.15, min: 0, max: 0.9, step: 0.01 },

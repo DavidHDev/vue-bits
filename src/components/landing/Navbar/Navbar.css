@@ -634,7 +634,7 @@
 
     padding: 0 5px 0 16px;
 
-    background: #10140e;
+    background: #111;
 
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
@@ -659,7 +659,7 @@
 
   padding: 0 2em;
 
-  background: #10140e;
+  background: #111;
 
   border-color: transparent;
 
@@ -671,7 +671,7 @@
 
   border-radius: 0;
 
-  background: #10140e;
+  background: #111;
 
   backdrop-filter: none;
   -webkit-backdrop-filter: none;

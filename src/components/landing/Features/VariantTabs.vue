@@ -71,7 +71,7 @@ import iconLogo from '@/assets/logos/vue-bits-logo-small.svg';
 /* ── Positions ── */
 
 .ln-feat-stack-chip--vue {
-  --chip-color: #7cff67;
+  --chip-color: #00ffa9;
   top: 22%;
   left: 14%;
   transform: rotate(-5deg);
@@ -145,11 +145,11 @@ import iconLogo from '@/assets/logos/vue-bits-logo-small.svg';
   }
   15%,
   25% {
-    border-color: #7cff67;
+    border-color: #00ffa9;
     box-shadow:
-      0 0 0 1px rgba(0, 255, 8, 0.35),
-      0 0 24px rgba(89, 255, 0, 0.32);
-    background: rgba(106, 255, 0, 0.07);
+      0 0 0 1px rgba(0, 255, 169, 0.35),
+      0 0 24px rgba(0, 255, 169, 0.32);
+    background: rgba(0, 255, 169, 0.07);
   }
 }
 

@@ -142,9 +142,9 @@
   font-family: 'Geist Mono', monospace;
   font-size: 10px;
   letter-spacing: 0.04em;
-  color: #9eefb0;
-  background: rgba(0, 255, 4, 0.12);
-  border: 1px solid rgba(76, 255, 94, 0.3);
+  color: #99ffd9;
+  background: rgba(0, 255, 169, 0.12);
+  border: 1px solid rgba(0, 255, 169, 0.3);
   padding: 3px 8px;
   border-radius: 6px;
   pointer-events: none;

@@ -173,7 +173,7 @@ const dockItems = [
   <div v-else-if="variant === 'magicrings'" class="demo-fill" aria-hidden="true">
     <component
       :is="LoadedComponent"
-      color="#7cff67"
+      color="#00ffa9"
       colorTwo="#42fcff"
       :ringCount="6"
       :lineThickness="1.6"

@@ -91,7 +91,7 @@
   font-size: 12px;
   font-weight: 600;
   color: #fff;
-  background: #7cff67;
+  background: #00ffa9;
   padding: 4px 10px;
   border-radius: 6px;
 }
@@ -140,9 +140,9 @@
 }
 
 .ln-hero-btn-primary {
-  background: #7cff67;
+  background: #00ffa9;
   color: #fff;
-  border: 1px solid #7cff67;
+  border: 1px solid #00ffa9;
 }
 
 .ln-hero-btn-primary:hover {
@@ -334,7 +334,7 @@
   font-family: 'Geist Mono', monospace;
   font-size: 13px;
   line-height: 1.7;
-  color: #c6ffbd;
+  color: #b3ffe4;
   white-space: pre;
   overflow-x: auto;
   overflow-y: hidden;
@@ -348,16 +348,16 @@
   color: #ccc;
 }
 .c-comp {
-  color: #c6ffbd;
+  color: #b3ffe4;
 }
 .c-tag {
-  color: #7cff67;
+  color: #00ffa9;
 }
 .c-attr {
   color: #fff;
 }
 .c-str {
-  color: #d1f6dd;
+  color: #cdfff0;
 }
 .c-fn {
   color: #fdfdfd;
@@ -380,18 +380,18 @@
 }
 
 .ln-hero-code-value--number {
-  color: #27ff64;
-  background: rgba(112, 255, 76, 0.08);
+  color: #00ffa9;
+  background: rgba(0, 255, 169, 0.08);
   cursor: ew-resize;
   touch-action: none;
 }
 
 .ln-hero-code-value--number:hover {
-  background: rgba(112, 255, 76, 0.22);
+  background: rgba(0, 255, 169, 0.22);
 }
 
 .ln-hero-code-value--number:active {
-  background: rgba(112, 255, 76, 0.22);
+  background: rgba(0, 255, 169, 0.22);
 }
 
 .ln-hero-code-value--bool {
@@ -407,8 +407,8 @@
 }
 
 .ln-hero-code-value--color {
-  color: #d1f6d8;
-  background: rgba(137, 255, 143, 0.08);
+  color: #cdfff0;
+  background: rgba(0, 255, 169, 0.08);
   cursor: pointer;
   position: relative;
 }
