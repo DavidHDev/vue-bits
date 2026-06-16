@@ -45,7 +45,7 @@
             { label: 'Viewport', value: 'viewport' }
           ]"
           :model-value="targeted ? 'viewport' : 'targeted'"
-          @update:model-value="(val: string) => (targeted = val === 'viewport')"
+          @update:model-value="(val: string | number) => (targeted = val === 'viewport')"
         />
         <PreviewColorPicker title="Crosshair Color" v-model="color" />
       </Customize>

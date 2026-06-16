@@ -33,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, CSSProperties } from 'vue';
+import { ref, watch, onMounted, onUnmounted, type CSSProperties } from 'vue';
 import { gsap } from 'gsap';
 
 interface PixelTransitionProps {
