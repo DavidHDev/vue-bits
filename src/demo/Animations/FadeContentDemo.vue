@@ -1,8 +1,16 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Fade Content</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="fadeContent.usage"
+    :source="fadeContentSource"
+    component-name="FadeContent"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[500px]">
-        <RefreshButton @refresh="forceRerender" />
+      <div class="relative h-[400px] demo-container">
+        <RefreshButton @click="forceRerender" />
 
         <FadeContent
           :key="rerenderKey"
@@ -11,111 +19,141 @@
           :delay="delay"
           :threshold="threshold"
           :initial-opacity="initialOpacity"
-          :easing="easing"
-          class="fade-content-demo-content"
         >
-          <div class="demo-content">
-            <h4>Fade Content</h4>
-
-            <p>It will fade in when it enters the viewport.</p>
+          <div
+            style="
+              padding: 1.2em 2em;
+              border-radius: 14px;
+              border: 1px solid var(--border-primary);
+              background: var(--bg-elevated);
+              color: var(--text-primary);
+              font-size: 1.1rem;
+              font-weight: 600;
+            "
+          >
+            Fade me in!
           </div>
         </FadeContent>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSwitch title="Enable Blur Effect" v-model="blur" />
-
-        <PreviewSlider title="Duration (ms)" v-model="duration" :min="100" :max="3000" :step="100" />
-
-        <PreviewSlider title="Delay (ms)" v-model="delay" :min="0" :max="1000" :step="50" />
-
-        <PreviewSlider title="Threshold" v-model="threshold" :min="0.1" :max="1" :step="0.1" />
-
-        <PreviewSlider title="Initial Opacity" v-model="initialOpacity" :min="0" :max="1" :step="0.1" />
+        <PreviewSlider title="Duration" v-model="duration" :min="100" :max="3000" :step="100" value-unit="ms" />
+        <PreviewSlider title="Delay" v-model="delay" :min="0" :max="2000" :step="50" value-unit="ms" />
+        <PreviewSlider title="Threshold" v-model="threshold" :min="0" :max="1" :step="0.05" />
+        <PreviewSlider title="Initial Opacity" v-model="initialOpacity" :min="0" :max="1" :step="0.05" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="fadeContent" />
+      <DemoCodeTab slug="fade-content" :usage="fadeContent.usage!" :source="fadeContentSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="fadeContent.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import RefreshButton from '../../components/common/RefreshButton.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import FadeContent from '../../content/Animations/FadeContent/FadeContent.vue';
-import { fadeContent } from '@/constants/code/Animations/fadeContentCode';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
+import { fadeContent } from '@/constants/code/Animations/fadeContentCode';
+import FadeContent from '@/content/Animations/FadeContent/FadeContent.vue';
+import fadeContentSource from '@/content/Animations/FadeContent/FadeContent.vue?raw';
+import { computed, ref } from 'vue';
 
-const blur = ref(true);
-const duration = ref(1000);
-const delay = ref(200);
-const threshold = ref(0.1);
-const initialOpacity = ref(0);
-const easing = ref('ease-out');
 const { rerenderKey, forceRerender } = useForceRerender();
 
-const propData = [
-  { name: 'blur', type: 'boolean', default: 'false', description: 'Enable blur effect during fade animation.' },
-  { name: 'duration', type: 'number', default: '1000', description: 'Animation duration in milliseconds.' },
-  { name: 'easing', type: 'string', default: '"ease-out"', description: 'CSS easing function for the animation.' },
-  { name: 'delay', type: 'number', default: '0', description: 'Delay before animation starts in milliseconds.' },
-  {
-    name: 'threshold',
-    type: 'number',
-    default: '0.1',
-    description: 'Intersection threshold to trigger animation (0-1).'
-  },
-  { name: 'initialOpacity', type: 'number', default: '0', description: 'Initial opacity before animation (0-1).' },
-  { name: 'className', type: 'string', default: '""', description: 'Additional CSS classes for styling.' }
-];
+const DEFAULTS = {
+  blur: false,
+  duration: 1000,
+  delay: 0,
+  threshold: 0.1,
+  initialOpacity: 0
+};
 
-watch(blur, () => {
+const blur = ref(DEFAULTS.blur);
+const duration = ref(DEFAULTS.duration);
+const delay = ref(DEFAULTS.delay);
+const threshold = ref(DEFAULTS.threshold);
+const initialOpacity = ref(DEFAULTS.initialOpacity);
+
+const hasChanges = computed(
+  () =>
+    blur.value !== DEFAULTS.blur ||
+    duration.value !== DEFAULTS.duration ||
+    delay.value !== DEFAULTS.delay ||
+    threshold.value !== DEFAULTS.threshold ||
+    initialOpacity.value !== DEFAULTS.initialOpacity
+);
+
+function reset() {
+  blur.value = DEFAULTS.blur;
+  duration.value = DEFAULTS.duration;
+  delay.value = DEFAULTS.delay;
+  threshold.value = DEFAULTS.threshold;
+  initialOpacity.value = DEFAULTS.initialOpacity;
   forceRerender();
-});
+}
+
+const props: PropRow[] = [
+  { name: 'children', type: 'slot', default: '-', description: 'Content to fade in.' },
+  { name: 'blur', type: 'boolean', default: 'false', description: 'Whether to also animate a 10px blur on entrance.' },
+  {
+    name: 'duration',
+    type: 'number',
+    default: '1000',
+    description: 'Animation duration; values >10 are treated as ms, otherwise seconds.'
+  },
+  { name: 'ease', type: 'string', default: '"power2.out"', description: 'GSAP easing string.' },
+  {
+    name: 'delay',
+    type: 'number',
+    default: '0',
+    description: 'Delay before animation starts; values >10 treated as ms.'
+  },
+  { name: 'threshold', type: 'number', default: '0.1', description: 'IntersectionObserver-style trigger threshold.' },
+  { name: 'initialOpacity', type: 'number', default: '0', description: 'Starting opacity (0-1).' },
+  {
+    name: 'disappearAfter',
+    type: 'number',
+    default: '0',
+    description: 'If >0, fades back out after this duration once entrance completes.'
+  },
+  { name: 'disappearDuration', type: 'number', default: '0.5', description: 'Duration of the disappear tween.' },
+  {
+    name: 'disappearEase',
+    type: 'string',
+    default: '"power2.in"',
+    description: 'GSAP easing for the disappear tween.'
+  },
+  {
+    name: 'onComplete',
+    type: '() => void',
+    default: 'undefined',
+    description: 'Fires when the entrance animation completes.'
+  },
+  {
+    name: 'onDisappearanceComplete',
+    type: '() => void',
+    default: 'undefined',
+    description: 'Fires when the optional disappear animation completes.'
+  },
+  {
+    name: 'container',
+    type: 'Element | string | null',
+    default: 'null',
+    description: 'Optional scroller (selector or element) for ScrollTrigger.'
+  },
+  { name: 'class', type: 'string', default: '""', description: 'Extra classes for the wrapper.' }
+];
 </script>
-
-<style scoped>
-.fade-content-demo-content {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.demo-content {
-  text-align: center;
-  padding: 2rem;
-  border: 1px solid #ffffff1c;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.02);
-  max-width: 400px;
-}
-
-.demo-content h4 {
-  color: #fff;
-  margin-bottom: 1rem;
-  font-size: 1.5rem;
-}
-
-.demo-content p {
-  color: #a1a1aa;
-  text-align: center;
-  max-width: 25ch;
-  line-height: 1.6;
-}
-</style>

@@ -16,7 +16,7 @@ export const componentMetadata: ComponentMetadata = {
   'Animations/AnimatedContent': {
     videoUrl: '/assets/videos/animatedcontent.webm',
     description:
-      'Wrapper that animates any children on scroll or mount with configurable direction, distance, duration and easing.',
+      'Wrapper that animates any children on scroll or mount with configurable direction, distance, duration, easing and disappear options.',
     category: 'Animations',
     name: 'AnimatedContent',
     docsUrl: 'https://vue-bits.dev/animations/animated-content',
@@ -64,7 +64,7 @@ export const componentMetadata: ComponentMetadata = {
   },
   'Animations/FadeContent': {
     videoUrl: '/assets/videos/fadecontent.webm',
-    description: 'Simple directional fade / slide entrance wrapper with threshold-based activation.',
+    description: 'Simple directional fade / slide entrance / exit wrapper with threshold-based activation.',
     category: 'Animations',
     name: 'FadeContent',
     docsUrl: 'https://vue-bits.dev/animations/fade-content',
@@ -134,6 +134,14 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/animations/meta-balls',
     tags: []
   },
+  'Animations/Strands': {
+    videoUrl: '/assets/videos/strands.webm',
+    description: 'Glowing ribbon-like strands that ripple and weave across a transparent canvas.',
+    category: 'Animations',
+    name: 'Strands',
+    docsUrl: 'https://vue-bits.dev/animations/strands',
+    tags: []
+  },
   'Animations/MetallicPaint': {
     videoUrl: '/assets/videos/metallicpaint.webm',
     description: 'Liquid metallic paint shader which can be applied to SVG elements.',
@@ -148,6 +156,14 @@ export const componentMetadata: ComponentMetadata = {
     category: 'Animations',
     name: 'Noise',
     docsUrl: 'https://vue-bits.dev/animations/noise',
+    tags: []
+  },
+  'Animations/PixelTrail': {
+    videoUrl: '/assets/videos/pixeltrail.webm',
+    description: 'Pixelated cursor trail emitting fading squares with retro digital feel.',
+    category: 'Animations',
+    name: 'PixelTrail',
+    docsUrl: 'https://vue-bits.dev/animations/pixel-trail',
     tags: []
   },
   'Animations/PixelTransition': {
@@ -214,12 +230,20 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/animations/laser-flow',
     tags: []
   },
-  'Animations/PixelTrail': {
-    videoUrl: '/assets/videos/pixeltrail.webm',
-    description: 'Pixel grid trail effect that follows cursor movement with customizable gooey filter.',
+  'Animations/Antigravity': {
+    videoUrl: '/assets/videos/antigravity.webm',
+    description: '3D antigravity particle field that repels from the cursor with smooth motion.',
     category: 'Animations',
-    name: 'PixelTrail',
-    docsUrl: 'https://vue-bits.dev/animations/pixel-trail',
+    name: 'Antigravity',
+    docsUrl: 'https://vue-bits.dev/animations/antigravity',
+    tags: []
+  },
+  'Animations/OrbitImages': {
+    videoUrl: '/assets/videos/orbitimages.webm',
+    description: 'SVG Path customizable orbiting images effect',
+    category: 'Animations',
+    name: 'OrbitImages',
+    docsUrl: 'https://vue-bits.dev/animations/orbit-images',
     tags: []
   },
   'Animations/MagicRings': {
@@ -230,31 +254,15 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/animations/magic-rings',
     tags: []
   },
-  'Animations/Strands': {
-    videoUrl: '/assets/videos/strands.webm',
-    description: 'Flowing glowing strands woven together with optional refractive glass ball.',
-    category: 'Animations',
-    name: 'Strands',
-    docsUrl: 'https://vue-bits.dev/animations/strands',
-    tags: []
-  },
 
   //! Text Animations -------------------------------------------------------------------------------------------------------------------------------
 
-  'TextAnimations/ASCIIText': {
+  'TextAnimations/AsciiText': {
     videoUrl: '/assets/videos/asciitext.webm',
     description: 'Renders text with an animated ASCII background for a retro feel.',
     category: 'TextAnimations',
     name: 'ASCIIText',
     docsUrl: 'https://vue-bits.dev/text-animations/ascii-text',
-    tags: []
-  },
-  'TextAnimations/CountUp': {
-    videoUrl: '/assets/videos/countup.webm',
-    description: 'Animated number counter supporting formatting and decimals.',
-    category: 'TextAnimations',
-    name: 'CountUp',
-    docsUrl: 'https://vue-bits.dev/text-animations/count-up',
     tags: []
   },
   'TextAnimations/BlurText': {
@@ -271,6 +279,14 @@ export const componentMetadata: ComponentMetadata = {
     category: 'TextAnimations',
     name: 'CircularText',
     docsUrl: 'https://vue-bits.dev/text-animations/circular-text',
+    tags: []
+  },
+  'TextAnimations/CountUp': {
+    videoUrl: '/assets/videos/countup.webm',
+    description: 'Animated number counter supporting formatting and decimals.',
+    category: 'TextAnimations',
+    name: 'CountUp',
+    docsUrl: 'https://vue-bits.dev/text-animations/count-up',
     tags: []
   },
   'TextAnimations/CurvedLoop': {
@@ -419,7 +435,7 @@ export const componentMetadata: ComponentMetadata = {
   },
   'TextAnimations/Shuffle': {
     videoUrl: '/assets/videos/shuffle.webm',
-    description: 'GSAP-powered slot machine style text shuffle animation with scroll trigger.',
+    description: 'Animated text reveal where characters shuffle before settling.',
     category: 'TextAnimations',
     name: 'Shuffle',
     docsUrl: 'https://vue-bits.dev/text-animations/shuffle',
@@ -587,14 +603,6 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/components/infinite-menu',
     tags: []
   },
-  'Components/InfiniteScroll': {
-    videoUrl: '/assets/videos/infinitescroll.webm',
-    description: 'Infinite scrolling container auto-loads content near viewport end.',
-    category: 'Components',
-    name: 'InfiniteScroll',
-    docsUrl: 'https://vue-bits.dev/components/infinite-scroll',
-    tags: []
-  },
   'Components/MagicBento': {
     videoUrl: '/assets/videos/magicbento.webm',
     description: 'Interactive bento grid tiles expand + animate with various options.',
@@ -651,9 +659,17 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/components/spotlight-card',
     tags: []
   },
+  'Components/BorderGlow': {
+    videoUrl: '/assets/videos/borderglow.webm',
+    description: 'Glowing mesh-gradient border that follows cursor direction and intensifies near edges.',
+    category: 'Components',
+    name: 'BorderGlow',
+    docsUrl: 'https://vue-bits.dev/components/border-glow',
+    tags: []
+  },
   'Components/Stack': {
     videoUrl: '/assets/videos/stack.webm',
-    description: 'Layered stack with swipe animations and smooth transitions.',
+    description: 'Layered stack with swipe animations, autoplay and smooth transitions.',
     category: 'Components',
     name: 'Stack',
     docsUrl: 'https://vue-bits.dev/components/stack',
@@ -681,22 +697,6 @@ export const componentMetadata: ComponentMetadata = {
     category: 'Components',
     name: 'StaggeredMenu',
     docsUrl: 'https://vue-bits.dev/components/staggered-menu',
-    tags: []
-  },
-  'Components/BorderGlow': {
-    videoUrl: '/assets/videos/borderglow.webm',
-    description: 'Glowing mesh-gradient border that follows cursor direction and intensifies near edges.',
-    category: 'Components',
-    name: 'BorderGlow',
-    docsUrl: 'https://vue-bits.dev/components/border-glow',
-    tags: []
-  },
-  'Components/FluidGlass': {
-    videoUrl: '/assets/videos/fluidglass.webm',
-    name: 'Fluid Glass',
-    description: 'A fluid glass distortion animation with lens, bar, and cube modes.',
-    category: 'Components',
-    docsUrl: 'https://vue-bits.dev/components/fluid-glass',
     tags: []
   },
 
@@ -757,6 +757,14 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/backgrounds/dither',
     tags: []
   },
+  'Backgrounds/DotField': {
+    videoUrl: '/assets/videos/dotfield.webm',
+    description: 'Interactive dot grid with cursor bulge, glow, sparkle, and wave effects.',
+    category: 'Backgrounds',
+    name: 'DotField',
+    docsUrl: 'https://vue-bits.dev/backgrounds/dot-field',
+    tags: []
+  },
   'Backgrounds/DotGrid': {
     videoUrl: '/assets/videos/dotgrid.webm',
     description: 'Animated dot grid with cursor interactions.',
@@ -771,14 +779,6 @@ export const componentMetadata: ComponentMetadata = {
     category: 'Backgrounds',
     name: 'FaultyTerminal',
     docsUrl: 'https://vue-bits.dev/backgrounds/faulty-terminal',
-    tags: []
-  },
-  'Backgrounds/FloatingLines': {
-    videoUrl: '/assets/video/floatinglines.webm',
-    description: '3D floating lines that react to cursor movement.',
-    category: 'Backgrounds',
-    name: 'FloatingLines',
-    docsUrl: 'https://vue-bits.dev/backgrounds/floating-lines',
     tags: []
   },
   'Backgrounds/Galaxy': {
@@ -797,12 +797,36 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/backgrounds/gradient-blinds',
     tags: []
   },
+  'Backgrounds/Lightfall': {
+    videoUrl: '/assets/videos/lightfall.webm',
+    description: 'Colorful light streaks raining down a glowing tunnel with a cursor light.',
+    category: 'Backgrounds',
+    name: 'Lightfall',
+    docsUrl: 'https://vue-bits.dev/backgrounds/lightfall',
+    tags: []
+  },
+  'Backgrounds/Ferrofluid': {
+    videoUrl: '/assets/videos/ferrofluid.webm',
+    description: 'A churning magnetic fluid traced by glowing contour lines, with a cursor magnet.',
+    category: 'Backgrounds',
+    name: 'Ferrofluid',
+    docsUrl: 'https://vue-bits.dev/backgrounds/ferrofluid',
+    tags: []
+  },
   'Backgrounds/Grainient': {
     videoUrl: '/assets/videos/grainient.webm',
     description: 'Grainy gradient swirls with soft wave distortion.',
     category: 'Backgrounds',
     name: 'Grainient',
     docsUrl: 'https://vue-bits.dev/backgrounds/grainient',
+    tags: []
+  },
+  'Backgrounds/GridScan': {
+    videoUrl: '/assets/videos/gridscan.webm',
+    description: 'Animated grid room 3D scan effect and cool interactions.',
+    category: 'Backgrounds',
+    name: 'GridScan',
+    docsUrl: 'https://vue-bits.dev/backgrounds/grid-scan',
     tags: []
   },
   'Backgrounds/GridDistortion': {
@@ -823,7 +847,7 @@ export const componentMetadata: ComponentMetadata = {
   },
   'Backgrounds/Hyperspeed': {
     videoUrl: '/assets/videos/hyperspeed.webm',
-    description: 'Animated lines continously moving to simulate hyperspace travel on click hold.',
+    description: 'Animated lines continuously moving to simulate hyperspace travel on click hold.',
     category: 'Backgrounds',
     name: 'Hyperspeed',
     docsUrl: 'https://vue-bits.dev/backgrounds/hyperspeed',
@@ -859,6 +883,38 @@ export const componentMetadata: ComponentMetadata = {
     category: 'Backgrounds',
     name: 'Lightning',
     docsUrl: 'https://vue-bits.dev/backgrounds/lightning',
+    tags: []
+  },
+  'Backgrounds/LineWaves': {
+    videoUrl: '/assets/videos/linewaves.webm',
+    description: 'Animated line wave pattern with colorful warped distortion.',
+    category: 'Backgrounds',
+    name: 'LineWaves',
+    docsUrl: 'https://vue-bits.dev/backgrounds/line-waves',
+    tags: []
+  },
+  'Backgrounds/EvilEye': {
+    videoUrl: '/assets/videos/evileye.webm',
+    description: 'Procedural evil eye shader with animated iris, slit pupil, and fiery outer glow.',
+    category: 'Backgrounds',
+    name: 'EvilEye',
+    docsUrl: 'https://vue-bits.dev/backgrounds/evil-eye',
+    tags: []
+  },
+  'Backgrounds/Radar': {
+    videoUrl: '/assets/videos/radar.webm',
+    description: 'Radar sweep effect with concentric rings, radial spokes, and a rotating beam.',
+    category: 'Backgrounds',
+    name: 'Radar',
+    docsUrl: 'https://vue-bits.dev/backgrounds/radar',
+    tags: []
+  },
+  'Backgrounds/SoftAurora': {
+    videoUrl: '/assets/videos/softaurora.webm',
+    description: 'Soft aurora borealis shader with 3D Perlin noise and cosine gradient palettes.',
+    category: 'Backgrounds',
+    name: 'SoftAurora',
+    docsUrl: 'https://vue-bits.dev/backgrounds/soft-aurora',
     tags: []
   },
   'Backgrounds/LiquidChrome': {
@@ -901,6 +957,14 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/backgrounds/plasma',
     tags: []
   },
+  'Backgrounds/PlasmaWave': {
+    videoUrl: '/assets/videos/plasmawave.webm',
+    description: 'Raymarched plasma waves with dual-wave interference and OGL.',
+    category: 'Backgrounds',
+    name: 'PlasmaWave',
+    docsUrl: 'https://vue-bits.dev/backgrounds/plasma-wave',
+    tags: []
+  },
   'Backgrounds/Prism': {
     videoUrl: '/assets/videos/prism.webm',
     description: 'Rotating prism with configurable intensity, size, and colors.',
@@ -919,7 +983,7 @@ export const componentMetadata: ComponentMetadata = {
   },
   'Backgrounds/RippleGrid': {
     videoUrl: '/assets/videos/ripplegrid.webm',
-    description: 'A grid that continously animates with a ripple effect.',
+    description: 'A grid that continuously animates with a ripple effect.',
     category: 'Backgrounds',
     name: 'RippleGrid',
     docsUrl: 'https://vue-bits.dev/backgrounds/ripple-grid',
@@ -933,12 +997,20 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/backgrounds/silk',
     tags: []
   },
-  'Backgrounds/Squares': {
-    videoUrl: '/assets/videos/squares.webm',
-    description: 'Animated squares with scaling + direction customization.',
+  'Backgrounds/SideRays': {
+    videoUrl: '/assets/videos/siderays.webm',
+    description: 'Animated light rays emanating from the side with customizable colors and speed.',
     category: 'Backgrounds',
-    name: 'Squares',
-    docsUrl: 'https://vue-bits.dev/backgrounds/squares',
+    name: 'SideRays',
+    docsUrl: 'https://vue-bits.dev/backgrounds/side-rays',
+    tags: []
+  },
+  'Backgrounds/ShapeGrid': {
+    videoUrl: '/assets/videos/squares.webm',
+    description: 'Animated grid with shape variants (square, hexagon, circle, triangle) + direction customization.',
+    category: 'Backgrounds',
+    name: 'ShapeGrid',
+    docsUrl: 'https://vue-bits.dev/backgrounds/shape-grid',
     tags: []
   },
   'Backgrounds/Threads': {
@@ -965,6 +1037,14 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/backgrounds/liquid-ether',
     tags: []
   },
+  'Backgrounds/FloatingLines': {
+    videoUrl: '/assets/videos/floatinglines.webm',
+    description: '3D floating lines that react to cursor movement.',
+    category: 'Backgrounds',
+    name: 'FloatingLines',
+    docsUrl: 'https://vue-bits.dev/backgrounds/floating-lines',
+    tags: []
+  },
   'Backgrounds/LightPillar': {
     videoUrl: '/assets/videos/lightpillar.webm',
     description: 'Vertical pillar of light with glow effects.',
@@ -979,62 +1059,6 @@ export const componentMetadata: ComponentMetadata = {
     category: 'Backgrounds',
     name: 'PixelSnow',
     docsUrl: 'https://vue-bits.dev/backgrounds/pixel-snow',
-    tags: []
-  },
-  'Backgrounds/LineWaves': {
-    videoUrl: '/assets/video/linewaves.webm',
-    description: 'Animated line wave pattern with colorful warped distortion.',
-    category: 'Backgrounds',
-    name: 'LineWaves',
-    docsUrl: 'https://reactbits.dev/backgrounds/line-waves',
-    tags: []
-  },
-  'Backgrounds/EvilEye': {
-    videoUrl: '/assets/video/evileye.webm',
-    description: 'Procedural evil eye shader with animated iris, slit pupil, and fiery outer glow.',
-    category: 'Backgrounds',
-    name: 'EvilEye',
-    docsUrl: 'https://reactbits.dev/backgrounds/evil-eye',
-    tags: []
-  },
-  'Backgrounds/Radar': {
-    videoUrl: '/assets/video/radar.webm',
-    description: 'Radar sweep effect with concentric rings, radial spokes, and a rotating beam.',
-    category: 'Backgrounds',
-    name: 'Radar',
-    docsUrl: 'https://reactbits.dev/backgrounds/radar',
-    tags: []
-  },
-  'Backgrounds/SoftAurora': {
-    videoUrl: '/assets/video/softaurora.webm',
-    description: 'Soft aurora borealis shader with 3D Perlin noise and cosine gradient palettes.',
-    category: 'Backgrounds',
-    name: 'SoftAurora',
-    docsUrl: 'https://reactbits.dev/backgrounds/soft-aurora',
-    tags: []
-  },
-  'Backgrounds/SideRays': {
-    videoUrl: '/assets/video/siderays.webm',
-    description: 'Volumetric corner light rays with adjustable spread, tilt, blend, and falloff.',
-    category: 'Backgrounds',
-    name: 'SideRays',
-    docsUrl: 'https://reactbits.dev/backgrounds/side-rays',
-    tags: []
-  },
-  'Backgrounds/Ferrofluid': {
-    videoUrl: '/assets/video/ferrofluid.webm',
-    description: 'Magnetic ferrofluid shader with glowing rim contours and cursor-driven spikes.',
-    category: 'Backgrounds',
-    name: 'Ferrofluid',
-    docsUrl: 'https://reactbits.dev/backgrounds/ferrofluid',
-    tags: []
-  },
-  'Backgrounds/Lightfall': {
-    videoUrl: '/assets/video/lightfall.webm',
-    description: 'Falling light streaks tunnel with ambient glow and cursor-reactive flares.',
-    category: 'Backgrounds',
-    name: 'Lightfall',
-    docsUrl: 'https://reactbits.dev/backgrounds/lightfall',
     tags: []
   }
 };

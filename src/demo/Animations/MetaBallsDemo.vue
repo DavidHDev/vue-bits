@@ -1,81 +1,122 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Meta Balls</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="metaBalls.usage"
+    :source="metaBallsSource"
+    component-name="MetaBalls"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[500px]">
+      <div class="h-[500px] demo-container">
         <MetaBalls
           :color="color"
-          :cursorBallColor="color"
-          :cursorBallSize="cursorBallSize"
-          :ballCount="ballCount"
-          :animationSize="animationSize"
-          :enableMouseInteraction="enableMouseInteraction"
-          :hoverSmoothness="hoverSmoothness"
+          :cursor-ball-color="cursorBallColor"
+          :cursor-ball-size="cursorBallSize"
+          :ball-count="ballCount"
+          :animation-size="animationSize"
+          :enable-mouse-interaction="enableMouseInteraction"
+          :hover-smoothness="hoverSmoothness"
           :clumpFactor="clumpFactor"
           :speed="speed"
-          mix-blend-mode="screen"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewColor title="Color" v-model="color" />
-
-        <PreviewSlider title="Ball Count" :min="2" :max="30" :step="1" v-model="ballCount" />
-
-        <PreviewSlider title="Speed" :min="0.1" :max="1" :step="0.1" v-model="speed" />
-
-        <PreviewSlider title="Size" :min="10" :max="50" :step="1" v-model="animationSize" />
-
-        <PreviewSlider title="Clump Factor" :min="0.1" :max="2" :step="0.1" v-model="clumpFactor" />
-
-        <PreviewSwitch title="Follow Cursor" v-model="enableMouseInteraction" />
-
-        <PreviewSlider title="Cursor Smoothing" :min="0.001" :max="0.25" :step="0.001" v-model="hoverSmoothness" />
-
-        <PreviewSlider title="Cursor Size" :min="1" :max="5" :step="1" v-model="cursorBallSize" />
+        <PreviewColorPicker title="Color" v-model="color" />
+        <PreviewColorPicker title="Cursor Ball Color" v-model="cursorBallColor" />
+        <PreviewSlider title="Ball Count" :min="1" :max="50" :step="1" v-model="ballCount" />
+        <PreviewSlider title="Speed" :min="0" :max="2" :step="0.05" v-model="speed" />
+        <PreviewSlider title="Animation Size" :min="5" :max="80" :step="1" v-model="animationSize" />
+        <PreviewSlider title="Clump Factor" :min="0" :max="3" :step="0.1" v-model="clumpFactor" />
+        <PreviewSlider title="Hover Smoothness" :min="0.01" :max="1" :step="0.01" v-model="hoverSmoothness" />
+        <PreviewSlider title="Cursor Ball Size" :min="0.5" :max="10" :step="0.1" v-model="cursorBallSize" />
+        <PreviewSwitch title="Mouse Interaction" v-model="enableMouseInteraction" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['ogl']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="metaBalls" />
+      <DemoCodeTab slug="meta-balls" :usage="metaBalls.usage!" :source="metaBallsSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="metaBalls.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewColor from '../../components/common/PreviewColor.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import { metaBalls } from '../../constants/code/Animations/metaBallsCode';
-import MetaBalls from '../../content/Animations/MetaBalls/MetaBalls.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
+import { metaBalls } from '@/constants/code/Animations/metaBallsCode';
+import MetaBalls from '@/content/Animations/MetaBalls/MetaBalls.vue';
+import metaBallsSource from '@/content/Animations/MetaBalls/MetaBalls.vue?raw';
+import { computed, ref } from 'vue';
 
-const color = ref('#27FF64');
-const speed = ref(0.3);
-const animationSize = ref(30);
-const ballCount = ref(15);
-const clumpFactor = ref(1);
-const enableMouseInteraction = ref(true);
-const hoverSmoothness = ref(0.15);
-const cursorBallSize = ref(2);
+const { forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  color: '#27FF64',
+  cursorBallColor: '#27FF64',
+  speed: 0.3,
+  animationSize: 30,
+  ballCount: 15,
+  clumpFactor: 1,
+  enableMouseInteraction: true,
+  hoverSmoothness: 0.15,
+  cursorBallSize: 2
+};
+
+const color = ref(DEFAULTS.color);
+const cursorBallColor = ref(DEFAULTS.cursorBallColor);
+const speed = ref(DEFAULTS.speed);
+const animationSize = ref(DEFAULTS.animationSize);
+const ballCount = ref(DEFAULTS.ballCount);
+const clumpFactor = ref(DEFAULTS.clumpFactor);
+const enableMouseInteraction = ref(DEFAULTS.enableMouseInteraction);
+const hoverSmoothness = ref(DEFAULTS.hoverSmoothness);
+const cursorBallSize = ref(DEFAULTS.cursorBallSize);
+
+const hasChanges = computed(
+  () =>
+    color.value !== DEFAULTS.color ||
+    cursorBallColor.value !== DEFAULTS.cursorBallColor ||
+    speed.value !== DEFAULTS.speed ||
+    animationSize.value !== DEFAULTS.animationSize ||
+    ballCount.value !== DEFAULTS.ballCount ||
+    clumpFactor.value !== DEFAULTS.clumpFactor ||
+    enableMouseInteraction.value !== DEFAULTS.enableMouseInteraction ||
+    hoverSmoothness.value !== DEFAULTS.hoverSmoothness ||
+    cursorBallSize.value !== DEFAULTS.cursorBallSize
+);
+
+function reset() {
+  color.value = DEFAULTS.color;
+  cursorBallColor.value = DEFAULTS.cursorBallColor;
+  speed.value = DEFAULTS.speed;
+  animationSize.value = DEFAULTS.animationSize;
+  ballCount.value = DEFAULTS.ballCount;
+  clumpFactor.value = DEFAULTS.clumpFactor;
+  enableMouseInteraction.value = DEFAULTS.enableMouseInteraction;
+  hoverSmoothness.value = DEFAULTS.hoverSmoothness;
+  cursorBallSize.value = DEFAULTS.cursorBallSize;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'color',
     type: 'string',
-    default: '#27FF64',
+    default: '#ffffff',
     description: 'The base color of the metaballs.'
   },
   {
@@ -129,14 +170,8 @@ const propData = [
   {
     name: 'cursorBallColor',
     type: 'string',
-    default: '#27FF64',
+    default: '#ff0000',
     description: 'Color of the cursor ball.'
-  },
-  {
-    name: 'mixBlendMode',
-    type: 'string',
-    default: 'normal',
-    description: 'CSS mix-blend-mode value for how the metaballs blend with content behind them.'
   }
 ];
 </script>

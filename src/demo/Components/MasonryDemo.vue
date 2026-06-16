@@ -1,9 +1,16 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Masonry</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="masonry.usage"
+    :source="masonrySource"
+    component-name="Masonry"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container" style="height: 900px; overflow: hidden">
-        <RefreshButton @refresh="forceRerender" />
-
+      <div class="relative demo-container" style="height: 700px; overflow: hidden">
+        <RefreshButton @click="forceRerender" />
         <Masonry
           :key="rerenderKey"
           :items="sampleItems"
@@ -12,80 +19,85 @@
           :stagger="stagger"
           :animate-from="animateFrom"
           :scale-on-hover="scaleOnHover"
-          :hover-scale="hoverScale"
           :blur-to-focus="blurToFocus"
           :color-shift-on-hover="colorShiftOnHover"
-          class="masonry-demo-container"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewSwitch title="Scale on Hover" v-model="scaleOnHover" />
-
-        <PreviewSwitch title="Blur to Focus" v-model="blurToFocus" />
-
-        <PreviewSwitch title="Color Shift on Hover" v-model="colorShiftOnHover" />
-
         <PreviewSelect
-          title="Animation Direction"
-          v-model="animateFrom"
+          title="Ease"
+          v-model="ease"
           :options="[
-            { label: 'Bottom', value: 'bottom' },
-            { label: 'Top', value: 'top' },
-            { label: 'Left', value: 'left' },
-            { label: 'Right', value: 'right' },
-            { label: 'Center', value: 'center' },
-            { label: 'Random', value: 'random' }
+            'power1.out',
+            'power2.out',
+            'power3.out',
+            'power4.out',
+            'back.out',
+            'bounce.out',
+            'elastic.out',
+            'sine.out'
           ]"
         />
-
-        <PreviewSlider title="Duration (s)" v-model="duration" :min="0.1" :max="2" :step="0.1" />
-
-        <PreviewSlider title="Stagger Delay (s)" v-model="stagger" :min="0.01" :max="0.2" :step="0.01" />
-
-        <PreviewSlider title="Hover Scale" v-model="hoverScale" :min="0.8" :max="1.2" :step="0.05" />
+        <PreviewSelect
+          title="Animation From"
+          v-model="animateFrom"
+          :options="['bottom', 'top', 'left', 'right', 'center', 'random']"
+        />
+        <PreviewSlider title="Duration" v-model="duration" :min="0.1" :max="2" :step="0.1" value-unit="s" />
+        <PreviewSlider title="Stagger Delay (s)" v-model="stagger" :min="0.01" :max="0.2" :step="0.01" value-unit="s" />
+        <PreviewSwitch title="Scale on Hover" v-model="scaleOnHover" />
+        <PreviewSwitch title="Blur to Focus" v-model="blurToFocus" />
+        <PreviewSwitch title="Color Shift on Hover" v-model="colorShiftOnHover" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-
-      <Dependencies :dependency-list="['gsap']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="masonry" />
+      <DemoCodeTab slug="masonry" :usage="masonry.usage!" :source="masonrySource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="masonry.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import RefreshButton from '../../components/common/RefreshButton.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSelect from '../../components/common/PreviewSelect.vue';
-import Masonry from '../../content/Components/Masonry/Masonry.vue';
-import { masonry } from '@/constants/code/Components/masonryCode';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
+import { masonry } from '@/constants/code/Components/masonryCode';
+import Masonry from '@/content/Components/Masonry/Masonry.vue';
+import masonrySource from '@/content/Components/Masonry/Masonry.vue?raw';
+import { computed, ref } from 'vue';
 
-const ease = ref('power3.out');
-const duration = ref(0.6);
-const stagger = ref(0.05);
-const animateFrom = ref<'bottom' | 'top' | 'left' | 'right' | 'center' | 'random'>('bottom');
-const scaleOnHover = ref(true);
-const hoverScale = ref(0.95);
-const blurToFocus = ref(true);
-const colorShiftOnHover = ref(false);
 const { rerenderKey, forceRerender } = useForceRerender();
+
+const DEFAULTS = {
+  ease: 'power3.out',
+  animateFrom: 'bottom' as 'bottom' | 'top' | 'left' | 'right' | 'center' | 'random',
+  duration: 0.6,
+  stagger: 0.05,
+  scaleOnHover: true,
+  blurToFocus: true,
+  colorShiftOnHover: false
+};
+
+const ease = ref(DEFAULTS.ease);
+const duration = ref(DEFAULTS.duration);
+const stagger = ref(DEFAULTS.stagger);
+const animateFrom = ref<'bottom' | 'top' | 'left' | 'right' | 'center' | 'random'>(DEFAULTS.animateFrom);
+const scaleOnHover = ref(DEFAULTS.scaleOnHover);
+const blurToFocus = ref(DEFAULTS.blurToFocus);
+const colorShiftOnHover = ref(DEFAULTS.colorShiftOnHover);
 
 const sampleItems = ref([
   { id: '1', img: 'https://picsum.photos/300/400?random=1&grayscale', url: 'https://picsum.photos', height: 400 },
@@ -105,7 +117,29 @@ const sampleItems = ref([
   { id: '15', img: 'https://picsum.photos/300/510?random=15&grayscale', url: 'https://picsum.photos', height: 510 }
 ]);
 
-const propData = [
+const hasChanges = computed(
+  () =>
+    ease.value !== DEFAULTS.ease ||
+    duration.value !== DEFAULTS.duration ||
+    stagger.value !== DEFAULTS.stagger ||
+    animateFrom.value !== DEFAULTS.animateFrom ||
+    scaleOnHover.value !== DEFAULTS.scaleOnHover ||
+    blurToFocus.value !== DEFAULTS.blurToFocus ||
+    colorShiftOnHover.value !== DEFAULTS.colorShiftOnHover
+);
+
+function reset() {
+  ease.value = DEFAULTS.ease;
+  duration.value = DEFAULTS.duration;
+  stagger.value = DEFAULTS.stagger;
+  animateFrom.value = DEFAULTS.animateFrom;
+  scaleOnHover.value = DEFAULTS.scaleOnHover;
+  blurToFocus.value = DEFAULTS.blurToFocus;
+  colorShiftOnHover.value = DEFAULTS.colorShiftOnHover;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'items',
     type: 'Item[]',
@@ -142,11 +176,4 @@ const propData = [
     description: 'Whether to show color overlay on hover.'
   }
 ];
-
-watch(
-  () => [scaleOnHover.value, blurToFocus.value, colorShiftOnHover.value],
-  () => {
-    forceRerender();
-  }
-);
 </script>

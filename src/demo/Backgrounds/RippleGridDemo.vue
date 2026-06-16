@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Ripple Grid</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="rippleGrid.usage"
+    :source="rippleGridSource"
+    component-name="RippleGrid"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="relative p-0 h-[600px] overflow-hidden demo-container">
+      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
         <RippleGrid
           :enable-rainbow="enableRainbow"
           :grid-color="gridColor"
@@ -18,26 +26,19 @@
         />
         <BackgroundContent pillText="New Background" headline="Retro yet futuristic, this is Ripple Grid!" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewColor title="Grid Color" v-model="gridColor" />
-
+        <PreviewColorPicker title="Grid Color" v-model="gridColor" />
         <PreviewSlider title="Ripple Intensity" :min="0" :max="0.3" :step="0.01" v-model="rippleIntensity" />
-
         <PreviewSlider title="Grid Size" :min="5" :max="30" :step="1" v-model="gridSize" />
-
         <PreviewSlider title="Grid Thickness" :min="5" :max="30" :step="1" v-model="gridThickness" />
-
         <PreviewSlider title="Fade Distance" :min="0.5" :max="3" :step="0.1" v-model="fadeDistance" />
-
         <PreviewSlider title="Vignette Strength" :min="0.5" :max="5" :step="0.1" v-model="vignetteStrength" />
-
         <PreviewSlider title="Glow Intensity" :min="0" :max="1" :step="0.05" v-model="glowIntensity" />
-
         <PreviewSlider title="Opacity" :min="0" :max="1" :step="0.05" v-model="opacity" />
-
         <PreviewSlider title="Grid Rotation" :min="0" :max="360" :step="1" v-model="gridRotation" value-unit="°" />
-
         <PreviewSlider
           title="Mouse Interaction Radius"
           :min="0.2"
@@ -45,55 +46,96 @@
           :step="0.1"
           v-model="mouseInteractionRadius"
         />
-
         <PreviewSwitch title="Mouse Interaction" v-model="mouseInteraction" />
-
         <PreviewSwitch title="Enable Rainbow" v-model="enableRainbow" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['ogl']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="rippleGrid" />
+      <DemoCodeTab slug="ripple-grid" :usage="rippleGrid.usage!" :source="rippleGridSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="rippleGrid.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import BackgroundContent from '../../components/common/BackgroundContent.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewColor from '../../components/common/PreviewColor.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import { rippleGrid } from '../../constants/code/Backgrounds/rippleGridCode';
-import RippleGrid from '../../content/Backgrounds/RippleGrid/RippleGrid.vue';
+import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
+import { rippleGrid } from '@/constants/code/Backgrounds/rippleGridCode';
+import RippleGrid from '@/content/Backgrounds/RippleGrid/RippleGrid.vue';
+import rippleGridSource from '@/content/Backgrounds/RippleGrid/RippleGrid.vue?raw';
+import { computed, ref } from 'vue';
 
-const enableRainbow = ref(false);
-const gridColor = ref('#27FF64');
-const rippleIntensity = ref(0.05);
-const gridSize = ref(10.0);
-const gridThickness = ref(15.0);
-const fadeDistance = ref(1.5);
-const vignetteStrength = ref(2.0);
-const glowIntensity = ref(0.1);
-const opacity = ref(1.0);
-const gridRotation = ref(0);
-const mouseInteraction = ref(true);
-const mouseInteractionRadius = ref(0.8);
+const { forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  enableRainbow: false,
+  gridColor: '#27FF64',
+  rippleIntensity: 0.05,
+  gridSize: 10.0,
+  gridThickness: 15.0,
+  fadeDistance: 1.5,
+  vignetteStrength: 2.0,
+  glowIntensity: 0.1,
+  opacity: 1.0,
+  gridRotation: 0,
+  mouseInteraction: true,
+  mouseInteractionRadius: 0.8
+};
+
+const enableRainbow = ref(DEFAULTS.enableRainbow);
+const gridColor = ref(DEFAULTS.gridColor);
+const rippleIntensity = ref(DEFAULTS.rippleIntensity);
+const gridSize = ref(DEFAULTS.gridSize);
+const gridThickness = ref(DEFAULTS.gridThickness);
+const fadeDistance = ref(DEFAULTS.fadeDistance);
+const vignetteStrength = ref(DEFAULTS.vignetteStrength);
+const glowIntensity = ref(DEFAULTS.glowIntensity);
+const opacity = ref(DEFAULTS.opacity);
+const gridRotation = ref(DEFAULTS.gridRotation);
+const mouseInteraction = ref(DEFAULTS.mouseInteraction);
+const mouseInteractionRadius = ref(DEFAULTS.mouseInteractionRadius);
+
+const hasChanges = computed(
+  () =>
+    gridColor.value !== DEFAULTS.gridColor ||
+    rippleIntensity.value !== DEFAULTS.rippleIntensity ||
+    gridSize.value !== DEFAULTS.gridSize ||
+    gridThickness.value !== DEFAULTS.gridThickness ||
+    fadeDistance.value !== DEFAULTS.fadeDistance ||
+    vignetteStrength.value !== DEFAULTS.vignetteStrength ||
+    glowIntensity.value !== DEFAULTS.glowIntensity ||
+    opacity.value !== DEFAULTS.opacity ||
+    gridRotation.value !== DEFAULTS.gridRotation ||
+    mouseInteraction.value !== DEFAULTS.mouseInteraction ||
+    mouseInteractionRadius.value !== DEFAULTS.mouseInteractionRadius
+);
+
+function reset() {
+  gridColor.value = DEFAULTS.gridColor;
+  rippleIntensity.value = DEFAULTS.rippleIntensity;
+  gridSize.value = DEFAULTS.gridSize;
+  gridThickness.value = DEFAULTS.gridThickness;
+  fadeDistance.value = DEFAULTS.fadeDistance;
+  vignetteStrength.value = DEFAULTS.vignetteStrength;
+  glowIntensity.value = DEFAULTS.glowIntensity;
+  opacity.value = DEFAULTS.opacity;
+  gridRotation.value = DEFAULTS.gridRotation;
+  mouseInteraction.value = DEFAULTS.mouseInteraction;
+  mouseInteractionRadius.value = DEFAULTS.mouseInteractionRadius;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'enableRainbow',
     type: 'boolean',

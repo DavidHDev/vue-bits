@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Text Type</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="textType.usage"
+    :source="textTypeSource"
+    component-name="TextType"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="py-[64px] h-[350px] demo-container">
+      <div class="relative flex justify-start items-start py-[64px] h-[350px] demo-container">
         <TextType
           :key="key"
           :text="texts"
@@ -15,7 +23,9 @@
           className="custom-text-type"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSelect v-model="cursorCharacter" :options="cursorOptions" title="Cursor Character" />
         <PreviewSlider v-model="typingSpeed" title="Typing Speed" :min="10" :max="200" :step="5" value-unit="ms" />
@@ -57,49 +67,57 @@
           :disabled="!variableSpeedEnabled"
         />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-
-      <Dependencies :dependency-list="['gsap']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="textType" />
+      <DemoCodeTab slug="text-type" :usage="textType.usage!" :source="textTypeSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="textType.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
-import { ref } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import { textType } from '../../constants/code/TextAnimations/textTypeCode';
-import TextType from '../../content/TextAnimations/TextType/TextType.vue';
+import { textType } from '@/constants/code/TextAnimations/textTypeCode';
+import TextType from '@/content/TextAnimations/TextType/TextType.vue';
+import textTypeSource from '@/content/TextAnimations/TextType/TextType.vue?raw';
+import { computed, ref } from 'vue';
 
-const texts = ref(["Welcome to Vue Bits! It's great to have you here!", 'Build some amazing experiences!']);
-const typingSpeed = ref(75);
-const pauseDuration = ref(1500);
-const deletingSpeed = ref(50);
-const showCursor = ref(true);
-const cursorCharacter = ref('_');
-const variableSpeedEnabled = ref(false);
-const variableSpeedMin = ref(60);
-const variableSpeedMax = ref(120);
-const cursorBlinkDuration = ref(0.5);
+const { rerenderKey: key, forceRerender } = useForceRerender();
 
-const { rerenderKey: key } = useForceRerender();
+const DEFAULTS = {
+  texts: ['Welcome to Vue Bits! Good to see you!', 'Build some amazing experiences!'],
+  typingSpeed: 75,
+  pauseDuration: 1500,
+  deletingSpeed: 50,
+  showCursor: true,
+  cursorCharacter: '_',
+  variableSpeedEnabled: false,
+  variableSpeedMin: 60,
+  variableSpeedMax: 120,
+  cursorBlinkDuration: 0.5
+};
+
+const texts = ref([...DEFAULTS.texts]);
+const typingSpeed = ref(DEFAULTS.typingSpeed);
+const pauseDuration = ref(DEFAULTS.pauseDuration);
+const deletingSpeed = ref(DEFAULTS.deletingSpeed);
+const showCursor = ref(DEFAULTS.showCursor);
+const cursorCharacter = ref(DEFAULTS.cursorCharacter);
+const variableSpeedEnabled = ref(DEFAULTS.variableSpeedEnabled);
+const variableSpeedMin = ref(DEFAULTS.variableSpeedMin);
+const variableSpeedMax = ref(DEFAULTS.variableSpeedMax);
+const cursorBlinkDuration = ref(DEFAULTS.cursorBlinkDuration);
 
 const cursorOptions = [
   { value: '_', label: 'Underscore (_)' },
@@ -109,7 +127,35 @@ const cursorOptions = [
   { value: '█', label: 'Full Block (█)' }
 ];
 
-const propData = [
+const hasChanges = computed(
+  () =>
+    JSON.stringify(texts.value) !== JSON.stringify(DEFAULTS.texts) ||
+    typingSpeed.value !== DEFAULTS.typingSpeed ||
+    pauseDuration.value !== DEFAULTS.pauseDuration ||
+    deletingSpeed.value !== DEFAULTS.deletingSpeed ||
+    showCursor.value !== DEFAULTS.showCursor ||
+    cursorCharacter.value !== DEFAULTS.cursorCharacter ||
+    variableSpeedEnabled.value !== DEFAULTS.variableSpeedEnabled ||
+    variableSpeedMin.value !== DEFAULTS.variableSpeedMin ||
+    variableSpeedMax.value !== DEFAULTS.variableSpeedMax ||
+    cursorBlinkDuration.value !== DEFAULTS.cursorBlinkDuration
+);
+
+function reset() {
+  texts.value = [...DEFAULTS.texts];
+  typingSpeed.value = DEFAULTS.typingSpeed;
+  pauseDuration.value = DEFAULTS.pauseDuration;
+  deletingSpeed.value = DEFAULTS.deletingSpeed;
+  showCursor.value = DEFAULTS.showCursor;
+  cursorCharacter.value = DEFAULTS.cursorCharacter;
+  variableSpeedEnabled.value = DEFAULTS.variableSpeedEnabled;
+  variableSpeedMin.value = DEFAULTS.variableSpeedMin;
+  variableSpeedMax.value = DEFAULTS.variableSpeedMax;
+  cursorBlinkDuration.value = DEFAULTS.cursorBlinkDuration;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'text',
     type: 'string | string[]',

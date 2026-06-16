@@ -1,32 +1,32 @@
-import code from '@content/Components/TiltedCard/TiltedCard.vue?raw';
-import { createCodeObject } from '../../../types/code';
+import code from '@/content/Components/TiltedCard/TiltedCard.vue?raw';
+import { createCodeObject } from '@/types/code';
 
 export const tiltedCard = createCodeObject(code, 'Components/TiltedCard', {
   installation: `npm install motion-v`,
   usage: `<template>
   <TiltedCard
-    image-src="https://example.com/image.jpg"
-    alt-text="Sample image"
-    caption-text="Hover to see tooltip"
-    container-height="400px"
-    container-width="400px"
+    image-src="https://i.scdn.co/image/ab67616d0000b273d9985092cd88bffd97653b58"
+    alt-text="Kendrick Lamar - GNX Album Cover"
+    caption-text="Kendrick Lamar - GNX"
+    container-height="300px"
+    container-width="300px"
     image-height="300px"
     image-width="300px"
-    :rotate-amplitude="14"
-    :scale-on-hover="1.1"
-    :show-mobile-warning="true"
+    :rotate-amplitude="12"
+    :scale-on-hover="1.2"
+    :show-mobile-warning="false"
     :show-tooltip="true"
-    :display-overlay-content="false"
+    :display-overlay-content="true"
   >
     <template #overlay>
-      <div class="overlay-content">
-        Your overlay content here
-      </div>
+      <p class="tilted-card-demo-text">
+        Kendrick Lamar - GNX
+      </p>
     </template>
   </TiltedCard>
 </template>
 
-<script setup lang="ts">
-  import TiltedCard from "./TiltedCard.vue";
+<script setup>
+import TiltedCard from './TiltedCard.vue'
 </script>`
 });

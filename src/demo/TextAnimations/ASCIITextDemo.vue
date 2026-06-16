@@ -1,137 +1,126 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">ASCII Text</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="asciiText.usage"
+    :source="asciiTextSource"
+    component-name="ASCIIText"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[400px] overflow-hidden">
+      <div class="relative h-[400px] overflow-hidden demo-container">
         <ASCIIText
           :key="rerenderKey"
           :text="text"
           :ascii-font-size="asciiFontSize"
-          :text-font-size="textFontSize"
-          :text-color="textColor"
-          :plane-base-height="planeBaseHeight"
           :enable-waves="enableWaves"
+          :text-font-size="250"
+          :plane-base-height="12"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewText title="Text" v-model="text" />
-
-        <PreviewSlider title="ASCII Font Size" v-model="asciiFontSize" :min="2" :max="20" :step="1" />
-
-        <PreviewSlider title="Text Font Size" v-model="textFontSize" :min="100" :max="400" :step="25" />
-
-        <PreviewSlider title="Base Height" v-model="planeBaseHeight" :min="4" :max="16" :step="1" />
-
+        <PreviewInput title="Text" v-model="text" placeholder="Enter text..." />
+        <PreviewSlider title="Size" v-model="asciiFontSize" :min="1" :max="64" :step="1" />
         <PreviewSwitch title="Enable Waves" v-model="enableWaves" />
-
-        <div class="flex gap-2 flex-wrap">
-          <button
-            v-for="color in colorOptions"
-            :key="color.name"
-            class="text-xs cursor-pointer bg-[#0b0b0b] rounded-[10px] border border-[#333] hover:bg-[#333] text-white h-8 px-3 transition-colors"
-            :class="{ 'bg-[#333]': textColor === color.value }"
-            @click="changeColor(color.value)"
-          >
-            {{ color.name }}
-          </button>
-        </div>
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['three', '@types/three']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="asciiText" />
+      <DemoCodeTab slug="ascii-text" :usage="asciiText.usage!" :source="asciiTextSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="asciiText.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import TabbedLayout from '@/components/common/TabbedLayout.vue';
-import PropTable from '@/components/common/PropTable.vue';
-import Dependencies from '@/components/code/Dependencies.vue';
-import CliInstallation from '@/components/code/CliInstallation.vue';
-import CodeExample from '@/components/code/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewInput from '@/components/common/PreviewInput.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
-import PreviewText from '@/components/common/PreviewText.vue';
-import ASCIIText from '@/content/TextAnimations/ASCIIText/ASCIIText.vue';
-import { asciiText } from '@/constants/code/TextAnimations/asciiTextCode';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
-
-const text = ref('Hey!');
-const asciiFontSize = ref(8);
-const textFontSize = ref(200);
-const textColor = ref('#fdf9f3');
-const planeBaseHeight = ref(8);
-const enableWaves = ref(true);
+import { asciiText } from '@/constants/code/TextAnimations/asciiTextCode';
+import ASCIIText from '@/content/TextAnimations/ASCIIText/ASCIIText.vue';
+import asciiTextSource from '@/content/TextAnimations/ASCIIText/ASCIIText.vue?raw';
+import { computed, ref } from 'vue';
 
 const { rerenderKey, forceRerender } = useForceRerender();
 
-const colorOptions = [
-  { name: 'White', value: '#ffffff' },
-  { name: 'Red', value: '#ff6b6b' },
-  { name: 'Blue', value: '#4ecdc4' },
-  { name: 'Green', value: '#45b7d1' },
-  { name: 'Purple', value: '#9b59b6' },
-  { name: 'Orange', value: '#f39c12' },
-  { name: 'Pink', value: '#e91e63' }
-];
-
-const changeColor = (color: string) => {
-  textColor.value = color;
-  forceRerender();
+const DEFAULTS = {
+  text: 'Hey!',
+  enableWaves: true,
+  asciiFontSize: 8
 };
 
-const propData = [
+const text = ref(DEFAULTS.text);
+const asciiFontSize = ref(DEFAULTS.asciiFontSize);
+const enableWaves = ref(DEFAULTS.enableWaves);
+
+const hasChanges = computed(
+  () =>
+    text.value !== DEFAULTS.text ||
+    asciiFontSize.value !== DEFAULTS.asciiFontSize ||
+    enableWaves.value !== DEFAULTS.enableWaves
+);
+
+function reset() {
+  text.value = DEFAULTS.text;
+  asciiFontSize.value = DEFAULTS.asciiFontSize;
+  enableWaves.value = DEFAULTS.enableWaves;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'text',
     type: 'string',
-    default: '"David!"',
-    description: 'The text content to display as ASCII art.'
-  },
-  {
-    name: 'asciiFontSize',
-    type: 'number',
-    default: '8',
-    description: 'Font size for the ASCII characters (in pixels).'
-  },
-  {
-    name: 'textFontSize',
-    type: 'number',
-    default: '200',
-    description: 'Font size for the original text before ASCII conversion.'
-  },
-  {
-    name: 'textColor',
-    type: 'string',
-    default: '"#fdf9f3"',
-    description: 'Color of the text used in the ASCII conversion.'
-  },
-  {
-    name: 'planeBaseHeight',
-    type: 'number',
-    default: '8',
-    description: 'Base height of the 3D plane geometry for the text.'
+    default: '"Hello World!"',
+    description: 'The text displayed on the plane in the ASCII scene.'
   },
   {
     name: 'enableWaves',
     type: 'boolean',
     default: 'true',
-    description: 'Whether to enable wave animation effects on the text.'
+    description: 'If false, disables the wavy text animation.'
   },
   {
-    name: 'className',
+    name: 'asciiFontSize',
+    type: 'number',
+    default: '12',
+    description: 'Size of the ASCII glyphs in the overlay.'
+  },
+  {
+    name: 'textFontSize',
+    type: 'number',
+    default: '200',
+    description: "Pixel size for the text that's drawn onto the plane texture."
+  },
+  {
+    name: 'planeBaseHeight',
+    type: 'number',
+    default: '8',
+    description: 'How tall the plane is in 3D. The plane width is auto-based on text aspect.'
+  },
+  {
+    name: 'textColor',
     type: 'string',
-    default: '""',
-    description: 'Additional CSS classes to apply to the component.'
+    default: '#fdf9f3',
+    description: 'The color of the text drawn onto the plane texture.'
+  },
+  {
+    name: 'strokeColor',
+    type: 'string',
+    default: 'N/A',
+    description: 'Not used here, but you could add it if you want an outline effect.'
   }
 ];
 </script>

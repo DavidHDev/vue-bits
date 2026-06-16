@@ -1,5 +1,5 @@
-import code from '@content/Components/ElasticSlider/ElasticSlider.vue?raw';
-import { createCodeObject } from '../../../types/code';
+import code from '@/content/Components/ElasticSlider/ElasticSlider.vue?raw';
+import { createCodeObject } from '@/types/code';
 
 export const elasticSlider = createCodeObject(code, 'Components/ElasticSlider', {
   usage: `<template>  
@@ -10,7 +10,7 @@ export const elasticSlider = createCodeObject(code, 'Components/ElasticSlider', 
     :is-stepped="true"
     :step-size="5"
   />
-  
+
   <!-- With custom icons using slots -->
   <ElasticSlider>
     <template #left-icon>
@@ -23,6 +23,6 @@ export const elasticSlider = createCodeObject(code, 'Components/ElasticSlider', 
 </template>
 
 <script setup lang="ts">
-  import ElasticSlider from "./ElasticSlider.vue";
+import ElasticSlider from "./ElasticSlider.vue";
 </script>`
 });

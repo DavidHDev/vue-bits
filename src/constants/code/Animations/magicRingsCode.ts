@@ -3,34 +3,40 @@ import { createCodeObject } from '@/types/code';
 
 export const magicRings = createCodeObject(code, 'Animations/MagicRings', {
   usage: `<template>
-  <div style="width: 600px; height: 400px; position: relative;">
+  <div
+    style="
+      width: 600px;
+      height: 400px;
+      position: relative;
+    "
+  >
     <MagicRings
-      color="#7cff67"
-      colorTwo="#42fcff"
-      :ringCount="6"
+      color="#fc42ff"
+      color-two="#42fcff"
+      :ring-count="6"
       :speed="1"
       :attenuation="10"
-      :lineThickness="2"
-      :baseRadius="0.35"
-      :radiusStep="0.1"
-      :scaleRate="0.1"
+      :line-thickness="2"
+      :base-radius="0.35"
+      :radius-step="0.1"
+      :scale-rate="0.1"
       :opacity="1"
       :blur="0"
-      :noiseAmount="0.1"
+      :noise-amount="0.1"
       :rotation="0"
-      :ringGap="1.5"
-      :fadeIn="0.7"
-      :fadeOut="0.5"
-      :followMouse="false"
-      :mouseInfluence="0.2"
-      :hoverScale="1.2"
+      :ring-gap="1.5"
+      :fade-in="0.7"
+      :fade-out="0.5"
+      :follow-mouse="false"
+      :mouse-influence="0.2"
+      :hover-scale="1.2"
       :parallax="0.05"
-      :clickBurst="false"
+      :click-burst="false"
     />
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import MagicRings from './MagicRings.vue'
 </script>`
 });

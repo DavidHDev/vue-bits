@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Variable Proximity</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="variableProximity.usage"
+    :source="variableProximitySource"
+    component-name="VariableProximity"
+    :props-table="props"
+  >
     <template #preview>
-      <div ref="containerRef" class="demo-container h-[400px] overflow-hidden font-['Roboto_Flex',sans-serif]">
+      <div ref="containerRef" class="h-[400px] overflow-hidden font-['Roboto_Flex',sans-serif] demo-container">
         <VariableProximity
           label="Hover me! And then star Vue Bits on GitHub, or else..."
           class-name="variable-proximity-demo"
@@ -12,56 +20,58 @@
           :falloff="falloff"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSlider title="Radius" v-model="radius" :min="50" :max="300" :step="10" />
-
-        <div class="flex gap-2 flex-wrap">
-          <button
-            v-for="type in falloffTypes"
-            :key="type"
-            class="text-xs cursor-pointer bg-[#0b0b0b] rounded-[10px] border border-[#333] hover:bg-[#222] text-white h-8 px-3 transition-colors"
-            :class="{ 'bg-[#333]': falloff === type }"
-            @click="falloff = type"
-          >
-            {{ type }}
-          </button>
-        </div>
+        <PreviewSelect title="Falloff" v-model="falloff" :options="['linear', 'exponential', 'gaussian']" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['motion-v']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="variableProximity" />
+      <DemoCodeTab slug="variable-proximity" :usage="variableProximity.usage!" :source="variableProximitySource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="variableProximity.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import TabbedLayout from '@/components/common/TabbedLayout.vue';
-import PropTable from '@/components/common/PropTable.vue';
-import Dependencies from '@/components/code/Dependencies.vue';
-import CliInstallation from '@/components/code/CliInstallation.vue';
-import CodeExample from '@/components/code/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
-import VariableProximity, { type FalloffType } from '@/content/TextAnimations/VariableProximity/VariableProximity.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { variableProximity } from '@/constants/code/TextAnimations/variableProximityCode';
+import VariableProximity, { type FalloffType } from '@/content/TextAnimations/VariableProximity/VariableProximity.vue';
+import variableProximitySource from '@/content/TextAnimations/VariableProximity/VariableProximity.vue?raw';
+import { computed, ref } from 'vue';
+
+const { forceRerender } = useForceRerender();
+
+const DEFAULTS = {
+  radius: 100,
+  falloff: 'linear' as FalloffType
+};
 
 const containerRef = ref<HTMLElement | null>(null);
-const radius = ref(100);
-const falloff = ref<FalloffType>('linear');
+const radius = ref(DEFAULTS.radius);
+const falloff = ref<FalloffType>(DEFAULTS.falloff);
 
-const falloffTypes: FalloffType[] = ['linear', 'exponential', 'gaussian'];
+const hasChanges = computed(() => radius.value !== DEFAULTS.radius || falloff.value !== DEFAULTS.falloff);
 
-const propData = [
+function reset() {
+  radius.value = DEFAULTS.radius;
+  falloff.value = DEFAULTS.falloff;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'label',
     type: 'string',
@@ -71,13 +81,13 @@ const propData = [
   {
     name: 'fromFontVariationSettings',
     type: 'string',
-    default: "\"'wght' 400, 'opsz' 9\"",
+    default: "'wght' 400, 'opsz' 9",
     description: 'The starting variation settings.'
   },
   {
     name: 'toFontVariationSettings',
     type: 'string',
-    default: "\"'wght' 800, 'opsz' 40\"",
+    default: "'wght' 800, 'opsz' 40",
     description: 'The variation settings to reach at cursor proximity.'
   },
   {
@@ -94,30 +104,25 @@ const propData = [
   },
   {
     name: 'falloff',
-    type: '"linear" | "exponential" | "gaussian"',
+    type: "'linear' | 'exponential' | 'gaussian'",
     default: '"linear"',
     description: 'Type of falloff for the effect.'
-  },
-  {
-    name: 'className',
-    type: 'string',
-    default: '""',
-    description: 'Additional CSS classes to apply.'
-  },
-  {
-    name: 'style',
-    type: 'CSSProperties',
-    default: '{}',
-    description: 'Inline styles to apply.'
-  },
-  {
-    name: 'onClick',
-    type: '() => void',
-    default: 'undefined',
-    description: 'Click event handler.'
   }
 ];
 </script>
+
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap');
+.variable-proximity-demo {
+  max-width: 20ch;
+  line-height: 100%;
+  font-size: 4rem !important;
+  cursor: pointer;
+  text-align: center;
+}
+
+@media only screen and (max-width: 967px) {
+  .variable-proximity-demo {
+    font-size: 1.6rem !important;
+  }
+}
 </style>

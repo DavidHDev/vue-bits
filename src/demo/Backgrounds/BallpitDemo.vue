@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Ballpit</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="ballpit.usage"
+    :source="ballpitSource"
+    component-name="Ballpit"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="relative p-0 h-[600px] overflow-hidden demo-container">
+      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
         <RefreshButton @click="forceRerender" />
         <Ballpit
           className="relative"
@@ -15,68 +23,80 @@
         />
         <BackgroundContent pillText="New Background" headline="Balls! What's not to like about them?" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSwitch title="Display Cursor" v-model="followCursor" />
-
         <PreviewSlider title="Ball Count" :min="50" :max="500" :step="10" v-model="count" />
-
-        <PreviewSlider title="Gravity" :min="0.1" :max="1" :step="0.1" v-model="gravity" />
-
+        <PreviewSlider title="Gravity" :min="0" :max="1" :step="0.1" v-model="gravity" />
         <PreviewSlider title="Friction" :min="0.9" :max="1" :step="0.001" v-model="friction" />
-
-        <PreviewSlider title="Wall Bounce" :min="0.1" :max="1" :step="0.05" v-model="wallBounce" />
+        <PreviewSlider title="Wall Bounce" :min="0.5" :max="1" :step="0.05" v-model="wallBounce" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['three']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="ballpit" />
+      <DemoCodeTab slug="ballpit" :usage="ballpit.usage!" :source="ballpitSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="ballpit.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
-import { ref, watch } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import BackgroundContent from '../../components/common/BackgroundContent.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import RefreshButton from '../../components/common/RefreshButton.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import { ballpit } from '../../constants/code/Backgrounds/ballpitCode';
-import Ballpit from '../../content/Backgrounds/Ballpit/Ballpit.vue';
+import { ballpit } from '@/constants/code/Backgrounds/ballpitCode';
+import Ballpit from '@/content/Backgrounds/Ballpit/Ballpit.vue';
+import ballpitSource from '@/content/Backgrounds/Ballpit/Ballpit.vue?raw';
+import { computed, ref } from 'vue';
 
 const { rerenderKey: key, forceRerender } = useForceRerender();
 
-const count = ref(100);
-const gravity = ref(0.01);
-const friction = ref(0.9975);
-const wallBounce = ref(0.95);
-const followCursor = ref(false);
+const DEFAULTS = {
+  count: 100,
+  gravity: 0.01,
+  friction: 0.9975,
+  wallBounce: 0.95,
+  followCursor: false
+};
+
+const count = ref(DEFAULTS.count);
+const gravity = ref(DEFAULTS.gravity);
+const friction = ref(DEFAULTS.friction);
+const wallBounce = ref(DEFAULTS.wallBounce);
+const followCursor = ref(DEFAULTS.followCursor);
 
 const colors = [0xffffff, 0x000000, 0x27ff64];
 
-watch(
-  [count, gravity, friction, wallBounce, followCursor],
-  () => {
-    forceRerender();
-  },
-  { immediate: true }
+const hasChanges = computed(
+  () =>
+    count.value !== DEFAULTS.count ||
+    gravity.value !== DEFAULTS.gravity ||
+    friction.value !== DEFAULTS.friction ||
+    wallBounce.value !== DEFAULTS.wallBounce ||
+    followCursor.value !== DEFAULTS.followCursor
 );
 
-const propData = [
+function reset() {
+  count.value = DEFAULTS.count;
+  gravity.value = DEFAULTS.gravity;
+  friction.value = DEFAULTS.friction;
+  wallBounce.value = DEFAULTS.wallBounce;
+  followCursor.value = DEFAULTS.followCursor;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'count',
     type: 'number',

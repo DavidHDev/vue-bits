@@ -1,30 +1,30 @@
 import code from '@/content/Animations/BlobCursor/BlobCursor.vue?raw';
-import { createCodeObject } from '../../../types/code';
+import { createCodeObject } from '@/types/code';
 
 export const blobCursor = createCodeObject(code, 'Animations/BlobCursor', {
   installation: `npm install gsap`,
   usage: `<template>
   <BlobCursor
-    blobType="circle"
-    fillColor="#27FF64"
-    :trailCount="3"
+    blob-type="circle"
+    fill-color="#27FF64"
+    :trail-count="3"
     :sizes="[60, 125, 75]"
-    :innerSizes="[20, 35, 25]"
-    innerColor="rgba(255,255,255,0.8)"
+    :inner-sizes="[20, 35, 25]"
+    inner-color="rgba(255,255,255,0.8)"
     :opacities="[0.6, 0.6, 0.6]"
-    shadowColor="rgba(0,0,0,0.75)"
-    :shadow-Blur="5"
-    :shadowOffsetX="10"
-    :shadowOffsetY="10"
-    :filterDtdDeviation="30"
-    :useFilter="true"
-    :fastDuration="0.1"
-    :slowDuration="0.5"
-    :zIndex="100"
+    shadow-color="rgba(0,0,0,0.75)"
+    :shadow-blur="5"
+    :shadow-offset-x="10"
+    :shadow-offset-y="10"
+    :filter-std-deviation="30"
+    :use-filter="true"
+    :fast-duration="0.1"
+    :slow-duration="0.5"
+    :z-index="100"
   />
 </template>
 
 <script setup lang="ts">
-  import BlobCursor from "./BlobCursor.vue";
+import BlobCursor from './BlobCursor.vue'
 </script>`
 });

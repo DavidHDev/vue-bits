@@ -18,7 +18,7 @@
 
 <script setup lang="ts">
 import { Motion, type Transition } from 'motion-v';
-import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue';
 
 type BlurTextProps = {
   text?: string;
@@ -86,6 +86,16 @@ onMounted(() => {
 onBeforeUnmount(() => {
   observer?.disconnect();
 });
+
+watch(
+  () => [props.text, props.animateBy, props.direction, props.delay],
+  () => {
+    inView.value = false;
+    if (rootRef.value) {
+      observer?.observe(rootRef.value);
+    }
+  }
+);
 
 const elements = computed(() => (props.animateBy === 'words' ? props.text.split(' ') : props.text.split('')));
 

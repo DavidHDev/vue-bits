@@ -1,5 +1,13 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Laser Flow</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="laserFlow.usage"
+    :source="laserFlowSource"
+    component-name="LaserFlow"
+    :props-table="props"
+  >
     <template #preview>
       <div
         class="relative w-full h-[600px] overflow-hidden demo-container"
@@ -56,10 +64,12 @@
           />
         </template>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewSelect title="Example:" v-model="selectedExample" :options="exampleOptions" />
-        <PreviewColor title="Color" v-model="laserColor" />
+        <PreviewSelect title="Example:" v-model="selectedExample" :options="['box', 'basic']" />
+        <PreviewColorPicker title="Color" v-model="laserColor" />
         <PreviewSlider title="Horizontal Sizing" :min="0.1" :max="2" :step="0.01" v-model="horizontalSizing" />
         <PreviewSlider title="Vertical Sizing" :min="0.1" :max="5" :step="0.1" v-model="verticalSizing" />
         <PreviewSlider title="Wisp Density" :min="0" :max="5" :step="0.1" v-model="wispDensity" />
@@ -73,62 +83,106 @@
         <PreviewSlider title="Decay" :min="0.5" :max="3" :step="0.01" v-model="decay" />
         <PreviewSlider title="Falloff Start" :min="0.5" :max="3" :step="0.01" v-model="falloffStart" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['three']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="laserFlow" />
+      <DemoCodeTab slug="laser-flow" :usage="laserFlow.usage!" :source="laserFlowSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="laserFlow.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
 import { laserFlow } from '@/constants/code/Animations/laserFlowCode';
-import { ref, useTemplateRef } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewColor from '../../components/common/PreviewColor.vue';
-import PreviewSelect from '../../components/common/PreviewSelect.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import RefreshButton from '../../components/common/RefreshButton.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import LaserFlow from '../../content/Animations/LaserFlow/LaserFlow.vue';
+import LaserFlow from '@/content/Animations/LaserFlow/LaserFlow.vue';
+import laserFlowSource from '@/content/Animations/LaserFlow/LaserFlow.vue?raw';
+import { computed, ref, useTemplateRef } from 'vue';
 
 const { rerenderKey: key, forceRerender } = useForceRerender();
 
-type ExampleKey = 'box' | 'basic';
-
-const exampleOptions = [
-  { label: 'Box', value: 'box' },
-  { label: 'Basic', value: 'basic' }
-];
+type Example = 'box' | 'basic';
+const DEFAULTS = {
+  selectedExample: 'box' as Example,
+  color: '#A0FFBC',
+  horizontalSizing: 0.5,
+  verticalSizing: 2.0,
+  wispDensity: 1,
+  wispSpeed: 15.0,
+  wispIntensity: 5.0,
+  flowSpeed: 0.35,
+  flowStrength: 0.25,
+  fogIntensity: 0.45,
+  fogScale: 0.3,
+  fogFallSpeed: 0.6,
+  decay: 1.1,
+  falloffStart: 1.2
+};
 
 const containerRef = useTemplateRef('containerRef');
 const revealImgRef = useTemplateRef('revealImgRef');
-const selectedExample = ref<ExampleKey>('box');
-const laserColor = ref('#A0FFBC');
-const horizontalSizing = ref(0.5);
-const verticalSizing = ref(2.0);
-const wispDensity = ref(1);
-const wispSpeed = ref(15.0);
-const wispIntensity = ref(5.0);
-const flowSpeed = ref(0.35);
-const flowStrength = ref(0.25);
-const fogIntensity = ref(0.45);
-const fogScale = ref(0.3);
-const fogFallSpeed = ref(0.6);
-const decay = ref(1.1);
-const falloffStart = ref(1.2);
+
+const selectedExample = ref<Example>(DEFAULTS.selectedExample);
+const laserColor = ref(DEFAULTS.color);
+const horizontalSizing = ref(DEFAULTS.horizontalSizing);
+const verticalSizing = ref(DEFAULTS.verticalSizing);
+const wispDensity = ref(DEFAULTS.wispDensity);
+const wispSpeed = ref(DEFAULTS.wispSpeed);
+const wispIntensity = ref(DEFAULTS.wispIntensity);
+const flowSpeed = ref(DEFAULTS.flowSpeed);
+const flowStrength = ref(DEFAULTS.flowStrength);
+const fogIntensity = ref(DEFAULTS.fogIntensity);
+const fogScale = ref(DEFAULTS.fogScale);
+const fogFallSpeed = ref(DEFAULTS.fogFallSpeed);
+const decay = ref(DEFAULTS.decay);
+const falloffStart = ref(DEFAULTS.falloffStart);
+
+const hasChanges = computed(
+  () =>
+    selectedExample.value !== DEFAULTS.selectedExample ||
+    laserColor.value !== DEFAULTS.color ||
+    horizontalSizing.value !== DEFAULTS.horizontalSizing ||
+    verticalSizing.value !== DEFAULTS.verticalSizing ||
+    wispDensity.value !== DEFAULTS.wispDensity ||
+    wispSpeed.value !== DEFAULTS.wispSpeed ||
+    wispIntensity.value !== DEFAULTS.wispIntensity ||
+    flowSpeed.value !== DEFAULTS.flowSpeed ||
+    flowStrength.value !== DEFAULTS.flowStrength ||
+    fogIntensity.value !== DEFAULTS.fogIntensity ||
+    fogScale.value !== DEFAULTS.fogScale ||
+    fogFallSpeed.value !== DEFAULTS.fogFallSpeed ||
+    decay.value !== DEFAULTS.decay ||
+    falloffStart.value !== DEFAULTS.falloffStart
+);
+
+function reset() {
+  selectedExample.value = DEFAULTS.selectedExample;
+  laserColor.value = DEFAULTS.color;
+  horizontalSizing.value = DEFAULTS.horizontalSizing;
+  verticalSizing.value = DEFAULTS.verticalSizing;
+  wispDensity.value = DEFAULTS.wispDensity;
+  wispSpeed.value = DEFAULTS.wispSpeed;
+  wispIntensity.value = DEFAULTS.wispIntensity;
+  flowSpeed.value = DEFAULTS.flowSpeed;
+  flowStrength.value = DEFAULTS.flowStrength;
+  fogIntensity.value = DEFAULTS.fogIntensity;
+  fogScale.value = DEFAULTS.fogScale;
+  fogFallSpeed.value = DEFAULTS.fogFallSpeed;
+  decay.value = DEFAULTS.decay;
+  falloffStart.value = DEFAULTS.falloffStart;
+  forceRerender();
+}
 
 function handleMouseMove(e: MouseEvent) {
   const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -149,18 +203,18 @@ function handleMouseLeave() {
   }
 }
 
-const propData = [
+const props: PropRow[] = [
   {
     name: 'horizontalBeamOffset',
     type: 'number',
     default: '0.1',
-    description: 'Horizontal offset of the beam (0–1 of canvas width).'
+    description: 'Horizontal offset of the beam (0-1 of canvas width).'
   },
   {
     name: 'verticalBeamOffset',
     type: 'number',
     default: '0.0',
-    description: 'Vertical offset of the beam (0–1 of canvas height).'
+    description: 'Vertical offset of the beam (0-1 of canvas height).'
   },
   {
     name: 'horizontalSizing',

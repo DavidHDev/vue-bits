@@ -1,58 +1,71 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Spotlight Card</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="spotlightCard.usage"
+    :source="spotlightCardSource"
+    component-name="SpotlightCard"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container py-10">
-        <SpotlightCard class-name="custom-spotlight-card">
-          <div class="flex h-full flex-col items-start justify-center">
-            <i class="pi pi-star-fill text-4xl mb-3 text-white"></i>
-
-            <h3 class="text-2xl font-semibold tracking-tight mb-1 text-white">Boost Your Experience</h3>
-
-            <p class="text-sm text-zinc-400">
+      <div class="relative py-10 demo-container">
+        <SpotlightCard class-name="custom-spotlight-card" :spotlight-color="spotlightColor">
+          <div class="flex flex-col justify-center items-start h-full">
+            <i class="mb-3 text-white text-3xl pi pi-lock"></i>
+            <h3 class="mb-1 font-semibold text-white text-2xl tracking-tight">Boost Your Experience</h3>
+            <p class="text-zinc-400 text-sm">
               Get exclusive benefits, features & 24/7 support as a permanent club member.
             </p>
           </div>
         </SpotlightCard>
       </div>
+    </template>
 
-      <h2 class="text-xl font-semibold text-white mb-4 mt-8">Custom Color</h2>
+    <template #customize>
+      <Customize>
+        <PreviewColorPicker title="Spotlight Color" v-model="spotlightColor" />
+      </Customize>
+    </template>
 
-      <div class="demo-container py-10">
-        <SpotlightCard class-name="custom-spotlight-card" spotlight-color="rgba(39, 255, 100, 0.326)">
-          <div class="flex h-full flex-col items-start justify-center">
-            <i class="pi pi-lock text-3xl mb-3 text-white"></i>
-
-            <h3 class="text-2xl font-semibold tracking-tight mb-1 text-white">Enhanced Security</h3>
-
-            <p class="text-sm text-zinc-400">
-              Our state of the art software offers peace of mind through strict security measures.
-            </p>
-          </div>
-        </SpotlightCard>
-      </div>
-
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="spotlightCard" />
+      <DemoCodeTab slug="spotlight-card" :usage="spotlightCard.usage!" :source="spotlightCardSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="spotlightCard.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import SpotlightCard from '../../content/Components/SpotlightCard/SpotlightCard.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { spotlightCard } from '@/constants/code/Components/spotlightCardCode';
+import SpotlightCard from '@/content/Components/SpotlightCard/SpotlightCard.vue';
+import spotlightCardSource from '@/content/Components/SpotlightCard/SpotlightCard.vue?raw';
+import { computed, ref } from 'vue';
 
-const propData = [
+const { forceRerender } = useForceRerender();
+
+const DEFAULTS = {
+  spotlightColor: '#ffffff40'
+};
+
+const spotlightColor = ref<string>(DEFAULTS.spotlightColor);
+
+const hasChanges = computed(() => spotlightColor.value !== DEFAULTS.spotlightColor);
+
+function reset() {
+  spotlightColor.value = DEFAULTS.spotlightColor;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'spotlightColor',
     type: 'string',
@@ -70,7 +83,10 @@ const propData = [
 
 <style>
 .custom-spotlight-card {
-  min-height: 200px;
-  max-width: 400px;
+  user-select: none;
+  background-color: var(--bg-elevated) !important;
+  border: 1px solid var(--border-secondary) !important;
+  width: 350px;
+  height: 300px;
 }
 </style>

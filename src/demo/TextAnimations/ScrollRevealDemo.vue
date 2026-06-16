@@ -1,74 +1,96 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Scroll Reveal</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="scrollRevealCode.usage"
+    :source="scrollRevealSource"
+    component-name="ScrollReveal"
+    :props-table="props"
+  >
     <template #preview>
-      <div ref="containerRef" class="demo-container overflow-y-auto h-[600px]" @wheel="smoothScroll">
+      <div ref="containerRef" class="relative h-[400px] overflow-y-auto demo-container" @wheel="smoothScroll">
         <div class="scroll-instruction">Scroll Down</div>
 
         <div class="scroll-content">
           <ScrollReveal
-            :children="scrollText"
-            :enable-blur="enableBlur"
+            :key="key"
+            :scroll-container-ref="containerRef"
             :base-opacity="baseOpacity"
+            :enable-blur="enableBlur"
             :base-rotation="baseRotation"
             :blur-strength="blurStrength"
-            :container-class-name="containerClassName"
-            :text-class-name="textClassName"
-            :rotation-end="rotationEnd"
-            :word-animation-end="wordAnimationEnd"
-            :scroll-container-ref="{ current: containerRef }"
-            :key="rerenderKey"
-          />
+          >
+            When does a man die? When he is hit by a bullet? No! When he suffers a disease? No! When he ate a soup made
+            out of a poisonous mushroom? No! A man dies when he is forgotten!
+          </ScrollReveal>
         </div>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSwitch title="Enable Blur" v-model="enableBlur" />
-        <PreviewSlider title="Base Opacity:" v-model="baseOpacity" :min="0" :max="1" :step="0.1" value-unit="" />
-        <PreviewSlider title="Base Rotation:" v-model="baseRotation" :min="0" :max="10" :step="0.5" value-unit="deg" />
-        <PreviewSlider title="Blur Strength:" v-model="blurStrength" :min="0" :max="10" :step="0.5" value-unit="px" />
+        <PreviewSlider title="Base Opacity" v-model="baseOpacity" :min="0" :max="1" :step="0.1" value-unit="" />
+        <PreviewSlider title="Base Rotation" v-model="baseRotation" :min="0" :max="10" :step="0.5" value-unit="deg" />
+        <PreviewSlider title="Blur Strength" v-model="blurStrength" :min="0" :max="10" :step="0.5" value-unit="px" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="scrollRevealCode" />
+      <DemoCodeTab slug="scroll-reveal" :usage="scrollRevealCode.usage!" :source="scrollRevealSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="scrollRevealCode.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, useTemplateRef } from 'vue';
-import { gsap } from 'gsap';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import ScrollReveal from '../../content/TextAnimations/ScrollReveal/ScrollReveal.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import { scrollRevealCode } from '@/constants/code/TextAnimations/scrollRevealCode';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
+import { scrollRevealCode } from '@/constants/code/TextAnimations/scrollRevealCode';
+import ScrollReveal from '@/content/TextAnimations/ScrollReveal/ScrollReveal.vue';
+import scrollRevealSource from '@/content/TextAnimations/ScrollReveal/ScrollReveal.vue?raw';
+import { gsap } from 'gsap';
+import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
+
+const { rerenderKey: key, forceRerender } = useForceRerender();
+
+const DEFAULTS = {
+  enableBlur: true,
+  baseOpacity: 0.1,
+  baseRotation: 3,
+  blurStrength: 4
+};
 
 const containerRef = useTemplateRef<HTMLElement>('containerRef');
-const scrollText = ref(
-  'When does a man die? When he is hit by a bullet? No! When he suffers a disease? No! When he ate a soup made out of a poisonous mushroom? No! A man dies when he is forgotten!'
-);
-const enableBlur = ref(true);
-const baseOpacity = ref(0.1);
-const baseRotation = ref(3);
-const blurStrength = ref(4);
-const containerClassName = ref('');
-const textClassName = ref('');
-const rotationEnd = ref('bottom bottom');
-const wordAnimationEnd = ref('bottom bottom');
+const enableBlur = ref(DEFAULTS.enableBlur);
+const baseOpacity = ref(DEFAULTS.baseOpacity);
+const baseRotation = ref(DEFAULTS.baseRotation);
+const blurStrength = ref(DEFAULTS.blurStrength);
 
-const { rerenderKey, forceRerender } = useForceRerender();
+const hasChanges = computed(
+  () =>
+    enableBlur.value !== DEFAULTS.enableBlur ||
+    baseOpacity.value !== DEFAULTS.baseOpacity ||
+    baseRotation.value !== DEFAULTS.baseRotation ||
+    blurStrength.value !== DEFAULTS.blurStrength
+);
+
+function reset() {
+  enableBlur.value = DEFAULTS.enableBlur;
+  baseOpacity.value = DEFAULTS.baseOpacity;
+  baseRotation.value = DEFAULTS.baseRotation;
+  blurStrength.value = DEFAULTS.blurStrength;
+  forceRerender();
+}
 
 const smoothScroll = (e: WheelEvent) => {
   e.preventDefault();
@@ -99,73 +121,72 @@ onUnmounted(() => {
   }
 });
 
-watch(
-  () => enableBlur.value,
-  () => {
-    forceRerender();
-  }
-);
+watch([enableBlur, baseOpacity, baseRotation, blurStrength], () => {
+  containerRef.value?.scrollTo({ top: 0, behavior: 'smooth' });
+  forceRerender();
+});
 
-const propData = [
+const props: PropRow[] = [
   {
     name: 'children',
-    type: 'string',
-    default: '""',
-    description: 'The text content to be animated word by word'
+    type: 'slot',
+    default: '—',
+    description: 'The content to animate. If a string, it will be split into individual characters.'
   },
   {
     name: 'scrollContainerRef',
-    type: 'object',
-    default: 'undefined',
-    description: 'Ref to a custom scroll container (defaults to window)'
+    type: 'Ref<HTMLElement | null> | HTMLElement | null',
+    default: 'null',
+    description: 'Optional ref to the scroll container. Defaults to window if not provided.'
   },
   {
     name: 'enableBlur',
     type: 'boolean',
     default: 'true',
-    description: 'Whether to enable blur animation'
+    description: 'Enables the blur animation effect on the words.'
   },
   {
     name: 'baseOpacity',
     type: 'number',
     default: '0.1',
-    description: 'Starting opacity value for words'
+    description: 'The initial opacity value for the words before the animation.'
   },
   {
     name: 'baseRotation',
     type: 'number',
     default: '3',
-    description: 'Starting rotation value in degrees'
+    description: 'The starting rotation (in degrees) for the container before it animates to 0.'
   },
   {
     name: 'blurStrength',
     type: 'number',
     default: '4',
-    description: 'Blur strength in pixels'
+    description: 'The strength of the blur effect (in pixels) applied at the start of the animation.'
   },
   {
     name: 'containerClassName',
     type: 'string',
     default: '""',
-    description: 'Additional CSS classes for the container element'
+    description: 'Additional CSS class(es) to apply to the container element.'
   },
   {
     name: 'textClassName',
     type: 'string',
     default: '""',
-    description: 'Additional CSS classes for the text element'
+    description: 'Additional CSS class(es) to apply to the text element.'
   },
   {
     name: 'rotationEnd',
     type: 'string',
     default: '"bottom bottom"',
-    description: 'ScrollTrigger end position for rotation animation'
+    description: 'The scroll trigger end point for the container rotation animation.'
   },
   {
     name: 'wordAnimationEnd',
     type: 'string',
     default: '"bottom bottom"',
-    description: 'ScrollTrigger end position for word animations'
+    description:
+      'The scroll trigger end point for the word opacity and blur animations. The animation will complete when the bottom of the text reaches the bottom of the container.'
   }
 ];
 </script>

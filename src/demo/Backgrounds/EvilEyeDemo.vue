@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Evil Eye</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="evilEye.usage"
+    :source="evilEyeSource"
+    component-name="EvilEye"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="relative p-0 h-[600px] overflow-hidden demo-container">
+      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
         <EvilEye
           :eye-color="eyeColor"
           :intensity="intensity"
@@ -15,13 +23,12 @@
           :background-color="backgroundColor"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <div class="flex items-center gap-4 mt-4">
-          <PreviewColor title="Eye Color" v-model="eyeColor" />
-          <PreviewColor title="Background" v-model="backgroundColor" />
-        </div>
-
+        <PreviewColorPicker title="Eye Color" v-model="eyeColor" />
+        <PreviewColorPicker title="Background" v-model="backgroundColor" />
         <PreviewSlider title="Intensity" :min="0.5" :max="5" :step="0.1" v-model="intensity" />
         <PreviewSlider title="Pupil Size" :min="0.1" :max="2" :step="0.05" v-model="pupilSize" />
         <PreviewSlider title="Iris Width" :min="0.1" :max="0.8" :step="0.05" v-model="irisWidth" />
@@ -31,46 +38,86 @@
         <PreviewSlider title="Pupil Follow" :min="0" :max="2" :step="0.1" v-model="pupilFollow" />
         <PreviewSlider title="Flame Speed" :min="0.1" :max="5" :step="0.1" v-model="flameSpeed" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['ogl']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="evilEye" />
+      <DemoCodeTab slug="evil-eye" :usage="evilEye.usage!" :source="evilEyeSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="evilEye.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import CliInstallation from '@/components/code/CliInstallation.vue';
-import CodeExample from '@/components/code/CodeExample.vue';
-import Dependencies from '@/components/code/Dependencies.vue';
 import Customize from '@/components/common/Customize.vue';
-import PreviewColor from '@/components/common/PreviewColor.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
-import PropTable from '@/components/common/PropTable.vue';
-import TabbedLayout from '@/components/common/TabbedLayout.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { evilEye } from '@/constants/code/Backgrounds/evilEyeCode';
 import EvilEye from '@/content/Backgrounds/EvilEye/EvilEye.vue';
-import { ref } from 'vue';
+import evilEyeSource from '@/content/Backgrounds/EvilEye/EvilEye.vue?raw';
+import { computed, ref } from 'vue';
 
-const eyeColor = ref('#FF6F37');
-const intensity = ref(1.5);
-const pupilSize = ref(0.6);
-const irisWidth = ref(0.25);
-const glowIntensity = ref(0.35);
-const scale = ref(0.8);
-const noiseScale = ref(1.0);
-const pupilFollow = ref(1.0);
-const flameSpeed = ref(1.0);
-const backgroundColor = ref('#060010');
+const { forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  eyeColor: '#FF6F37',
+  intensity: 1.5,
+  pupilSize: 0.6,
+  irisWidth: 0.25,
+  glowIntensity: 0.35,
+  scale: 0.8,
+  noiseScale: 1.0,
+  pupilFollow: 1.0,
+  flameSpeed: 1.0,
+  backgroundColor: '#060010'
+};
+
+const eyeColor = ref(DEFAULTS.eyeColor);
+const intensity = ref(DEFAULTS.intensity);
+const pupilSize = ref(DEFAULTS.pupilSize);
+const irisWidth = ref(DEFAULTS.irisWidth);
+const glowIntensity = ref(DEFAULTS.glowIntensity);
+const scale = ref(DEFAULTS.scale);
+const noiseScale = ref(DEFAULTS.noiseScale);
+const pupilFollow = ref(DEFAULTS.pupilFollow);
+const flameSpeed = ref(DEFAULTS.flameSpeed);
+const backgroundColor = ref(DEFAULTS.backgroundColor);
+
+const hasChanges = computed(
+  () =>
+    eyeColor.value !== DEFAULTS.eyeColor ||
+    intensity.value !== DEFAULTS.intensity ||
+    pupilSize.value !== DEFAULTS.pupilSize ||
+    irisWidth.value !== DEFAULTS.irisWidth ||
+    glowIntensity.value !== DEFAULTS.glowIntensity ||
+    scale.value !== DEFAULTS.scale ||
+    noiseScale.value !== DEFAULTS.noiseScale ||
+    pupilFollow.value !== DEFAULTS.pupilFollow ||
+    flameSpeed.value !== DEFAULTS.flameSpeed ||
+    backgroundColor.value !== DEFAULTS.backgroundColor
+);
+
+function reset() {
+  eyeColor.value = DEFAULTS.eyeColor;
+  intensity.value = DEFAULTS.intensity;
+  pupilSize.value = DEFAULTS.pupilSize;
+  irisWidth.value = DEFAULTS.irisWidth;
+  glowIntensity.value = DEFAULTS.glowIntensity;
+  scale.value = DEFAULTS.scale;
+  noiseScale.value = DEFAULTS.noiseScale;
+  pupilFollow.value = DEFAULTS.pupilFollow;
+  flameSpeed.value = DEFAULTS.flameSpeed;
+  backgroundColor.value = DEFAULTS.backgroundColor;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'eyeColor',
     type: 'string',

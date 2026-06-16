@@ -1,5 +1,9 @@
+<template>
+  <canvas ref="canvasRef" :class="className" />
+</template>
+
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, useSlots, useTemplateRef, watch } from 'vue';
+import { computed, onMounted, onBeforeUnmount, useSlots, useTemplateRef, watch } from 'vue';
 
 interface FuzzyTextProps {
   fontSize?: number | string;
@@ -43,16 +47,29 @@ const props = withDefaults(defineProps<FuzzyTextProps>(), {
   className: ''
 });
 
-const canvasRef = useTemplateRef<HTMLCanvasElement & { cleanupFuzzyText?: () => void }>('canvasRef');
+const canvasRef = useTemplateRef<HTMLCanvasElement>('canvasRef');
 const slots = useSlots();
 
-let animationFrameId: number;
-let glitchTimeoutId: ReturnType<typeof setTimeout>;
-let glitchEndTimeoutId: ReturnType<typeof setTimeout>;
-let clickTimeoutId: ReturnType<typeof setTimeout>;
-let cancelled = false;
+const text = computed<string>(() => {
+  const vnodes = slots.default?.() ?? [];
+  const extract = (nodes: ReturnType<NonNullable<typeof slots.default>>): string =>
+    nodes
+      .map(vnode => {
+        if (typeof vnode.children === 'string') return vnode.children;
+        if (Array.isArray(vnode.children))
+          return extract(vnode.children as ReturnType<NonNullable<typeof slots.default>>);
+        return '';
+      })
+      .join('');
+  return extract(vnodes);
+});
 
-const text = computed(() => (slots.default?.() ?? []).map(v => v.children).join(''));
+let animationFrameId = 0;
+let glitchTimeoutId: ReturnType<typeof setTimeout> | null = null;
+let glitchEndTimeoutId: ReturnType<typeof setTimeout> | null = null;
+let clickTimeoutId: ReturnType<typeof setTimeout> | null = null;
+let cancelled = false;
+let registeredCleanup: (() => void) | null = null;
 
 const init = async () => {
   const canvas = canvasRef.value;
@@ -65,7 +82,6 @@ const init = async () => {
     props.fontFamily === 'inherit' ? window.getComputedStyle(canvas).fontFamily || 'sans-serif' : props.fontFamily;
 
   const fontSizeStr = typeof props.fontSize === 'number' ? `${props.fontSize}px` : props.fontSize;
-
   const fontString = `${props.fontWeight} ${fontSizeStr} ${computedFontFamily}`;
 
   try {
@@ -87,52 +103,73 @@ const init = async () => {
     document.body.removeChild(temp);
   }
 
+  const currentText = text.value;
+
   const offscreen = document.createElement('canvas');
-  const offCtx = offscreen.getContext('2d')!;
+  const offCtx = offscreen.getContext('2d');
+  if (!offCtx) return;
+
   offCtx.font = fontString;
   offCtx.textBaseline = 'alphabetic';
 
   let totalWidth = 0;
   if (props.letterSpacing !== 0) {
-    for (const char of text.value) {
+    for (const char of currentText) {
       totalWidth += offCtx.measureText(char).width + props.letterSpacing;
     }
     totalWidth -= props.letterSpacing;
   } else {
-    totalWidth = offCtx.measureText(text.value).width;
+    totalWidth = offCtx.measureText(currentText).width;
   }
 
-  const metrics = offCtx.measureText(text.value);
-  const ascent = metrics.actualBoundingBoxAscent ?? numericFontSize;
-  const descent = metrics.actualBoundingBoxDescent ?? numericFontSize * 0.2;
-  const height = Math.ceil(ascent + descent);
+  const metrics = offCtx.measureText(currentText);
+  const actualLeft = metrics.actualBoundingBoxLeft ?? 0;
+  const actualRight = props.letterSpacing !== 0 ? totalWidth : (metrics.actualBoundingBoxRight ?? metrics.width);
+  const actualAscent = metrics.actualBoundingBoxAscent ?? numericFontSize;
+  const actualDescent = metrics.actualBoundingBoxDescent ?? numericFontSize * 0.2;
 
-  offscreen.width = Math.ceil(totalWidth) + 20;
-  offscreen.height = height;
+  const textBoundingWidth = Math.ceil(props.letterSpacing !== 0 ? totalWidth : actualLeft + actualRight);
+  const tightHeight = Math.ceil(actualAscent + actualDescent);
 
+  const extraWidthBuffer = 10;
+  const offscreenWidth = textBoundingWidth + extraWidthBuffer;
+
+  offscreen.width = offscreenWidth;
+  offscreen.height = tightHeight;
+
+  const xOffset = extraWidthBuffer / 2;
   offCtx.font = fontString;
   offCtx.textBaseline = 'alphabetic';
 
-  if (props.gradient && props.gradient.length >= 2) {
-    const grad = offCtx.createLinearGradient(0, 0, offscreen.width, 0);
+  if (props.gradient && Array.isArray(props.gradient) && props.gradient.length >= 2) {
+    const grad = offCtx.createLinearGradient(0, 0, offscreenWidth, 0);
     props.gradient.forEach((c, i) => grad.addColorStop(i / (props.gradient!.length - 1), c));
     offCtx.fillStyle = grad;
   } else {
     offCtx.fillStyle = props.color;
   }
 
-  let x = 10;
-  for (const char of text.value) {
-    offCtx.fillText(char, x, ascent);
-    x += offCtx.measureText(char).width + props.letterSpacing;
+  if (props.letterSpacing !== 0) {
+    let xPos = xOffset;
+    for (const char of currentText) {
+      offCtx.fillText(char, xPos, actualAscent);
+      xPos += offCtx.measureText(char).width + props.letterSpacing;
+    }
+  } else {
+    offCtx.fillText(currentText, xOffset - actualLeft, actualAscent);
   }
 
-  const marginX = props.fuzzRange + 20;
-  const marginY = props.direction === 'vertical' || props.direction === 'both' ? props.fuzzRange + 10 : 0;
+  const horizontalMargin = props.fuzzRange + 20;
+  const verticalMargin = props.direction === 'vertical' || props.direction === 'both' ? props.fuzzRange + 10 : 0;
 
-  canvas.width = offscreen.width + marginX * 2;
-  canvas.height = offscreen.height + marginY * 2;
-  ctx.translate(marginX, marginY);
+  canvas.width = offscreenWidth + horizontalMargin * 2;
+  canvas.height = tightHeight + verticalMargin * 2;
+  ctx.translate(horizontalMargin, verticalMargin);
+
+  const interactiveLeft = horizontalMargin + xOffset;
+  const interactiveTop = verticalMargin;
+  const interactiveRight = interactiveLeft + textBoundingWidth;
+  const interactiveBottom = interactiveTop + tightHeight;
 
   let isHovering = false;
   let isClicking = false;
@@ -142,49 +179,65 @@ const init = async () => {
   let lastFrameTime = 0;
   const frameDuration = 1000 / props.fps;
 
-  const startGlitch = () => {
+  const startGlitchLoop = () => {
     if (!props.glitchMode || cancelled) return;
     glitchTimeoutId = setTimeout(() => {
+      if (cancelled) return;
       isGlitching = true;
       glitchEndTimeoutId = setTimeout(() => {
         isGlitching = false;
-        startGlitch();
+        startGlitchLoop();
       }, props.glitchDuration);
     }, props.glitchInterval);
   };
 
-  if (props.glitchMode) startGlitch();
+  if (props.glitchMode) startGlitchLoop();
 
-  const run = (ts: number) => {
+  const run = (timestamp: number) => {
     if (cancelled) return;
 
-    if (ts - lastFrameTime < frameDuration) {
+    if (timestamp - lastFrameTime < frameDuration) {
       animationFrameId = requestAnimationFrame(run);
       return;
     }
+    lastFrameTime = timestamp;
 
-    lastFrameTime = ts;
-    ctx.clearRect(-marginX, -marginY, offscreen.width + marginX * 2, offscreen.height + marginY * 2);
+    ctx.clearRect(
+      -(props.fuzzRange + 20),
+      -(props.fuzzRange + 10),
+      offscreenWidth + 2 * (props.fuzzRange + 20),
+      tightHeight + 2 * (props.fuzzRange + 10)
+    );
 
-    targetIntensity = isClicking || isGlitching ? 1 : isHovering ? props.hoverIntensity : props.baseIntensity;
+    if (isClicking || isGlitching) {
+      targetIntensity = 1;
+    } else if (isHovering) {
+      targetIntensity = props.hoverIntensity;
+    } else {
+      targetIntensity = props.baseIntensity;
+    }
 
     if (props.transitionDuration > 0) {
       const step = 1 / (props.transitionDuration / frameDuration);
-      currentIntensity += Math.sign(targetIntensity - currentIntensity) * step;
-      currentIntensity = Math.min(
-        Math.max(currentIntensity, Math.min(targetIntensity, currentIntensity)),
-        Math.max(targetIntensity, currentIntensity)
-      );
+      if (currentIntensity < targetIntensity) {
+        currentIntensity = Math.min(currentIntensity + step, targetIntensity);
+      } else if (currentIntensity > targetIntensity) {
+        currentIntensity = Math.max(currentIntensity - step, targetIntensity);
+      }
     } else {
       currentIntensity = targetIntensity;
     }
 
-    for (let y = 0; y < offscreen.height; y++) {
-      const dx = props.direction !== 'vertical' ? (Math.random() - 0.5) * currentIntensity * props.fuzzRange : 0;
-      const dy =
-        props.direction !== 'horizontal' ? (Math.random() - 0.5) * currentIntensity * props.fuzzRange * 0.5 : 0;
-
-      ctx.drawImage(offscreen, 0, y, offscreen.width, 1, dx, y + dy, offscreen.width, 1);
+    for (let j = 0; j < tightHeight; j++) {
+      let dx = 0;
+      let dy = 0;
+      if (props.direction === 'horizontal' || props.direction === 'both') {
+        dx = Math.floor(currentIntensity * (Math.random() - 0.5) * props.fuzzRange);
+      }
+      if (props.direction === 'vertical' || props.direction === 'both') {
+        dy = Math.floor(currentIntensity * (Math.random() - 0.5) * props.fuzzRange * 0.5);
+      }
+      ctx.drawImage(offscreen, 0, j, offscreenWidth, 1, dx, j + dy, offscreenWidth, 1);
     }
 
     animationFrameId = requestAnimationFrame(run);
@@ -192,58 +245,106 @@ const init = async () => {
 
   animationFrameId = requestAnimationFrame(run);
 
-  const rectCheck = (x: number, y: number) =>
-    x >= marginX && x <= marginX + offscreen.width && y >= marginY && y <= marginY + offscreen.height;
+  const isInsideTextArea = (x: number, y: number) =>
+    x >= interactiveLeft && x <= interactiveRight && y >= interactiveTop && y <= interactiveBottom;
 
-  const mouseMove = (e: MouseEvent) => {
+  const handleMouseMove = (e: MouseEvent) => {
     if (!props.enableHover) return;
     const rect = canvas.getBoundingClientRect();
-    isHovering = rectCheck(e.clientX - rect.left, e.clientY - rect.top);
+    isHovering = isInsideTextArea(e.clientX - rect.left, e.clientY - rect.top);
   };
 
-  const mouseLeave = () => (isHovering = false);
+  const handleMouseLeave = () => {
+    isHovering = false;
+  };
 
-  const click = () => {
+  const handleClick = () => {
     if (!props.clickEffect) return;
     isClicking = true;
-    clearTimeout(clickTimeoutId);
-    clickTimeoutId = setTimeout(() => (isClicking = false), 150);
+    clearTimeout(clickTimeoutId ?? undefined);
+    clickTimeoutId = setTimeout(() => {
+      isClicking = false;
+    }, 150);
+  };
+
+  const handleTouchMove = (e: TouchEvent) => {
+    if (!props.enableHover) return;
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    isHovering = isInsideTextArea(touch.clientX - rect.left, touch.clientY - rect.top);
+  };
+
+  const handleTouchEnd = () => {
+    isHovering = false;
   };
 
   if (props.enableHover) {
-    canvas.addEventListener('mousemove', mouseMove);
-    canvas.addEventListener('mouseleave', mouseLeave);
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mouseleave', handleMouseLeave);
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchend', handleTouchEnd);
   }
 
   if (props.clickEffect) {
-    canvas.addEventListener('click', click);
+    canvas.addEventListener('click', handleClick);
   }
 
-  onBeforeUnmount(() => {
-    cancelled = true;
+  registeredCleanup = () => {
     cancelAnimationFrame(animationFrameId);
-    clearTimeout(glitchTimeoutId);
-    clearTimeout(glitchEndTimeoutId);
-    clearTimeout(clickTimeoutId);
-    canvas.removeEventListener('mousemove', mouseMove);
-    canvas.removeEventListener('mouseleave', mouseLeave);
-    canvas.removeEventListener('click', click);
-  });
+    if (glitchTimeoutId !== null) clearTimeout(glitchTimeoutId);
+    if (glitchEndTimeoutId !== null) clearTimeout(glitchEndTimeoutId);
+    if (clickTimeoutId !== null) clearTimeout(clickTimeoutId);
+    if (props.enableHover) {
+      canvas.removeEventListener('mousemove', handleMouseMove);
+      canvas.removeEventListener('mouseleave', handleMouseLeave);
+      canvas.removeEventListener('touchmove', handleTouchMove);
+      canvas.removeEventListener('touchend', handleTouchEnd);
+    }
+    if (props.clickEffect) {
+      canvas.removeEventListener('click', handleClick);
+    }
+  };
 };
 
-onMounted(init);
+onMounted(() => {
+  cancelled = false;
+  init();
+});
+
+onBeforeUnmount(() => {
+  cancelled = true;
+  registeredCleanup?.();
+});
 
 watch(
-  () => ({ ...props, text: text.value }),
+  () => ({
+    text: text.value,
+    fontSize: props.fontSize,
+    fontWeight: props.fontWeight,
+    fontFamily: props.fontFamily,
+    color: props.color,
+    enableHover: props.enableHover,
+    baseIntensity: props.baseIntensity,
+    hoverIntensity: props.hoverIntensity,
+    fuzzRange: props.fuzzRange,
+    fps: props.fps,
+    direction: props.direction,
+    transitionDuration: props.transitionDuration,
+    clickEffect: props.clickEffect,
+    glitchMode: props.glitchMode,
+    glitchInterval: props.glitchInterval,
+    glitchDuration: props.glitchDuration,
+    gradient: props.gradient,
+    letterSpacing: props.letterSpacing
+  }),
   () => {
     cancelled = true;
-    cancelAnimationFrame(animationFrameId);
+    registeredCleanup?.();
+    registeredCleanup = null;
     cancelled = false;
     init();
-  }
+  },
+  { deep: true }
 );
 </script>
-
-<template>
-  <canvas ref="canvasRef" :class="className" />
-</template>

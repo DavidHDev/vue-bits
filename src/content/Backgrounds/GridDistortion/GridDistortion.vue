@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import * as THREE from 'three';
-import { onMounted, onUnmounted, ref, watch, useTemplateRef } from 'vue';
+import { onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue';
 
 interface GridDistortionProps {
   grid?: number;
@@ -45,23 +45,32 @@ void main() {
 `;
 
 const containerRef = useTemplateRef<HTMLDivElement>('containerRef');
-const imageAspectRef = ref(1);
+const sceneRef = ref<THREE.Scene | null>(null);
+const rendererRef = ref<THREE.WebGLRenderer | null>(null);
 const cameraRef = ref<THREE.OrthographicCamera | null>(null);
-const initialDataRef = ref<Float32Array | null>(null);
+const planeRef = ref<THREE.Mesh | null>(null);
+const imageAspectRef = ref<number>(1);
+const animationIdRef = ref<number | null>(null);
+const resizeObserverRef = ref<ResizeObserver | null>(null);
 
-let cleanupAnimation: () => void = () => {};
-
-const setupAnimation = () => {
+let cleanup: (() => void) | null = null;
+const init = () => {
   const container = containerRef.value;
   if (!container) return;
 
   const scene = new THREE.Scene();
+  sceneRef.value = scene;
+
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
     alpha: true,
     powerPreference: 'high-performance'
   });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setClearColor(0x000000, 0);
+  rendererRef.value = renderer;
+
+  container.innerHTML = '';
   container.appendChild(renderer.domElement);
 
   const camera = new THREE.OrthographicCamera(0, 0, 0, 0, -1000, 1000);
@@ -78,6 +87,9 @@ const setupAnimation = () => {
   const textureLoader = new THREE.TextureLoader();
   textureLoader.load(props.imageSrc, texture => {
     texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.wrapS = THREE.ClampToEdgeWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
     imageAspectRef.value = texture.image.width / texture.image.height;
     uniforms.uTexture.value = texture;
     handleResize();
@@ -89,7 +101,6 @@ const setupAnimation = () => {
     data[i * 4] = Math.random() * 255 - 125;
     data[i * 4 + 1] = Math.random() * 255 - 125;
   }
-  initialDataRef.value = new Float32Array(data);
 
   const dataTexture = new THREE.DataTexture(data, size, size, THREE.RGBAFormat, THREE.FloatType);
   dataTexture.needsUpdate = true;
@@ -99,22 +110,31 @@ const setupAnimation = () => {
     side: THREE.DoubleSide,
     uniforms,
     vertexShader,
-    fragmentShader
+    fragmentShader,
+    transparent: true
   });
+
   const geometry = new THREE.PlaneGeometry(1, 1, size - 1, size - 1);
   const plane = new THREE.Mesh(geometry, material);
+  planeRef.value = plane;
   scene.add(plane);
 
   const handleResize = () => {
-    const width = container.offsetWidth;
-    const height = container.offsetHeight;
+    if (!container || !renderer || !camera) return;
+
+    const rect = container.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+
+    if (width === 0 || height === 0) return;
+
     const containerAspect = width / height;
-    const imageAspect = imageAspectRef.value;
 
     renderer.setSize(width, height);
 
-    const scale = Math.max(containerAspect / imageAspect, 1);
-    plane.scale.set(imageAspect * scale, scale, 1);
+    if (plane) {
+      plane.scale.set(containerAspect, 1, 1);
+    }
 
     const frustumHeight = 1;
     const frustumWidth = frustumHeight * containerAspect;
@@ -126,6 +146,16 @@ const setupAnimation = () => {
 
     uniforms.resolution.value.set(width, height, 1, 1);
   };
+
+  if (window.ResizeObserver) {
+    const resizeObserver = new ResizeObserver(() => {
+      handleResize();
+    });
+    resizeObserver.observe(container);
+    resizeObserverRef.value = resizeObserver;
+  } else {
+    window.addEventListener('resize', handleResize);
+  }
 
   const mouseState = {
     x: 0,
@@ -146,7 +176,9 @@ const setupAnimation = () => {
   };
 
   const handleMouseLeave = () => {
-    dataTexture.needsUpdate = true;
+    if (dataTexture) {
+      dataTexture.needsUpdate = true;
+    }
     Object.assign(mouseState, {
       x: 0,
       y: 0,
@@ -159,14 +191,21 @@ const setupAnimation = () => {
 
   container.addEventListener('mousemove', handleMouseMove);
   container.addEventListener('mouseleave', handleMouseLeave);
-  window.addEventListener('resize', handleResize);
+
   handleResize();
 
   const animate = () => {
-    requestAnimationFrame(animate);
+    animationIdRef.value = requestAnimationFrame(animate);
+
+    if (!renderer || !scene || !camera) return;
+
     uniforms.time.value += 0.05;
 
-    const data = dataTexture.image.data as Float32Array;
+    if (!(dataTexture.image.data instanceof Float32Array)) {
+      console.error('dataTexture.image.data is not a Float32Array');
+      return;
+    }
+    const data: Float32Array = dataTexture.image.data;
     for (let i = 0; i < size * size; i++) {
       data[i * 4] *= props.relaxation;
       data[i * 4 + 1] *= props.relaxation;
@@ -191,45 +230,61 @@ const setupAnimation = () => {
     dataTexture.needsUpdate = true;
     renderer.render(scene, camera);
   };
+
   animate();
 
-  cleanupAnimation = () => {
+  cleanup = () => {
+    if (animationIdRef.value) {
+      cancelAnimationFrame(animationIdRef.value);
+    }
+
+    if (resizeObserverRef.value) {
+      resizeObserverRef.value.disconnect();
+    } else {
+      window.removeEventListener('resize', handleResize);
+    }
+
     container.removeEventListener('mousemove', handleMouseMove);
     container.removeEventListener('mouseleave', handleMouseLeave);
-    window.removeEventListener('resize', handleResize);
-    renderer.dispose();
-    geometry.dispose();
-    material.dispose();
-    dataTexture.dispose();
+
+    if (renderer) {
+      renderer.dispose();
+      renderer.forceContextLoss();
+      if (container.contains(renderer.domElement)) {
+        container.removeChild(renderer.domElement);
+      }
+    }
+
+    if (geometry) geometry.dispose();
+    if (material) material.dispose();
+    if (dataTexture) dataTexture.dispose();
     if (uniforms.uTexture.value) uniforms.uTexture.value.dispose();
+
+    sceneRef.value = null;
+    rendererRef.value = null;
+    cameraRef.value = null;
+    planeRef.value = null;
   };
 };
 
 onMounted(() => {
-  cleanupAnimation();
-  setupAnimation();
+  init();
 });
 
-onUnmounted(() => {
-  const container = containerRef.value;
-  if (container) {
-    container.innerHTML = '';
-  }
-  cleanupAnimation();
+onBeforeUnmount(() => {
+  cleanup?.();
 });
 
 watch(
   () => props,
   () => {
-    cleanupAnimation();
-    if (containerRef.value) {
-      setupAnimation();
-    }
+    cleanup?.();
+    init();
   },
-  { immediate: true }
+  { deep: true }
 );
 </script>
 
 <template>
-  <div ref="containerRef" :class="[props.className, 'w-full h-full overflow-hidden']" />
+  <div ref="containerRef" :class="[props.className, 'w-full h-full relative overflow-hidden min-h-0 min-w-0']" />
 </template>

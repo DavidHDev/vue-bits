@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Liquid Ether</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="liquidEther.usage"
+    :source="liquidEtherSource"
+    component-name="LiquidEther"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="relative p-0 h-[600px] overflow-hidden demo-container">
+      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
         <LiquidEther
           :colors="userColors"
           :mouse-force="mouseForce"
@@ -17,29 +25,24 @@
           :auto-intensity="autoIntensity"
           :auto-resume-delay="500"
         />
-
         <BackgroundContent pill-text="New Background" headline="The web, made fluid at your fingertips." />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <div class="flex gap-4">
-          <p class="mt-2 mb-1 text-sm">Color</p>
-          <PreviewColor v-model="color0" />
-          <PreviewColor v-model="color1" />
-          <PreviewColor v-model="color2" />
-        </div>
-
+        <PreviewColorPicker title="Color 1" v-model="color0" />
+        <PreviewColorPicker title="Color 2" v-model="color1" />
+        <PreviewColorPicker title="Color 3" v-model="color2" />
         <PreviewSlider :min="0" :max="60" :step="1" v-model="mouseForce" title="Mouse Force" />
         <PreviewSlider :min="10" :max="200" :step="5" v-model="cursorSize" title="Cursor Size" />
         <PreviewSlider :min="0.2" :max="0.5" :step="0.05" v-model="resolution" title="Resolution" />
         <PreviewSlider :min="0" :max="1" :step="0.05" v-model="autoSpeed" title="Auto Speed" />
         <PreviewSlider :min="0" :max="4" :step="0.1" v-model="autoIntensity" title="Auto Intensity" />
         <PreviewSlider :min="1" :max="64" :step="1" v-model="iterationsPoisson" title="Pressure" />
-
         <PreviewSwitch title="Bounce Edges" v-model="isBounce" />
         <PreviewSwitch title="Auto Animate" v-model="autoDemo" />
         <PreviewSwitch title="Viscous" v-model="isViscous" />
-
         <PreviewSlider v-if="isViscous" :min="1" :max="100" :step="1" v-model="viscous" title="Viscous Coef" />
         <PreviewSlider
           v-if="isViscous"
@@ -50,55 +53,106 @@
           title="Viscous Iterations"
         />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['three']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="liquidEther" />
+      <DemoCodeTab slug="liquid-ether" :usage="liquidEther.usage!" :source="liquidEtherSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="liquidEther.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { liquidEther } from '@/constants/code/Backgrounds/liquidEtherCode';
+import LiquidEther from '@/content/Backgrounds/LiquidEther/LiquidEther.vue';
+import liquidEtherSource from '@/content/Backgrounds/LiquidEther/LiquidEther.vue?raw';
 import { computed, ref } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import BackgroundContent from '../../components/common/BackgroundContent.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewColor from '../../components/common/PreviewColor.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import LiquidEther from '../../content/Backgrounds/LiquidEther/LiquidEther.vue';
 
-const mouseForce = ref(20);
-const cursorSize = ref(100);
-const resolution = ref(0.5);
-const isViscous = ref(true);
-const viscous = ref(30);
-const iterationsViscous = ref(32);
-const iterationsPoisson = ref(32);
-const isBounce = ref(false);
-const autoDemo = ref(true);
-const autoSpeed = ref(0.5);
-const autoIntensity = ref(2.2);
+const { forceRerender } = useForceRerender();
 
-const color0 = ref('#48FF28');
-const color1 = ref('#A2FFC6');
-const color2 = ref('#9EF19E');
+const DEFAULTS = {
+  color0: '#48FF28',
+  color1: '#A2FFC6',
+  color2: '#9EF19E',
+  mouseForce: 20,
+  cursorSize: 100,
+  resolution: 0.5,
+  isViscous: true,
+  viscous: 30,
+  iterationsViscous: 32,
+  iterationsPoisson: 32,
+  isBounce: false,
+  autoDemo: true,
+  autoSpeed: 0.5,
+  autoIntensity: 2.2
+};
+
+const color0 = ref(DEFAULTS.color0);
+const color1 = ref(DEFAULTS.color1);
+const color2 = ref(DEFAULTS.color2);
+const mouseForce = ref(DEFAULTS.mouseForce);
+const cursorSize = ref(DEFAULTS.cursorSize);
+const resolution = ref(DEFAULTS.resolution);
+const isViscous = ref(DEFAULTS.isViscous);
+const viscous = ref(DEFAULTS.viscous);
+const iterationsViscous = ref(DEFAULTS.iterationsViscous);
+const iterationsPoisson = ref(DEFAULTS.iterationsPoisson);
+const isBounce = ref(DEFAULTS.isBounce);
+const autoDemo = ref(DEFAULTS.autoDemo);
+const autoSpeed = ref(DEFAULTS.autoSpeed);
+const autoIntensity = ref(DEFAULTS.autoIntensity);
 
 const userColors = computed(() => [color0.value, color1.value, color2.value].filter(Boolean) as string[]);
 
-const propData = [
+const hasChanges = computed(
+  () =>
+    color0.value !== DEFAULTS.color0 ||
+    color1.value !== DEFAULTS.color1 ||
+    color2.value !== DEFAULTS.color2 ||
+    mouseForce.value !== DEFAULTS.mouseForce ||
+    cursorSize.value !== DEFAULTS.cursorSize ||
+    resolution.value !== DEFAULTS.resolution ||
+    isViscous.value !== DEFAULTS.isViscous ||
+    viscous.value !== DEFAULTS.viscous ||
+    iterationsViscous.value !== DEFAULTS.iterationsViscous ||
+    iterationsPoisson.value !== DEFAULTS.iterationsPoisson ||
+    isBounce.value !== DEFAULTS.isBounce ||
+    autoDemo.value !== DEFAULTS.autoDemo ||
+    autoSpeed.value !== DEFAULTS.autoSpeed ||
+    autoIntensity.value !== DEFAULTS.autoIntensity
+);
+
+function reset() {
+  color0.value = DEFAULTS.color0;
+  color1.value = DEFAULTS.color1;
+  color2.value = DEFAULTS.color2;
+  mouseForce.value = DEFAULTS.mouseForce;
+  cursorSize.value = DEFAULTS.cursorSize;
+  resolution.value = DEFAULTS.resolution;
+  isViscous.value = DEFAULTS.isViscous;
+  viscous.value = DEFAULTS.viscous;
+  iterationsViscous.value = DEFAULTS.iterationsViscous;
+  iterationsPoisson.value = DEFAULTS.iterationsPoisson;
+  isBounce.value = DEFAULTS.isBounce;
+  autoDemo.value = DEFAULTS.autoDemo;
+  autoSpeed.value = DEFAULTS.autoSpeed;
+  autoIntensity.value = DEFAULTS.autoIntensity;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'colors',
     type: 'string[]',

@@ -1,5 +1,13 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Magic Rings</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="magicRings.usage"
+    :source="magicRingsSource"
+    component-name="MagicRings"
+    :props-table="props"
+  >
     <template #preview>
       <div class="p-0 h-[600px] overflow-hidden demo-container">
         <RefreshButton @click="forceRerender" />
@@ -106,97 +114,161 @@
           />
         </template>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewSelect title="Example" v-model="example" :options="exampleOptions" />
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-3">
-          <PreviewColor title="Color" v-model="color" />
-          <PreviewColor title="Color Two" v-model="colorTwo" />
-
-          <PreviewSlider title="Ring Count" :min="1" :max="10" :step="1" v-model="ringCount" />
-          <PreviewSlider title="Speed" :min="0" :max="3" :step="0.1" v-model="speed" />
-          <PreviewSlider title="Attenuation" :min="1" :max="30" :step="0.5" v-model="attenuation" />
-          <PreviewSlider title="Line Thickness" :min="1" :max="10" :step="0.5" v-model="lineThickness" />
-          <PreviewSlider title="Base Radius" :min="0.1" :max="0.5" :step="0.01" v-model="baseRadius" />
-          <PreviewSlider title="Radius Step" :min="0.05" :max="0.3" :step="0.01" v-model="radiusStep" />
-          <PreviewSlider title="Scale Rate" :min="0" :max="0.2" :step="0.01" v-model="scaleRate" />
-          <PreviewSlider title="Opacity" :min="0" :max="1" :step="0.05" v-model="opacity" />
-          <PreviewSlider title="Blur" :min="0" :max="10" :step="0.5" v-model="blur" />
-          <PreviewSlider title="Noise Amount" :min="0" :max="0.5" :step="0.01" v-model="noiseAmount" />
-          <PreviewSlider title="Rotation" :min="0" :max="360" :step="1" v-model="rotation" />
-          <PreviewSlider title="Ring Gap" :min="1" :max="3" :step="0.1" v-model="ringGap" />
-          <PreviewSlider title="Fade In" :min="0.1" :max="1.5" :step="0.05" v-model="fadeIn" />
-          <PreviewSlider title="Fade Out" :min="0.5" :max="3" :step="0.05" v-model="fadeOut" />
-          <PreviewSlider title="Mouse Influence" :min="0" :max="1" :step="0.05" v-model="mouseInfluence" />
-          <PreviewSlider title="Hover Scale" :min="1" :max="2" :step="0.05" v-model="hoverScale" />
-          <PreviewSlider title="Parallax" :min="0" :max="0.1" :step="0.005" v-model="parallax" />
-
-          <PreviewSwitch title="Follow Mouse" v-model="followMouse" />
-          <PreviewSwitch title="Click Burst" v-model="clickBurst" />
-        </div>
+        <PreviewSelect title="Example" v-model="example" :options="['basic', 'card']" />
+        <PreviewColorPicker title="Color" v-model="color" />
+        <PreviewColorPicker title="Color Two" v-model="colorTwo" />
+        <PreviewSlider title="Ring Count" :min="1" :max="10" :step="1" v-model="ringCount" />
+        <PreviewSlider title="Speed" :min="0" :max="3" :step="0.1" v-model="speed" />
+        <PreviewSlider title="Attenuation" :min="1" :max="30" :step="0.5" v-model="attenuation" />
+        <PreviewSlider title="Line Thickness" :min="1" :max="10" :step="0.5" v-model="lineThickness" />
+        <PreviewSlider title="Base Radius" :min="0.1" :max="0.5" :step="0.01" v-model="baseRadius" />
+        <PreviewSlider title="Radius Step" :min="0.05" :max="0.3" :step="0.01" v-model="radiusStep" />
+        <PreviewSlider title="Scale Rate" :min="0" :max="0.2" :step="0.01" v-model="scaleRate" />
+        <PreviewSlider title="Opacity" :min="0" :max="1" :step="0.05" v-model="opacity" />
+        <PreviewSlider title="Blur" :min="0" :max="10" :step="0.5" v-model="blur" />
+        <PreviewSlider title="Noise Amount" :min="0" :max="0.5" :step="0.01" v-model="noiseAmount" />
+        <PreviewSlider title="Rotation" :min="0" :max="360" :step="1" v-model="rotation" />
+        <PreviewSlider title="Ring Gap" :min="1" :max="3" :step="0.1" v-model="ringGap" />
+        <PreviewSlider title="Fade In" :min="0.1" :max="1.5" :step="0.05" v-model="fadeIn" />
+        <PreviewSlider title="Fade Out" :min="0.5" :max="3" :step="0.05" v-model="fadeOut" />
+        <PreviewSlider title="Mouse Influence" :min="0" :max="1" :step="0.05" v-model="mouseInfluence" />
+        <PreviewSlider title="Hover Scale" :min="1" :max="2" :step="0.05" v-model="hoverScale" />
+        <PreviewSlider title="Parallax" :min="0" :max="0.1" :step="0.005" v-model="parallax" />
+        <PreviewSwitch title="Follow Mouse" v-model="followMouse" />
+        <PreviewSwitch title="Click Burst" v-model="clickBurst" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="magicRings" />
+      <DemoCodeTab slug="magic-rings" :usage="magicRings.usage!" :source="magicRingsSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="magicRings.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import CliInstallation from '@/components/code/CliInstallation.vue';
-import CodeExample from '@/components/code/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import PreviewColor from '@/components/common/PreviewColor.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
-import PropTable from '@/components/common/PropTable.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
 import RefreshButton from '@/components/common/RefreshButton.vue';
-import TabbedLayout from '@/components/common/TabbedLayout.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
 import { magicRings } from '@/constants/code/Animations/magicRingsCode';
 import MagicRings from '@/content/Animations/MagicRings/MagicRings.vue';
-import { ref } from 'vue';
+import magicRingsSource from '@/content/Animations/MagicRings/MagicRings.vue?raw';
+import { computed, ref } from 'vue';
 
 const { rerenderKey: key, forceRerender } = useForceRerender();
 
+const DEFAULTS = {
+  color: '#7cff67',
+  colorTwo: '#42fcff',
+  ringCount: 6,
+  speed: 1,
+  attenuation: 10,
+  lineThickness: 2,
+  baseRadius: 0.35,
+  radiusStep: 0.1,
+  scaleRate: 0.1,
+  opacity: 1,
+  blur: 0,
+  noiseAmount: 0.1,
+  rotation: 0,
+  ringGap: 1.5,
+  fadeIn: 0.7,
+  fadeOut: 0.5,
+  followMouse: false,
+  mouseInfluence: 0.2,
+  hoverScale: 1.2,
+  parallax: 0.05,
+  clickBurst: false
+};
+
 const example = ref<'basic' | 'card'>('basic');
-const color = ref('#7cff67');
-const colorTwo = ref('#42fcff');
-const ringCount = ref(6);
-const speed = ref(1);
-const attenuation = ref(10);
-const lineThickness = ref(2);
-const baseRadius = ref(0.35);
-const radiusStep = ref(0.1);
-const scaleRate = ref(0.1);
-const opacity = ref(1);
-const blur = ref(0);
-const noiseAmount = ref(0.1);
-const rotation = ref(0);
-const ringGap = ref(1.5);
-const fadeIn = ref(0.7);
-const fadeOut = ref(0.5);
-const followMouse = ref(false);
-const mouseInfluence = ref(0.2);
-const hoverScale = ref(1.2);
-const parallax = ref(0.05);
-const clickBurst = ref(false);
 
-const exampleOptions = [
-  { label: 'Basic', value: 'basic' },
-  { label: 'Card', value: 'card' }
-];
+const color = ref(DEFAULTS.color);
+const colorTwo = ref(DEFAULTS.colorTwo);
+const ringCount = ref(DEFAULTS.ringCount);
+const speed = ref(DEFAULTS.speed);
+const attenuation = ref(DEFAULTS.attenuation);
+const lineThickness = ref(DEFAULTS.lineThickness);
+const baseRadius = ref(DEFAULTS.baseRadius);
+const radiusStep = ref(DEFAULTS.radiusStep);
+const scaleRate = ref(DEFAULTS.scaleRate);
+const opacity = ref(DEFAULTS.opacity);
+const blur = ref(DEFAULTS.blur);
+const noiseAmount = ref(DEFAULTS.noiseAmount);
+const rotation = ref(DEFAULTS.rotation);
+const ringGap = ref(DEFAULTS.ringGap);
+const fadeIn = ref(DEFAULTS.fadeIn);
+const fadeOut = ref(DEFAULTS.fadeOut);
+const followMouse = ref(DEFAULTS.followMouse);
+const mouseInfluence = ref(DEFAULTS.mouseInfluence);
+const hoverScale = ref(DEFAULTS.hoverScale);
+const parallax = ref(DEFAULTS.parallax);
+const clickBurst = ref(DEFAULTS.clickBurst);
 
-const propData = [
+const hasChanges = computed(
+  () =>
+    color.value !== DEFAULTS.color ||
+    colorTwo.value !== DEFAULTS.colorTwo ||
+    ringCount.value !== DEFAULTS.ringCount ||
+    speed.value !== DEFAULTS.speed ||
+    attenuation.value !== DEFAULTS.attenuation ||
+    lineThickness.value !== DEFAULTS.lineThickness ||
+    baseRadius.value !== DEFAULTS.baseRadius ||
+    radiusStep.value !== DEFAULTS.radiusStep ||
+    scaleRate.value !== DEFAULTS.scaleRate ||
+    opacity.value !== DEFAULTS.opacity ||
+    blur.value !== DEFAULTS.blur ||
+    noiseAmount.value !== DEFAULTS.noiseAmount ||
+    rotation.value !== DEFAULTS.rotation ||
+    ringGap.value !== DEFAULTS.ringGap ||
+    fadeIn.value !== DEFAULTS.fadeIn ||
+    fadeOut.value !== DEFAULTS.fadeOut ||
+    followMouse.value !== DEFAULTS.followMouse ||
+    mouseInfluence.value !== DEFAULTS.mouseInfluence ||
+    hoverScale.value !== DEFAULTS.hoverScale ||
+    parallax.value !== DEFAULTS.parallax ||
+    clickBurst.value !== DEFAULTS.clickBurst
+);
+
+function reset() {
+  color.value = DEFAULTS.color;
+  colorTwo.value = DEFAULTS.colorTwo;
+  ringCount.value = DEFAULTS.ringCount;
+  speed.value = DEFAULTS.speed;
+  attenuation.value = DEFAULTS.attenuation;
+  lineThickness.value = DEFAULTS.lineThickness;
+  baseRadius.value = DEFAULTS.baseRadius;
+  radiusStep.value = DEFAULTS.radiusStep;
+  scaleRate.value = DEFAULTS.scaleRate;
+  opacity.value = DEFAULTS.opacity;
+  blur.value = DEFAULTS.blur;
+  noiseAmount.value = DEFAULTS.noiseAmount;
+  rotation.value = DEFAULTS.rotation;
+  ringGap.value = DEFAULTS.ringGap;
+  fadeIn.value = DEFAULTS.fadeIn;
+  fadeOut.value = DEFAULTS.fadeOut;
+  followMouse.value = DEFAULTS.followMouse;
+  mouseInfluence.value = DEFAULTS.mouseInfluence;
+  hoverScale.value = DEFAULTS.hoverScale;
+  parallax.value = DEFAULTS.parallax;
+  clickBurst.value = DEFAULTS.clickBurst;
+}
+
+const props: PropRow[] = [
   { name: 'color', type: 'string', default: '"#7cff67"', description: 'Hex color for the rings.' },
   {
     name: 'colorTwo',

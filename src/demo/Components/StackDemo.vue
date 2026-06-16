@@ -1,48 +1,61 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Stack</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="stack.usage"
+    :source="stackSource"
+    component-name="Stack"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[500px]">
-        <Stack
-          :key="rerenderKey"
-          :randomRotation="randomRotation"
-          :sensitivity="sensitivity"
-          :sendToBackOnClick="false"
-          :cardDimensions="cardDimensions"
-          :cardsData="images"
-        ></Stack>
+      <div class="relative h-[400px] demo-container">
+        <div class="w-[208px] h-[208px]">
+          <Stack
+            :key="rerenderKey"
+            :random-rotation="randomRotation"
+            :sensitivity="sensitivity"
+            :autoplay="autoplay"
+            :autoplay-delay="autoplayDelay"
+            :pause-on-hover="pauseOnHover"
+            :cardsData="images"
+          />
+        </div>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSwitch title="Random Rotation" v-model="randomRotation" />
-        <PreviewSlider title="Sensitivity" v-model="sensitivity" :min="10" :max="300" :step="10" />
-        <PreviewSlider title="Card Width" v-model="cardDimensions.width" :min="10" :max="300" :step="10" />
-        <PreviewSlider title="Card Height" v-model="cardDimensions.height" :min="10" :max="300" :step="10" />
+        <PreviewSwitch title="Autoplay" v-model="autoplay" />
+        <PreviewSwitch title="Pause On Hover" v-model="pauseOnHover" />
+        <PreviewSlider title="Sensitivity" v-model="sensitivity" :min="100" :max="300" :step="10" />
+        <PreviewSlider title="Autoplay Delay" v-model="autoplayDelay" :min="1000" :max="5000" :step="500" />
       </Customize>
-      <PropTable :data="propData" />
+    </template>
+
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="stack" />
+      <DemoCodeTab slug="stack" :usage="stack.usage!" :source="stackSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="stack.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import Stack from '../../content/Components/Stack/Stack.vue';
-import { stack } from '@/constants/code/Components/stackCode';
-import { useForceRerender } from '@/composables/useForceRerender';
-import { ref } from 'vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
+import { stack } from '@/constants/code/Components/stackCode';
+import Stack from '@/content/Components/Stack/Stack.vue';
+import stackSource from '@/content/Components/Stack/Stack.vue?raw';
+import { computed, ref } from 'vue';
 
 const images = [
   { id: 1, img: 'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?q=80&w=500&auto=format' },
@@ -51,50 +64,88 @@ const images = [
   { id: 4, img: 'https://images.unsplash.com/photo-1572120360610-d971b9d7767c?q=80&w=500&auto=format' }
 ];
 
-const { rerenderKey } = useForceRerender();
-const randomRotation = ref<boolean>(false);
-const sensitivity = ref<number>(200);
-const cardDimensions = ref({
-  width: 208,
-  height: 208
-});
+const { rerenderKey, forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  randomRotation: false,
+  sensitivity: 200,
+  autoplay: false,
+  autoplayDelay: 3000,
+  pauseOnHover: false
+};
+
+const randomRotation = ref<boolean>(DEFAULTS.randomRotation);
+const sensitivity = ref<number>(DEFAULTS.sensitivity);
+const autoplay = ref<boolean>(DEFAULTS.autoplay);
+const autoplayDelay = ref<number>(DEFAULTS.autoplayDelay);
+const pauseOnHover = ref<boolean>(DEFAULTS.pauseOnHover);
+
+const hasChanges = computed(
+  () =>
+    randomRotation.value !== DEFAULTS.randomRotation ||
+    sensitivity.value !== DEFAULTS.sensitivity ||
+    autoplay.value !== DEFAULTS.autoplay ||
+    autoplayDelay.value !== DEFAULTS.autoplayDelay ||
+    pauseOnHover.value !== DEFAULTS.pauseOnHover
+);
+
+function reset() {
+  randomRotation.value = DEFAULTS.randomRotation;
+  sensitivity.value = DEFAULTS.sensitivity;
+  autoplay.value = DEFAULTS.autoplay;
+  autoplayDelay.value = DEFAULTS.autoplayDelay;
+  pauseOnHover.value = DEFAULTS.pauseOnHover;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'randomRotation',
     type: 'boolean',
-    default: '-',
-    description: `Applies a random rotation to each card for a 'messy' look.`
+    default: 'false',
+    description: "Applies a random rotation to each card for a 'messy' look."
   },
   {
     name: 'sensitivity',
     type: 'number',
-    default: '-',
-    description: `Drag sensitivity for sending a card to the back.`
-  },
-  {
-    name: 'cardDimensions',
-    type: 'object',
-    default: '{ width: 208, height: 208 }',
-    description: `Defines the width and height of the cards.`
+    default: '200',
+    description: 'Drag sensitivity for sending a card to the back.'
   },
   {
     name: 'sendToBackOnClick',
     type: 'boolean',
     default: 'false',
-    description: `When enabled, the also stack shifts to the next card on click.`
+    description: 'When enabled, the stack also shifts to the next card on click.'
   },
   {
-    name: 'cardsData',
+    name: 'cards',
     type: 'array',
     default: '[]',
-    description: 'The array of card data, including `id` and `img` properties.'
+    description: 'The array of card elements to display in the stack.'
   },
   {
     name: 'animationConfig',
     type: 'object',
     default: '{ stiffness: 260, damping: 20 }',
-    description: `Applies a random rotation to each card for a 'messy' look.`
+    description: "Configures the spring animation's stiffness and damping."
+  },
+  {
+    name: 'autoplay',
+    type: 'boolean',
+    default: 'false',
+    description: 'When enabled, the stack automatically cycles through cards.'
+  },
+  {
+    name: 'autoplayDelay',
+    type: 'number',
+    default: '3000',
+    description: 'Delay in milliseconds between automatic card transitions.'
+  },
+  {
+    name: 'pauseOnHover',
+    type: 'boolean',
+    default: 'false',
+    description: 'When enabled, autoplay pauses when hovering over the stack.'
   }
 ];
 </script>

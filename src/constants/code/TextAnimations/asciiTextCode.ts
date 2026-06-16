@@ -1,5 +1,5 @@
 import code from '@/content/TextAnimations/ASCIIText/ASCIIText.vue?raw';
-import { createCodeObject } from '../../../types/code';
+import { createCodeObject } from '@/types/code';
 
 export const asciiText = createCodeObject(code, 'TextAnimations/ASCIIText', {
   installation: `npm install three @types/three`,
@@ -7,17 +7,13 @@ export const asciiText = createCodeObject(code, 'TextAnimations/ASCIIText', {
   
 <template>
   <ASCIIText
-    text="Hey!"
-    :ascii-font-size="8"
-    :text-font-size="200"
-    text-color="#fdf9f3"
-    :plane-base-height="8"
+    text="hello_world"
     :enable-waves="true"
-    class-name="w-full h-full"
+    :ascii-font-size="8"
   />
 </template>
 
-<script setup lang="ts">
-  import ASCIIText from "./ASCIIText.vue";
+<script setup>
+import ASCIIText from './ASCIIText.vue'
 </script>`
 });

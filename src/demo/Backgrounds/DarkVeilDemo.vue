@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Dark Veil</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="darkVeil.usage"
+    :source="darkVeilSource"
+    component-name="DarkVeil"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="h-[600px] overflow-hidden demo-container relative">
+      <div class="relative h-[600px] overflow-hidden demo-container">
         <DarkVeil
           :hue-shift="hueShift"
           :noise-intensity="noiseIntensity"
@@ -10,10 +18,11 @@
           :scanline-frequency="scanlineFrequency"
           :warp-amount="warpAmount"
         />
-
         <BackgroundContent pill-text="New Background" headline="Become emboldened by the flame of ambition" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSlider title="Speed" :min="0" :max="3" :step="0.1" v-model="speed" />
         <PreviewSlider title="Hue Shift" :min="0" :max="360" :step="1" v-model="hueShift" />
@@ -22,43 +31,70 @@
         <PreviewSlider title="Scanline Intensity" :min="0" :max="1" :step="0.01" v-model="scanlineIntensity" />
         <PreviewSlider title="Warp Amount" :min="0" :max="5" :step="0.1" v-model="warpAmount" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-
-      <Dependencies :dependency-list="['ogl']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="darkVeil" />
+      <DemoCodeTab slug="dark-veil" :usage="darkVeil.usage!" :source="darkVeilSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="darkVeil.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import BackgroundContent from '../../components/common/BackgroundContent.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import DarkVeil from '../../content/Backgrounds/DarkVeil/DarkVeil.vue';
-import { darkVeil } from '../../constants/code/Backgrounds/darkVeilCode';
+import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
+import { darkVeil } from '@/constants/code/Backgrounds/darkVeilCode';
+import DarkVeil from '@/content/Backgrounds/DarkVeil/DarkVeil.vue';
+import darkVeilSource from '@/content/Backgrounds/DarkVeil/DarkVeil.vue?raw';
+import { computed, ref } from 'vue';
 
-const hueShift = ref(0);
-const noiseIntensity = ref(0);
-const scanlineIntensity = ref(0);
-const speed = ref(0.5);
-const scanlineFrequency = ref(0);
-const warpAmount = ref(0);
+const { forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  hueShift: 150,
+  noiseIntensity: 0,
+  scanlineIntensity: 0,
+  speed: 0.5,
+  scanlineFrequency: 0,
+  warpAmount: 0
+};
+
+const hueShift = ref(DEFAULTS.hueShift);
+const noiseIntensity = ref(DEFAULTS.noiseIntensity);
+const scanlineIntensity = ref(DEFAULTS.scanlineIntensity);
+const speed = ref(DEFAULTS.speed);
+const scanlineFrequency = ref(DEFAULTS.scanlineFrequency);
+const warpAmount = ref(DEFAULTS.warpAmount);
+
+const hasChanges = computed(
+  () =>
+    hueShift.value !== DEFAULTS.hueShift ||
+    noiseIntensity.value !== DEFAULTS.noiseIntensity ||
+    scanlineIntensity.value !== DEFAULTS.scanlineIntensity ||
+    speed.value !== DEFAULTS.speed ||
+    scanlineFrequency.value !== DEFAULTS.scanlineFrequency ||
+    warpAmount.value !== DEFAULTS.warpAmount
+);
+
+function reset() {
+  hueShift.value = DEFAULTS.hueShift;
+  noiseIntensity.value = DEFAULTS.noiseIntensity;
+  scanlineIntensity.value = DEFAULTS.scanlineIntensity;
+  speed.value = DEFAULTS.speed;
+  scanlineFrequency.value = DEFAULTS.scanlineFrequency;
+  warpAmount.value = DEFAULTS.warpAmount;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'hueShift',
     type: 'number',

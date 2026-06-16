@@ -1,32 +1,31 @@
-<template>
-  <component :is="tag" ref="textRef" :class="computedClasses" :style="computedStyle">
-    {{ text }}
-  </component>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch, nextTick, useTemplateRef } from 'vue';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText as GSAPSplitText } from 'gsap/SplitText';
+import { computed, onBeforeUnmount, onMounted, ref, watch, type CSSProperties } from 'vue';
 
 gsap.registerPlugin(ScrollTrigger, GSAPSplitText);
 
-export interface ShuffleProps {
+type ShuffleDirection = 'left' | 'right' | 'up' | 'down';
+type AnimationMode = 'random' | 'evenodd';
+type TagName = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'span';
+type EaseFn = (t: number) => number;
+
+interface Props {
   text: string;
-  className?: string;
-  style?: Record<string, any>;
-  shuffleDirection?: 'left' | 'right' | 'up' | 'down';
+  class?: string;
+  style?: CSSProperties;
+  shuffleDirection?: ShuffleDirection;
   duration?: number;
   maxDelay?: number;
-  ease?: string | ((t: number) => number);
+  ease?: string | EaseFn;
   threshold?: number;
   rootMargin?: string;
-  tag?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'span';
-  textAlign?: 'left' | 'center' | 'right' | 'justify';
+  tag?: TagName;
+  textAlign?: CSSProperties['textAlign'];
   onShuffleComplete?: () => void;
   shuffleTimes?: number;
-  animationMode?: 'random' | 'evenodd';
+  animationMode?: AnimationMode;
   loop?: boolean;
   loopDelay?: number;
   stagger?: number;
@@ -38,8 +37,9 @@ export interface ShuffleProps {
   triggerOnHover?: boolean;
 }
 
-const props = withDefaults(defineProps<ShuffleProps>(), {
-  className: '',
+const props = withDefaults(defineProps<Props>(), {
+  class: '',
+  style: () => ({}),
   shuffleDirection: 'right',
   duration: 0.35,
   maxDelay: 0,
@@ -48,6 +48,7 @@ const props = withDefaults(defineProps<ShuffleProps>(), {
   rootMargin: '-100px',
   tag: 'p',
   textAlign: 'center',
+  onShuffleComplete: undefined,
   shuffleTimes: 1,
   animationMode: 'evenodd',
   loop: false,
@@ -61,11 +62,7 @@ const props = withDefaults(defineProps<ShuffleProps>(), {
   triggerOnHover: true
 });
 
-const emit = defineEmits<{
-  'shuffle-complete': [];
-}>();
-
-const textRef = useTemplateRef<HTMLElement>('textRef');
+const elRef = ref<HTMLElement | null>(null);
 const fontsLoaded = ref(false);
 const ready = ref(false);
 
@@ -73,8 +70,8 @@ const splitRef = ref<GSAPSplitText | null>(null);
 const wrappersRef = ref<HTMLElement[]>([]);
 const tlRef = ref<gsap.core.Timeline | null>(null);
 const playingRef = ref(false);
-const scrollTriggerRef = ref<ScrollTrigger | null>(null);
-let hoverHandler: ((e: Event) => void) | null = null;
+const hoverHandlerRef = ref<((e: Event) => void) | null>(null);
+const stRef = ref<ScrollTrigger | null>(null);
 
 const scrollTriggerStart = computed(() => {
   const startPct = (1 - props.threshold) * 100;
@@ -85,28 +82,36 @@ const scrollTriggerStart = computed(() => {
   return `top ${startPct}%${sign}`;
 });
 
-const baseTw = 'inline-block whitespace-normal break-words will-change-transform uppercase text-6xl leading-none';
+const userHasFont = computed(() => (props.class ? /font[-[]/i.test(props.class) : false));
 
-const userHasFont = computed(() => props.className && /font[-[]/i.test(props.className));
+const fallbackFont = computed<CSSProperties>(() =>
+  userHasFont.value ? {} : { fontFamily: `'Press Start 2P', sans-serif` }
+);
 
-const fallbackFont = computed(() => (userHasFont.value ? {} : { fontFamily: `'Press Start 2P', sans-serif` }));
-
-const computedStyle = computed(() => ({
+const commonStyle = computed<CSSProperties>(() => ({
   textAlign: props.textAlign,
   ...fallbackFont.value,
   ...props.style
 }));
 
-const computedClasses = computed(() => `${baseTw} ${ready.value ? 'visible' : 'invisible'} ${props.className}`.trim());
+const classes = computed(() => {
+  const base = 'inline-block whitespace-normal break-words will-change-transform uppercase text-6xl leading-none';
+  const visibility = ready.value ? 'visible' : 'invisible';
+  return [base, visibility, props.class].filter(Boolean).join(' ');
+});
 
-const removeHover = () => {
-  if (hoverHandler && textRef.value) {
-    textRef.value.removeEventListener('mouseenter', hoverHandler);
-    hoverHandler = null;
+function rand(set: string): string {
+  return set.charAt(Math.floor(Math.random() * set.length)) || '';
+}
+
+function removeHover(): void {
+  if (hoverHandlerRef.value && elRef.value) {
+    elRef.value.removeEventListener('mouseenter', hoverHandlerRef.value);
+    hoverHandlerRef.value = null;
   }
-};
+}
 
-const teardown = () => {
+function teardown(): void {
   if (tlRef.value) {
     tlRef.value.kill();
     tlRef.value = null;
@@ -121,16 +126,46 @@ const teardown = () => {
   }
   try {
     splitRef.value?.revert();
-  } catch {}
+  } catch {
+    // ignore
+  }
   splitRef.value = null;
   playingRef.value = false;
-};
+}
 
-const build = () => {
-  if (!textRef.value) return;
+function getInners(): HTMLElement[] {
+  return wrappersRef.value.map(w => w.firstElementChild as HTMLElement);
+}
+
+function randomizeScrambles(): void {
+  if (!props.scrambleCharset) return;
+  wrappersRef.value.forEach(w => {
+    const strip = w.firstElementChild as HTMLElement;
+    if (!strip) return;
+    const kids = Array.from(strip.children) as HTMLElement[];
+    for (let i = 1; i < kids.length - 1; i++) {
+      kids[i].textContent = props.scrambleCharset.charAt(Math.floor(Math.random() * props.scrambleCharset.length));
+    }
+  });
+}
+
+function cleanupToStill(): void {
+  wrappersRef.value.forEach(w => {
+    const strip = w.firstElementChild as HTMLElement;
+    if (!strip) return;
+    const real = strip.querySelector('[data-orig="1"]') as HTMLElement | null;
+    if (!real) return;
+    strip.replaceChildren(real);
+    strip.style.transform = 'none';
+    strip.style.willChange = 'auto';
+  });
+}
+
+function build(): void {
+  if (!elRef.value) return;
   teardown();
 
-  const el = textRef.value;
+  const el = elRef.value;
   const computedFont = getComputedStyle(el).fontFamily;
 
   splitRef.value = new GSAPSplitText(el, {
@@ -138,6 +173,7 @@ const build = () => {
     charsClass: 'shuffle-char',
     wordsClass: 'shuffle-word',
     linesClass: 'shuffle-line',
+    smartWrap: true,
     reduceWhiteSpace: false
   });
 
@@ -145,63 +181,54 @@ const build = () => {
   wrappersRef.value = [];
 
   const rolls = Math.max(1, Math.floor(props.shuffleTimes));
-  const rand = (set: string) => set.charAt(Math.floor(Math.random() * set.length)) || '';
 
   chars.forEach(ch => {
     const parent = ch.parentElement;
     if (!parent) return;
 
-    const w = ch.getBoundingClientRect().width;
-    const h = ch.getBoundingClientRect().height;
+    const rect = ch.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
     if (!w) return;
+
+    const isVertical = props.shuffleDirection === 'up' || props.shuffleDirection === 'down';
 
     const wrap = document.createElement('span');
     wrap.className = 'inline-block overflow-hidden text-left';
     Object.assign(wrap.style, {
-      width: w + 'px',
-      height: props.shuffleDirection === 'up' || props.shuffleDirection === 'down' ? h + 'px' : 'auto',
+      width: `${w}px`,
+      height: isVertical ? `${h}px` : 'auto',
       verticalAlign: 'bottom'
     });
 
     const inner = document.createElement('span');
     inner.className =
       'inline-block will-change-transform origin-left transform-gpu ' +
-      (props.shuffleDirection === 'up' || props.shuffleDirection === 'down'
-        ? 'whitespace-normal'
-        : 'whitespace-nowrap');
+      (isVertical ? 'whitespace-normal' : 'whitespace-nowrap');
 
     parent.insertBefore(wrap, ch);
     wrap.appendChild(inner);
 
     const firstOrig = ch.cloneNode(true) as HTMLElement;
-    firstOrig.className =
-      'text-left ' + (props.shuffleDirection === 'up' || props.shuffleDirection === 'down' ? 'block' : 'inline-block');
-    Object.assign(firstOrig.style, { width: w + 'px', fontFamily: computedFont });
+    firstOrig.className = `text-left ${isVertical ? 'block' : 'inline-block'}`;
+    Object.assign(firstOrig.style, { width: `${w}px`, fontFamily: computedFont });
 
     ch.setAttribute('data-orig', '1');
-    ch.className =
-      'text-left ' + (props.shuffleDirection === 'up' || props.shuffleDirection === 'down' ? 'block' : 'inline-block');
-    Object.assign(ch.style, { width: w + 'px', fontFamily: computedFont });
+    ch.className = `text-left ${isVertical ? 'block' : 'inline-block'}`;
+    Object.assign(ch.style, { width: `${w}px`, fontFamily: computedFont });
 
     inner.appendChild(firstOrig);
+
     for (let k = 0; k < rolls; k++) {
       const c = ch.cloneNode(true) as HTMLElement;
       if (props.scrambleCharset) c.textContent = rand(props.scrambleCharset);
-      c.className =
-        'text-left ' +
-        (props.shuffleDirection === 'up' || props.shuffleDirection === 'down' ? 'block' : 'inline-block');
-      Object.assign(c.style, { width: w + 'px', fontFamily: computedFont });
+      c.className = `text-left ${isVertical ? 'block' : 'inline-block'}`;
+      Object.assign(c.style, { width: `${w}px`, fontFamily: computedFont });
       inner.appendChild(c);
     }
     inner.appendChild(ch);
 
     const steps = rolls + 1;
-    if (props.shuffleDirection === 'right' || props.shuffleDirection === 'down') {
-      const firstCopy = inner.firstElementChild as HTMLElement | null;
-      const real = inner.lastElementChild as HTMLElement | null;
-      if (real) inner.insertBefore(real, inner.firstChild);
-      if (firstCopy) inner.appendChild(firstCopy);
-    }
 
     let startX = 0;
     let finalX = 0;
@@ -222,7 +249,19 @@ const build = () => {
       finalY = -steps * h;
     }
 
-    if (props.shuffleDirection === 'left' || props.shuffleDirection === 'right') {
+    if (props.shuffleDirection === 'right') {
+      const firstCopy = inner.firstElementChild as HTMLElement | null;
+      const real = inner.lastElementChild as HTMLElement | null;
+      if (real) inner.insertBefore(real, inner.firstChild);
+      if (firstCopy) inner.appendChild(firstCopy);
+    } else if (props.shuffleDirection === 'down') {
+      const firstCopy = inner.firstElementChild as HTMLElement | null;
+      const real = inner.lastElementChild as HTMLElement | null;
+      if (real) inner.insertBefore(real, inner.firstChild);
+      if (firstCopy) inner.appendChild(firstCopy);
+    }
+
+    if (!isVertical) {
       gsap.set(inner, { x: startX, y: 0, force3D: true });
       inner.setAttribute('data-start-x', String(startX));
       inner.setAttribute('data-final-x', String(finalX));
@@ -232,51 +271,13 @@ const build = () => {
       inner.setAttribute('data-final-y', String(finalY));
     }
 
-    if (props.colorFrom) (inner.style as any).color = props.colorFrom;
+    if (props.colorFrom) inner.style.color = props.colorFrom;
+
     wrappersRef.value.push(wrap);
   });
-};
+}
 
-const getInners = () => wrappersRef.value.map(w => w.firstElementChild as HTMLElement);
-
-const randomizeScrambles = () => {
-  if (!props.scrambleCharset) return;
-  wrappersRef.value.forEach(w => {
-    const strip = w.firstElementChild as HTMLElement;
-    if (!strip) return;
-    const kids = Array.from(strip.children) as HTMLElement[];
-    for (let i = 1; i < kids.length - 1; i++) {
-      kids[i].textContent = props.scrambleCharset.charAt(Math.floor(Math.random() * props.scrambleCharset.length));
-    }
-  });
-};
-
-const cleanupToStill = () => {
-  wrappersRef.value.forEach(w => {
-    const strip = w.firstElementChild as HTMLElement;
-    if (!strip) return;
-    const real = strip.querySelector('[data-orig="1"]') as HTMLElement | null;
-    if (!real) return;
-    strip.replaceChildren(real);
-    strip.style.transform = 'none';
-    strip.style.willChange = 'auto';
-  });
-};
-
-const armHover = () => {
-  if (!props.triggerOnHover || !textRef.value) return;
-  removeHover();
-  const handler = () => {
-    if (playingRef.value) return;
-    build();
-    if (props.scrambleCharset) randomizeScrambles();
-    play();
-  };
-  hoverHandler = handler;
-  textRef.value.addEventListener('mouseenter', handler);
-};
-
-const play = () => {
+function play(): void {
   const strips = getInners();
   if (!strips.length) return;
 
@@ -290,11 +291,14 @@ const play = () => {
     onRepeat: () => {
       if (props.scrambleCharset) randomizeScrambles();
       if (isVertical) {
-        gsap.set(strips, { y: (i, t: HTMLElement) => parseFloat(t.getAttribute('data-start-y') || '0') });
+        gsap.set(strips, {
+          y: (_i: number, t: HTMLElement) => parseFloat(t.getAttribute('data-start-y') || '0')
+        });
       } else {
-        gsap.set(strips, { x: (i, t: HTMLElement) => parseFloat(t.getAttribute('data-start-x') || '0') });
+        gsap.set(strips, {
+          x: (_i: number, t: HTMLElement) => parseFloat(t.getAttribute('data-start-x') || '0')
+        });
       }
-      emit('shuffle-complete');
       props.onShuffleComplete?.();
     },
     onComplete: () => {
@@ -302,34 +306,51 @@ const play = () => {
       if (!props.loop) {
         cleanupToStill();
         if (props.colorTo) gsap.set(strips, { color: props.colorTo });
-        emit('shuffle-complete');
         props.onShuffleComplete?.();
         armHover();
       }
     }
   });
 
-  const addTween = (targets: HTMLElement[], at: number) => {
-    const vars: any = {
-      duration: props.duration,
-      ease: props.ease,
-      force3D: true,
-      stagger: props.animationMode === 'evenodd' ? props.stagger : 0
-    };
+  const addTween = (targets: HTMLElement[], at: number): void => {
+    const dur = props.duration;
+    const ez = props.ease;
+    const staggerVal = props.stagger;
+
     if (isVertical) {
-      vars.y = (i: number, t: HTMLElement) => parseFloat(t.getAttribute('data-final-y') || '0');
+      tl.to(
+        targets,
+        {
+          y: (_i: number, t: HTMLElement) => parseFloat(t.getAttribute('data-final-y') || '0'),
+          duration: dur,
+          ease: ez,
+          force3D: true,
+          stagger: props.animationMode === 'evenodd' ? staggerVal : 0
+        },
+        at
+      );
     } else {
-      vars.x = (i: number, t: HTMLElement) => parseFloat(t.getAttribute('data-final-x') || '0');
+      tl.to(
+        targets,
+        {
+          x: (_i: number, t: HTMLElement) => parseFloat(t.getAttribute('data-final-x') || '0'),
+          duration: dur,
+          ease: ez,
+          force3D: true,
+          stagger: props.animationMode === 'evenodd' ? staggerVal : 0
+        },
+        at
+      );
     }
 
-    tl.to(targets, vars, at);
-    if (props.colorFrom && props.colorTo)
-      tl.to(targets, { color: props.colorTo, duration: props.duration, ease: props.ease }, at);
+    if (props.colorFrom && props.colorTo) {
+      tl.to(targets, { color: props.colorTo, duration: dur, ease: ez }, at);
+    }
   };
 
   if (props.animationMode === 'evenodd') {
-    const odd = strips.filter((_, i) => i % 2 === 1);
-    const even = strips.filter((_, i) => i % 2 === 0);
+    const odd = strips.filter((_el, i) => i % 2 === 1);
+    const even = strips.filter((_el, i) => i % 2 === 0);
     const oddTotal = props.duration + Math.max(0, odd.length - 1) * props.stagger;
     const evenStart = odd.length ? oddTotal * 0.7 : 0;
     if (odd.length) addTween(odd, 0);
@@ -337,119 +358,139 @@ const play = () => {
   } else {
     strips.forEach(strip => {
       const d = Math.random() * props.maxDelay;
-      const vars: any = {
-        duration: props.duration,
-        ease: props.ease,
-        force3D: true
-      };
       if (isVertical) {
-        vars.y = parseFloat(strip.getAttribute('data-final-y') || '0');
+        tl.to(
+          strip,
+          {
+            y: parseFloat(strip.getAttribute('data-final-y') || '0'),
+            duration: props.duration,
+            ease: props.ease,
+            force3D: true
+          },
+          d
+        );
       } else {
-        vars.x = parseFloat(strip.getAttribute('data-final-x') || '0');
+        tl.to(
+          strip,
+          {
+            x: parseFloat(strip.getAttribute('data-final-x') || '0'),
+            duration: props.duration,
+            ease: props.ease,
+            force3D: true
+          },
+          d
+        );
       }
-      tl.to(strip, vars, d);
-      if (props.colorFrom && props.colorTo)
+      if (props.colorFrom && props.colorTo) {
         tl.fromTo(
           strip,
           { color: props.colorFrom },
           { color: props.colorTo, duration: props.duration, ease: props.ease },
           d
         );
+      }
     });
   }
 
   tlRef.value = tl;
-};
+}
 
-const create = () => {
+function armHover(): void {
+  if (!props.triggerOnHover || !elRef.value) return;
+  removeHover();
+  const handler = () => {
+    if (playingRef.value) return;
+    build();
+    if (props.scrambleCharset) randomizeScrambles();
+    play();
+  };
+  hoverHandlerRef.value = handler;
+  elRef.value.addEventListener('mouseenter', handler);
+}
+
+function create(): void {
   build();
   if (props.scrambleCharset) randomizeScrambles();
   play();
   armHover();
   ready.value = true;
-};
+}
 
-const initializeAnimation = async () => {
-  if (typeof window === 'undefined' || !textRef.value || !props.text || !fontsLoaded.value) return;
-
-  if (
-    props.respectReducedMotion &&
-    window.matchMedia &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  ) {
-    ready.value = true;
-    emit('shuffle-complete');
+function initScrollTrigger(): void {
+  if (!elRef.value) return;
+  if (props.respectReducedMotion && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
     props.onShuffleComplete?.();
     return;
   }
 
-  await nextTick();
-
-  const el = textRef.value;
-  const start = scrollTriggerStart.value;
-
-  const st = ScrollTrigger.create({
-    trigger: el,
-    start,
+  stRef.value = ScrollTrigger.create({
+    trigger: elRef.value,
+    start: scrollTriggerStart.value,
     once: props.triggerOnce,
     onEnter: create
   });
+}
 
-  scrollTriggerRef.value = st;
-};
-
-const cleanup = () => {
-  if (scrollTriggerRef.value) {
-    scrollTriggerRef.value.kill();
-    scrollTriggerRef.value = null;
-  }
+function destroyScrollTrigger(): void {
+  stRef.value?.kill();
+  stRef.value = null;
   removeHover();
   teardown();
   ready.value = false;
-};
+}
 
-onMounted(async () => {
+onMounted(() => {
   if ('fonts' in document) {
     if (document.fonts.status === 'loaded') {
       fontsLoaded.value = true;
     } else {
-      await document.fonts.ready;
-      fontsLoaded.value = true;
+      document.fonts.ready.then(() => {
+        fontsLoaded.value = true;
+      });
     }
   } else {
     fontsLoaded.value = true;
   }
-
-  initializeAnimation();
 });
 
-onUnmounted(() => {
-  cleanup();
+watch(fontsLoaded, loaded => {
+  if (loaded) initScrollTrigger();
 });
 
+// Re-init when any key prop changes (mirrors useGSAP dependencies)
 watch(
-  [
-    () => props.text,
-    () => props.duration,
-    () => props.maxDelay,
-    () => props.ease,
-    () => props.shuffleDirection,
-    () => props.shuffleTimes,
-    () => props.animationMode,
-    () => props.loop,
-    () => props.loopDelay,
-    () => props.stagger,
-    () => props.scrambleCharset,
-    () => props.colorFrom,
-    () => props.colorTo,
-    () => props.triggerOnce,
-    () => props.respectReducedMotion,
-    () => props.triggerOnHover,
-    () => fontsLoaded.value
+  () => [
+    props.text,
+    props.duration,
+    props.maxDelay,
+    props.ease,
+    scrollTriggerStart.value,
+    fontsLoaded.value,
+    props.shuffleDirection,
+    props.shuffleTimes,
+    props.animationMode,
+    props.loop,
+    props.loopDelay,
+    props.stagger,
+    props.scrambleCharset,
+    props.colorFrom,
+    props.colorTo,
+    props.triggerOnce,
+    props.respectReducedMotion,
+    props.triggerOnHover
   ],
   () => {
-    cleanup();
-    initializeAnimation();
+    if (!fontsLoaded.value) return;
+    destroyScrollTrigger();
+    initScrollTrigger();
   }
 );
+
+onBeforeUnmount(() => {
+  destroyScrollTrigger();
+});
 </script>
+
+<template>
+  <component :is="tag" ref="elRef" :class="classes" :style="commonStyle">{{ text }}</component>
+</template>

@@ -1,64 +1,82 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Glitch Text</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="glitchText.usage"
+    :source="glitchTextSource"
+    component-name="GlitchText"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[500px] overflow-hidden">
-        <GlitchText
-          :children="text"
-          :speed="speed"
-          :enable-shadows="enableShadows"
-          :enable-on-hover="enableOnHover"
-          class-name="demo-glitch-text"
-        />
+      <div class="h-[400px] overflow-hidden demo-container">
+        <GlitchText :children="text" :speed="speed" :enable-shadows="enableShadows" :enable-on-hover="enableOnHover" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <div class="mb-4">
-          <PreviewText title="Text" v-model="text" />
-
-          <PreviewSlider title="Refresh Delay" v-model="speed" :min="0.1" :max="5" :step="0.1" />
-
-          <PreviewSwitch title="Glitch Colors" v-model="enableShadows" />
-
-          <PreviewSwitch title="Glitch On Hover" v-model="enableOnHover" />
-        </div>
+        <PreviewSlider title="Refresh Delay" v-model="speed" :min="0.1" :max="5" :step="0.1" />
+        <PreviewSwitch title="Glitch Colors" v-model="enableShadows" />
+        <PreviewSwitch title="Glitch On Hover" v-model="enableOnHover" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="glitchText" />
+      <DemoCodeTab slug="glitch-text" :usage="glitchText.usage!" :source="glitchTextSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="glitchText.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import GlitchText from '../../content/TextAnimations/GlitchText/GlitchText.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import PreviewText from '../../components/common/PreviewText.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
 import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { glitchText } from '@/constants/code/TextAnimations/glitchTextCode';
+import GlitchText from '@/content/TextAnimations/GlitchText/GlitchText.vue';
+import glitchTextSource from '@/content/TextAnimations/GlitchText/GlitchText.vue?raw';
+import { computed, ref, watch } from 'vue';
+
+const { forceRerender } = useForceRerender();
+
+const DEFAULTS = {
+  speed: 1,
+  enableShadows: true,
+  enableOnHover: false
+};
 
 const text = ref('Vue Bits');
-const speed = ref(0.5);
-const enableShadows = ref(true);
-const enableOnHover = ref(false);
+const speed = ref(DEFAULTS.speed);
+const enableShadows = ref(DEFAULTS.enableShadows);
+const enableOnHover = ref(DEFAULTS.enableOnHover);
+
+const hasChanges = computed(
+  () =>
+    speed.value !== DEFAULTS.speed ||
+    enableShadows.value !== DEFAULTS.enableShadows ||
+    enableOnHover.value !== DEFAULTS.enableOnHover
+);
+
+function reset() {
+  speed.value = DEFAULTS.speed;
+  enableShadows.value = DEFAULTS.enableShadows;
+  enableOnHover.value = DEFAULTS.enableOnHover;
+  forceRerender();
+}
 
 watch(enableOnHover, newValue => {
   text.value = newValue ? 'Hover Me' : 'Vue Bits';
 });
 
-const propData = [
+const props: PropRow[] = [
   {
     name: 'children',
     type: 'string',

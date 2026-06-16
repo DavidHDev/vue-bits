@@ -3,9 +3,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, useTemplateRef } from 'vue';
-import { Renderer, Program, Mesh, Color, Triangle } from 'ogl';
 import type { OGLRenderingContext } from 'ogl';
+import { Color, Mesh, Program, Renderer, Triangle } from 'ogl';
+import { onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
 
 interface Props {
   color?: [number, number, number];
@@ -15,7 +15,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  color: () => [1, 1, 1] as [number, number, number],
+  color: () => [0.3, 0.2, 0.5] as [number, number, number],
   speed: 1.0,
   amplitude: 0.1,
   mouseReact: true

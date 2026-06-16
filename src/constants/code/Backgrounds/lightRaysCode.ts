@@ -1,10 +1,16 @@
-import code from '@content/Backgrounds/LightRays/LightRays.vue?raw';
+import code from '@/content/Backgrounds/LightRays/LightRays.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const lightRays = createCodeObject(code, 'Backgrounds/LightRays', {
   installation: `npm install ogl`,
   usage: `<template>
-  <div class="w-full h-[600px] relative">
+  <div
+    style="
+      width: 100%;
+      height: 600px;
+      position: relative;
+    "
+  >
     <LightRays
       rays-origin="top-center"
       rays-color="#00ffff"
@@ -21,6 +27,6 @@ export const lightRays = createCodeObject(code, 'Backgrounds/LightRays', {
 </template>
 
 <script setup lang="ts">
-import LightRays from "./LightRays.vue";
+import LightRays from './LightRays.vue'
 </script>`
 });

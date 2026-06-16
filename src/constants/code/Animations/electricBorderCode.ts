@@ -8,14 +8,19 @@ export const electricBorder = createCodeObject(code, 'Animations/ElectricBorder'
 
 <template>
   <ElectricBorder
-    :color="'#7df9ff'"
+    color="#7df9ff"
     :speed="1"
     :chaos="0.5"
     :thickness="2"
     :style="{ borderRadius: '16px' }"
   >
     <div>
-      <p :style="{ margin: '6px 0 0', opacity: 0.8 }">
+      <p
+        style="
+          margin: 6px 0 0;
+          opacity: 0.8;
+        "
+      >
         A glowing, animated border wrapper.
       </p>
     </div>
@@ -23,6 +28,6 @@ export const electricBorder = createCodeObject(code, 'Animations/ElectricBorder'
 </template>
 
 <script setup lang="ts">
-  import ElectricBorder from "./ElectricBorder.vue";
+import ElectricBorder from './ElectricBorder.vue'
 </script>`
 });

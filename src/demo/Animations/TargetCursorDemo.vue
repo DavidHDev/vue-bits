@@ -1,5 +1,13 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Target Cursor</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="targetCursor.usage"
+    :source="targetCursorSource"
+    component-name="TargetCursor"
+    :props-table="props"
+  >
     <template #preview>
       <div class="flex-col h-[500px] overflow-hidden demo-container">
         <p class="mb-6 font-black text-[#aeffc5]/20 text-[clamp(2rem,6vw,3rem)]">Hover Below.</p>
@@ -35,46 +43,80 @@
           </div>
         </div>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewSlider title="Spin Duration" :min="0.5" :max="5" :step="0.1" value-unit="s" v-model="spinDuration" />
-
+        <PreviewSlider title="Spin Duration" :min="0.5" :max="6" :step="0.1" value-unit="s" v-model="spinDuration" />
+        <PreviewSlider
+          title="Hover Duration"
+          :min="0.05"
+          :max="1"
+          :step="0.05"
+          value-unit="s"
+          v-model="hoverDuration"
+        />
         <PreviewSwitch title="Hide Default Cursor" v-model="hideDefaultCursor" />
+        <PreviewSwitch title="Parallax On Hover" v-model="parallaxOn" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['gsap']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="targetCursor" />
+      <DemoCodeTab slug="target-cursor" :usage="targetCursor.usage!" :source="targetCursorSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="targetCursor.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 
   <TargetCursor :spin-duration="spinDuration" :hide-default-cursor="hideDefaultCursor" />
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import { targetCursor } from '../../constants/code/Animations/targetCursorCode';
-import TargetCursor from '../../content/Animations/TargetCursor/TargetCursor.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
+import { targetCursor } from '@/constants/code/Animations/targetCursorCode';
+import TargetCursor from '@/content/Animations/TargetCursor/TargetCursor.vue';
+import targetCursorSource from '@/content/Animations/TargetCursor/TargetCursor.vue?raw';
+import { computed, ref } from 'vue';
 
-const spinDuration = ref(2);
-const hideDefaultCursor = ref(true);
+const { forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  spinDuration: 2,
+  hideDefaultCursor: true,
+  hoverDuration: 0.2,
+  parallaxOn: true
+};
+
+const spinDuration = ref(DEFAULTS.spinDuration);
+const hideDefaultCursor = ref(DEFAULTS.hideDefaultCursor);
+const hoverDuration = ref(DEFAULTS.hoverDuration);
+const parallaxOn = ref(DEFAULTS.parallaxOn);
+
+const hasChanges = computed(
+  () =>
+    spinDuration.value !== DEFAULTS.spinDuration ||
+    hideDefaultCursor.value !== DEFAULTS.hideDefaultCursor ||
+    hoverDuration.value !== DEFAULTS.hoverDuration ||
+    parallaxOn.value !== DEFAULTS.parallaxOn
+);
+
+function reset() {
+  spinDuration.value = DEFAULTS.spinDuration;
+  hideDefaultCursor.value = DEFAULTS.hideDefaultCursor;
+  hoverDuration.value = DEFAULTS.hoverDuration;
+  parallaxOn.value = DEFAULTS.parallaxOn;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'targetSelector',
     type: 'string',
@@ -92,6 +134,18 @@ const propData = [
     type: 'boolean',
     default: 'true',
     description: 'Whether to hide the default browser cursor when the component is active'
+  },
+  {
+    name: 'hoverDuration',
+    type: 'number',
+    default: '0.2',
+    description: 'Duration in seconds for the transition when the cursor locks onto a target'
+  },
+  {
+    name: 'parallaxOn',
+    type: 'boolean',
+    default: 'true',
+    description: 'Enables a subtle parallax effect on the corners when moving over a target'
   }
 ];
 </script>

@@ -3,8 +3,8 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, type CSSProperties, useTemplateRef } from 'vue';
-import { Renderer, Program, Mesh, Color, Triangle, RenderTarget } from 'ogl';
+import { Color, Mesh, Program, Renderer, RenderTarget, Triangle } from 'ogl';
+import { onMounted, onUnmounted, useTemplateRef, type CSSProperties } from 'vue';
 
 interface StrandsProps {
   colors?: string[];

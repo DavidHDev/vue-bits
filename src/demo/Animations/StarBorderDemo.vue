@@ -1,56 +1,76 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Star Border</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="starBorder.usage"
+    :source="starBorderSource"
+    component-name="StarBorder"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container overflow-hidden h-[400px]">
-        <StarBorder as="button" :color="color" :speed="speedProp" :thickness="thickness">Star Border</StarBorder>
+      <div class="h-[400px] overflow-hidden demo-container">
+        <StarBorder as="button" :color="color" :speed="`${speed}s`" :thickness="thickness">
+          <span class="mx-0 text-[1em]">Star Border</span>
+        </StarBorder>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewSelect title="Color" v-model="color" :options="colorOptions" />
+        <PreviewSelect title="Color" v-model="color" :options="['magenta', 'cyan', 'white']" />
         <PreviewSlider title="Thickness" v-model="thickness" :min="0.5" :max="8" :step="0.5" value-unit="px" />
         <PreviewSlider title="Speed" v-model="speed" :min="1" :max="10" :step="0.5" value-unit="s" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="starBorder" />
+      <DemoCodeTab slug="star-border" :usage="starBorder.usage!" :source="starBorderSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="starBorder.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSelect from '../../components/common/PreviewSelect.vue';
-import StarBorder from '../../content/Animations/StarBorder/StarBorder.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { starBorder } from '@/constants/code/Animations/starBorderCode';
+import StarBorder from '@/content/Animations/StarBorder/StarBorder.vue';
+import starBorderSource from '@/content/Animations/StarBorder/StarBorder.vue?raw';
+import { computed, ref } from 'vue';
 
-const thickness = ref<number>(3);
-const speed = ref<number>(6);
-const speedProp = ref<string>('6s');
-const color = ref<string>('lightgreen');
-const colorOptions = [
-  { label: 'Magenta', value: 'magenta' },
-  { label: 'Green', value: 'lightgreen' },
-  { label: 'white', value: 'white' }
-];
+const { forceRerender } = useForceRerender();
 
-watch(speed, () => {
-  speedProp.value = speed.value.toString() + 's';
-});
+const DEFAULTS = {
+  thickness: 1,
+  speed: 5,
+  color: 'magenta'
+};
 
-const propData = [
+const thickness = ref<number>(DEFAULTS.thickness);
+const speed = ref<number>(DEFAULTS.speed);
+const color = ref<string>(DEFAULTS.color);
+
+const hasChanges = computed(
+  () => thickness.value !== DEFAULTS.thickness || speed.value !== DEFAULTS.speed || color.value !== DEFAULTS.color
+);
+
+function reset() {
+  thickness.value = DEFAULTS.thickness;
+  speed.value = DEFAULTS.speed;
+  color.value = DEFAULTS.color;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'as',
     type: 'string',
