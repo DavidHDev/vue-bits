@@ -42,7 +42,7 @@
 .ln-navbar.ln-navbar-scrolled .ln-navbar-inner {
   max-width: calc(1300px - 24px);
 
-  background: #10140e;
+  background: #111;
 
   border-color: rgba(255, 255, 255, 0.04);
 }

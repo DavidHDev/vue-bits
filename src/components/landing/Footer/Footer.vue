@@ -45,7 +45,7 @@ onBeforeUnmount(() => io?.disconnect());
         <nav class="ln-footer-nav">
           <div class="ln-footer-col">
             <span class="ln-footer-col-title">Product</span>
-            <RouterLink to="/get-started/introduction" class="ln-footer-link">Docs</RouterLink>
+            <RouterLink to="/get-started/index" class="ln-footer-link">Docs</RouterLink>
             <a href="https://www.jsrepo.com/" target="_blank" rel="noopener noreferrer" class="ln-footer-link">CLI</a>
           </div>
 
@@ -72,7 +72,6 @@ onBeforeUnmount(() => io?.disconnect());
           <a href="https://x.com/davidhdev" target="_blank" rel="noopener noreferrer" class="ln-footer-creator">
             davidhdev
           </a>
-          .
         </p>
         <p class="ln-footer-copy">© {{ year }} Vue Bits</p>
       </div>

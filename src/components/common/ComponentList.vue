@@ -522,8 +522,8 @@ function toggleFavorite(key: string, componentKey: string) {
 
 .favorite-button {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 16px;
+  right: 16px;
   z-index: 2;
   width: 28px;
   height: 28px;
@@ -605,10 +605,9 @@ function toggleFavorite(key: string, componentKey: string) {
 
 .new-badge {
   position: absolute;
-  top: 8px;
-  left: 8px;
+  top: 16px;
+  left: 16px;
   z-index: 2;
-  padding-inline: 8px;
   padding: 3px 8px;
   border-radius: 6px;
   font-size: 10px;

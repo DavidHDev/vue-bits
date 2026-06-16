@@ -2,7 +2,7 @@
   <main>
     <LandingLoader v-if="!loaded" :hiding="hiding" />
 
-    <section v-else :class="['landing-wrapper no-side-fades', loaded ? 'ln-loaded' : 'ln-loading']">
+    <section :class="['landing-wrapper no-side-fades', revealed ? 'ln-loaded' : 'ln-loading']">
       <Hero />
       <Navbar />
       <Features />
@@ -29,9 +29,11 @@ const MIN_LOADER_MS = 800;
 
 const loaded = ref(false);
 const hiding = ref(false);
+const revealed = ref(false);
 
 function reveal() {
   hiding.value = true;
+  revealed.value = true;
   setTimeout(() => {
     loaded.value = true;
   }, 600);

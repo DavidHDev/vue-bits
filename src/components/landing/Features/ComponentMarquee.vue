@@ -28,8 +28,8 @@ const ROW_B: Item[] = [
   { name: 'Beams', cat: 'backgrounds' }
 ];
 
-// Note: components don't exist yet, so links go to /get-started/introduction
-const HREF = '/get-started/introduction';
+// Note: components don't exist yet, so links go to /get-started/index
+const HREF = '/get-started/index';
 const rowADoubled = [...ROW_A, ...ROW_A];
 const rowBDoubled = [...ROW_B, ...ROW_B];
 </script>

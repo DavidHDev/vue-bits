@@ -219,7 +219,7 @@ const DockItem = defineComponent({
       alignItems: 'center',
       justifyContent: 'center',
       borderRadius: '10px',
-      backgroundColor: '#120F17',
+      backgroundColor: '#111',
       border: '1px solid #222',
       boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)',
       cursor: 'pointer',
@@ -323,7 +323,7 @@ export default defineComponent({
       width: 'fit-content',
       gap: '1rem',
       borderRadius: '1rem',
-      backgroundColor: '#120F17',
+      backgroundColor: '#111',
       border: '1px solid #222',
       padding: '0 0.5rem 0.5rem'
     }));

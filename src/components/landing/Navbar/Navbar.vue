@@ -11,7 +11,7 @@ const emit = defineEmits<{ hamburger: [] }>();
 
 const GITHUB_URL = 'https://github.com/DavidHDev/vue-bits';
 
-const NAV_LINKS = [{ label: 'Docs', to: '/get-started/introduction', match: '/get-started' }] as const;
+const NAV_LINKS = [{ label: 'Docs', to: '/get-started/index', match: '/get-started' }] as const;
 
 const route = useRoute();
 const stars = useStars();
