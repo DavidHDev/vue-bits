@@ -1,8 +1,17 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Reflective Card</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="reflectiveCard.usage"
+    :source="reflectiveCardSource"
+    component-name="ReflectiveCard"
+    :props-table="propData"
+  >
     <template #preview>
       <div class="demo-container h-[700px] overflow-hidden">
         <ReflectiveCard
+          :key="rerenderKey"
           :blur-strength="blurStrength"
           :metalness="metalness"
           :roughness="roughness"
@@ -13,7 +22,9 @@
           :glass-distortion="glassDistortion"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSlider title="Blur Strength" v-model="blurStrength" :min="0" :max="20" :step="0.5" value-unit="px" />
         <PreviewSlider title="Metalness" v-model="metalness" :min="0" :max="1" :step="0.05" />
@@ -24,43 +35,77 @@
         <PreviewSlider title="Shininess" v-model="specularConstant" :min="0" :max="5" :step="0.1" />
         <PreviewSlider title="Grayscale" v-model="grayscale" :min="0" :max="1" :step="0.05" />
       </Customize>
+    </template>
 
+    <template #propTable>
       <PropTable :data="propData" />
-      <Dependencies :dependency-list="['lucide-vue-next']" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="reflectiveCard" />
+      <DemoCodeTab slug="reflective-card" :usage="reflectiveCard.usage!" :source="reflectiveCardSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="reflectiveCard.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import ReflectiveCard from '../../content/Components/ReflectiveCard/ReflectiveCard.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { reflectiveCard } from '@/constants/code/Components/reflectiveCardCode';
+import ReflectiveCard from '@/content/Components/ReflectiveCard/ReflectiveCard.vue';
+import reflectiveCardSource from '@/content/Components/ReflectiveCard/ReflectiveCard.vue?raw';
+import { computed, ref } from 'vue';
 
-const blurStrength = ref(12);
-const metalness = ref(1);
-const roughness = ref(0.75);
-const displacementStrength = ref(20);
-const noiseScale = ref(1);
-const specularConstant = ref(5);
-const grayscale = ref(0.15);
-const glassDistortion = ref(30);
+const { rerenderKey, forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  blurStrength: 12,
+  metalness: 1,
+  roughness: 0.75,
+  displacementStrength: 20,
+  noiseScale: 1,
+  specularConstant: 5,
+  grayscale: 0.15,
+  glassDistortion: 30
+};
+
+const blurStrength = ref(DEFAULTS.blurStrength);
+const metalness = ref(DEFAULTS.metalness);
+const roughness = ref(DEFAULTS.roughness);
+const displacementStrength = ref(DEFAULTS.displacementStrength);
+const noiseScale = ref(DEFAULTS.noiseScale);
+const specularConstant = ref(DEFAULTS.specularConstant);
+const grayscale = ref(DEFAULTS.grayscale);
+const glassDistortion = ref(DEFAULTS.glassDistortion);
+
+const hasChanges = computed(
+  () =>
+    blurStrength.value !== DEFAULTS.blurStrength ||
+    metalness.value !== DEFAULTS.metalness ||
+    roughness.value !== DEFAULTS.roughness ||
+    displacementStrength.value !== DEFAULTS.displacementStrength ||
+    noiseScale.value !== DEFAULTS.noiseScale ||
+    specularConstant.value !== DEFAULTS.specularConstant ||
+    grayscale.value !== DEFAULTS.grayscale ||
+    glassDistortion.value !== DEFAULTS.glassDistortion
+);
+
+function reset() {
+  blurStrength.value = DEFAULTS.blurStrength;
+  metalness.value = DEFAULTS.metalness;
+  roughness.value = DEFAULTS.roughness;
+  displacementStrength.value = DEFAULTS.displacementStrength;
+  noiseScale.value = DEFAULTS.noiseScale;
+  specularConstant.value = DEFAULTS.specularConstant;
+  grayscale.value = DEFAULTS.grayscale;
+  glassDistortion.value = DEFAULTS.glassDistortion;
+  forceRerender();
+}
+
+const propData: PropRow[] = [
   {
     name: 'blurStrength',
     type: 'number',

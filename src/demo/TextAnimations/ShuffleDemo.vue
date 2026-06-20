@@ -1,39 +1,40 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Shuffle</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="shuffle.usage"
+    :source="shuffleSource"
+    component-name="Shuffle"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container py-6 overflow-hidden">
+      <div class="relative flex justify-center items-center w-full h-[400px] overflow-hidden demo-container">
         <RefreshButton @click="forceRerender" />
-
-        <div :key="key" class="w-full h-[400px] flex items-center justify-center">
-          <Shuffle
-            text="VUE BITS"
-            :ease="ease"
-            :duration="duration"
-            :shuffle-times="shuffleTimes"
-            :stagger="stagger"
-            :shuffle-direction="shuffleDirection"
-            :loop="loop"
-            :loop-delay="loopDelay"
-            :trigger-on-hover="triggerOnHover"
-          />
-        </div>
+        <Shuffle
+          :key="key"
+          text="VUE BITS"
+          :ease="ease"
+          :duration="duration"
+          :shuffle-times="shuffleTimes"
+          :stagger="stagger"
+          :shuffle-direction="shuffleDirection"
+          :loop="loop"
+          :loop-delay="loopDelay"
+          :trigger-on-hover="triggerOnHover"
+        />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewSelect title="Direction" v-model="shuffleDirection" :options="directionOptions" />
-
+        <PreviewSelect title="Direction" v-model="shuffleDirection" :options="['left', 'right', 'up', 'down']" />
         <PreviewSelect title="Ease" v-model="ease" :options="easeOptions" />
-
         <PreviewSlider title="Duration" v-model="duration" :min="0.1" :max="1.5" :step="0.05" value-unit="s" />
-
         <PreviewSlider title="Shuffle Times" v-model="shuffleTimes" :min="1" :max="8" :step="1" />
-
         <PreviewSlider title="Stagger" v-model="stagger" :min="0" :max="0.2" :step="0.01" value-unit="s" />
-
         <PreviewSwitch title="Hover Replay" v-model="triggerOnHover" />
-
         <PreviewSwitch title="Loop" v-model="loop" />
-
         <PreviewSlider
           title="Loop Delay"
           v-model="loopDelay"
@@ -44,54 +45,54 @@
           value-unit="s"
         />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['gsap']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="shuffle" />
+      <DemoCodeTab slug="shuffle" :usage="shuffle.usage!" :source="shuffleSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="shuffle.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PreviewSelect from '../../components/common/PreviewSelect.vue';
-import RefreshButton from '../../components/common/RefreshButton.vue';
-import Shuffle from '../../content/TextAnimations/Shuffle/Shuffle.vue';
-import { shuffle } from '@/constants/code/TextAnimations/shuffleCode';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
+import { shuffle } from '@/constants/code/TextAnimations/shuffleCode';
+import Shuffle from '@/content/TextAnimations/Shuffle/Shuffle.vue';
+import shuffleSource from '@/content/TextAnimations/Shuffle/Shuffle.vue?raw';
+import { computed, ref } from 'vue';
 
 const { rerenderKey: key, forceRerender } = useForceRerender();
 
-const duration = ref(0.35);
-const shuffleTimes = ref(1);
-const stagger = ref(0.03);
-const shuffleDirection = ref<'left' | 'right' | 'up' | 'down'>('right');
-const ease = ref('power3.out');
-const loop = ref(false);
-const loopDelay = ref(0);
-const triggerOnHover = ref(true);
+const DEFAULTS = {
+  duration: 0.35,
+  shuffleTimes: 1,
+  stagger: 0.03,
+  shuffleDirection: 'right' as 'left' | 'right' | 'up' | 'down',
+  ease: 'power3.out',
+  loop: false,
+  loopDelay: 0,
+  triggerOnHover: true
+};
 
-const directionOptions = [
-  { label: 'Right', value: 'right' },
-  { label: 'Left', value: 'left' },
-  { label: 'Up', value: 'up' },
-  { label: 'Down', value: 'down' }
-];
+const duration = ref(DEFAULTS.duration);
+const shuffleTimes = ref(DEFAULTS.shuffleTimes);
+const stagger = ref(DEFAULTS.stagger);
+const shuffleDirection = ref(DEFAULTS.shuffleDirection);
+const ease = ref(DEFAULTS.ease);
+const loop = ref(DEFAULTS.loop);
+const loopDelay = ref(DEFAULTS.loopDelay);
+const triggerOnHover = ref(DEFAULTS.triggerOnHover);
 
 const easeOptions = [
   { label: 'power2.out', value: 'power2.out' },
@@ -100,7 +101,31 @@ const easeOptions = [
   { label: 'expo.out', value: 'expo.out' }
 ];
 
-const propData = [
+const hasChanges = computed(
+  () =>
+    duration.value !== DEFAULTS.duration ||
+    shuffleTimes.value !== DEFAULTS.shuffleTimes ||
+    stagger.value !== DEFAULTS.stagger ||
+    shuffleDirection.value !== DEFAULTS.shuffleDirection ||
+    ease.value !== DEFAULTS.ease ||
+    loop.value !== DEFAULTS.loop ||
+    loopDelay.value !== DEFAULTS.loopDelay ||
+    triggerOnHover.value !== DEFAULTS.triggerOnHover
+);
+
+function reset() {
+  duration.value = DEFAULTS.duration;
+  shuffleTimes.value = DEFAULTS.shuffleTimes;
+  stagger.value = DEFAULTS.stagger;
+  shuffleDirection.value = DEFAULTS.shuffleDirection;
+  ease.value = DEFAULTS.ease;
+  loop.value = DEFAULTS.loop;
+  loopDelay.value = DEFAULTS.loopDelay;
+  triggerOnHover.value = DEFAULTS.triggerOnHover;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   { name: 'text', type: 'string', default: '""', description: 'The text content to shuffle.' },
   { name: 'className', type: 'string', default: '""', description: 'Optional CSS class for the wrapper element.' },
   { name: 'style', type: 'object', default: '{}', description: 'Inline styles applied to the wrapper element.' },
@@ -181,7 +206,12 @@ const propData = [
     description: 'Optional starting text color while shuffling.'
   },
   { name: 'colorTo', type: 'string', default: 'undefined', description: 'Optional final text color to tween to.' },
-  { name: 'triggerOnce', type: 'boolean', default: 'true', description: 'Auto-run only on first scroll into view.' },
+  {
+    name: 'triggerOnce',
+    type: 'boolean',
+    default: 'true',
+    description: 'Auto-run only on first scroll into view.'
+  },
   {
     name: 'respectReducedMotion',
     type: 'boolean',
@@ -195,11 +225,4 @@ const propData = [
     description: 'Allow re-playing the animation on hover after it completes.'
   }
 ];
-
-watch(
-  () => [shuffleDirection.value, ease.value, loop.value, triggerOnHover.value],
-  () => {
-    forceRerender();
-  }
-);
 </script>

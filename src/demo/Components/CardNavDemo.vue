@@ -1,8 +1,16 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Card Nav</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="cardNav.usage"
+    :source="cardNavSource"
+    component-name="CardNav"
+    :props-table="props"
+  >
     <template #preview>
       <div
-        class="demo-container demo-container-dots overflow-hidden"
+        class="overflow-hidden demo-container demo-container-dots"
         :style="{
           backgroundColor: currentTheme.backgroundColor,
           minHeight: '550px',
@@ -20,45 +28,47 @@
           :ease="ease"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSelect title="Example" :options="themeOptions" v-model="theme" />
         <PreviewSelect title="Animation Ease" :options="easeOptions" v-model="ease" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['gsap']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="cardNav" />
+      <DemoCodeTab slug="card-nav" :usage="cardNav.usage!" :source="cardNavSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="cardNav.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import logoLight from '@/assets/logos/vuebits-gh-black.svg';
+import logoDark from '@/assets/logos/vuebits-gh-white.svg';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
 import { cardNav } from '@/constants/code/Components/cardNavCode';
-import { computed, ref, watch } from 'vue';
-import logoDark from '../../assets/logos/vuebits-gh-white.svg';
-import logoLight from '../../assets/logos/vuebits-gh-black.svg';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSelect from '../../components/common/PreviewSelect.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import CardNav, { type CardNavItem } from '../../content/Components/CardNav/CardNav.vue';
+import CardNav, { type CardNavItem } from '@/content/Components/CardNav/CardNav.vue';
+import cardNavSource from '@/content/Components/CardNav/CardNav.vue?raw';
+import { computed, ref } from 'vue';
 
 const { rerenderKey: key, forceRerender } = useForceRerender();
 
 type ThemeKey = 'light' | 'dark' | 'color';
 type EaseKey = 'power3.out' | 'back.out(1.7)' | 'elastic.out(1, 0.8)' | 'circ.out';
+const DEFAULTS = {
+  theme: 'light' as ThemeKey,
+  ease: 'power3.out' as EaseKey
+};
 
 interface ThemeConfig {
   logo: string;
@@ -149,15 +159,15 @@ const easeOptions = [
 
 const currentTheme = computed(() => themeConfigs[theme.value]);
 
-watch(
-  [currentTheme, ease],
-  () => {
-    forceRerender();
-  },
-  { immediate: true }
-);
+const hasChanges = computed(() => theme.value !== DEFAULTS.theme || ease.value !== DEFAULTS.ease);
 
-const propData = [
+function reset() {
+  theme.value = DEFAULTS.theme;
+  ease.value = DEFAULTS.ease;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'logo',
     type: 'string',

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Color, Mesh, Program, Renderer, Triangle } from 'ogl';
-import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch, type CSSProperties } from 'vue';
 
 type Vec2 = [number, number];
 
@@ -24,7 +24,7 @@ interface FaultyTerminalProps {
   pageLoadAnimation?: boolean;
   brightness?: number;
   className?: string;
-  style?: Record<string, string | number>;
+  style?: CSSProperties;
 }
 
 const vertexShader = `

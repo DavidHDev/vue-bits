@@ -5,18 +5,17 @@ export const textCursor = createCodeObject(code, 'TextAnimations/TextCursor', {
   installation: `npm install motion-v`,
   usage: `<template>
   <TextCursor
-    text="⚛️"
-    :delay="0.01"
-    :spacing="100"
+    text="Hello!"
+    :spacing="80"
     :follow-mouse-direction="true"
     :random-float="true"
-    :exit-duration="0.5"
-    :removal-interval="30"
-    :max-points="5"
+    :exit-duration="0.3"
+    :removal-interval="20"
+    :max-points="10"
   />
 </template>
 
-<script setup lang="ts">
-  import TextCursor from "./TextCursor.vue";
+<script setup>
+import TextCursor from './TextCursor.vue'
 </script>`
 });

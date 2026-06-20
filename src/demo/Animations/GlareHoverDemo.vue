@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Glare Hover</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="glareHover.usage"
+    :source="glareHoverSource"
+    component-name="GlareHover"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[400px]">
+      <div class="h-[400px] demo-container">
         <GlareHover
           background="#111"
           border-color="#222"
@@ -14,17 +22,16 @@
           :transition-duration="transitionDuration"
           :play-once="playOnce"
         >
-          <div class="text-center text-5xl font-black text-[#222] m-0">Hover Me</div>
+          <div class="m-0 font-black text-[#222] text-5xl text-center">Hover Me</div>
         </GlareHover>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewColor title="Glare Color" v-model="glareColor" />
-
+        <PreviewColorPicker title="Glare Color" v-model="glareColor" />
         <PreviewSlider title="Glare Opacity" v-model="glareOpacity" :min="0" :max="1" :step="0.1" />
-
         <PreviewSlider title="Glare Size" v-model="glareSize" :min="100" :max="500" :step="25" value-unit="%" />
-
         <PreviewSlider
           title="Transition Duration"
           v-model="transitionDuration"
@@ -33,43 +40,63 @@
           :step="50"
           value-unit="ms"
         />
-
         <PreviewSwitch title="Play Once" v-model="playOnce" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="glareHover" />
+      <DemoCodeTab slug="glare-hover" :usage="glareHover.usage!" :source="glareHoverSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="glareHover.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PreviewColor from '../../components/common/PreviewColor.vue';
-import GlareHover from '../../content/Animations/GlareHover/GlareHover.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender.ts';
 import { glareHover } from '@/constants/code/Animations/glareHoverCode';
+import GlareHover from '@/content/Animations/GlareHover/GlareHover.vue';
+import glareHoverSource from '@/content/Animations/GlareHover/GlareHover.vue?raw';
+import { computed, ref } from 'vue';
 
-const glareColor = ref('#ffffff');
-const glareOpacity = ref(0.3);
-const glareSize = ref(300);
-const transitionDuration = ref(800);
-const playOnce = ref(false);
+const { forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = { glareColor: '#ffffff', glareOpacity: 0.5, glareSize: 300, transitionDuration: 800, playOnce: false };
+
+const glareColor = ref(DEFAULTS.glareColor);
+const glareOpacity = ref(DEFAULTS.glareOpacity);
+const glareSize = ref(DEFAULTS.glareSize);
+const transitionDuration = ref(DEFAULTS.transitionDuration);
+const playOnce = ref(DEFAULTS.playOnce);
+
+const hasChanges = computed(
+  () =>
+    glareColor.value !== DEFAULTS.glareColor ||
+    glareOpacity.value !== DEFAULTS.glareOpacity ||
+    glareSize.value !== DEFAULTS.glareSize ||
+    transitionDuration.value !== DEFAULTS.transitionDuration ||
+    playOnce.value !== DEFAULTS.playOnce
+);
+
+function reset() {
+  glareColor.value = DEFAULTS.glareColor;
+  glareOpacity.value = DEFAULTS.glareOpacity;
+  glareSize.value = DEFAULTS.glareSize;
+  transitionDuration.value = DEFAULTS.transitionDuration;
+  playOnce.value = DEFAULTS.playOnce;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'width',
     type: 'string',

@@ -1,25 +1,26 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">True Focus</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="trueFocus.usage"
+    :source="trueFocusSource"
+    component-name="TrueFocus"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[400px]">
+      <div class="h-[400px] demo-container">
         <div :key="key" class="flex flex-col justify-center items-center m-8 pl-6 w-full">
-          <TrueFocus :key="`${key}-${syncMode}-1`" v-bind="config" />
-          <br />
-          <TrueFocus :key="`${key}-${syncMode}-2`" v-bind="config" />
+          <TrueFocus :key="key" v-bind="config" />
         </div>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewColor title="Corners Color" v-model="borderColor" />
-
+        <PreviewColorPicker title="Corners Color" v-model="borderColor" />
         <PreviewSwitch title="Hover Mode" v-model="manualMode" />
-
-        <PreviewSwitch title="Apply Sync Group" v-model="syncMode" />
-
-        <PreviewSwitch title="Default Blur" v-model="defaultBlur" />
-
         <PreviewSlider title="Blur Amount" v-model="blurAmount" :min="0" :max="15" :step="0.5" value-unit="px" />
-
         <PreviewSlider
           title="Animation Duration"
           v-model="animationDuration"
@@ -29,7 +30,6 @@
           value-unit="s"
           :disabled="!manualMode"
         />
-
         <PreviewSlider
           title="Pause Between Animations"
           v-model="pauseBetweenAnimations"
@@ -40,46 +40,47 @@
           :disabled="manualMode"
         />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-
-      <Dependencies :dependency-list="['motion-v']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="trueFocus" />
+      <DemoCodeTab slug="true-focus" :usage="trueFocus.usage!" :source="trueFocusSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="trueFocus.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewColor from '../../components/common/PreviewColor.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import TrueFocus from '../../content/TextAnimations/TrueFocus/TrueFocus.vue';
-import { trueFocus } from '../../constants/code/TextAnimations/trueFocusCode';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
+import { trueFocus } from '@/constants/code/TextAnimations/trueFocusCode';
+import TrueFocus from '@/content/TextAnimations/TrueFocus/TrueFocus.vue';
+import trueFocusSource from '@/content/TextAnimations/TrueFocus/TrueFocus.vue?raw';
+import { computed, ref } from 'vue';
 
-const { rerenderKey: key } = useForceRerender();
+const { rerenderKey: key, forceRerender } = useForceRerender();
 
-const manualMode = ref(false);
-const blurAmount = ref(5);
-const animationDuration = ref(0.5);
-const pauseBetweenAnimations = ref(1);
-const borderColor = ref('#27FF64');
-const syncMode = ref(false);
-const defaultBlur = ref(true);
+const DEFAULTS = {
+  manualMode: false,
+  blurAmount: 5,
+  animationDuration: 0.5,
+  pauseBetweenAnimations: 1,
+  borderColor: '#27FF64'
+};
+
+const manualMode = ref(DEFAULTS.manualMode);
+const blurAmount = ref(DEFAULTS.blurAmount);
+const animationDuration = ref(DEFAULTS.animationDuration);
+const pauseBetweenAnimations = ref(DEFAULTS.pauseBetweenAnimations);
+const borderColor = ref(DEFAULTS.borderColor);
 
 const config = computed(() => ({
   sentence: 'True Focus',
@@ -87,17 +88,39 @@ const config = computed(() => ({
   blurAmount: blurAmount.value,
   borderColor: borderColor.value,
   animationDuration: animationDuration.value,
-  pauseBetweenAnimations: pauseBetweenAnimations.value,
-  syncGroup: syncMode.value ? 'sync-group-demo' : undefined,
-  defaultBlur: defaultBlur.value
+  pauseBetweenAnimations: pauseBetweenAnimations.value
 }));
 
-const propData = [
+const hasChanges = computed(
+  () =>
+    manualMode.value !== DEFAULTS.manualMode ||
+    blurAmount.value !== DEFAULTS.blurAmount ||
+    animationDuration.value !== DEFAULTS.animationDuration ||
+    pauseBetweenAnimations.value !== DEFAULTS.pauseBetweenAnimations ||
+    borderColor.value !== DEFAULTS.borderColor
+);
+
+function reset() {
+  manualMode.value = DEFAULTS.manualMode;
+  blurAmount.value = DEFAULTS.blurAmount;
+  animationDuration.value = DEFAULTS.animationDuration;
+  pauseBetweenAnimations.value = DEFAULTS.pauseBetweenAnimations;
+  borderColor.value = DEFAULTS.borderColor;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'sentence',
     type: 'string',
     default: "'True Focus'",
     description: 'The text to display with the focus animation.'
+  },
+  {
+    name: 'separator',
+    type: 'string',
+    default: "' '",
+    description: 'Optional string used to separate words in the sentence.'
   },
   {
     name: 'manualMode',
@@ -134,27 +157,6 @@ const propData = [
     type: 'number',
     default: '1',
     description: 'Time to pause between focusing on each word (in auto mode).'
-  },
-  {
-    name: 'index',
-    type: 'Array<number>',
-    default: 'undefined',
-    description:
-      'Maps each word to a shared index value, used to coordinate focus position across multiple instances in the same syncGroup.'
-  },
-  {
-    name: 'syncGroup',
-    type: 'string',
-    default: 'undefined',
-    description:
-      'A group identifier. All instances sharing the same syncGroup will stay in sync, hovering or animating one will reflect on all others.'
-  },
-  {
-    name: 'defaultBlur',
-    type: 'boolean',
-    default: 'true',
-    description:
-      'In manualMode, determines behavior on mouse leave: true restores focus to the last hovered word, false clears all blur.'
   }
 ];
 </script>

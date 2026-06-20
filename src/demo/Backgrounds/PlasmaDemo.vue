@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Plasma</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="plasma.usage"
+    :source="plasmaSource"
+    component-name="Plasma"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="relative p-0 h-[600px] overflow-hidden demo-container">
+      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
         <Plasma
           :color="color"
           :speed="speed"
@@ -12,45 +20,62 @@
         />
         <BackgroundContent pill-text="New Background" headline="Minimal plasma waves that soothe the eyes" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewColor title="Color" v-model="color" />
+        <PreviewColorPicker title="Color" v-model="color" />
         <PreviewSelect title="Direction" v-model="direction" :options="directionOptions" />
         <PreviewSlider :min="0.1" :max="3.0" :step="0.1" v-model="speed" title="Speed" />
         <PreviewSlider :min="0.5" :max="3.0" :step="0.1" v-model="scale" title="Scale" />
         <PreviewSlider :min="0.1" :max="1.0" :step="0.1" v-model="opacity" title="Opacity" />
         <PreviewSwitch title="Mouse Interactive" v-model="mouseInteractive" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['ogl']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="plasma" />
+      <DemoCodeTab slug="plasma" :usage="plasma.usage!" :source="plasmaSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="plasma.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { plasma } from '@/constants/code/Backgrounds/plasmaCode';
-import { ref } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import BackgroundContent from '../../components/common/BackgroundContent.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewColor from '../../components/common/PreviewColor.vue';
-import PreviewSelect from '../../components/common/PreviewSelect.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import Plasma from '../../content/Backgrounds/Plasma/Plasma.vue';
+import Plasma from '@/content/Backgrounds/Plasma/Plasma.vue';
+import plasmaSource from '@/content/Backgrounds/Plasma/Plasma.vue?raw';
+import { computed, ref } from 'vue';
+
+const { forceRerender } = useForceRerender();
+
+const DEFAULTS = {
+  color: '#9EF2BE',
+  speed: 1.0,
+  direction: 'forward' as 'forward' | 'reverse' | 'pingpong',
+  scale: 1.0,
+  opacity: 1.0,
+  mouseInteractive: false
+};
+
+const color = ref(DEFAULTS.color);
+const speed = ref(DEFAULTS.speed);
+const direction = ref(DEFAULTS.direction);
+const scale = ref(DEFAULTS.scale);
+const opacity = ref(DEFAULTS.opacity);
+const mouseInteractive = ref(DEFAULTS.mouseInteractive);
 
 const directionOptions = [
   { value: 'forward', label: 'Forward' },
@@ -58,14 +83,27 @@ const directionOptions = [
   { value: 'pingpong', label: 'Ping Pong' }
 ];
 
-const color = ref('#9EF2BE');
-const speed = ref(1.0);
-const direction = ref<'forward' | 'reverse' | 'pingpong'>('forward');
-const scale = ref(1.0);
-const opacity = ref(1.0);
-const mouseInteractive = ref(false);
+const hasChanges = computed(
+  () =>
+    color.value !== DEFAULTS.color ||
+    speed.value !== DEFAULTS.speed ||
+    direction.value !== DEFAULTS.direction ||
+    scale.value !== DEFAULTS.scale ||
+    opacity.value !== DEFAULTS.opacity ||
+    mouseInteractive.value !== DEFAULTS.mouseInteractive
+);
 
-const propData = [
+function reset() {
+  color.value = DEFAULTS.color;
+  speed.value = DEFAULTS.speed;
+  direction.value = DEFAULTS.direction;
+  scale.value = DEFAULTS.scale;
+  opacity.value = DEFAULTS.opacity;
+  mouseInteractive.value = DEFAULTS.mouseInteractive;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'color',
     type: 'string',

@@ -1,8 +1,17 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Light Pillar</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="lightPillar.usage"
+    :source="lightPillarSource"
+    component-name="LightPillar"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="relative p-0 h-[600px] overflow-hidden demo-container">
+      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
         <LightPillar
+          :key="rerenderKey"
           :top-color="topColor"
           :bottom-color="bottomColor"
           :intensity="intensity"
@@ -14,14 +23,16 @@
           :noise-intensity="noiseIntensity"
           :pillar-rotation="pillarRotation"
           :mix-blend-mode="mixBlendMode"
+          :quality="quality"
         />
-
         <BackgroundContent pill-text="New Background" headline="Ethereal light pillar for your hero sections." />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewColor v-model="topColor" title="Top Color" />
-        <PreviewColor v-model="bottomColor" title="Bottom Color" class="mt-4" />
+        <PreviewColorPicker v-model="topColor" title="Top Color" />
+        <PreviewColorPicker v-model="bottomColor" title="Bottom Color" />
         <PreviewSlider :min="0.1" :max="3" :step="0.1" v-model="intensity" title="Intensity" />
         <PreviewSlider :min="0" :max="2" :step="0.1" v-model="rotationSpeed" title="Rotation Speed" />
         <PreviewSlider :min="0.001" :max="0.02" :step="0.001" v-model="glowAmount" title="Glow Amount" />
@@ -31,49 +42,97 @@
         <PreviewSlider :min="0" :max="360" :step="1" v-model="pillarRotation" title="Pillar Rotation" />
         <PreviewSwitch title="Interactive Rotation" v-model="interactive" />
         <PreviewSelect :options="blendModeOptions" v-model="mixBlendMode" title="Mix Blend Mode" />
+        <PreviewSelect :options="['low', 'medium', 'high']" v-model="quality" title="Quality" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['three']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="lightPillar" />
+      <DemoCodeTab slug="light-pillar" :usage="lightPillar.usage!" :source="lightPillarSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="lightPillar.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { lightPillar } from '@/constants/code/Backgrounds/lightPillarCode';
-import { ref, type CSSProperties } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import BackgroundContent from '../../components/common/BackgroundContent.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewColor from '../../components/common/PreviewColor.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PreviewSelect from '../../components/common/PreviewSelect.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import LightPillar from '../../content/Backgrounds/LightPillar/LightPillar.vue';
+import LightPillar from '@/content/Backgrounds/LightPillar/LightPillar.vue';
+import lightPillarSource from '@/content/Backgrounds/LightPillar/LightPillar.vue?raw';
+import { computed, ref, type CSSProperties } from 'vue';
 
-const topColor = ref('#48FF28');
-const bottomColor = ref('#9EF19E');
-const intensity = ref(1.0);
-const rotationSpeed = ref(0.3);
-const interactive = ref(false);
-const glowAmount = ref(0.002);
-const pillarWidth = ref(3.0);
-const pillarHeight = ref(0.4);
-const noiseIntensity = ref(0.5);
-const pillarRotation = ref(25);
-const mixBlendMode = ref<CSSProperties['mixBlendMode']>('screen');
+const { rerenderKey, forceRerender } = useForceRerender();
+
+const DEFAULTS = {
+  topColor: '#48FF28',
+  bottomColor: '#9EF19E',
+  intensity: 1.0,
+  rotationSpeed: 0.3,
+  interactive: false,
+  glowAmount: 0.002,
+  pillarWidth: 3.0,
+  pillarHeight: 0.4,
+  noiseIntensity: 0.5,
+  mixBlendMode: 'screen' as CSSProperties['mixBlendMode'],
+  pillarRotation: 25,
+  quality: 'high' as 'low' | 'medium' | 'high'
+};
+
+const topColor = ref(DEFAULTS.topColor);
+const bottomColor = ref(DEFAULTS.bottomColor);
+const intensity = ref(DEFAULTS.intensity);
+const rotationSpeed = ref(DEFAULTS.rotationSpeed);
+const interactive = ref(DEFAULTS.interactive);
+const glowAmount = ref(DEFAULTS.glowAmount);
+const pillarWidth = ref(DEFAULTS.pillarWidth);
+const pillarHeight = ref(DEFAULTS.pillarHeight);
+const noiseIntensity = ref(DEFAULTS.noiseIntensity);
+const pillarRotation = ref(DEFAULTS.pillarRotation);
+const mixBlendMode = ref<CSSProperties['mixBlendMode']>(DEFAULTS.mixBlendMode);
+const quality = ref<'low' | 'medium' | 'high'>(DEFAULTS.quality);
+
+const hasChanges = computed(
+  () =>
+    topColor.value !== DEFAULTS.topColor ||
+    bottomColor.value !== DEFAULTS.bottomColor ||
+    intensity.value !== DEFAULTS.intensity ||
+    rotationSpeed.value !== DEFAULTS.rotationSpeed ||
+    interactive.value !== DEFAULTS.interactive ||
+    glowAmount.value !== DEFAULTS.glowAmount ||
+    pillarWidth.value !== DEFAULTS.pillarWidth ||
+    pillarHeight.value !== DEFAULTS.pillarHeight ||
+    noiseIntensity.value !== DEFAULTS.noiseIntensity ||
+    pillarRotation.value !== DEFAULTS.pillarRotation ||
+    mixBlendMode.value !== DEFAULTS.mixBlendMode ||
+    quality.value !== DEFAULTS.quality
+);
+
+function reset() {
+  topColor.value = DEFAULTS.topColor;
+  bottomColor.value = DEFAULTS.bottomColor;
+  intensity.value = DEFAULTS.intensity;
+  rotationSpeed.value = DEFAULTS.rotationSpeed;
+  interactive.value = DEFAULTS.interactive;
+  glowAmount.value = DEFAULTS.glowAmount;
+  pillarWidth.value = DEFAULTS.pillarWidth;
+  pillarHeight.value = DEFAULTS.pillarHeight;
+  noiseIntensity.value = DEFAULTS.noiseIntensity;
+  pillarRotation.value = DEFAULTS.pillarRotation;
+  mixBlendMode.value = DEFAULTS.mixBlendMode;
+  quality.value = DEFAULTS.quality;
+  forceRerender();
+}
 
 const blendModeOptions = [
   { value: 'normal', label: 'Normal' },
@@ -84,7 +143,7 @@ const blendModeOptions = [
   { value: 'luminosity', label: 'Luminosity' }
 ];
 
-const propData = [
+const props: PropRow[] = [
   {
     name: 'topColor',
     type: 'string',
@@ -156,6 +215,13 @@ const propData = [
     type: 'number',
     default: '0',
     description: 'Rotation angle of the pillar in degrees (0-360).'
+  },
+  {
+    name: 'quality',
+    type: "'low' | 'medium' | 'high'",
+    default: "'high'",
+    description:
+      'Rendering quality level. Lower settings improve performance on mobile devices. Mobile devices automatically downgrade from high to medium.'
   }
 ];
 </script>

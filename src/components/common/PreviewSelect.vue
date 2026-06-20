@@ -1,118 +1,91 @@
 <template>
-  <div class="preview-select">
-    <span class="select-label">{{ title }}</span>
+  <div class="scrubber" ref="rootEl" style="position: relative">
+    <button
+      type="button"
+      class="scrubber-track scrubber-track--select"
+      aria-haspopup="listbox"
+      :aria-expanded="open"
+      :aria-label="title"
+      :aria-disabled="isDisabled"
+      :data-disabled="isDisabled"
+      :data-active="open"
+      :tabindex="isDisabled ? -1 : 0"
+      @click="!isDisabled && (open = !open)"
+    >
+      <span class="scrubber-label">{{ title }}</span>
+      <span class="scrubber-select-right">
+        <span class="scrubber-value">{{ current?.label ?? modelValue }}</span>
+        <svg
+          :class="['scrubber-caret', { 'scrubber-caret--open': open }]"
+          width="14"
+          height="14"
+          viewBox="0 0 16 16"
+          fill="none"
+        >
+          <path
+            d="M4 6l4 4 4-4"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+    </button>
 
-    <Select
-      v-model="model"
-      :options="options"
-      v-bind="selectAttributes"
-      :placeholder="placeholder"
-      :disabled="disabled"
-      class="custom-select"
-    />
+    <div v-if="open" class="scrubber-dropdown" role="listbox">
+      <button
+        v-for="opt in normalized"
+        :key="opt.value"
+        type="button"
+        :class="['scrubber-dropdown-item', { 'scrubber-dropdown-item--active': opt.value === modelValue }]"
+        role="option"
+        :aria-selected="opt.value === modelValue"
+        @click="pick(opt.value)"
+      >
+        {{ opt.label }}
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import Select from 'primevue/select';
+import { computed, onUnmounted, ref, watch } from 'vue';
 
-interface Option {
-  label: string;
-  value: string | number;
-}
+type Option = { label: string; value: string };
 
-const props = defineProps<{
-  title: string;
-  options: Option[] | string[] | number[];
-  optionLabel?: string;
-  optionValue?: string;
-  placeholder?: string;
-  disabled?: boolean;
+const {
+  title = '',
+  isDisabled = false,
+  options = []
+} = defineProps<{
+  title?: string;
+  isDisabled?: boolean;
+  options?: Option[] | string[];
 }>();
 
-const model = defineModel<string | number>();
+const modelValue = defineModel<string | number>({ default: '' });
 
-const isObjectArray = computed(() => {
-  return props.options.length > 0 && typeof props.options[0] === 'object';
+const open = ref(false);
+const rootEl = ref<HTMLDivElement | null>(null);
+
+const normalized = computed<Option[]>(() => options.map(o => (typeof o === 'string' ? { label: o, value: o } : o)));
+
+const current = computed(() => normalized.value.find(o => o.value === modelValue.value));
+
+function pick(v: string) {
+  modelValue.value = v;
+  open.value = false;
+}
+
+function onOutsideClick(e: MouseEvent) {
+  if (rootEl.value && !rootEl.value.contains(e.target as Node)) open.value = false;
+}
+
+watch(open, v => {
+  if (v) document.addEventListener('mousedown', onOutsideClick);
+  else document.removeEventListener('mousedown', onOutsideClick);
 });
 
-const selectAttributes = computed(() => {
-  if (isObjectArray.value) {
-    return {
-      optionLabel: props.optionLabel || 'label',
-      optionValue: props.optionValue || 'value'
-    };
-  }
-  return {};
-});
+onUnmounted(() => document.removeEventListener('mousedown', onOutsideClick));
 </script>
-
-<style scoped>
-.preview-select {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin: 1.5rem 0;
-}
-
-.select-label {
-  font-size: 14px;
-  color: #fff;
-  white-space: nowrap;
-}
-
-.custom-select {
-  width: 150px;
-}
-
-:deep(.p-select) {
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 6px;
-  color: #fff;
-  font-size: 0.875rem;
-  min-height: 2.5rem;
-  padding: 0;
-}
-
-:deep(.p-select:hover) {
-  border-color: #555;
-}
-
-:deep(.p-select:focus) {
-  outline: none;
-  border-color: #555;
-  box-shadow: 0 0 0 2px rgba(82, 39, 255, 0.2);
-}
-
-:deep(.p-select-label) {
-  color: #fff;
-  padding: 0.5rem;
-}
-
-:deep(.p-select-dropdown) {
-  background: #1a1a1a;
-  border: none;
-  color: #fff;
-  width: 2.5rem;
-  border-radius: 0 6px 6px 0;
-}
-
-:deep(.p-select-dropdown:hover) {
-  background: #333;
-}
-
-:deep(.p-select-overlay) {
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-:deep(.p-select-option) {
-  color: #fff;
-  padding: 0.5rem;
-  transition: background-color 0.2s;
-}
-</style>

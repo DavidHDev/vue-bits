@@ -1,5 +1,5 @@
-import code from '@content/Components/ReflectiveCard/ReflectiveCard.vue?raw';
-import { createCodeObject } from '../../../types/code';
+import code from '@/content/Components/ReflectiveCard/ReflectiveCard.vue?raw';
+import { createCodeObject } from '@/types/code';
 
 export const reflectiveCard = createCodeObject(code, 'Components/ReflectiveCard', {
   installation: `npm install lucide-vue-next`,

@@ -1,5 +1,5 @@
-import code from '@content/Backgrounds/GridMotion/GridMotion.vue?raw';
-import { createCodeObject } from '../../../types/code';
+import code from '@/content/Backgrounds/GridMotion/GridMotion.vue?raw';
+import { createCodeObject } from '@/types/code';
 
 export const gridMotion = createCodeObject(code, 'Backgrounds/GridMotion', {
   installation: `npm install gsap`,

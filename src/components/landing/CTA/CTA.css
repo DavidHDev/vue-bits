@@ -1,0 +1,198 @@
+/* ══════════════════════════════════════════════
+   CTA (Final)
+   ══════════════════════════════════════════════ */
+
+@property --cta-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.ln-cta-section {
+  position: relative;
+  width: 100%;
+  padding: 100px 0 160px;
+  background: var(--bg-body);
+  z-index: 4;
+  overflow: hidden;
+}
+
+.ln-cta-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 700px;
+  height: 500px;
+  background: radial-gradient(ellipse, rgba(0, 255, 169, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── Inner container ─── */
+
+.ln-cta-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 1324px;
+  margin: 0 auto;
+  padding: 0 24px;
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
+}
+
+.ln-cta-inner.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── Card wrapper (holds rotating border) ─── */
+
+.ln-cta-card-wrapper {
+  position: relative;
+}
+
+.ln-cta-card-border {
+  position: absolute;
+  inset: -1px;
+  border-radius: 30px;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--cta-angle),
+    transparent 0%,
+    rgba(0, 255, 169, 0.35) 10%,
+    transparent 20%,
+    transparent 50%,
+    rgba(0, 255, 169, 0.58) 60%,
+    transparent 70%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  animation: cta-border-spin 8s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes cta-border-spin {
+  to {
+    --cta-angle: 360deg;
+  }
+}
+
+/* ─── Card ─── */
+
+.ln-cta-card {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 100px 0;
+  border-radius: 30px;
+  background: rgba(0, 255, 169, 0.025);
+  backdrop-filter: blur(32px) saturate(1.3);
+  -webkit-backdrop-filter: blur(32px) saturate(1.3);
+  box-shadow:
+    0 4px 32px rgba(0, 0, 0, 0.1),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* ─── Headlines ─── */
+
+.ln-cta-headline {
+  font-family: 'Geist Pixel Line', sans-serif;
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 0 0 12px;
+}
+
+.ln-cta-sub {
+  font-family: 'Geist', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.35);
+  margin: 0 0 32px;
+  max-width: 46ch;
+}
+
+/* ─── Buttons ─── */
+
+.ln-cta-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.ln-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 11px 22px;
+  border-radius: 10px;
+  text-decoration: none;
+  transition:
+    filter 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.ln-cta-btn--primary {
+  background: #fff;
+  color: var(--bg-body);
+  border: 1px solid #fff;
+}
+
+.ln-cta-btn--primary:hover {
+  filter: brightness(0.88);
+  transform: translateY(-1px);
+}
+
+.ln-cta-btn--secondary {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ln-cta-btn--secondary:hover {
+  border-color: rgba(0, 255, 169, 0.35);
+  background: rgba(0, 255, 169, 0.06);
+  color: rgba(255, 255, 255, 0.9);
+  transform: translateY(-1px);
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 600px) {
+  .ln-cta-section {
+    padding: 72px 0 96px;
+  }
+
+  .ln-cta-card {
+    padding: 36px 24px 32px;
+  }
+
+  .ln-cta-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .ln-cta-btn {
+    justify-content: center;
+  }
+}

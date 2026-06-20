@@ -1,85 +1,132 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Logo Loop</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="logoLoop.usage"
+    :source="logoLoopSource"
+    component-name="LogoLoop"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[500px] overflow-hidden">
+      <div class="h-[400px] overflow-hidden demo-container">
         <LogoLoop
           :key="key"
           :logos="items"
           width="100%"
-          :gap="gap"
           :speed="speed"
-          :direction="direction"
-          :scale-on-hover="scaleOnHover"
-          :pause-on-hover="pauseOnHover"
+          :logo-height="logoHeight"
+          :gap="gap"
+          :hover-speed="hoverSpeed"
           :fade-out="fadeOut"
           fade-out-color="#0b0b0b"
-          aria-label="Our icons"
-        />
+          :scale-on-hover="scaleOnHover"
+          :direction="direction"
+          aria-label="Our tech stack"
+        >
+          <!-- Only provide this slot when useCustomRender is true -->
+          <template v-if="useCustomRender" #renderItem="{ item }">
+            <div
+              style="padding: 8px; border: 2px solid #a0ffbc; border-radius: 8px; background: rgba(139, 92, 246, 0.1)"
+            >
+              <span v-if="'node' in item" v-html="item.node" />
+              <img v-else :src="item.src" :alt="item.alt" :style="{ height: `${logoHeight}px` }" />
+            </div>
+          </template>
+        </LogoLoop>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewSelect title="Direction" v-model="direction" :options="directionOptions" />
-        <PreviewSlider title="Speed" :min="0" :max="300" :step="10" value-unit="px/s" v-model="speed" />
-        <PreviewSlider title="Gap" :min="10" :max="120" :step="5" value-unit="px" v-model="gap" />
-        <PreviewSwitch title="Pause on Hover" v-model="pauseOnHover" />
-        <PreviewSwitch title="Fade Out" v-model="fadeOut" />
-        <PreviewSwitch title="Scale on Hover" v-model="scaleOnHover" />
+        <PreviewSelect title="Direction" v-model="direction" :options="['left', 'right', 'up', 'down']" />
+        <PreviewSlider title="Speed" :min="10" :max="400" :step="10" :value="speed" :value-unit="'px/s'" />
+        <PreviewSlider title="Logo Height" :min="20" :max="140" :step="2" :value="logoHeight" :value-unit="'px'" />
+        <PreviewSlider title="Gap" :min="0" :max="160" :step="4" :value="gap" :value-unit="'px'" />
+        <PreviewSlider title="Hover Speed" :min="0" :max="400" :step="10" :value="hoverSpeed" :value-unit="'px/s'" />
+        <PreviewSwitch title="Fade Out Edges" v-model="fadeOut" />
+        <PreviewSwitch title="Scale On Hover" v-model="scaleOnHover" />
+        <PreviewSwitch title="Use Custom Render" v-model="useCustomRender" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="logoLoop" />
+      <DemoCodeTab slug="logo-loop" :usage="logoLoop.usage!" :source="logoLoopSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="logoLoop.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
 import { logoLoop } from '@/constants/code/Animations/logoLoopCode';
-import { ref } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSelect from '../../components/common/PreviewSelect.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import LogoLoop from '../../content/Animations/LogoLoop/LogoLoop.vue';
+import LogoLoop from '@/content/Animations/LogoLoop/LogoLoop.vue';
+import logoLoopSource from '@/content/Animations/LogoLoop/LogoLoop.vue?raw';
+import { computed, ref } from 'vue';
 
-const { rerenderKey: key } = useForceRerender();
+const { rerenderKey: key, forceRerender } = useForceRerender();
 
-const speed = ref(100);
-const gap = ref(60);
-const pauseOnHover = ref(true);
-const fadeOut = ref(true);
-const scaleOnHover = ref(true);
-const direction = ref<'left' | 'right'>('left');
+const DEFAULTS = {
+  speed: 100,
+  logoHeight: 60,
+  gap: 60,
+  hoverSpeed: 0,
+  fadeOut: true,
+  scaleOnHover: true,
+  direction: 'left' as 'left' | 'right' | 'up' | 'down',
+  useCustomRender: false
+};
 
-const directionOptions = [
-  { value: 'left', label: 'Left' },
-  { value: 'right', label: 'Right' }
-];
+const speed = ref(DEFAULTS.speed);
+const logoHeight = ref(DEFAULTS.logoHeight);
+const gap = ref(DEFAULTS.gap);
+const hoverSpeed = ref(DEFAULTS.hoverSpeed);
+const fadeOut = ref(DEFAULTS.fadeOut);
+const scaleOnHover = ref(DEFAULTS.scaleOnHover);
+const direction = ref<'left' | 'right' | 'up' | 'down'>(DEFAULTS.direction);
+const useCustomRender = ref(DEFAULTS.useCustomRender);
 
 const items = [
   { node: `<i class="pi pi-reddit" style="font-size: 4rem;"></i>`, title: 'Settings', href: 'https://vue-bits.dev/' },
   { node: `<i class="pi pi-paypal" style="font-size: 4rem;"></i>`, title: 'Web', href: 'https://vue-bits.dev/' },
-  { node: `<i class="pi pi-linkedin" style="font-size: 4rem;"></i>`, title: 'Code', href: 'https://vue-bits.dev/' },
-  { node: `<i class="pi pi-facebook" style="font-size: 4rem;"></i>`, title: 'Design', href: 'https://vue-bits.dev/' },
-  { node: `<i class="pi pi-tiktok" style="font-size: 4rem;"></i>`, title: 'Cloud', href: 'https://vue-bits.dev/' },
-  { node: `<i class="pi pi-github" style="font-size: 4rem;"></i>`, title: 'GitHub', href: 'https://vue-bits.dev/' },
-  { node: `<i class="pi pi-google" style="font-size: 4rem;"></i>`, title: 'Container', href: 'https://vue-bits.dev/' },
-  { node: `<i class="pi pi-youtube" style="font-size: 4rem;"></i>`, title: 'Database', href: 'https://vue-bits.dev/' },
-  { node: `<i class="pi pi-twitch" style="font-size: 4rem;"></i>`, title: 'Server', href: 'https://vue-bits.dev/' }
+  { node: `<i class="pi pi-linkedin" style="font-size: 4rem;"></i>`, title: 'Code', href: 'https://vue-bits.dev/' }
 ];
 
-const propData = [
+const hasChanges = computed(
+  () =>
+    speed.value !== DEFAULTS.speed ||
+    logoHeight.value !== DEFAULTS.logoHeight ||
+    gap.value !== DEFAULTS.gap ||
+    hoverSpeed.value !== DEFAULTS.hoverSpeed ||
+    fadeOut.value !== DEFAULTS.fadeOut ||
+    scaleOnHover.value !== DEFAULTS.scaleOnHover ||
+    direction.value !== DEFAULTS.direction ||
+    useCustomRender.value !== DEFAULTS.useCustomRender
+);
+
+function reset() {
+  speed.value = DEFAULTS.speed;
+  logoHeight.value = DEFAULTS.logoHeight;
+  gap.value = DEFAULTS.gap;
+  hoverSpeed.value = DEFAULTS.hoverSpeed;
+  fadeOut.value = DEFAULTS.fadeOut;
+  scaleOnHover.value = DEFAULTS.scaleOnHover;
+  direction.value = DEFAULTS.direction;
+  useCustomRender.value = DEFAULTS.useCustomRender;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'logos',
     type: 'LogoItem[]',
@@ -95,9 +142,10 @@ const propData = [
   },
   {
     name: 'direction',
-    type: "'left' | 'right'",
+    type: "'left' | 'right' | 'up' | 'down'",
     default: "'left'",
-    description: 'Direction of the logo animation loop.'
+    description:
+      'Direction of the logo animation loop. Supports horizontal (left/right) and vertical (up/down) scrolling.'
   },
   {
     name: 'width',
@@ -118,10 +166,10 @@ const propData = [
     description: 'Gap between logos in pixels.'
   },
   {
-    name: 'pauseOnHover',
-    type: 'boolean',
-    default: 'true',
-    description: 'Whether to pause the animation when hovering over the component.'
+    name: 'hoverSpeed',
+    type: 'number | undefined',
+    default: '0',
+    description: 'Speed when hovering over the component. Set to 0 to pause, or a lower value for deceleration effect.'
   },
   {
     name: 'fadeOut',
@@ -142,6 +190,13 @@ const propData = [
     description: 'Whether to scale logos on hover.'
   },
   {
+    name: 'renderItem',
+    type: '(item: LogoItem, key: React.Key) => React.ReactNode',
+    default: 'undefined',
+    description:
+      'Custom render function for each logo item. Allows full control over item rendering for animations, tooltips, etc.'
+  },
+  {
     name: 'ariaLabel',
     type: 'string',
     default: "'Partner logos'",
@@ -155,8 +210,8 @@ const propData = [
   },
   {
     name: 'style',
-    type: 'object',
-    default: '{}',
+    type: 'CSSProperties',
+    default: 'undefined',
     description: 'Inline styles to apply to the root element.'
   }
 ];

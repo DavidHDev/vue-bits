@@ -1,32 +1,42 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Crosshair</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="crosshair.usage"
+    :source="crosshairSource"
+    component-name="Crosshair"
+    :props-table="props"
+  >
     <template #preview>
-      <div ref="containerRef" class="demo-container min-h-[300px] overflow-hidden">
-        <Crosshair :container-ref="targeted ? containerElement : null" :color="color" />
+      <div ref="containerRef" class="min-h-[300px] overflow-hidden demo-container">
+        <Crosshair :container-ref="targeted ? null : containerRef" :color="color" />
 
         <div class="flex flex-col justify-center items-center">
           <a
             ref="linkRef"
             href="https://github.com/DavidHDev/vue-bits"
-            class="text-center font-black text-[2rem] md:text-[4rem] transition-all duration-300 ease-in-out hover:text-[#27FF64]"
+            class="font-black text-[2rem] md:text-[4rem] hover:text-[#27FF64] text-center transition-all duration-300 ease-in-out"
             :style="{ minWidth: minWidth + 'px' }"
-            @mouseenter="handleMouseEnter"
-            @mouseleave="handleMouseLeave"
+            @mouseenter="() => (linkText = 'Locked')"
+            @mouseleave="() => (linkText = DEFAULT_TEXT)"
           >
             {{ linkText }}
           </a>
-          <p class="relative -top-[10px] text-[#444] text-sm">(hover the text)</p>
+          <p class="-top-[10px] relative text-[#444] text-sm">(hover the text)</p>
         </div>
 
         <span
           ref="hiddenRef"
-          class="absolute invisible whitespace-nowrap pointer-events-none overflow-hidden text-center font-black text-[2rem] md:text-[4rem]"
+          class="invisible absolute overflow-hidden font-black text-[2rem] md:text-[4rem] text-center whitespace-nowrap pointer-events-none"
           aria-hidden="true"
         >
           {{ linkText }}
         </span>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSelect
           title="Target"
@@ -34,55 +44,64 @@
             { label: 'Container', value: 'targeted' },
             { label: 'Viewport', value: 'viewport' }
           ]"
-          v-model="targetedMode"
+          :model-value="targeted ? 'viewport' : 'targeted'"
+          @update:model-value="(val: string | number) => (targeted = val === 'viewport')"
         />
-
-        <PreviewColor title="Crosshair Color" v-model="color" />
+        <PreviewColorPicker title="Crosshair Color" v-model="color" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['gsap']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="crosshair" />
+      <DemoCodeTab slug="crosshair" :usage="crosshair.usage!" :source="crosshairSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="crosshair.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, useTemplateRef, nextTick, computed } from 'vue';
-import TabbedLayout from '@/components/common/TabbedLayout.vue';
-import PropTable from '@/components/common/PropTable.vue';
-import Dependencies from '@/components/code/Dependencies.vue';
-import CliInstallation from '@/components/code/CliInstallation.vue';
-import CodeExample from '@/components/code/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import PreviewColor from '@/components/common/PreviewColor.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
-
-import Crosshair from '@/content/Animations/Crosshair/Crosshair.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { crosshair } from '@/constants/code/Animations/crosshairCode';
+import Crosshair from '@/content/Animations/Crosshair/Crosshair.vue';
+import crosshairSource from '@/content/Animations/Crosshair/Crosshair.vue?raw';
+import { computed, nextTick, ref, useTemplateRef, watch } from 'vue';
 
-const DEFAULT_TEXT = 'Aim... aand...';
+const { forceRerender } = useForceRerender();
+
+const DEFAULT_TEXT = 'Target';
+
+const DEFAULTS = {
+  color: '#ffffff',
+  targeted: true
+};
 
 const linkText = ref(DEFAULT_TEXT);
-const color = ref('#ffffff');
-const targetedMode = ref('targeted');
+const color = ref(DEFAULTS.color);
+const targeted = ref(DEFAULTS.targeted);
+
+const linkRef = useTemplateRef('linkRef');
+const containerRef = useTemplateRef('containerRef');
+const hiddenRef = useTemplateRef('hiddenRef');
+
 const minWidth = ref(0);
 
-const containerRef = useTemplateRef<HTMLDivElement>('containerRef');
-const linkRef = useTemplateRef<HTMLAnchorElement>('linkRef');
-const hiddenRef = useTemplateRef<HTMLSpanElement>('hiddenRef');
+const hasChanges = computed(() => color.value !== DEFAULTS.color || targeted.value !== DEFAULTS.targeted);
 
-const containerElement = computed(() => containerRef.value);
-const targeted = computed(() => targetedMode.value === 'targeted');
+function reset() {
+  color.value = DEFAULTS.color;
+  targeted.value = DEFAULTS.targeted;
+  forceRerender();
+}
 
-const propData = [
+const props: PropRow[] = [
   {
     name: 'color',
     type: 'string',
@@ -98,42 +117,17 @@ const propData = [
   }
 ];
 
-const handleMouseEnter = () => {
-  linkText.value = 'Shoot!!!';
-};
-
-const handleMouseLeave = () => {
-  linkText.value = DEFAULT_TEXT;
-};
-
-const updateMinWidth = async () => {
-  await nextTick();
-  if (hiddenRef.value) {
-    const width = hiddenRef.value.getBoundingClientRect().width;
-    if (minWidth.value < width) {
-      minWidth.value = width;
-    }
-  }
-};
-
-onMounted(() => {
-  updateMinWidth();
-});
-
-let resizeObserver: ResizeObserver | null = null;
-
-onMounted(() => {
-  if (hiddenRef.value) {
-    resizeObserver = new ResizeObserver(() => {
-      updateMinWidth();
+watch(
+  () => [linkText.value, color.value, targeted.value],
+  () => {
+    nextTick(() => {
+      if (hiddenRef.value) {
+        if (minWidth.value < hiddenRef.value.getBoundingClientRect().width) {
+          minWidth.value = hiddenRef.value.getBoundingClientRect().width;
+        }
+      }
     });
-    resizeObserver.observe(hiddenRef.value);
-  }
-});
-
-onUnmounted(() => {
-  if (resizeObserver) {
-    resizeObserver.disconnect();
-  }
-});
+  },
+  { immediate: true }
+);
 </script>

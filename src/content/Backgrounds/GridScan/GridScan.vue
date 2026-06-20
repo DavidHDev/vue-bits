@@ -2,10 +2,10 @@
   <div ref="containerRef" :class="['relative w-full h-full overflow-hidden', className]" :style="style">
     <div
       v-if="showPreview"
-      class="absolute right-3 bottom-3 w-[220px] h-[132px] rounded-lg overflow-hidden border border-white/25 shadow-[0_4px_16px_rgba(0,0,0,0.4)] bg-black text-white text-[12px] leading-[1.2] font-sans pointer-events-none"
+      class="right-3 bottom-3 absolute bg-black shadow-[0_4px_16px_rgba(0,0,0,0.4)] border border-white/25 rounded-lg w-[220px] h-[132px] overflow-hidden font-sans text-[12px] text-white leading-[1.2] pointer-events-none"
     >
       <video ref="videoRef" muted playsinline autoplay class="w-full h-full object-cover -scale-x-100" />
-      <div class="absolute left-2 top-2 px-[6px] py-[2px] bg-black/50 rounded-[6px] backdrop-blur-[4px]">
+      <div class="top-2 left-2 absolute bg-black/50 backdrop-blur-[4px] px-[6px] py-[2px] rounded-[6px]">
         {{
           enableWebcam
             ? modelsReady
@@ -21,10 +21,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, useTemplateRef, type CSSProperties } from 'vue';
-import { EffectComposer, RenderPass, EffectPass, BloomEffect, ChromaticAberrationEffect } from 'postprocessing';
-import * as THREE from 'three';
 import * as faceapi from 'face-api.js';
+import { BloomEffect, ChromaticAberrationEffect, EffectComposer, EffectPass, RenderPass } from 'postprocessing';
+import * as THREE from 'three';
+import { onMounted, onUnmounted, ref, useTemplateRef, watch, type CSSProperties } from 'vue';
 
 export type LineStyle = 'solid' | 'dashed' | 'dotted';
 export type ScanDirection = 'forward' | 'backward' | 'pingpong';
@@ -60,14 +60,18 @@ interface GridScanProps {
   style?: CSSProperties;
 }
 
+interface DeviceOrientationEventWithPermission {
+  requestPermission?: () => Promise<'granted' | 'denied'>;
+}
+
 const props = withDefaults(defineProps<GridScanProps>(), {
   enableWebcam: false,
   showPreview: false,
   modelsPath: 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights',
   sensitivity: 0.55,
   lineThickness: 1,
-  linesColor: '#392e4e',
-  scanColor: '#FF9FFC',
+  linesColor: '#2c3d32',
+  scanColor: '#48FF28',
   scanOpacity: 0.4,
   gridScale: 0.1,
   lineStyle: 'solid',
@@ -384,7 +388,7 @@ const smoothDampVec2 = (
   const x = omega * deltaTime;
   const exp = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
 
-  let change = current.clone().sub(target);
+  const change = current.clone().sub(target);
   const originalTo = target.clone();
 
   const maxChange = maxSpeedVal * smoothTimeVal;
@@ -592,14 +596,21 @@ const setupAnimation = () => {
   const onClick = async (): Promise<void> => {
     const nowSec = performance.now() / 1000;
     if (props.scanOnClick) pushScan(nowSec);
+
+    const DeviceOrientation = DeviceOrientationEvent as typeof DeviceOrientationEvent &
+      DeviceOrientationEventWithPermission;
+
     if (
       props.enableGyro &&
       typeof window !== 'undefined' &&
-      (window as any).DeviceOrientationEvent &&
-      (DeviceOrientationEvent as any).requestPermission
+      window.DeviceOrientationEvent &&
+      DeviceOrientation.requestPermission
     ) {
       try {
-        await (DeviceOrientationEvent as any).requestPermission();
+        const permission = await DeviceOrientation.requestPermission();
+        if (permission !== 'granted') {
+          return;
+        }
       } catch {}
     }
   };
@@ -731,7 +742,7 @@ const setupAnimation = () => {
       }
 
       if ('requestVideoFrameCallback' in HTMLVideoElement.prototype) {
-        (video as any).requestVideoFrameCallback(() => detect(performance.now()));
+        video.requestVideoFrameCallback(() => detect(performance.now()));
       } else {
         requestAnimationFrame(detect);
       }
@@ -813,8 +824,8 @@ const setupAnimation = () => {
 
       if (bloom) {
         bloom.blendMode.opacity.value = Math.max(0, props.bloomIntensity);
-        (bloom as any).luminanceMaterial.threshold = props.bloomThreshold;
-        (bloom as any).luminanceMaterial.smoothing = props.bloomSmoothing;
+        bloom.luminanceMaterial.threshold = props.bloomThreshold;
+        bloom.luminanceMaterial.smoothing = props.bloomSmoothing;
       }
       if (chroma) {
         chroma.offset.set(props.chromaticAberration, props.chromaticAberration);

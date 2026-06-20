@@ -1,12 +1,19 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Split Text</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="splitText.usage"
+    :source="splitTextSource"
+    component-name="SplitText"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="h-[400px] demo-container">
-        <RefreshButton @refresh="forceRerender" />
-
+      <div class="relative h-[400px] demo-container">
+        <RefreshButton @click="forceRerender" />
         <SplitText
           :key="rerenderKey"
-          text="Hello, Vue!"
+          :text="DEFAULTS.text"
           :delay="delay"
           :duration="duration"
           :ease="ease"
@@ -19,91 +26,95 @@
           "
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <div class="flex flex-wrap gap-4">
-          <button
-            class="bg-[#0b0b0b] hover:bg-[#222] px-3 border border-[#333] rounded-[10px] h-8 text-white text-xs transition-colors cursor-pointer"
-            @click="toggleSplitType"
-          >
-            Split Type:
-            <span class="text-[#a1a1aa]">&nbsp;{{ splitType }}</span>
-          </button>
-
-          <button
-            class="bg-[#0b0b0b] hover:bg-[#222] px-3 border border-[#333] rounded-[10px] h-8 text-white text-xs transition-colors cursor-pointer"
-            @click="toggleEase"
-          >
-            Ease:
-            <span class="text-[#a1a1aa]">&nbsp;{{ ease }}</span>
-          </button>
-        </div>
-
+        <PreviewSelect title="Split Type" v-model="splitType" :options="['chars', 'words', 'lines']" />
+        <PreviewSelect title="Ease" v-model="ease" :options="easeOptions" />
         <PreviewSlider title="Stagger Delay (ms)" v-model="delay" :min="10" :max="500" :step="10" />
         <PreviewSlider title="Duration (s)" v-model="duration" :min="0.1" :max="2" :step="0.1" />
         <PreviewSwitch title="Show Completion Toast" v-model="showCallback" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-
-      <Dependencies :dependency-list="['gsap']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="splitText" />
+      <DemoCodeTab slug="split-text" :usage="splitText.usage!" :source="splitTextSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="splitText.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import CliInstallation from '@/components/code/CliInstallation.vue';
-import CodeExample from '@/components/code/CodeExample.vue';
-import Dependencies from '@/components/code/Dependencies.vue';
 import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
-import PropTable from '@/components/common/PropTable.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
 import RefreshButton from '@/components/common/RefreshButton.vue';
-import TabbedLayout from '@/components/common/TabbedLayout.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
 import { splitText } from '@/constants/code/TextAnimations/splitTextCode';
 import SplitText from '@/content/TextAnimations/SplitText/SplitText.vue';
+import splitTextSource from '@/content/TextAnimations/SplitText/SplitText.vue?raw';
 import { useToast } from 'primevue/usetoast';
-import { ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 
 const { rerenderKey, forceRerender } = useForceRerender();
 const toast = useToast();
 
-const delay = ref(50);
-const duration = ref(1.25);
-const ease = ref<'power3.out' | 'bounce.out' | 'elastic.out(1, 0.3)'>('power3.out');
-const splitType = ref<'chars' | 'words' | 'lines'>('chars');
-const showCallback = ref(true);
-
-const toggleSplitType = () => {
-  splitType.value = splitType.value === 'chars' ? 'words' : splitType.value === 'words' ? 'lines' : 'chars';
-  forceRerender();
+const DEFAULTS = {
+  text: 'Hello, you!',
+  delay: 50,
+  duration: 1.25,
+  ease: 'power3.out' as 'power3.out' | 'bounce.out' | 'elastic.out(1, 0.3)',
+  splitType: 'chars' as 'chars' | 'words' | 'lines',
+  showCallback: true
 };
 
-const toggleEase = () => {
-  ease.value =
-    ease.value === 'power3.out' ? 'bounce.out' : ease.value === 'bounce.out' ? 'elastic.out(1, 0.3)' : 'power3.out';
-  forceRerender();
-};
+const delay = ref(DEFAULTS.delay);
+const duration = ref(DEFAULTS.duration);
+const ease = ref(DEFAULTS.ease);
+const splitType = ref(DEFAULTS.splitType);
+const showCallback = ref(DEFAULTS.showCallback);
+
+const easeOptions = [
+  { label: 'power3.out', value: 'power3.out' },
+  { label: 'bounce.out', value: 'bounce.out' },
+  { label: 'elastic.out', value: 'elastic.out(1, 0.3)' }
+];
 
 const showToast = () => {
   toast.add({
     severity: 'secondary',
-    summary: 'Animation Finished!',
+    summary: '✅ Animation Finished!',
     life: 3000
   });
 };
 
-const propData = [
+const hasChanges = computed(
+  () =>
+    delay.value !== DEFAULTS.delay ||
+    duration.value !== DEFAULTS.duration ||
+    ease.value !== DEFAULTS.ease ||
+    splitType.value !== DEFAULTS.splitType ||
+    showCallback.value !== DEFAULTS.showCallback
+);
+
+function reset() {
+  delay.value = DEFAULTS.delay;
+  duration.value = DEFAULTS.duration;
+  ease.value = DEFAULTS.ease;
+  splitType.value = DEFAULTS.splitType;
+  showCallback.value = DEFAULTS.showCallback;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'tag',
     type: 'string',
@@ -168,11 +179,18 @@ const propData = [
     description: 'Callback function when all animations complete.'
   }
 ];
-
-watch(
-  () => showCallback.value,
-  () => {
-    forceRerender();
-  }
-);
 </script>
+
+<style scoped>
+.split-text-demo {
+  font-size: 5rem;
+  font-weight: bolder;
+}
+
+@media only screen and (max-width: 967px) {
+  .split-text-demo {
+    font-size: 2rem;
+    font-weight: bolder;
+  }
+}
+</style>

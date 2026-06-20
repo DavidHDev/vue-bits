@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Lenis from 'lenis';
-import { defineComponent, h, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue';
+import { nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue';
 
 interface CardTransform {
   translateY: number;
@@ -20,6 +20,7 @@ interface ScrollStackProps {
   scaleDuration?: number;
   rotationAmount?: number;
   blurAmount?: number;
+  useWindowScroll?: boolean;
   onStackComplete?: () => void;
 }
 
@@ -33,7 +34,8 @@ const props = withDefaults(defineProps<ScrollStackProps>(), {
   baseScale: 0.85,
   scaleDuration: 0.5,
   rotationAmount: 0,
-  blurAmount: 0
+  blurAmount: 0,
+  useWindowScroll: false
 });
 
 const scrollerRef = useTemplateRef('scrollerRef');
@@ -57,23 +59,53 @@ const parsePercentage = (value: string | number, containerHeight: number) => {
   return parseFloat(value as string);
 };
 
+const getScrollData = () => {
+  if (props.useWindowScroll) {
+    return {
+      scrollTop: window.scrollY,
+      containerHeight: window.innerHeight,
+      scrollContainer: document.documentElement
+    };
+  } else {
+    const scroller = scrollerRef.value!;
+    return {
+      scrollTop: scroller.scrollTop,
+      containerHeight: scroller.clientHeight,
+      scrollContainer: scroller
+    };
+  }
+};
+
+const getElementOffset = (element: HTMLElement) => {
+  if (props.useWindowScroll) {
+    const rect = element.getBoundingClientRect();
+    return rect.top + window.scrollY;
+  } else {
+    return element.offsetTop;
+  }
+};
+
 const updateCardTransforms = () => {
-  const scroller = scrollerRef.value;
-  if (!scroller || !cardsRef.value.length || isUpdatingRef.value) return;
+  if (!cardsRef.value.length || isUpdatingRef.value) return;
+
+  if (!props.useWindowScroll && !scrollerRef.value) return;
 
   isUpdatingRef.value = true;
 
-  const scrollTop = scroller.scrollTop;
-  const containerHeight = scroller.clientHeight;
+  const { scrollTop, containerHeight } = getScrollData();
   const stackPositionPx = parsePercentage(props.stackPosition, containerHeight);
   const scaleEndPositionPx = parsePercentage(props.scaleEndPosition, containerHeight);
-  const endElement = scroller.querySelector('.scroll-stack-end') as HTMLElement;
-  const endElementTop = endElement ? endElement.offsetTop : 0;
+
+  const endElement = props.useWindowScroll
+    ? (document.querySelector('.scroll-stack-end') as HTMLElement | null)
+    : (scrollerRef.value?.querySelector('.scroll-stack-end') as HTMLElement | null);
+
+  const endElementTop = endElement ? getElementOffset(endElement) : 0;
 
   cardsRef.value.forEach((card, i) => {
     if (!card) return;
 
-    const cardTop = card.offsetTop;
+    const cardTop = getElementOffset(card);
     const triggerStart = cardTop - stackPositionPx - props.itemStackDistance * i;
     const triggerEnd = cardTop - scaleEndPositionPx;
     const pinStart = cardTop - stackPositionPx - props.itemStackDistance * i;
@@ -88,7 +120,7 @@ const updateCardTransforms = () => {
     if (props.blurAmount) {
       let topCardIndex = 0;
       for (let j = 0; j < cardsRef.value.length; j++) {
-        const jCardTop = cardsRef.value[j].offsetTop;
+        const jCardTop = getElementOffset(cardsRef.value[j]);
         const jTriggerStart = jCardTop - stackPositionPx - props.itemStackDistance * j;
         if (scrollTop >= jTriggerStart) {
           topCardIndex = j;
@@ -149,47 +181,76 @@ const updateCardTransforms = () => {
   isUpdatingRef.value = false;
 };
 
-const handleScroll = () => {
-  updateCardTransforms();
-};
+const handleScroll = () => updateCardTransforms();
 
 const setupLenis = () => {
-  const scroller = scrollerRef.value;
-  if (!scroller) return;
+  if (props.useWindowScroll) {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+      touchMultiplier: 2,
+      infinite: false,
+      wheelMultiplier: 1,
+      lerp: 0.1,
+      syncTouch: true,
+      syncTouchLerp: 0.075
+    });
 
-  const lenis = new Lenis({
-    wrapper: scroller,
-    content: scroller.querySelector('.scroll-stack-inner') as HTMLElement,
-    duration: 1.2,
-    easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-    smoothWheel: true,
-    touchMultiplier: 2,
-    infinite: false,
-    gestureOrientation: 'vertical',
-    wheelMultiplier: 1,
-    lerp: 0.1,
-    syncTouch: true,
-    syncTouchLerp: 0.075
-  });
+    lenis.on('scroll', handleScroll);
 
-  lenis.on('scroll', handleScroll);
-
-  const raf = (time: number) => {
-    lenis.raf(time);
+    const raf = (time: number) => {
+      lenis.raf(time);
+      animationFrameRef.value = requestAnimationFrame(raf);
+    };
     animationFrameRef.value = requestAnimationFrame(raf);
-  };
-  animationFrameRef.value = requestAnimationFrame(raf);
 
-  lenisRef.value = lenis;
-  return lenis;
+    lenisRef.value = lenis;
+    return lenis;
+  } else {
+    const scroller = scrollerRef.value;
+    if (!scroller) return;
+
+    const lenis = new Lenis({
+      wrapper: scroller,
+      content: scroller.querySelector('.scroll-stack-inner') as HTMLElement,
+      duration: 1.2,
+      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+      touchMultiplier: 2,
+      infinite: false,
+      gestureOrientation: 'vertical',
+      wheelMultiplier: 1,
+      lerp: 0.1,
+      syncTouch: true,
+      syncTouchLerp: 0.075
+    });
+
+    lenis.on('scroll', handleScroll);
+
+    const raf = (time: number) => {
+      lenis.raf(time);
+      animationFrameRef.value = requestAnimationFrame(raf);
+    };
+    animationFrameRef.value = requestAnimationFrame(raf);
+
+    lenisRef.value = lenis;
+    return lenis;
+  }
 };
 
 let cleanup: (() => void) | null = null;
+
 const setup = () => {
   const scroller = scrollerRef.value;
-  if (!scroller) return;
+  if (!props.useWindowScroll && !scroller) return;
 
-  const cards = Array.from(scroller.querySelectorAll('.scroll-stack-card')) as HTMLElement[];
+  const cards = Array.from(
+    props.useWindowScroll
+      ? document.querySelectorAll('.scroll-stack-card')
+      : scroller!.querySelectorAll('.scroll-stack-card')
+  ) as HTMLElement[];
+
   cardsRef.value = cards;
   const transformsCache = lastTransformsRef.value;
 
@@ -201,22 +262,17 @@ const setup = () => {
     card.style.transformOrigin = 'top center';
     card.style.backfaceVisibility = 'hidden';
     card.style.transform = 'translateZ(0)';
-    card.style.webkitTransform = 'translateZ(0)';
+    (card.style as CSSStyleDeclaration & { webkitTransform: string }).webkitTransform = 'translateZ(0)';
     card.style.perspective = '1000px';
-    card.style.webkitPerspective = '1000px';
+    (card.style as CSSStyleDeclaration & { webkitPerspective: string }).webkitPerspective = '1000px';
   });
 
   setupLenis();
-
   updateCardTransforms();
 
   cleanup = () => {
-    if (animationFrameRef.value) {
-      cancelAnimationFrame(animationFrameRef.value);
-    }
-    if (lenisRef.value) {
-      lenisRef.value.destroy();
-    }
+    if (animationFrameRef.value) cancelAnimationFrame(animationFrameRef.value);
+    if (lenisRef.value) lenisRef.value.destroy();
     stackCompletedRef.value = false;
     cardsRef.value = [];
     transformsCache.clear();
@@ -234,7 +290,7 @@ onBeforeUnmount(() => {
 });
 
 watch(
-  () => props,
+  () => ({ ...props }),
   () => {
     cleanup?.();
     setup();
@@ -244,6 +300,8 @@ watch(
 </script>
 
 <script lang="ts">
+import { defineComponent, h } from 'vue';
+
 export const ScrollStackItem = defineComponent({
   name: 'ScrollStackItem',
   props: {
@@ -272,6 +330,7 @@ export const ScrollStackItem = defineComponent({
 
 <template>
   <div
+    v-if="!useWindowScroll"
     ref="scrollerRef"
     :class="['relative w-full h-full overflow-y-auto overflow-x-visible', className]"
     :style="{
@@ -285,7 +344,13 @@ export const ScrollStackItem = defineComponent({
   >
     <div class="px-20 pt-[20vh] pb-[50rem] min-h-screen scroll-stack-inner">
       <slot />
-      <!-- Spacer so the last pin can release cleanly -->
+      <div class="w-full h-px scroll-stack-end" />
+    </div>
+  </div>
+
+  <div v-else ref="scrollerRef" :class="['scroll-stack-window-wrapper', className]">
+    <div class="scroll-stack-inner">
+      <slot />
       <div class="w-full h-px scroll-stack-end" />
     </div>
   </div>

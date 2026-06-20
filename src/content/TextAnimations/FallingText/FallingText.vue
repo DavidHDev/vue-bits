@@ -262,7 +262,7 @@ onUnmounted(() => {
 <template>
   <div
     ref="containerRef"
-    class="relative z-[1] w-full h-full cursor-pointer text-center pt-8 overflow-hidden"
+    class="z-[1] relative pt-8 w-full h-full overflow-hidden text-center cursor-pointer"
     @click="props.trigger === 'click' ? handleTrigger() : undefined"
     @mouseenter="props.trigger === 'hover' ? handleTrigger() : undefined"
   >
@@ -275,6 +275,6 @@ onUnmounted(() => {
       }"
     />
 
-    <div class="absolute top-0 left-0 z-0" ref="canvasContainerRef" />
+    <div class="top-0 left-0 z-0 absolute" ref="canvasContainerRef" />
   </div>
 </template>

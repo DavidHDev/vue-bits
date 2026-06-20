@@ -1,60 +1,72 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Pixel Card</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="pixelCard.usage"
+    :source="pixelCardSource"
+    component-name="PixelCard"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container relative min-h-[500px] max-h-[500px] overflow-hidden flex items-center justify-center">
+      <div class="relative h-[500px] overflow-hidden demo-container">
         <PixelCard :key="rerenderKey" :variant="selectedVariant">
-          <div class="absolute mix-blend-screen z-10 inset-0 flex items-center justify-center w-full h-full">
-            <h2 class="text-5xl font-black select-none text-[#222]">Hover Me.</h2>
+          <div class="z-10 absolute inset-0 flex justify-center items-center w-full h-full mix-blend-screen">
+            <h2 class="font-black text-[#222] text-5xl select-none">Hover Me.</h2>
           </div>
         </PixelCard>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewSelect title="Animation Variant" :options="variantOptions" v-model="selectedVariant" />
+        <PreviewSelect title="Variant" :options="['default', 'blue', 'yellow', 'pink']" v-model="selectedVariant" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="pixelCard" />
+      <DemoCodeTab slug="pixel-card" :usage="pixelCard.usage!" :source="pixelCardSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="pixelCard.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSelect from '../../components/common/PreviewSelect.vue';
-import PixelCard from '../../content/Components/PixelCard/PixelCard.vue';
-import { pixelCard } from '@/constants/code/Components/pixelCardCode';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
+import { pixelCard } from '@/constants/code/Components/pixelCardCode';
+import PixelCard from '@/content/Components/PixelCard/PixelCard.vue';
+import pixelCardSource from '@/content/Components/PixelCard/PixelCard.vue?raw';
+import { computed, ref } from 'vue';
 
-const selectedVariant = ref<'default' | 'blue' | 'yellow' | 'pink'>('default');
-const { rerenderKey } = useForceRerender();
+const { rerenderKey, forceRerender } = useForceRerender();
 
-const variantOptions = [
-  { value: 'default', label: 'Default' },
-  { value: 'yellow', label: 'Yellow' },
-  { value: 'blue', label: 'Blue' },
-  { value: 'pink', label: 'Pink' }
-];
+const DEFAULTS = {
+  variant: 'default' as 'default' | 'blue' | 'yellow' | 'pink'
+};
 
-const propData = [
+const selectedVariant = ref<'default' | 'blue' | 'yellow' | 'pink'>(DEFAULTS.variant);
+
+const hasChanges = computed(() => selectedVariant.value !== DEFAULTS.variant);
+
+function reset() {
+  selectedVariant.value = DEFAULTS.variant;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'variant',
-    type: 'string',
+    type: 'default | yellow | blue | pink',
     default: '"default"',
-    description: 'Defines the color scheme and animation style.',
-    options: 'default | yellow | blue | pink'
+    description: 'Defines the color scheme and animation style.'
   },
   {
     name: 'gap',

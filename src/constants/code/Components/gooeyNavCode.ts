@@ -1,29 +1,30 @@
-import code from '@content/Components/GooeyNav/GooeyNav.vue?raw';
-import { createCodeObject } from '../../../types/code';
+import code from '@/content/Components/GooeyNav/GooeyNav.vue?raw';
+import { createCodeObject } from '@/types/code';
 
 export const gooeyNav = createCodeObject(code, 'Components/GooeyNav', {
   usage: `<template>
-  <GooeyNav
-    :items="navItems"
-    :animation-time="600"
-    :particle-count="15"
-    :particle-distances="[90, 10]"
-    :particle-r="100"
-    :time-variance="300"
-    :colors="[1, 2, 3, 1, 2, 3, 1, 4]"
-    :initial-active-index="0"
-  />
+  <div style="height: 600px; position: relative;">
+    <GooeyNav
+      :items="items"
+      :particle-count="15"
+      :particle-distances="[90, 10]"
+      :particle-r="100"
+      :initial-active-index="0"
+      :animation-time="600"
+      :time-variance="300"
+      :colors="[1, 2, 3, 1, 2, 3, 1, 4]"
+    />
+  </div>
 </template>
 
-<script setup lang="ts">
-  import GooeyNav from "./GooeyNav.vue";
+<script setup>
+import GooeyNav from './GooeyNav.vue'
 
-  const navItems = [
-    { label: "Home", href: "/" },
-    { label: "About", href: "/about" },
-    { label: "Services", href: "/services" },
-    { label: "Contact", href: "/contact" },
-  ];
+const items = [
+  { label: "Home", href: "#" },
+  { label: "About", href: "#" },
+  { label: "Contact", href: "#" }
+]
 </script>
 
 <style>

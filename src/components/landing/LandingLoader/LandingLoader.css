@@ -1,0 +1,88 @@
+/* ══════════════════════════════════════════════
+   Landing Loader (svelte-bits — fade-only variant)
+   ══════════════════════════════════════════════ */
+
+.ln-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-body);
+  transition:
+    opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ln-loader--hide {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* svelte-bits wordmark logo with a subtle pulse */
+.ln-loader-logo {
+  display: block;
+  animation: ln-loader-fade 1.8s ease-in-out infinite;
+  opacity: 0.6;
+}
+
+.ln-loader-logo img {
+  display: block;
+  height: 36px;
+  width: auto;
+}
+
+@keyframes ln-loader-fade {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* ─── Page reveal ─── */
+.landing-wrapper.ln-loading,
+.landing-wrapper.ln-loaded {
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.landing-wrapper.ln-loading {
+  opacity: 0;
+}
+
+.landing-wrapper.ln-loaded {
+  opacity: 1;
+}
+
+/* navbar fades in */
+.landing-wrapper > header {
+  opacity: 0;
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.landing-wrapper.ln-loaded > header {
+  opacity: 1;
+}
+
+/* hero fades in */
+.landing-wrapper > .ln-hero {
+  opacity: 0;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s;
+}
+
+.landing-wrapper.ln-loaded > .ln-hero {
+  opacity: 1;
+}
+
+@keyframes ln-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

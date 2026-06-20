@@ -4,17 +4,17 @@ import { createCodeObject } from '@/types/code';
 export const trueFocus = createCodeObject(code, 'TextAnimations/TrueFocus', {
   installation: `npm install motion-v`,
   usage: `<template>
-  <TrueFocus
+  <TrueFocus 
     sentence="True Focus"
-    :manualMode="false"
-    :blurAmount="5"
-    borderColor="red"
-    :animationDuration="2"
-    :pauseBetweenAnimations="1"
+    :manual-mode="false"
+    :blur-amount="5"
+    border-color="red"
+    :animation-duration="2"
+    :pause-between-animations="1"
   />
 </template>
 
-<script setup lang="ts">
-  import TrueFocus from "./TrueFocus.vue";
+<script setup>
+import TrueFocus from './TrueFocus.vue'
 </script>`
 });

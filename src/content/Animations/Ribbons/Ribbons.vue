@@ -1,9 +1,9 @@
 <template>
-  <div ref="ribbonsContainer" class="relative w-full h-full overflow-hidden" />
+  <div ref="containerRef" class="relative w-full h-full" />
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch, useTemplateRef } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { Renderer, Transform, Vec3, Color, Polyline } from 'ogl';
 
 interface RibbonsProps {
@@ -36,120 +36,114 @@ const props = withDefaults(defineProps<RibbonsProps>(), {
   backgroundColor: () => [0, 0, 0, 0]
 });
 
-const ribbonsContainer = useTemplateRef<HTMLDivElement>('ribbonsContainer');
+const containerRef = ref<HTMLDivElement | null>(null);
 
-let renderer: Renderer;
-let scene: Transform;
-let lines: {
-  spring: number;
-  friction: number;
-  mouseVelocity: Vec3;
-  mouseOffset: Vec3;
-  points: Vec3[];
-  polyline: Polyline;
-}[] = [];
-let frameId: number;
-let lastTime = performance.now();
-const mouse = new Vec3();
-let resizeObserver: ResizeObserver | null = null;
+let cleanup: (() => void) | null = null;
 
-const vertex = `
-  precision highp float;
-  
-  attribute vec3 position;
-  attribute vec3 next;
-  attribute vec3 prev;
-  attribute vec2 uv;
-  attribute float side;
-  
-  uniform vec2 uResolution;
-  uniform float uDPR;
-  uniform float uThickness;
-  uniform float uTime;
-  uniform float uEnableShaderEffect;
-  uniform float uEffectAmplitude;
-  
-  varying vec2 vUV;
-  
-  vec4 getPosition() {
-      vec4 current = vec4(position, 1.0);
-      vec2 aspect = vec2(uResolution.x / uResolution.y, 1.0);
-      vec2 nextScreen = next.xy * aspect;
-      vec2 prevScreen = prev.xy * aspect;
-      vec2 tangent = normalize(nextScreen - prevScreen);
-      vec2 normal = vec2(-tangent.y, tangent.x);
-      normal /= aspect;
-      normal *= mix(1.0, 0.1, pow(abs(uv.y - 0.5) * 2.0, 2.0));
-      float dist = length(nextScreen - prevScreen);
-      normal *= smoothstep(0.0, 0.02, dist);
-      float pixelWidthRatio = 1.0 / (uResolution.y / uDPR);
-      float pixelWidth = current.w * pixelWidthRatio;
-      normal *= pixelWidth * uThickness;
-      current.xy -= normal * side;
-      if(uEnableShaderEffect > 0.5) {
-        current.xy += normal * sin(uTime + current.x * 10.0) * uEffectAmplitude;
-      }
-      return current;
-  }
-  
-  void main() {
-      vUV = uv;
-      gl_Position = getPosition();
-  }
-`;
-
-const fragment = `
-  precision highp float;
-  uniform vec3 uColor;
-  uniform float uOpacity;
-  uniform float uEnableFade;
-  varying vec2 vUV;
-  void main() {
-      float fadeFactor = 1.0;
-      if(uEnableFade > 0.5) {
-          fadeFactor = 1.0 - smoothstep(0.0, 1.0, vUV.y);
-      }
-      gl_FragColor = vec4(uColor, uOpacity * fadeFactor);
-  }
-`;
-
-const updateMouse = (e: MouseEvent | TouchEvent) => {
-  const container = ribbonsContainer.value;
+const init = () => {
+  const container = containerRef.value;
   if (!container) return;
 
-  let x: number, y: number;
-  const rect = container.getBoundingClientRect();
-
-  if ('changedTouches' in e && e.changedTouches.length) {
-    x = e.changedTouches[0].clientX - rect.left;
-    y = e.changedTouches[0].clientY - rect.top;
-  } else if (e instanceof MouseEvent) {
-    x = e.clientX - rect.left;
-    y = e.clientY - rect.top;
+  const renderer = new Renderer({ dpr: window.devicePixelRatio || 2, alpha: true });
+  const gl = renderer.gl;
+  if (Array.isArray(props.backgroundColor) && props.backgroundColor.length === 4) {
+    gl.clearColor(
+      props.backgroundColor[0],
+      props.backgroundColor[1],
+      props.backgroundColor[2],
+      props.backgroundColor[3]
+    );
   } else {
-    x = 0;
-    y = 0;
+    gl.clearColor(0, 0, 0, 0);
   }
 
-  const width = container.clientWidth;
-  const height = container.clientHeight;
-  mouse.set((x / width) * 2 - 1, (y / height) * -2 + 1, 0);
-};
+  gl.canvas.style.position = 'absolute';
+  gl.canvas.style.top = '0';
+  gl.canvas.style.left = '0';
+  gl.canvas.style.width = '100%';
+  gl.canvas.style.height = '100%';
+  container.appendChild(gl.canvas);
 
-const resize = () => {
-  const container = ribbonsContainer.value;
-  if (!container || !renderer) return;
+  const scene = new Transform();
+  const lines: {
+    spring: number;
+    friction: number;
+    mouseVelocity: Vec3;
+    mouseOffset: Vec3;
+    points: Vec3[];
+    polyline: Polyline;
+  }[] = [];
 
-  const width = container.clientWidth;
-  const height = container.clientHeight;
-  renderer.setSize(width, height);
-  lines.forEach(line => line.polyline.resize());
-};
+  const vertex = `
+      precision highp float;
+      
+      attribute vec3 position;
+      attribute vec3 next;
+      attribute vec3 prev;
+      attribute vec2 uv;
+      attribute float side;
+      
+      uniform vec2 uResolution;
+      uniform float uDPR;
+      uniform float uThickness;
+      uniform float uTime;
+      uniform float uEnableShaderEffect;
+      uniform float uEffectAmplitude;
+      
+      varying vec2 vUV;
+      
+      vec4 getPosition() {
+          vec4 current = vec4(position, 1.0);
+          vec2 aspect = vec2(uResolution.x / uResolution.y, 1.0);
+          vec2 nextScreen = next.xy * aspect;
+          vec2 prevScreen = prev.xy * aspect;
+          vec2 tangent = normalize(nextScreen - prevScreen);
+          vec2 normal = vec2(-tangent.y, tangent.x);
+          normal /= aspect;
+          normal *= mix(1.0, 0.1, pow(abs(uv.y - 0.5) * 2.0, 2.0));
+          float dist = length(nextScreen - prevScreen);
+          normal *= smoothstep(0.0, 0.02, dist);
+          float pixelWidthRatio = 1.0 / (uResolution.y / uDPR);
+          float pixelWidth = current.w * pixelWidthRatio;
+          normal *= pixelWidth * uThickness;
+          current.xy -= normal * side;
+          if(uEnableShaderEffect > 0.5) {
+            current.xy += normal * sin(uTime + current.x * 10.0) * uEffectAmplitude;
+          }
+          return current;
+      }
+      
+      void main() {
+          vUV = uv;
+          gl_Position = getPosition();
+      }
+    `;
 
-const createLines = () => {
+  const fragment = `
+      precision highp float;
+      uniform vec3 uColor;
+      uniform float uOpacity;
+      uniform float uEnableFade;
+      varying vec2 vUV;
+      void main() {
+          float fadeFactor = 1.0;
+          if(uEnableFade > 0.5) {
+              fadeFactor = 1.0 - smoothstep(0.0, 1.0, vUV.y);
+          }
+          gl_FragColor = vec4(uColor, uOpacity * fadeFactor);
+      }
+    `;
+
+  function resize() {
+    if (!container) return;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    renderer.setSize(width, height);
+    lines.forEach(line => line.polyline.resize());
+  }
+  window.addEventListener('resize', resize);
+
   const center = (props.colors.length - 1) / 2;
-  lines = [];
-
   props.colors.forEach((color, index) => {
     const spring = props.baseSpring + (Math.random() - 0.5) * 0.05;
     const friction = props.baseFriction + (Math.random() - 0.5) * 0.05;
@@ -176,7 +170,7 @@ const createLines = () => {
     }
     line.points = points;
 
-    line.polyline = new Polyline(renderer.gl, {
+    line.polyline = new Polyline(gl, {
       points,
       vertex,
       fragment,
@@ -193,163 +187,104 @@ const createLines = () => {
     line.polyline.mesh.setParent(scene);
     lines.push(line);
   });
-};
 
-const update = () => {
-  frameId = requestAnimationFrame(update);
-  const currentTime = performance.now();
-  const dt = currentTime - lastTime;
-  lastTime = currentTime;
+  resize();
 
-  const tmp = new Vec3();
-  lines.forEach(line => {
-    tmp.copy(mouse).add(line.mouseOffset).sub(line.points[0]).multiply(line.spring);
-    line.mouseVelocity.add(tmp).multiply(line.friction);
-    line.points[0].add(line.mouseVelocity);
-
-    for (let i = 1; i < line.points.length; i++) {
-      if (isFinite(props.maxAge) && props.maxAge > 0) {
-        const segmentDelay = props.maxAge / (line.points.length - 1);
-        const alpha = Math.min(1, (dt * props.speedMultiplier) / segmentDelay);
-        line.points[i].lerp(line.points[i - 1], alpha);
-      } else {
-        line.points[i].lerp(line.points[i - 1], 0.9);
-      }
+  const mouse = new Vec3();
+  function updateMouse(e: MouseEvent | TouchEvent) {
+    let x: number, y: number;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    if ('changedTouches' in e && e.changedTouches.length) {
+      x = e.changedTouches[0].clientX - rect.left;
+      y = e.changedTouches[0].clientY - rect.top;
+    } else if (e instanceof MouseEvent) {
+      x = e.clientX - rect.left;
+      y = e.clientY - rect.top;
+    } else {
+      x = 0;
+      y = 0;
     }
-    if (line.polyline.mesh.program.uniforms.uTime) {
-      line.polyline.mesh.program.uniforms.uTime.value = currentTime * 0.001;
-    }
-    line.polyline.updateGeometry();
-  });
-
-  renderer.render({ scene });
-};
-
-const initRibbons = () => {
-  const container = ribbonsContainer.value;
-  if (!container) return;
-
-  renderer = new Renderer({ dpr: window.devicePixelRatio || 2, alpha: true });
-  const gl = renderer.gl;
-
-  if (Array.isArray(props.backgroundColor) && props.backgroundColor.length === 4) {
-    gl.clearColor(
-      props.backgroundColor[0],
-      props.backgroundColor[1],
-      props.backgroundColor[2],
-      props.backgroundColor[3]
-    );
-  } else {
-    gl.clearColor(0, 0, 0, 0);
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    mouse.set((x / width) * 2 - 1, (y / height) * -2 + 1, 0);
   }
-
-  gl.canvas.style.position = 'absolute';
-  gl.canvas.style.top = '0';
-  gl.canvas.style.left = '0';
-  gl.canvas.style.width = '100%';
-  gl.canvas.style.height = '100%';
-  container.appendChild(gl.canvas);
-
-  scene = new Transform();
-
-  createLines();
-
   container.addEventListener('mousemove', updateMouse);
   container.addEventListener('touchstart', updateMouse);
   container.addEventListener('touchmove', updateMouse);
 
-  resize();
+  const tmp = new Vec3();
+  let frameId: number;
+  let lastTime = performance.now();
+  function update() {
+    frameId = requestAnimationFrame(update);
+    const currentTime = performance.now();
+    const dt = currentTime - lastTime;
+    lastTime = currentTime;
 
-  if (typeof ResizeObserver !== 'undefined') {
-    resizeObserver = new ResizeObserver(resize);
-    resizeObserver.observe(container);
-  } else {
-    window.addEventListener('resize', resize);
+    lines.forEach(line => {
+      tmp.copy(mouse).add(line.mouseOffset).sub(line.points[0]).multiply(line.spring);
+      line.mouseVelocity.add(tmp).multiply(line.friction);
+      line.points[0].add(line.mouseVelocity);
+
+      for (let i = 1; i < line.points.length; i++) {
+        if (isFinite(props.maxAge) && props.maxAge > 0) {
+          const segmentDelay = props.maxAge / (line.points.length - 1);
+          const alpha = Math.min(1, (dt * props.speedMultiplier) / segmentDelay);
+          line.points[i].lerp(line.points[i - 1], alpha);
+        } else {
+          line.points[i].lerp(line.points[i - 1], 0.9);
+        }
+      }
+      if (line.polyline.mesh.program.uniforms.uTime) {
+        line.polyline.mesh.program.uniforms.uTime.value = currentTime * 0.001;
+      }
+      line.polyline.updateGeometry();
+    });
+
+    renderer.render({ scene });
   }
-
   update();
-};
 
-const cleanup = () => {
-  if (frameId) {
-    cancelAnimationFrame(frameId);
-  }
-
-  if (resizeObserver) {
-    resizeObserver.disconnect();
-  } else {
+  cleanup = () => {
     window.removeEventListener('resize', resize);
-  }
-
-  const container = ribbonsContainer.value;
-  if (container) {
     container.removeEventListener('mousemove', updateMouse);
     container.removeEventListener('touchstart', updateMouse);
     container.removeEventListener('touchmove', updateMouse);
-
-    if (renderer && renderer.gl.canvas && renderer.gl.canvas.parentNode === container) {
-      container.removeChild(renderer.gl.canvas);
+    cancelAnimationFrame(frameId);
+    if (gl.canvas && gl.canvas.parentNode === container) {
+      container.removeChild(gl.canvas);
     }
-  }
+  };
 };
-
-const recreateLines = () => {
-  lines.forEach(line => {
-    if (line.polyline.mesh && line.polyline.mesh.parent) {
-      line.polyline.mesh.setParent(null);
-    }
-  });
-
-  createLines();
-};
-
-watch(
-  () => [props.colors, props.pointCount],
-  () => {
-    if (renderer && scene) {
-      recreateLines();
-    }
-  },
-  { deep: true }
-);
-
-watch(
-  () => [props.baseThickness, props.enableFade, props.enableShaderEffect, props.effectAmplitude, props.backgroundColor],
-  () => {
-    if (renderer && lines.length > 0) {
-      lines.forEach(line => {
-        if (line.polyline.mesh.program.uniforms.uEnableFade) {
-          line.polyline.mesh.program.uniforms.uEnableFade.value = props.enableFade ? 1.0 : 0.0;
-        }
-        if (line.polyline.mesh.program.uniforms.uEnableShaderEffect) {
-          line.polyline.mesh.program.uniforms.uEnableShaderEffect.value = props.enableShaderEffect ? 1.0 : 0.0;
-        }
-        if (line.polyline.mesh.program.uniforms.uEffectAmplitude) {
-          line.polyline.mesh.program.uniforms.uEffectAmplitude.value = props.effectAmplitude;
-        }
-      });
-
-      const gl = renderer.gl;
-      if (Array.isArray(props.backgroundColor) && props.backgroundColor.length === 4) {
-        gl.clearColor(
-          props.backgroundColor[0],
-          props.backgroundColor[1],
-          props.backgroundColor[2],
-          props.backgroundColor[3]
-        );
-      } else {
-        gl.clearColor(0, 0, 0, 0);
-      }
-    }
-  },
-  { deep: true }
-);
 
 onMounted(() => {
-  initRibbons();
+  init();
 });
 
 onUnmounted(() => {
-  cleanup();
+  cleanup?.();
 });
+
+watch(
+  () => [
+    props.colors,
+    props.baseSpring,
+    props.baseFriction,
+    props.baseThickness,
+    props.offsetFactor,
+    props.maxAge,
+    props.pointCount,
+    props.speedMultiplier,
+    props.enableFade,
+    props.enableShaderEffect,
+    props.effectAmplitude,
+    props.backgroundColor
+  ],
+  () => {
+    cleanup?.();
+    init();
+  },
+  { deep: true }
+);
 </script>

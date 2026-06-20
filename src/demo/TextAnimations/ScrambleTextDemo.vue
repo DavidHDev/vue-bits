@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Scramble Text</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="scrambleText.usage"
+    :source="scrambleTextSource"
+    component-name="ScrambleText"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[500px]">
+      <div class="relative h-[400px] demo-container">
         <ScrambleText
           :className="'m-[6vw] max-w-[680px] font-mono font-medium text-[clamp(14px,4vw,28px)] text-white'"
           :radius="radius"
@@ -13,58 +21,71 @@
           of the scramble effect.
         </ScrambleText>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-2">Scramble Characters</label>
-          <input
-            v-model="scrambleChars"
-            type="text"
-            placeholder="Enter text..."
-            maxlength="5"
-            class="w-[160px] px-3 py-2 bg-[#0b0b0b] border border-[#333] rounded-md text-white focus:outline-none focus:border-[#666]"
-          />
-        </div>
-
+        <PreviewInput title="Scramble Characters" v-model="scrambleChars" placeholder="Enter text..." :maxlength="5" />
         <PreviewSlider title="Radius" v-model="radius" :min="10" :max="300" :step="10" />
-
         <PreviewSlider title="Duration" v-model="duration" :min="0.1" :max="5" :step="0.1" />
-
         <PreviewSlider title="Speed" v-model="speed" :min="0.1" :max="2" :step="0.1" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['gsap']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="scrambleTextCode" />
+      <DemoCodeTab slug="scramble-text" :usage="scrambleText.usage!" :source="scrambleTextSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="scrambleTextCode.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import ScrambleText from '../../content/TextAnimations/ScrambleText/ScrambleText.vue';
-import { scrambleTextCode } from '@/constants/code/TextAnimations/scrambleTextCode';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewInput from '@/components/common/PreviewInput.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
+import { scrambleText } from '@/constants/code/TextAnimations/scrambleTextCode';
+import ScrambleText from '@/content/TextAnimations/ScrambleText/ScrambleText.vue';
+import scrambleTextSource from '@/content/TextAnimations/ScrambleText/ScrambleText.vue?raw';
+import { computed, ref } from 'vue';
 
-const radius = ref(100);
-const duration = ref(1.2);
-const speed = ref(0.5);
-const scrambleChars = ref('.:');
+const { forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  radius: 100,
+  duration: 1.2,
+  speed: 0.5,
+  scrambleChars: '.:'
+};
+
+const radius = ref(DEFAULTS.radius);
+const duration = ref(DEFAULTS.duration);
+const speed = ref(DEFAULTS.speed);
+const scrambleChars = ref(DEFAULTS.scrambleChars);
+
+const hasChanges = computed(
+  () =>
+    radius.value !== DEFAULTS.radius ||
+    duration.value !== DEFAULTS.duration ||
+    speed.value !== DEFAULTS.speed ||
+    scrambleChars.value !== DEFAULTS.scrambleChars
+);
+
+function reset() {
+  radius.value = DEFAULTS.radius;
+  duration.value = DEFAULTS.duration;
+  speed.value = DEFAULTS.speed;
+  scrambleChars.value = DEFAULTS.scrambleChars;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'radius',
     type: 'number',
@@ -90,6 +111,12 @@ const propData = [
     description: 'The characters used for scrambling.'
   },
   {
+    name: 'children',
+    type: 'slot',
+    default: '',
+    description: 'The text content to be scrambled.'
+  },
+  {
     name: 'className',
     type: 'string',
     default: '""',
@@ -97,7 +124,7 @@ const propData = [
   },
   {
     name: 'style',
-    type: 'Record<string, string | number>',
+    type: 'CSSProperties',
     default: '{}',
     description: 'Inline styles for the component.'
   }

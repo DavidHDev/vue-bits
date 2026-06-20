@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { motion } from 'motion-v';
-import { computed, nextTick, onMounted, onUnmounted, ref, watch, useTemplateRef, type Ref } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, useTemplateRef, watch, type Ref } from 'vue';
 
 interface TrueFocusProps {
   sentence?: string;
+  separator?: string;
   manualMode?: boolean;
   blurAmount?: number;
   borderColor?: string;
@@ -12,23 +13,22 @@ interface TrueFocusProps {
   pauseBetweenAnimations?: number;
   index?: Array<number>;
   syncGroup?: string;
-  defaultBlur?: boolean;
 }
 
 const props = withDefaults(defineProps<TrueFocusProps>(), {
   sentence: 'True Focus',
+  separator: ' ',
   manualMode: false,
   blurAmount: 5,
   borderColor: 'green',
   glowColor: 'rgba(0, 255, 0, 0.6)',
   animationDuration: 0.5,
-  pauseBetweenAnimations: 1,
-  defaultBlur: true
+  pauseBetweenAnimations: 1
 });
 
-const words = computed(() => props.sentence.split(' '));
+const words = computed(() => props.sentence.split(props.separator));
 
-const currentIndex = props.syncGroup ? getSyncGroupIndex(props.syncGroup) : ref(-1);
+const currentIndex = props.syncGroup ? getSyncGroupIndex(props.syncGroup) : ref(0);
 const lastActiveIndex = ref<number | null>(null);
 const containerRef = useTemplateRef<HTMLDivElement>('containerRef');
 const wordRefs = ref<HTMLSpanElement[]>([]);
@@ -74,11 +74,7 @@ const handleMouseEnter = (index: number) => {
 
 const handleMouseLeave = () => {
   if (props.manualMode) {
-    if (props.defaultBlur) {
-      currentIndex.value = lastActiveIndex.value || 0;
-      return;
-    }
-    currentIndex.value = -1;
+    currentIndex.value = lastActiveIndex.value!;
   }
 };
 
@@ -172,14 +168,9 @@ export function unregisterSyncGroup(group: string): void {
       v-for="(word, index) in words"
       :key="props.index ? props.index[index] : index"
       :ref="el => setWordRef(el as HTMLSpanElement, index)"
-      class="relative font-black text-7xl transition-[filter,color] duration-300 ease-in-out cursor-pointer"
+      class="relative font-black text-7xl cursor-pointer"
       :style="{
-        filter:
-          currentIndex === -1 || (props.index ? props.index[index] : index) === currentIndex
-            ? 'blur(0px)'
-            : `blur(${blurAmount}px)`,
-        '--border-color': borderColor,
-        '--glow-color': glowColor,
+        filter: (props.index ? props.index[index] : index) === currentIndex ? 'blur(0px)' : `blur(${blurAmount}px)`,
         transition: `filter ${animationDuration}s ease`
       }"
       @mouseenter="handleMouseEnter(index)"
@@ -206,19 +197,20 @@ export function unregisterSyncGroup(group: string): void {
       }"
     >
       <span
-        class="top-[-10px] left-[-10px] absolute filter-[drop-shadow(0_0_4px_var(--border-color,#fff))] border-[3px] border-(--border-color,#fff) border-r-0 border-b-0 rounded-[3px] w-4 h-4 transition-none"
+        class="top-[-10px] left-[-10px] absolute border-[3px] border-(--border-color,#fff) border-r-0 border-b-0 rounded-[3px] w-4 h-4"
+        :style="{ filter: 'drop-shadow(0 0 4px var(--border-color))' }"
       ></span>
-
       <span
-        class="top-[-10px] right-[-10px] absolute filter-[drop-shadow(0_0_4px_var(--border-color,#fff))] border-[3px] border-(--border-color,#fff) border-b-0 border-l-0 rounded-[3px] w-4 h-4 transition-none"
+        class="top-[-10px] right-[-10px] absolute border-[3px] border-(--border-color,#fff) border-b-0 border-l-0 rounded-[3px] w-4 h-4"
+        :style="{ filter: 'drop-shadow(0 0 4px var(--border-color))' }"
       ></span>
-
       <span
-        class="bottom-[-10px] left-[-10px] absolute filter-[drop-shadow(0_0_4px_var(--border-color,#fff))] border-[3px] border-(--border-color,#fff) border-t-0 border-r-0 rounded-[3px] w-4 h-4 transition-none"
+        class="bottom-[-10px] left-[-10px] absolute border-[3px] border-(--border-color,#fff) border-t-0 border-r-0 rounded-[3px] w-4 h-4"
+        :style="{ filter: 'drop-shadow(0 0 4px var(--border-color))' }"
       ></span>
-
       <span
-        class="right-[-10px] bottom-[-10px] absolute filter-[drop-shadow(0_0_4px_var(--border-color,#fff))] border-[3px] border-(--border-color,#fff) border-t-0 border-l-0 rounded-[3px] w-4 h-4 transition-none"
+        class="right-[-10px] bottom-[-10px] absolute border-[3px] border-(--border-color,#fff) border-t-0 border-l-0 rounded-[3px] w-4 h-4"
+        :style="{ filter: 'drop-shadow(0 0 4px var(--border-color))' }"
       ></span>
     </motion.div>
   </div>

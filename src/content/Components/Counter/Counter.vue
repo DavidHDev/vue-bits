@@ -1,40 +1,48 @@
 <template>
-  <div class="relative inline-block" :style="containerStyle">
-    <div class="flex overflow-hidden" :style="counterStyles">
-      <div v-for="place in places" :key="place" class="relative w-[1ch] tabular-nums" :style="digitStyles">
-        <Motion
-          v-for="digit in 10"
-          :key="digit - 1"
-          tag="span"
-          class="absolute top-0 left-0 w-full h-full flex items-center justify-center"
-          :animate="{ y: getDigitPosition(place, digit - 1) }"
+  <span :style="{ position: 'relative', display: 'inline-block', ...props.containerStyle }">
+    <span :style="computedCounterStyle">
+      <template v-for="place in places" :key="place">
+        <span
+          v-if="place === '.'"
+          :style="{
+            height: `${height}px`,
+            width: 'fit-content',
+            position: 'relative',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            ...props.digitStyle
+          }"
         >
-          {{ digit - 1 }}
-        </Motion>
-      </div>
-    </div>
-    <div class="pointer-events-none absolute inset-0">
-      <div class="absolute top-0 w-full" :style="topGradientStyle ?? topGradientStyles" />
-      <div class="absolute bottom-0 w-full" :style="bottomGradientStyle ?? bottomGradientStyles" />
-    </div>
-  </div>
+          .
+        </span>
+        <DigitColumn v-else :place="place as number" :value="value" :height="height" :digit-style="props.digitStyle" />
+      </template>
+    </span>
+    <span :style="gradientContainerStyle">
+      <span :style="props.topGradientStyle ?? computedTopGradientStyle" />
+      <span :style="props.bottomGradientStyle ?? computedBottomGradientStyle" />
+    </span>
+  </span>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
-import { Motion } from 'motion-v';
+import { motion, useSpring, useTransform } from 'motion-v';
 import type { CSSProperties } from 'vue';
+import { computed, defineComponent, h, watchEffect } from 'vue';
+
+type PlaceValue = number | '.';
 
 interface CounterProps {
   value: number;
   fontSize?: number;
   padding?: number;
-  places?: number[];
+  places?: PlaceValue[];
   gap?: number;
   borderRadius?: number;
   horizontalPadding?: number;
   textColor?: string;
-  fontWeight?: string | number;
+  fontWeight?: CSSProperties['fontWeight'];
   containerStyle?: CSSProperties;
   counterStyle?: CSSProperties;
   digitStyle?: CSSProperties;
@@ -48,114 +56,128 @@ interface CounterProps {
 const props = withDefaults(defineProps<CounterProps>(), {
   fontSize: 100,
   padding: 0,
-  places: () => [100, 10, 1],
+  places: undefined,
   gap: 8,
   borderRadius: 4,
   horizontalPadding: 8,
-  textColor: 'white',
-  fontWeight: 'bold',
-  containerStyle: () => ({}),
-  counterStyle: () => ({}),
-  digitStyle: () => ({}),
+  textColor: 'inherit',
+  fontWeight: 'inherit',
   gradientHeight: 16,
   gradientFrom: 'black',
-  gradientTo: 'transparent',
-  topGradientStyle: undefined,
-  bottomGradientStyle: undefined
+  gradientTo: 'transparent'
 });
 
-const digitHeight = computed(() => props.fontSize + props.padding);
+function normalizeNearInteger(num: number): number {
+  const nearest = Math.round(num);
+  const tolerance = 1e-9 * Math.max(1, Math.abs(num));
+  return Math.abs(num - nearest) < tolerance ? nearest : num;
+}
 
-const counterStyles = computed(() => ({
+function getValueRoundedToPlace(value: number, place: number): number {
+  return Math.floor(normalizeNearInteger(value / place));
+}
+
+function derivePlaces(value: number): PlaceValue[] {
+  return [...value.toString()].map((ch, i, a) => {
+    if (ch === '.') return '.';
+    const dotIndex = a.indexOf('.');
+    const isInteger = dotIndex === -1;
+    const exponent = isInteger ? a.length - i - 1 : i < dotIndex ? dotIndex - i - 1 : -(i - dotIndex);
+    return 10 ** exponent;
+  });
+}
+
+const height = computed(() => props.fontSize + props.padding);
+
+const places = computed<PlaceValue[]>(() => props.places ?? derivePlaces(props.value));
+
+const computedCounterStyle = computed<CSSProperties>(() => ({
   fontSize: `${props.fontSize}px`,
-  gap: `${props.gap}px`,
-  borderRadius: `${props.borderRadius}px`,
-  paddingLeft: `${props.horizontalPadding}px`,
-  paddingRight: `${props.horizontalPadding}px`,
+  display: 'flex',
+  gap: props.gap,
+  overflow: 'hidden',
+  borderRadius: props.borderRadius,
+  paddingLeft: props.horizontalPadding,
+  paddingRight: props.horizontalPadding,
+  lineHeight: 1,
   color: props.textColor,
   fontWeight: props.fontWeight,
+  direction: 'ltr',
   ...props.counterStyle
 }));
 
-const digitStyles = computed(() => ({
-  height: `${digitHeight.value}px`,
-  ...props.digitStyle
+const gradientContainerStyle: CSSProperties = {
+  pointerEvents: 'none',
+  position: 'absolute',
+  inset: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'space-between'
+};
+
+const computedTopGradientStyle = computed<CSSProperties>(() => ({
+  height: props.gradientHeight,
+  background: `linear-gradient(to bottom, ${props.gradientFrom}, ${props.gradientTo})`
 }));
 
-const topGradientStyles = computed(
-  (): CSSProperties => ({
-    height: `${props.gradientHeight}px`,
-    background: `linear-gradient(to bottom, ${props.gradientFrom}, ${props.gradientTo})`
-  })
-);
+const computedBottomGradientStyle = computed<CSSProperties>(() => ({
+  height: props.gradientHeight,
+  background: `linear-gradient(to top, ${props.gradientFrom}, ${props.gradientTo})`
+}));
 
-const bottomGradientStyles = computed(
-  (): CSSProperties => ({
-    height: `${props.gradientHeight}px`,
-    background: `linear-gradient(to top, ${props.gradientFrom}, ${props.gradientTo})`
-  })
-);
-
-const springValues = ref<Record<number, number>>({});
-
-const initializeSpringValues = () => {
-  props.places.forEach(place => {
-    springValues.value[place] = Math.floor(props.value / place);
-  });
-};
-
-initializeSpringValues();
-
-watch(
-  () => props.value,
-  (newValue, oldValue) => {
-    if (newValue === oldValue) return;
-
-    props.places.forEach(place => {
-      const newRoundedValue = Math.floor(newValue / place);
-      const oldRoundedValue = springValues.value[place];
-
-      if (newRoundedValue !== oldRoundedValue) {
-        springValues.value[place] = newRoundedValue;
-      }
-    });
+const DigitColumn = defineComponent({
+  name: 'DigitColumn',
+  props: {
+    place: { type: Number, required: true },
+    value: { type: Number, required: true },
+    height: { type: Number, required: true },
+    digitStyle: { type: Object as () => CSSProperties | undefined, default: undefined }
   },
-  { immediate: true }
-);
+  setup(columnProps) {
+    const valueRoundedToPlace = computed(() => getValueRoundedToPlace(columnProps.value, columnProps.place));
 
-watch(
-  () => digitHeight.value,
-  () => {
-    positionCache.clear();
+    const animatedValue = useSpring(valueRoundedToPlace.value, { stiffness: 300, damping: 30 });
+
+    watchEffect(() => {
+      animatedValue.set(valueRoundedToPlace.value);
+    });
+
+    const digitNodes = Array.from({ length: 10 }, (_, i) => {
+      const y = useTransform(animatedValue, (latest: number) => {
+        const placeValue = latest % 10;
+        const offset = (10 + i - placeValue) % 10;
+        let memo = offset * columnProps.height;
+        if (offset > 5) memo -= 10 * columnProps.height;
+        return memo;
+      });
+      return { i, y };
+    });
+
+    const baseStyle: CSSProperties = {
+      position: 'absolute',
+      inset: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    };
+
+    return () => {
+      const wrapperStyle: CSSProperties = {
+        height: columnProps.height,
+        position: 'relative',
+        width: '1ch',
+        fontVariantNumeric: 'tabular-nums',
+        display: 'inline-flex',
+        overflow: 'hidden',
+        ...columnProps.digitStyle
+      };
+
+      return h(
+        'span',
+        { style: wrapperStyle },
+        digitNodes.map(({ i, y }) => h(motion.span, { key: i, style: { ...baseStyle, y } }, () => String(i)))
+      );
+    };
   }
-);
-
-const positionCache = new Map<string, number>();
-
-const getDigitPosition = (place: number, digit: number): number => {
-  const springValue = springValues.value[place] || 0;
-  const cacheKey = `${place}-${digit}-${springValue}`;
-
-  if (positionCache.has(cacheKey)) {
-    return positionCache.get(cacheKey)!;
-  }
-
-  const placeValue = springValue % 10;
-  const offset = (10 + digit - placeValue) % 10;
-  let position = offset * digitHeight.value;
-
-  if (offset > 5) {
-    position -= 10 * digitHeight.value;
-  }
-
-  if (positionCache.size > 200) {
-    const firstKey = positionCache.keys().next().value;
-    if (typeof firstKey === 'string') {
-      positionCache.delete(firstKey);
-    }
-  }
-
-  positionCache.set(cacheKey, position);
-  return position;
-};
+});
 </script>

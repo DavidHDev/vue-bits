@@ -1,0 +1,688 @@
+/* ─── Navbar ───────────────────────────────────────────────────────────────── */
+.ln-navbar {
+  position: fixed;
+  top: 20px;
+  left: 0;
+  right: 0;
+  z-index: 1500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 24px;
+  font-family: 'Geist Mono', monospace;
+  pointer-events: none;
+}
+
+.ln-navbar-inner {
+  width: 100%;
+  max-width: 1680px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px 0 20px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+
+  background: transparent;
+
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+
+  transition:
+    max-width 0.5s ease,
+    background 0.5s ease,
+    border-color 0.5s ease,
+    padding 0.5s ease;
+
+  pointer-events: auto;
+  position: relative;
+}
+
+.ln-navbar.ln-navbar-scrolled .ln-navbar-inner {
+  max-width: calc(1300px - 24px);
+
+  background: #111;
+
+  border-color: rgba(255, 255, 255, 0.04);
+}
+
+/* ──────────────────────────────────────────────────────────
+   Left
+   ────────────────────────────────────────────────────────── */
+
+.ln-navbar-left {
+  display: flex;
+  align-items: center;
+}
+
+.ln-navbar-logo {
+  width: 100px;
+  display: flex;
+  align-items: center;
+}
+
+.ln-navbar-logo svg,
+.ln-navbar-logo .ln-navbar-logo-placeholder {
+  height: 20px;
+  width: auto;
+}
+
+.ln-navbar-divider {
+  color: rgba(255, 255, 255, 0.82);
+
+  font-size: 18px;
+  font-weight: 300;
+
+  user-select: none;
+
+  margin: 0 8px 0 18px;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Links
+   ────────────────────────────────────────────────────────── */
+
+.ln-navbar-links {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ln-navbar-link-highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  border-radius: 12px;
+
+  background: rgba(20, 24, 18, 0.55);
+
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  box-shadow:
+    0 2px 16px rgba(0, 0, 0, 0.2),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.06);
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  transition:
+    transform 0.3s ease,
+    width 0.3s ease,
+    height 0.3s ease,
+    opacity 0.2s ease;
+}
+
+.ln-navbar-link {
+  position: relative;
+  z-index: 1;
+
+  color: rgba(255, 255, 255, 0.72);
+
+  font-size: 13px;
+  font-weight: 500;
+
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  padding: 6px 10px;
+
+  border-radius: 12px;
+
+  transition: color 0.2s ease;
+}
+
+.ln-navbar-link:hover {
+  color: #fff;
+}
+
+.ln-navbar-link-active {
+  color: #fff;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Right
+   ────────────────────────────────────────────────────────── */
+
+.ln-navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ln-navbar-soon {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+
+  color: rgba(255, 255, 255, 0.55);
+
+  background: rgba(255, 255, 255, 0.08);
+
+  padding: 2px 6px;
+
+  border-radius: 4px;
+}
+
+/* ──────────────────────────────────────────────────────────
+   GitHub Button
+   ────────────────────────────────────────────────────────── */
+
+.ln-navbar-github {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  color: rgba(255, 255, 255, 0.82);
+
+  height: 36px;
+  padding: 0 12px;
+
+  border-radius: 10px;
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  background: rgba(18, 15, 23, 0.45);
+
+  backdrop-filter: blur(32px) saturate(1.3);
+  -webkit-backdrop-filter: blur(32px) saturate(1.3);
+
+  box-shadow:
+    0 2px 16px rgba(0, 0, 0, 0.2),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.06);
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.ln-navbar-github:hover {
+  border-color: rgba(66, 184, 131, 0.24);
+
+  background: rgba(66, 184, 131, 0.08);
+}
+
+/* ──────────────────────────────────────────────────────────
+   Search
+   ────────────────────────────────────────────────────────── */
+
+.ln-navbar-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  height: 36px;
+  padding: 0 10px;
+
+  border-radius: 10px;
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  background: rgba(18, 15, 23, 0.45);
+
+  backdrop-filter: blur(32px) saturate(1.3);
+  -webkit-backdrop-filter: blur(32px) saturate(1.3);
+
+  box-shadow:
+    0 2px 16px rgba(0, 0, 0, 0.2),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.06);
+
+  color: rgba(255, 255, 255, 0.7);
+
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.ln-navbar-search:hover {
+  border-color: rgba(66, 184, 131, 0.32);
+
+  background: rgba(66, 184, 131, 0.08);
+
+  color: #fff;
+}
+
+.ln-navbar-search kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 18px;
+  height: 18px;
+
+  padding: 0 5px;
+
+  border-radius: 5px;
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  background: rgba(255, 255, 255, 0.05);
+
+  color: rgba(255, 255, 255, 0.45);
+
+  font: inherit;
+  font-size: 10px;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Icon Buttons
+   ────────────────────────────────────────────────────────── */
+
+.ln-navbar-icon-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  color: rgba(255, 255, 255, 0.62);
+
+  height: 36px;
+  padding: 0 12px;
+
+  border-radius: 10px;
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  background: rgba(18, 15, 23, 0.45);
+
+  backdrop-filter: blur(32px) saturate(1.3);
+  -webkit-backdrop-filter: blur(32px) saturate(1.3);
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.ln-navbar-icon-btn:hover {
+  border-color: rgba(66, 184, 131, 0.24);
+
+  background: rgba(66, 184, 131, 0.08);
+
+  color: #fff;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Preferences
+   ────────────────────────────────────────────────────────── */
+
+.ln-navbar-prefs-wrapper {
+  position: relative;
+}
+
+.ln-navbar-prefs-trigger {
+  gap: 4px;
+}
+
+.ln-navbar-prefs-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+
+  width: 220px;
+  padding: 12px;
+
+  border-radius: 14px;
+
+  border: 1px solid rgba(66, 184, 131, 0.14);
+
+  background: rgba(16, 20, 14, 0.96);
+
+  backdrop-filter: blur(32px) saturate(1.3);
+  -webkit-backdrop-filter: blur(32px) saturate(1.3);
+
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+
+  animation: ln-menu-slide-in 0.2s ease;
+
+  z-index: 1000;
+}
+
+.ln-navbar-prefs-fav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  color: #fff;
+
+  padding: 8px;
+
+  border-radius: 12px;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.ln-navbar-prefs-fav svg {
+  box-sizing: content-box;
+
+  width: 13px;
+  height: 13px;
+
+  padding: 6px;
+
+  border-radius: 6px;
+
+  background: #42b883;
+
+  color: #08130f;
+}
+
+.ln-navbar-prefs-fav:hover {
+  background: rgba(66, 184, 131, 0.12);
+
+  color: #fff;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Mobile Hamburger
+   ────────────────────────────────────────────────────────── */
+
+.ln-navbar-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+
+  width: 36px;
+  height: 36px;
+
+  padding: 9px;
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  border-radius: 10px;
+
+  background: rgba(18, 15, 23, 0.45);
+
+  backdrop-filter: blur(32px) saturate(1.3);
+  -webkit-backdrop-filter: blur(32px) saturate(1.3);
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.ln-navbar-hamburger:hover {
+  border-color: rgba(66, 184, 131, 0.24);
+
+  background: rgba(66, 184, 131, 0.08);
+}
+
+.ln-navbar-hamburger span {
+  display: block;
+
+  width: 100%;
+  height: 1.5px;
+
+  background: #fff;
+
+  border-radius: 1px;
+
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
+}
+
+.ln-navbar-hamburger.open span:nth-child(1) {
+  transform: translateY(5.5px) rotate(45deg);
+}
+
+.ln-navbar-hamburger.open span:nth-child(2) {
+  opacity: 0;
+}
+
+.ln-navbar-hamburger.open span:nth-child(3) {
+  transform: translateY(-5.5px) rotate(-45deg);
+}
+
+/* ──────────────────────────────────────────────────────────
+   Mobile Menu
+   ────────────────────────────────────────────────────────── */
+
+.ln-navbar-mobile-menu {
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 5px;
+
+  min-width: 200px;
+
+  padding: 8px;
+
+  border-radius: 14px;
+
+  border: 1px solid rgba(66, 184, 131, 0.18);
+
+  background: linear-gradient(145deg, rgba(66, 184, 131, 0.08), rgba(16, 20, 14, 0.96) 46%), rgba(16, 20, 14, 0.94);
+
+  backdrop-filter: blur(32px) saturate(1.3);
+  -webkit-backdrop-filter: blur(32px) saturate(1.3);
+
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.45),
+    0 0 34px rgba(66, 184, 131, 0.08);
+
+  pointer-events: auto;
+
+  animation: ln-menu-slide-in 0.2s ease;
+
+  z-index: 1001;
+}
+
+@keyframes ln-menu-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ln-navbar-mobile-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  font-family: 'Geist Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  color: rgba(255, 255, 255, 0.72);
+
+  padding: 12px 14px;
+
+  border-radius: 10px;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.ln-navbar-mobile-link::after {
+  content: '→';
+
+  font-size: 16px;
+
+  color: inherit;
+
+  opacity: 0;
+
+  transform: translateX(-6px);
+
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.ln-navbar-mobile-link:hover {
+  background: rgba(66, 184, 131, 0.12);
+
+  color: #42b883;
+}
+
+.ln-navbar-mobile-link:hover::after {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ──────────────────────────────────────────────────────────
+   Responsive
+   ────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .ln-navbar {
+    padding: 0 16px;
+  }
+
+  .ln-navbar-inner {
+    padding: 0 5px 0 16px;
+  }
+
+  .ln-navbar-links,
+  .ln-navbar-divider,
+  .ln-navbar-github,
+  .ln-navbar-prefs-wrapper {
+    display: none;
+  }
+
+  .ln-navbar-search span,
+  .ln-navbar-search kbd {
+    display: none;
+  }
+
+  .ln-navbar-search {
+    width: 36px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .ln-navbar-hamburger {
+    display: flex;
+  }
+
+  .ln-navbar-mobile-menu {
+    display: flex;
+  }
+
+  .ln-navbar-inner {
+    width: 100%;
+    max-width: 100%;
+    height: 56px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 5px 0 5px;
+
+    border-radius: 16px;
+
+    border: 1px solid transparent;
+
+    background: transparent;
+
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+
+    transition:
+      background 0.5s ease,
+      border-color 0.5s ease,
+      padding 0.5s ease;
+
+    pointer-events: auto;
+
+    position: relative;
+  }
+
+  .ln-navbar.ln-navbar-scrolled .ln-navbar-inner {
+    max-width: 100%;
+
+    padding: 0 5px 0 16px;
+
+    background: #111;
+
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+
+    border-color: rgba(255, 255, 255, 0.04);
+  }
+}
+
+/* ─── Docs variant ─────────────────────────────────────────────────────────── */
+
+.ln-navbar.ln-navbar-docs {
+  top: 0;
+  padding: 0;
+}
+
+.ln-navbar.ln-navbar-docs .ln-navbar-inner {
+  max-width: 100%;
+
+  border-radius: 0;
+
+  height: 60px;
+
+  padding: 0 2em;
+
+  background: #111;
+
+  border-color: transparent;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ln-navbar.ln-navbar-docs.ln-navbar-scrolled .ln-navbar-inner {
+  max-width: 100%;
+
+  border-radius: 0;
+
+  background: #111;
+
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+  border-color: transparent;
+}
+
+@media (max-width: 768px) {
+  .ln-navbar.ln-navbar-docs .ln-navbar-inner {
+    padding: 0 16px;
+  }
+}

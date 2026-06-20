@@ -39,7 +39,7 @@ importers:
         specifier: ^3.13.0
         version: 3.15.0
       lenis:
-        specifier: ^1.3.8
+        specifier: ^1.3.13
         version: 1.3.23(vue@3.5.33(typescript@5.8.3))
       lucide-vue-next:
         specifier: ^0.548.0
@@ -71,6 +71,9 @@ importers:
       vue:
         specifier: ^3.5.17
         version: 3.5.33(typescript@5.8.3)
+      vue-icons-plus:
+        specifier: ^0.1.9
+        version: 0.1.9(vue@3.5.33(typescript@5.8.3))
       vue-router:
         specifier: ^4.5.1
         version: 4.6.4(vue@3.5.33(typescript@5.8.3))
@@ -78,6 +81,12 @@ importers:
         specifier: ^2.0.1
         version: 2.0.9
     devDependencies:
+      '@jsrepo/shadcn':
+        specifier: ^7.0.1
+        version: 7.0.1(jsrepo@3.8.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(vue@3.5.33(typescript@5.8.3)))
+      '@tailwindcss/typography':
+        specifier: ^0.5.19
+        version: 0.5.20(tailwindcss@4.2.4)
       '@tailwindcss/vite':
         specifier: ^4.1.11
         version: 4.2.4(vite@7.3.2(@types/node@22.19.17)(jiti@2.6.1)(lightningcss@1.32.0)(yaml@2.8.4))
@@ -118,8 +127,8 @@ importers:
         specifier: ^2.4.2
         version: 2.6.1
       jsrepo:
-        specifier: ^3.0.8
-        version: 3.7.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(vue@3.5.33(typescript@5.8.3))
+        specifier: ^3.7.1
+        version: 3.8.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(vue@3.5.33(typescript@5.8.3))
       lint-staged:
         specifier: ^16.2.7
         version: 16.4.0
@@ -541,6 +550,11 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@jsrepo/shadcn@7.0.1':
+    resolution: {integrity: sha512-8IKSrdWUr7fkYsGWgpaVHUY37iI2bzPYV0dSQRbRo1gBAV5tgge6vzEO6zJk1pR7M9Xg1+vDa7xM4oZ8JkIPqA==}
+    peerDependencies:
+      jsrepo: 3.7.1
 
   '@napi-rs/wasm-runtime@1.1.4':
     resolution: {integrity: sha512-3NQNNgA1YSlJb/kMH1ildASP9HW7/7kYnRI2szWJaofaS1hWmbGI4H+d3+22aGzXXN9IJ+n+GiFVcGipJP18ow==}
@@ -972,6 +986,11 @@ packages:
   '@tailwindcss/oxide@4.2.4':
     resolution: {integrity: sha512-9El/iI069DKDSXwTvB9J4BwdO5JhRrOweGaK25taBAvBXyXqJAX+Jqdvs8r8gKpsI/1m0LeJLyQYTf/WLrBT1Q==}
     engines: {node: '>= 20'}
+
+  '@tailwindcss/typography@0.5.20':
+    resolution: {integrity: sha512-hwbzQuNUfcPvbegQFatVPl/MY/tcM9KLl963hQ5laJKPh81TEZ1+dNG9PirGvcaDBkp+BCshExAyKVPW91dozw==}
+    peerDependencies:
+      tailwindcss: '>=3.0.0 || >=4.0.0 || insiders'
 
   '@tailwindcss/vite@4.2.4':
     resolution: {integrity: sha512-pCvohwOCspk3ZFn6eJzrrX3g4n2JY73H6MmYC87XfGPyTty4YsCjYTMArRZm/zOI8dIt3+EcrLHAFPe5A4bgtw==}
@@ -1897,8 +1916,8 @@ packages:
   jsonfile@6.2.1:
     resolution: {integrity: sha512-zwOTdL3rFQ/lRdBnntKVOX6k5cKJwEc1HdilT71BWEu7J41gXIB2MRp+vxduPSwZJPWBxEzv4yH1wYLJGUHX4Q==}
 
-  jsrepo@3.7.0:
-    resolution: {integrity: sha512-Ds0ItLykeFm2MD5Px7FF7UXrHGUD21gLMOxxqwqgJsnWjZ/j6i9e/cgGwv3U2ZjlgxvHbmMyP9kYOmkULa0pSw==}
+  jsrepo@3.8.0:
+    resolution: {integrity: sha512-pDIOGMfUAxGeK2uu0xLi6x7L6ifSeR/bD7mBNMSh5nSGR84ZKLWy7F/221VXZY2HQFHYmKO97kNliHi7KnfxqA==}
     hasBin: true
     peerDependencies:
       svelte: ^5.0.0
@@ -2039,6 +2058,7 @@ packages:
 
   lucide-vue-next@0.548.0:
     resolution: {integrity: sha512-VtL3HkoPOhrhBkJdLWm6JY1kmCetsri1lvoaenem5PQagO2cjR1sNENNnuLJHzl/l0IcFg8RKJyiHt2GZtvj2A==}
+    deprecated: Package deprecated. Please use @lucide/vue instead.
     peerDependencies:
       vue: '>=3.0.1'
 
@@ -2237,6 +2257,10 @@ packages:
 
   popmotion@11.0.5:
     resolution: {integrity: sha512-la8gPM1WYeFznb/JqF4GiTkRRPZsfaj2+kCxqQgr2MJylMmIKUwBfWW8Wa5fml/8gmtlD5yI01MP1QCZPWmppA==}
+
+  postcss-selector-parser@6.0.10:
+    resolution: {integrity: sha512-IQ7TZdoaqbT+LCpShg46jnZVlhWD2w6iQYAcYXfHARZ7X1t/UGhhceQDs5X0cGqKvYlHNOuv7Oa1xmb0oQuA3w==}
+    engines: {node: '>=4'}
 
   postcss-selector-parser@6.1.2:
     resolution: {integrity: sha512-Q8qQfPiZ+THO/3ZrOrO0cJJKfpYCagtMUkXbnEfmgUjwXg6z/WBeOyS9APBBPCTSiDV+s4SwQGu8yFsiMRIudg==}
@@ -2638,6 +2662,11 @@ packages:
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
       eslint: ^8.57.0 || ^9.0.0 || ^10.0.0
+
+  vue-icons-plus@0.1.9:
+    resolution: {integrity: sha512-OGn0MXLqXCnDlpkxqQj2HDc6+XEQQ/8itS8hJCzehfqMBhX6EkRGKN0g6Hk1ObnotIOJLLihWKWqifYwvxyENA==}
+    peerDependencies:
+      vue: '>=2.7.0'
 
   vue-router@4.6.4:
     resolution: {integrity: sha512-Hz9q5sa33Yhduglwz6g9skT8OBPii+4bFn88w6J+J4MfEo4KRRpmiNG/hHHkdbRFlLBOqxN8y8gf2Fb0MTUgVg==}
@@ -3097,6 +3126,10 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
+  '@jsrepo/shadcn@7.0.1(jsrepo@3.8.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(vue@3.5.33(typescript@5.8.3)))':
+    dependencies:
+      jsrepo: 3.8.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(vue@3.5.33(typescript@5.8.3))
+
   '@napi-rs/wasm-runtime@1.1.4(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)':
     dependencies:
       '@emnapi/core': 1.10.0
@@ -3394,6 +3427,11 @@ snapshots:
       '@tailwindcss/oxide-wasm32-wasi': 4.2.4
       '@tailwindcss/oxide-win32-arm64-msvc': 4.2.4
       '@tailwindcss/oxide-win32-x64-msvc': 4.2.4
+
+  '@tailwindcss/typography@0.5.20(tailwindcss@4.2.4)':
+    dependencies:
+      postcss-selector-parser: 6.0.10
+      tailwindcss: 4.2.4
 
   '@tailwindcss/vite@4.2.4(vite@7.3.2(@types/node@22.19.17)(jiti@2.6.1)(lightningcss@1.32.0)(yaml@2.8.4))':
     dependencies:
@@ -4426,7 +4464,7 @@ snapshots:
     optionalDependencies:
       graceful-fs: 4.2.11
 
-  jsrepo@3.7.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(vue@3.5.33(typescript@5.8.3)):
+  jsrepo@3.8.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(vue@3.5.33(typescript@5.8.3)):
     dependencies:
       commander: 14.0.3
       oxc-parser: 0.114.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)
@@ -4768,6 +4806,11 @@ snapshots:
       hey-listen: 1.0.8
       style-value-types: 5.1.2
       tslib: 2.4.0
+
+  postcss-selector-parser@6.0.10:
+    dependencies:
+      cssesc: 3.0.0
+      util-deprecate: 1.0.2
 
   postcss-selector-parser@6.1.2:
     dependencies:
@@ -5182,6 +5225,10 @@ snapshots:
       semver: 7.7.4
     transitivePeerDependencies:
       - supports-color
+
+  vue-icons-plus@0.1.9(vue@3.5.33(typescript@5.8.3)):
+    dependencies:
+      vue: 3.5.33(typescript@5.8.3)
 
   vue-router@4.6.4(vue@3.5.33(typescript@5.8.3)):
     dependencies:

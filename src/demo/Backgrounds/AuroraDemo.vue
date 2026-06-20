@@ -1,100 +1,114 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Aurora</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="aurora.usage"
+    :source="auroraSource"
+    component-name="Aurora"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="h-[600px] overflow-hidden demo-container">
-        <Aurora
-          :color-stops="colorStops"
-          :amplitude="amplitude"
-          :blend="blend"
-          :speed="speed"
-          :intensity="intensity"
-          class="w-full"
-        />
+      <div class="relative h-[500px] overflow-hidden demo-container">
+        <Aurora :color-stops="colorStops" :blend="blend" :speed="speed" class="w-full" />
         <BackgroundContent pillText="New Background" headline="Bring the Arctic to you, with one line of code" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <div class="flex gap-2">
-          <PreviewColor
-            v-for="(_, index) in colorStops"
-            :key="index"
-            :title="`Color ${index + 1}`"
-            v-model="colorStops[index]"
-          />
-        </div>
-
-        <PreviewSlider title="Amplitude" v-model="amplitude" :min="0" :max="2" :step="0.1" />
-
-        <PreviewSlider title="Blend" v-model="blend" :min="0" :max="1" :step="0.1" />
-
-        <PreviewSlider title="Speed" v-model="speed" :min="0" :max="3" :step="0.1" />
-
-        <PreviewSlider title="Intensity" v-model="intensity" :min="0" :max="2" :step="0.1" />
+        <PreviewColorPicker title="Color 1" v-model="color1" />
+        <PreviewColorPicker title="Color 2" v-model="color2" />
+        <PreviewColorPicker title="Color 3" v-model="color3" />
+        <PreviewSlider title="Blend" v-model="blend" :min="0" :max="1" :step="0.01" />
+        <PreviewSlider title="Speed" v-model="speed" :min="0" :max="2" :step="0.1" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-
-      <Dependencies :dependency-list="['ogl']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="aurora" />
+      <DemoCodeTab slug="aurora" :usage="aurora.usage!" :source="auroraSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="aurora.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import PreviewColor from '@/components/common/PreviewColor.vue';
+import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { aurora } from '@/constants/code/Backgrounds/auroraCode';
 import Aurora from '@/content/Backgrounds/Aurora/Aurora.vue';
-import { ref } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import BackgroundContent from '../../components/common/BackgroundContent.vue';
-import Customize from '../../components/common/Customize.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
+import auroraSource from '@/content/Backgrounds/Aurora/Aurora.vue?raw';
+import { computed, ref } from 'vue';
 
-const colorStops = ref(['#171D22', '#7cff67', '#171D22']);
-const amplitude = ref(1.0);
-const blend = ref(0.5);
-const speed = ref(1.0);
-const intensity = ref(1.0);
+const { forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  color1: '#171D22',
+  color2: '#7cff67',
+  color3: '#171D22',
+  speed: 1,
+  blend: 0.5
+};
+
+const color1 = ref(DEFAULTS.color1);
+const color2 = ref(DEFAULTS.color2);
+const color3 = ref(DEFAULTS.color3);
+const blend = ref(DEFAULTS.blend);
+const speed = ref(DEFAULTS.speed);
+
+const colorStops = computed(() => [color1.value, color2.value, color3.value]);
+
+const hasChanges = computed(
+  () =>
+    color1.value !== DEFAULTS.color1 ||
+    color2.value !== DEFAULTS.color2 ||
+    color3.value !== DEFAULTS.color3 ||
+    blend.value !== DEFAULTS.blend ||
+    speed.value !== DEFAULTS.speed
+);
+
+function reset() {
+  color1.value = DEFAULTS.color1;
+  color2.value = DEFAULTS.color2;
+  color3.value = DEFAULTS.color3;
+  blend.value = DEFAULTS.blend;
+  speed.value = DEFAULTS.speed;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'colorStops',
-    type: 'string[]',
-    default: "['#171D22', '#7cff67', '#171D22']",
-    description: 'Array of color stops for the aurora gradient.'
+    type: '[string, string, string]',
+    default: '["#171D22", "#7cff67", "#171D22"]',
+    description: 'An array of three hex colors defining the aurora gradient.'
   },
   {
-    name: 'amplitude',
+    name: 'speed',
     type: 'number',
     default: '1.0',
-    description: 'Controls the height variation of the aurora effect.'
+    description: 'Controls the animation speed. Higher values make the aurora move faster.'
   },
   {
     name: 'blend',
     type: 'number',
     default: '0.5',
-    description: 'Controls the blending/smoothness of the aurora effect.'
+    description: 'Controls the blending of the aurora effect with the background.'
   },
-  { name: 'speed', type: 'number', default: '1.0', description: 'Controls the animation speed of the aurora effect.' },
   {
-    name: 'intensity',
+    name: 'amplitude',
     type: 'number',
     default: '1.0',
-    description: 'Controls the overall intensity/opacity of the aurora effect.'
-  },
-  { name: 'time', type: 'number', default: 'undefined', description: 'Optional time override for the animation.' },
-  { name: 'className', type: 'string', default: '""', description: 'Additional CSS class names for styling.' },
-  { name: 'style', type: 'CSSProperties', default: '{}', description: 'Inline styles for the component.' }
+    description: 'Controls the height intensity of the aurora effect.'
+  }
 ];
 </script>

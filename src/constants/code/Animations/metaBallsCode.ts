@@ -4,21 +4,21 @@ import { createCodeObject } from '@/types/code';
 export const metaBalls = createCodeObject(code, 'Animations/MetaBalls', {
   installation: `npm install ogl`,
   usage: `<template>
-    <MetaBalls
-        color="#27ff64"
-        cursorBallColor="#27ff64"
-        :cursorBallSize="2"
-        :ballCount="15"
-        :animationSize="30"
-        :enableMouseInteraction="true"
-        :enableTransparency="true"
-        :hoverSmoothness="0.05"
-        :clumpFactor="1"
-        :speed="0.3"
-    />
+  <MetaBalls
+    color="#ffffff"
+    cursor-ball-color="#ffffff"
+    :cursor-ball-size="2"
+    :ball-count="15"
+    :animation-size="30"
+    :enable-mouse-interaction="true"
+    :enable-transparency="true"
+    :hover-smoothness="0.05"
+    :clump-factor="1"
+    :speed="0.3"
+  />
 </template>
 
 <script setup lang="ts">
-  import MetaBalls from "./MetaBalls.vue";
+import MetaBalls from './MetaBalls.vue'
 </script>`
 });

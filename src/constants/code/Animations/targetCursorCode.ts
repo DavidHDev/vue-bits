@@ -7,6 +7,7 @@ export const targetCursor = createCodeObject(code, 'Animations/TargetCursor', {
     <TargetCursor
         :spin-duration="2"
         :hide-default-cursor="true"
+        :parallax-on="true"
     />
 
     <h1>Hover over the elements below</h1>

@@ -26,7 +26,7 @@ import {
   type WebGLRendererParameters
 } from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
-import { onMounted, onUnmounted, ref, useTemplateRef } from 'vue';
+import { onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
 
 gsap.registerPlugin(Observer);
 
@@ -877,7 +877,7 @@ function createBallpit(canvas: HTMLCanvasElement, config: Partial<typeof XConfig
   };
 }
 
-onMounted(() => {
+const init = () => {
   const canvas = canvasRef.value;
   if (!canvas) return;
 
@@ -895,6 +895,10 @@ onMounted(() => {
     followCursor,
     materialParams: safeMaterialParams
   });
+};
+
+onMounted(() => {
+  init();
 });
 
 onUnmounted(() => {
@@ -902,6 +906,19 @@ onUnmounted(() => {
     spheresInstanceRef.value.dispose();
   }
 });
+
+watch(
+  () => props,
+  () => {
+    if (spheresInstanceRef.value) {
+      spheresInstanceRef.value.dispose();
+      init();
+    }
+  },
+  {
+    deep: true
+  }
+);
 </script>
 
 <template>
