@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import * as THREE from 'three';
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch, type CSSProperties } from 'vue';
 
 interface LiquidEtherProps {
   mouseForce?: number;
@@ -18,7 +18,7 @@ interface LiquidEtherProps {
   resolution?: number;
   isBounce?: boolean;
   colors?: string[];
-  style?: Record<string, any>;
+  style?: CSSProperties;
   className?: string;
   autoDemo?: boolean;
   autoSpeed?: number;
@@ -41,20 +41,53 @@ interface SimOptions {
   BFECC: boolean;
 }
 
-interface LiquidEtherWebGL {
-  output?: { simulation?: { options: SimOptions; resize: () => void } };
-  autoDriver?: {
-    enabled: boolean;
-    speed: number;
-    resumeDelay: number;
-    rampDurationMs: number;
-    mouse?: { autoIntensity: number; takeoverDuration: number };
-    forceStop: () => void;
-  };
-  resize: () => void;
-  start: () => void;
-  pause: () => void;
-  dispose: () => void;
+interface ShaderPassProps {
+  material?: THREE.ShaderMaterialParameters;
+  output?: THREE.WebGLRenderTarget | null;
+  output0?: THREE.WebGLRenderTarget | null;
+  output1?: THREE.WebGLRenderTarget | null;
+}
+
+interface CommonSimProps {
+  cellScale: THREE.Vector2;
+  boundarySpace?: THREE.Vector2;
+  dt: number;
+  fboSize?: THREE.Vector2;
+}
+
+interface AdvectionSimProps extends CommonSimProps {
+  src: THREE.WebGLRenderTarget;
+  dst: THREE.WebGLRenderTarget;
+}
+
+interface ExternalForceSimProps {
+  cellScale: THREE.Vector2;
+  cursor_size: number;
+  dst: THREE.WebGLRenderTarget;
+}
+
+interface ViscousSimProps extends CommonSimProps {
+  viscous: number;
+  src: THREE.WebGLRenderTarget;
+  dst: THREE.WebGLRenderTarget;
+  dst_: THREE.WebGLRenderTarget;
+}
+
+interface DivergenceSimProps extends CommonSimProps {
+  src: THREE.WebGLRenderTarget;
+  dst: THREE.WebGLRenderTarget;
+}
+
+interface PoissonSimProps extends CommonSimProps {
+  src: THREE.WebGLRenderTarget;
+  dst: THREE.WebGLRenderTarget;
+  dst_: THREE.WebGLRenderTarget;
+}
+
+interface PressureSimProps extends CommonSimProps {
+  src_p: THREE.WebGLRenderTarget;
+  src_v: THREE.WebGLRenderTarget;
+  dst: THREE.WebGLRenderTarget;
 }
 
 const props = withDefaults(defineProps<LiquidEtherProps>(), {
@@ -80,11 +113,10 @@ const props = withDefaults(defineProps<LiquidEtherProps>(), {
 });
 
 const mountRef = ref<HTMLDivElement | null>(null);
-const webglRef = ref<LiquidEtherWebGL | null>(null);
-const resizeObserverRef = ref<ResizeObserver | null>(null);
-const rafRef = ref<number | null>(null);
 const intersectionObserverRef = ref<IntersectionObserver | null>(null);
 const isVisibleRef = ref<boolean>(true);
+const rafRef = ref<number | null>(null);
+const resizeObserverRef = ref<ResizeObserver | null>(null);
 const resizeRafRef = ref<number | null>(null);
 
 const initWebGL = () => {
@@ -124,10 +156,6 @@ const initWebGL = () => {
     height = 0;
     aspect = 1;
     pixelRatio = 1;
-    isMobile = false;
-    breakpoint = 768;
-    fboWidth: number | null = null;
-    fboHeight: number | null = null;
     time = 0;
     delta = 0;
     container: HTMLElement | null = null;
@@ -185,6 +213,7 @@ const initWebGL = () => {
     takeoverFrom = new THREE.Vector2();
     takeoverTo = new THREE.Vector2();
     onInteract: (() => void) | null = null;
+
     private _onMouseMove = this.onDocumentMouseMove.bind(this);
     private _onTouchStart = this.onDocumentTouchStart.bind(this);
     private _onTouchMove = this.onDocumentTouchMove.bind(this);
@@ -270,11 +299,9 @@ const initWebGL = () => {
     onTouchEnd() {
       this.isHoverInside = false;
     }
-
     onMouseEnter() {
       this.isHoverInside = true;
     }
-
     onMouseLeave() {
       this.isHoverInside = false;
     }
@@ -343,11 +370,7 @@ const initWebGL = () => {
       if (!this.enabled) return;
       const now = performance.now();
       const idle = now - this.manager.lastUserInteraction;
-      if (idle < this.resumeDelay) {
-        if (this.active) this.forceStop();
-        return;
-      }
-      if (this.mouse.isHoverInside) {
+      if (idle < this.resumeDelay || this.mouse.isHoverInside) {
         if (this.active) this.forceStop();
         return;
       }
@@ -357,7 +380,6 @@ const initWebGL = () => {
         this.lastTime = now;
         this.activationTime = now;
       }
-      if (!this.active) return;
       this.mouse.isAutoActive = true;
       let dtSec = (now - this.lastTime) / 1000;
       this.lastTime = now;
@@ -381,7 +403,6 @@ const initWebGL = () => {
     }
   }
 
-  // Shader code
   const face_vert = `
     attribute vec3 position;
     uniform vec2 px;
@@ -389,27 +410,29 @@ const initWebGL = () => {
     varying vec2 uv;
     precision highp float;
     void main(){
-    vec3 pos = position;
-    vec2 scale = 1.0 - boundarySpace * 2.0;
-    pos.xy = pos.xy * scale;
-    uv = vec2(0.5)+(pos.xy)*0.5;
-    gl_Position = vec4(pos, 1.0);
-  }
+      vec3 pos = position;
+      vec2 scale = 1.0 - boundarySpace * 2.0;
+      pos.xy = pos.xy * scale;
+      uv = vec2(0.5)+(pos.xy)*0.5;
+      gl_Position = vec4(pos, 1.0);
+    }
   `;
+
   const line_vert = `
     attribute vec3 position;
     uniform vec2 px;
     precision highp float;
     varying vec2 uv;
     void main(){
-    vec3 pos = position;
-    uv = 0.5 + pos.xy * 0.5;
-    vec2 n = sign(pos.xy);
-    pos.xy = abs(pos.xy) - px * 1.0;
-    pos.xy *= n;
-    gl_Position = vec4(pos, 1.0);
-  }
+      vec3 pos = position;
+      uv = 0.5 + pos.xy * 0.5;
+      vec2 n = sign(pos.xy);
+      pos.xy = abs(pos.xy) - px * 1.0;
+      pos.xy *= n;
+      gl_Position = vec4(pos, 1.0);
+    }
   `;
+
   const mouse_vert = `
       precision highp float;
       attribute vec3 position;
@@ -419,11 +442,12 @@ const initWebGL = () => {
       uniform vec2 px;
       varying vec2 vUv;
       void main(){
-      vec2 pos = position.xy * scale * 2.0 * px + center;
-      vUv = uv;
-      gl_Position = vec4(pos, 0.0, 1.0);
-  }
+        vec2 pos = position.xy * scale * 2.0 * px + center;
+        vUv = uv;
+        gl_Position = vec4(pos, 0.0, 1.0);
+      }
   `;
+
   const advection_frag = `
       precision highp float;
       uniform sampler2D velocity;
@@ -452,8 +476,8 @@ const initWebGL = () => {
           vec2 newVel2 = texture2D(velocity, spot_old2).xy; 
           gl_FragColor = vec4(newVel2, 0.0, 0.0);
       }
-  }
-  `;
+  }`;
+
   const color_frag = `
       precision highp float;
       uniform sampler2D velocity;
@@ -467,8 +491,8 @@ const initWebGL = () => {
       vec3 outRGB = mix(bgColor.rgb, c, lenv);
       float outA = mix(bgColor.a, 1.0, lenv);
       gl_FragColor = vec4(outRGB, outA);
-  }
-  `;
+  }`;
+
   const divergence_frag = `
       precision highp float;
       uniform sampler2D velocity;
@@ -482,8 +506,8 @@ const initWebGL = () => {
       float y1 = texture2D(velocity, uv+vec2(0.0, px.y)).y;
       float divergence = (x1 - x0 + y1 - y0) / 2.0;
       gl_FragColor = vec4(divergence / dt);
-  }
-  `;
+  }`;
+
   const externalForce_frag = `
       precision highp float;
       uniform vec2 force;
@@ -496,8 +520,8 @@ const initWebGL = () => {
       float d = 1.0 - min(length(circle), 1.0);
       d *= d;
       gl_FragColor = vec4(force * d, 0.0, 1.0);
-  }
-  `;
+  }`;
+
   const poisson_frag = `
       precision highp float;
       uniform sampler2D pressure;
@@ -512,8 +536,8 @@ const initWebGL = () => {
       float div = texture2D(divergence, uv).r;
       float newP = (p0 + p1 + p2 + p3) / 4.0 - div;
       gl_FragColor = vec4(newP);
-  }
-  `;
+  }`;
+
   const pressure_frag = `
       precision highp float;
       uniform sampler2D pressure;
@@ -531,8 +555,8 @@ const initWebGL = () => {
       vec2 gradP = vec2(p0 - p1, p2 - p3) * 0.5;
       v = v - gradP * dt;
       gl_FragColor = vec4(v, 0.0, 1.0);
-  }
-  `;
+  }`;
+
   const viscous_frag = `
       precision highp float;
       uniform sampler2D velocity;
@@ -550,29 +574,26 @@ const initWebGL = () => {
       vec2 newv = 4.0 * old + v * dt * (new0 + new1 + new2 + new3);
       newv /= 4.0 * (1.0 + v * dt);
       gl_FragColor = vec4(newv, 0.0, 0.0);
-  }
-  `;
-
-  type Uniforms = Record<string, { value: any }>;
+  }`;
 
   class ShaderPass {
-    props: any;
-    uniforms?: Uniforms;
+    props: ShaderPassProps;
+    uniforms?: Record<string, THREE.IUniform>;
     scene: THREE.Scene | null = null;
     camera: THREE.Camera | null = null;
     material: THREE.RawShaderMaterial | null = null;
     geometry: THREE.BufferGeometry | null = null;
     plane: THREE.Mesh | null = null;
 
-    constructor(props: any) {
-      this.props = props || {};
+    constructor(props: ShaderPassProps) {
+      this.props = props;
       this.uniforms = this.props.material?.uniforms;
     }
 
-    init(..._args: any[]) {
+    init() {
       this.scene = new THREE.Scene();
       this.camera = new THREE.Camera();
-      if (this.uniforms) {
+      if (this.props.material) {
         this.material = new THREE.RawShaderMaterial(this.props.material);
         this.geometry = new THREE.PlaneGeometry(2, 2);
         this.plane = new THREE.Mesh(this.geometry, this.material);
@@ -580,7 +601,7 @@ const initWebGL = () => {
       }
     }
 
-    update(..._args: any[]) {
+    update() {
       if (!Common.renderer || !this.scene || !this.camera) return;
       Common.renderer.setRenderTarget(this.props.output || null);
       Common.renderer.render(this.scene, this.camera);
@@ -588,11 +609,10 @@ const initWebGL = () => {
     }
   }
 
-  // Shader pass classes (Advection, ExternalForce, etc.) - keeping them the same as in React version
   class Advection extends ShaderPass {
     line!: THREE.LineSegments;
 
-    constructor(simProps: any) {
+    constructor(simProps: AdvectionSimProps) {
       super({
         material: {
           vertexShader: face_vert,
@@ -608,21 +628,16 @@ const initWebGL = () => {
         },
         output: simProps.dst
       });
-      this.uniforms = this.props.material.uniforms;
       this.init();
     }
 
     init() {
       super.init();
-      this.createBoundary();
-    }
-
-    createBoundary() {
       const boundaryG = new THREE.BufferGeometry();
-      const vertices_boundary = new Float32Array([
+      const vertices = new Float32Array([
         -1, -1, 0, -1, 1, 0, -1, 1, 0, 1, 1, 0, 1, 1, 0, 1, -1, 0, 1, -1, 0, -1, -1, 0
       ]);
-      boundaryG.setAttribute('position', new THREE.BufferAttribute(vertices_boundary, 3));
+      boundaryG.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
       const boundaryM = new THREE.RawShaderMaterial({
         vertexShader: line_vert,
         fragmentShader: advection_frag,
@@ -632,25 +647,24 @@ const initWebGL = () => {
       this.scene!.add(this.line);
     }
 
-    update(...args: any[]) {
-      const { dt, isBounce, BFECC } = (args[0] || {}) as { dt?: number; isBounce?: boolean; BFECC?: boolean };
+    updateArgs(args: { dt: number; isBounce: boolean; BFECC: boolean }) {
       if (!this.uniforms) return;
-      if (typeof dt === 'number') this.uniforms.dt.value = dt;
-      if (typeof isBounce === 'boolean') this.line.visible = isBounce;
-      if (typeof BFECC === 'boolean') this.uniforms.isBFECC.value = BFECC;
+      this.uniforms.dt.value = args.dt;
+      this.line.visible = args.isBounce;
+      this.uniforms.isBFECC.value = args.BFECC;
       super.update();
     }
   }
 
   class ExternalForce extends ShaderPass {
-    mouse!: THREE.Mesh;
+    mouseMesh!: THREE.Mesh;
 
-    constructor(simProps: any) {
+    constructor(simProps: ExternalForceSimProps) {
       super({ output: simProps.dst });
-      this.init(simProps);
+      this.initForce(simProps);
     }
 
-    init(simProps: any) {
+    initForce(simProps: ExternalForceSimProps) {
       super.init();
       const mouseG = new THREE.PlaneGeometry(1, 1);
       const mouseM = new THREE.RawShaderMaterial({
@@ -665,36 +679,34 @@ const initWebGL = () => {
           scale: { value: new THREE.Vector2(simProps.cursor_size, simProps.cursor_size) }
         }
       });
-      this.mouse = new THREE.Mesh(mouseG, mouseM);
-      this.scene!.add(this.mouse);
+      this.mouseMesh = new THREE.Mesh(mouseG, mouseM);
+      this.scene!.add(this.mouseMesh);
     }
 
-    update(...args: any[]) {
-      const props = args[0] || {};
-      const forceX = (Mouse.diff.x / 2) * (props.mouse_force || 0);
-      const forceY = (Mouse.diff.y / 2) * (props.mouse_force || 0);
-      const cellScale = props.cellScale || { x: 1, y: 1 };
-      const cursorSize = props.cursor_size || 0;
-      const cursorSizeX = cursorSize * cellScale.x;
-      const cursorSizeY = cursorSize * cellScale.y;
+    updateArgs(args: { mouse_force: number; cursor_size: number; cellScale: THREE.Vector2 }) {
+      const forceX = (Mouse.diff.x / 2) * args.mouse_force;
+      const forceY = (Mouse.diff.y / 2) * args.mouse_force;
+      const cursorSizeX = args.cursor_size * args.cellScale.x;
+      const cursorSizeY = args.cursor_size * args.cellScale.y;
       const centerX = Math.min(
-        Math.max(Mouse.coords.x, -1 + cursorSizeX + cellScale.x * 2),
-        1 - cursorSizeX - cellScale.x * 2
+        Math.max(Mouse.coords.x, -1 + cursorSizeX + args.cellScale.x * 2),
+        1 - cursorSizeX - args.cellScale.x * 2
       );
       const centerY = Math.min(
-        Math.max(Mouse.coords.y, -1 + cursorSizeY + cellScale.y * 2),
-        1 - cursorSizeY - cellScale.y * 2
+        Math.max(Mouse.coords.y, -1 + cursorSizeY + args.cellScale.y * 2),
+        1 - cursorSizeY - args.cellScale.y * 2
       );
-      const uniforms = (this.mouse.material as THREE.RawShaderMaterial).uniforms;
+
+      const uniforms = (this.mouseMesh.material as THREE.RawShaderMaterial).uniforms;
       uniforms.force.value.set(forceX, forceY);
       uniforms.center.value.set(centerX, centerY);
-      uniforms.scale.value.set(cursorSize, cursorSize);
+      uniforms.scale.value.set(args.cursor_size, args.cursor_size);
       super.update();
     }
   }
 
   class Viscous extends ShaderPass {
-    constructor(simProps: any) {
+    constructor(simProps: ViscousSimProps) {
       super({
         material: {
           vertexShader: face_vert,
@@ -708,30 +720,24 @@ const initWebGL = () => {
             dt: { value: simProps.dt }
           }
         },
-        output: simProps.dst,
         output0: simProps.dst_,
         output1: simProps.dst
       });
       this.init();
     }
 
-    update(...args: any[]) {
-      const { viscous, iterations, dt } = (args[0] || {}) as { viscous?: number; iterations?: number; dt?: number };
-      if (!this.uniforms) return;
-      let fbo_in: any, fbo_out: any;
-      if (typeof viscous === 'number') this.uniforms.v.value = viscous;
-      const iter = iterations ?? 0;
-      for (let i = 0; i < iter; i++) {
-        if (i % 2 === 0) {
-          fbo_in = this.props.output0;
-          fbo_out = this.props.output1;
-        } else {
-          fbo_in = this.props.output1;
-          fbo_out = this.props.output0;
-        }
+    updateArgs(args: { viscous: number; iterations: number; dt: number }): THREE.WebGLRenderTarget {
+      if (!this.uniforms) return this.props.output1!;
+      let fbo_out = this.props.output1!;
+      this.uniforms.v.value = args.viscous;
+      this.uniforms.dt.value = args.dt;
+
+      for (let i = 0; i < args.iterations; i++) {
+        const isEven = i % 2 === 0;
+        const fbo_in = isEven ? this.props.output0! : this.props.output1!;
+        fbo_out = isEven ? this.props.output1! : this.props.output0!;
         this.uniforms.velocity_new.value = fbo_in.texture;
         this.props.output = fbo_out;
-        if (typeof dt === 'number') this.uniforms.dt.value = dt;
         super.update();
       }
       return fbo_out;
@@ -739,7 +745,7 @@ const initWebGL = () => {
   }
 
   class Divergence extends ShaderPass {
-    constructor(simProps: any) {
+    constructor(simProps: DivergenceSimProps) {
       super({
         material: {
           vertexShader: face_vert,
@@ -756,17 +762,14 @@ const initWebGL = () => {
       this.init();
     }
 
-    update(...args: any[]) {
-      const { vel } = (args[0] || {}) as { vel?: any };
-      if (this.uniforms && vel) {
-        this.uniforms.velocity.value = vel.texture;
-      }
+    updateArgs(args: { vel: THREE.WebGLRenderTarget }) {
+      if (this.uniforms) this.uniforms.velocity.value = args.vel.texture;
       super.update();
     }
   }
 
   class Poisson extends ShaderPass {
-    constructor(simProps: any) {
+    constructor(simProps: PoissonSimProps) {
       super({
         material: {
           vertexShader: face_vert,
@@ -778,25 +781,18 @@ const initWebGL = () => {
             px: { value: simProps.cellScale }
           }
         },
-        output: simProps.dst,
         output0: simProps.dst_,
         output1: simProps.dst
       });
       this.init();
     }
 
-    update(...args: any[]) {
-      const { iterations } = (args[0] || {}) as { iterations?: number };
-      let p_in: any, p_out: any;
-      const iter = iterations ?? 0;
-      for (let i = 0; i < iter; i++) {
-        if (i % 2 === 0) {
-          p_in = this.props.output0;
-          p_out = this.props.output1;
-        } else {
-          p_in = this.props.output1;
-          p_out = this.props.output0;
-        }
+    updateArgs(args: { iterations: number }): THREE.WebGLRenderTarget {
+      let p_out = this.props.output1!;
+      for (let i = 0; i < args.iterations; i++) {
+        const isEven = i % 2 === 0;
+        const p_in = isEven ? this.props.output0! : this.props.output1!;
+        p_out = isEven ? this.props.output1! : this.props.output0!;
         if (this.uniforms) this.uniforms.pressure.value = p_in.texture;
         this.props.output = p_out;
         super.update();
@@ -806,7 +802,7 @@ const initWebGL = () => {
   }
 
   class Pressure extends ShaderPass {
-    constructor(simProps: any) {
+    constructor(simProps: PressureSimProps) {
       super({
         material: {
           vertexShader: face_vert,
@@ -824,11 +820,10 @@ const initWebGL = () => {
       this.init();
     }
 
-    update(...args: any[]) {
-      const { vel, pressure } = (args[0] || {}) as { vel?: any; pressure?: any };
-      if (this.uniforms && vel && pressure) {
-        this.uniforms.velocity.value = vel.texture;
-        this.uniforms.pressure.value = pressure.texture;
+    updateArgs(args: { vel: THREE.WebGLRenderTarget; pressure: THREE.WebGLRenderTarget }) {
+      if (this.uniforms) {
+        this.uniforms.velocity.value = args.vel.texture;
+        this.uniforms.pressure.value = args.pressure.texture;
       }
       super.update();
     }
@@ -836,15 +831,7 @@ const initWebGL = () => {
 
   class Simulation {
     options: SimOptions;
-    fbos: Record<string, THREE.WebGLRenderTarget | null> = {
-      vel_0: null,
-      vel_1: null,
-      vel_viscous0: null,
-      vel_viscous1: null,
-      div: null,
-      pressure_0: null,
-      pressure_1: null
-    };
+    fbos: Record<string, THREE.WebGLRenderTarget> = {};
     fboSize = new THREE.Vector2();
     cellScale = new THREE.Vector2();
     boundarySpace = new THREE.Vector2();
@@ -878,107 +865,90 @@ const initWebGL = () => {
       this.createShaderPass();
     }
 
-    getFloatType() {
-      const isIOS = /(iPad|iPhone|iPod)/i.test(navigator.userAgent);
-      return isIOS ? THREE.HalfFloatType : THREE.FloatType;
+    getFloatType(): THREE.TextureDataType {
+      return /(iPad|iPhone|iPod)/i.test(navigator.userAgent) ? THREE.HalfFloatType : THREE.FloatType;
     }
 
     createAllFBO() {
       const type = this.getFloatType();
-      const opts = {
-        type,
-        depthBuffer: false,
-        stencilBuffer: false,
-        minFilter: THREE.LinearFilter,
-        magFilter: THREE.LinearFilter,
-        wrapS: THREE.ClampToEdgeWrapping,
-        wrapT: THREE.ClampToEdgeWrapping
-      } as const;
-      for (const key in this.fbos) {
-        this.fbos[key] = new THREE.WebGLRenderTarget(this.fboSize.x, this.fboSize.y, opts);
-      }
+      const keys = ['vel_0', 'vel_1', 'vel_viscous0', 'vel_viscous1', 'div', 'pressure_0', 'pressure_1'];
+      keys.forEach(key => {
+        this.fbos[key] = new THREE.WebGLRenderTarget(this.fboSize.x, this.fboSize.y, {
+          type,
+          depthBuffer: false,
+          stencilBuffer: false,
+          minFilter: THREE.LinearFilter,
+          magFilter: THREE.LinearFilter,
+          wrapS: THREE.ClampToEdgeWrapping,
+          wrapT: THREE.ClampToEdgeWrapping
+        });
+      });
     }
 
     createShaderPass() {
-      this.advection = new Advection({
-        cellScale: this.cellScale,
-        fboSize: this.fboSize,
-        dt: this.options.dt,
-        src: this.fbos.vel_0,
-        dst: this.fbos.vel_1
-      });
+      const common = { cellScale: this.cellScale, dt: this.options.dt, boundarySpace: this.boundarySpace };
+      this.advection = new Advection({ ...common, fboSize: this.fboSize, src: this.fbos.vel_0, dst: this.fbos.vel_1 });
       this.externalForce = new ExternalForce({
         cellScale: this.cellScale,
         cursor_size: this.options.cursor_size,
         dst: this.fbos.vel_1
       });
       this.viscous = new Viscous({
-        cellScale: this.cellScale,
-        boundarySpace: this.boundarySpace,
+        ...common,
         viscous: this.options.viscous,
         src: this.fbos.vel_1,
         dst: this.fbos.vel_viscous1,
-        dst_: this.fbos.vel_viscous0,
-        dt: this.options.dt
+        dst_: this.fbos.vel_viscous0
       });
-      this.divergence = new Divergence({
-        cellScale: this.cellScale,
-        boundarySpace: this.boundarySpace,
-        src: this.fbos.vel_viscous0,
-        dst: this.fbos.div,
-        dt: this.options.dt
-      });
+      this.divergence = new Divergence({ ...common, src: this.fbos.vel_viscous0, dst: this.fbos.div });
       this.poisson = new Poisson({
-        cellScale: this.cellScale,
-        boundarySpace: this.boundarySpace,
+        ...common,
         src: this.fbos.div,
         dst: this.fbos.pressure_1,
         dst_: this.fbos.pressure_0
       });
       this.pressure = new Pressure({
-        cellScale: this.cellScale,
-        boundarySpace: this.boundarySpace,
+        ...common,
         src_p: this.fbos.pressure_0,
         src_v: this.fbos.vel_viscous0,
-        dst: this.fbos.vel_0,
-        dt: this.options.dt
+        dst: this.fbos.vel_0
       });
     }
 
     calcSize() {
-      const width = Math.max(1, Math.round(this.options.resolution * Common.width));
-      const height = Math.max(1, Math.round(this.options.resolution * Common.height));
-      this.cellScale.set(1 / width, 1 / height);
-      this.fboSize.set(width, height);
+      const w = Math.max(1, Math.round(this.options.resolution * Common.width));
+      const h = Math.max(1, Math.round(this.options.resolution * Common.height));
+      this.cellScale.set(1 / w, 1 / h);
+      this.fboSize.set(w, h);
     }
 
     resize() {
       this.calcSize();
-      for (const key in this.fbos) {
-        this.fbos[key]!.setSize(this.fboSize.x, this.fboSize.y);
-      }
+      Object.values(this.fbos).forEach(fbo => fbo.setSize(this.fboSize.x, this.fboSize.y));
     }
 
     update() {
       if (this.options.isBounce) this.boundarySpace.set(0, 0);
       else this.boundarySpace.copy(this.cellScale);
-      this.advection.update({ dt: this.options.dt, isBounce: this.options.isBounce, BFECC: this.options.BFECC });
-      this.externalForce.update({
+
+      this.advection.updateArgs({ dt: this.options.dt, isBounce: this.options.isBounce, BFECC: this.options.BFECC });
+      this.externalForce.updateArgs({
         cursor_size: this.options.cursor_size,
         mouse_force: this.options.mouse_force,
         cellScale: this.cellScale
       });
-      let vel: any = this.fbos.vel_1;
+
+      let vel = this.fbos.vel_1;
       if (this.options.isViscous) {
-        vel = this.viscous.update({
+        vel = this.viscous.updateArgs({
           viscous: this.options.viscous,
           iterations: this.options.iterations_viscous,
           dt: this.options.dt
         });
       }
-      this.divergence.update({ vel });
-      const pressure = this.poisson.update({ iterations: this.options.iterations_poisson });
-      this.pressure.update({ vel, pressure });
+      this.divergence.updateArgs({ vel });
+      const pressure = this.poisson.updateArgs({ iterations: this.options.iterations_poisson });
+      this.pressure.updateArgs({ vel, pressure });
     }
   }
 
@@ -986,13 +956,13 @@ const initWebGL = () => {
     simulation: Simulation;
     scene: THREE.Scene;
     camera: THREE.Camera;
-    output: THREE.Mesh;
+    outputMesh: THREE.Mesh;
 
     constructor() {
       this.simulation = new Simulation();
       this.scene = new THREE.Scene();
       this.camera = new THREE.Camera();
-      this.output = new THREE.Mesh(
+      this.outputMesh = new THREE.Mesh(
         new THREE.PlaneGeometry(2, 2),
         new THREE.RawShaderMaterial({
           vertexShader: face_vert,
@@ -1000,34 +970,42 @@ const initWebGL = () => {
           transparent: true,
           depthWrite: false,
           uniforms: {
-            velocity: { value: this.simulation.fbos.vel_0!.texture },
+            velocity: { value: this.simulation.fbos.vel_0.texture },
             boundarySpace: { value: new THREE.Vector2() },
             palette: { value: paletteTex },
             bgColor: { value: bgVec4 }
           }
         })
       );
-      this.scene.add(this.output);
+      this.scene.add(this.outputMesh);
     }
 
     resize() {
       this.simulation.resize();
     }
-
+    update() {
+      this.simulation.update();
+      this.render();
+    }
     render() {
       if (!Common.renderer) return;
       Common.renderer.setRenderTarget(null);
       Common.renderer.render(this.scene, this.camera);
     }
-
-    update() {
-      this.simulation.update();
-      this.render();
-    }
   }
 
-  class WebGLManager implements LiquidEtherWebGL {
-    props: any;
+  interface WebGLManagerConfig {
+    $wrapper: HTMLElement;
+    autoDemo: boolean;
+    autoSpeed: number;
+    autoIntensity: number;
+    takeoverDuration: number;
+    autoResumeDelay: number;
+    autoRampDuration: number;
+  }
+
+  class WebGLManager {
+    config: WebGLManagerConfig;
     output!: Output;
     autoDriver?: AutoDriver;
     lastUserInteraction = performance.now();
@@ -1036,38 +1014,34 @@ const initWebGL = () => {
     private _resize = this.resize.bind(this);
     private _onVisibility?: () => void;
 
-    constructor(props: any) {
-      this.props = props;
-      Common.init(props.$wrapper);
-      Mouse.init(props.$wrapper);
-      Mouse.autoIntensity = props.autoIntensity;
-      Mouse.takeoverDuration = props.takeoverDuration;
+    constructor(config: WebGLManagerConfig) {
+      this.config = config;
+      Common.init(config.$wrapper);
+      Mouse.init(config.$wrapper);
+      Mouse.autoIntensity = config.autoIntensity;
+      Mouse.takeoverDuration = config.takeoverDuration;
       Mouse.onInteract = () => {
         this.lastUserInteraction = performance.now();
         if (this.autoDriver) this.autoDriver.forceStop();
       };
-      this.autoDriver = new AutoDriver(Mouse, this as any, {
-        enabled: props.autoDemo,
-        speed: props.autoSpeed,
-        resumeDelay: props.autoResumeDelay,
-        rampDuration: props.autoRampDuration
+      this.autoDriver = new AutoDriver(Mouse, this, {
+        enabled: config.autoDemo,
+        speed: config.autoSpeed,
+        resumeDelay: config.autoResumeDelay,
+        rampDuration: config.autoRampDuration
       });
       this.init();
       window.addEventListener('resize', this._resize);
       this._onVisibility = () => {
-        const hidden = document.hidden;
-        if (hidden) {
-          this.pause();
-        } else if (isVisibleRef.value) {
-          this.start();
-        }
+        if (document.hidden) this.pause();
+        else if (isVisibleRef.value) this.start();
       };
       document.addEventListener('visibilitychange', this._onVisibility);
     }
 
     init() {
       if (!Common.renderer) return;
-      this.props.$wrapper.prepend(Common.renderer.domElement);
+      this.config.$wrapper.prepend(Common.renderer.domElement);
       this.output = new Output();
     }
 
@@ -1075,56 +1049,42 @@ const initWebGL = () => {
       Common.resize();
       this.output.resize();
     }
-
     render() {
       if (this.autoDriver) this.autoDriver.update();
       Mouse.update();
       Common.update();
       this.output.update();
     }
-
     loop() {
       if (!this.running) return;
       this.render();
       rafRef.value = requestAnimationFrame(this._loop);
     }
-
     start() {
       if (this.running) return;
       this.running = true;
       this._loop();
     }
-
     pause() {
       this.running = false;
-      if (rafRef.value) {
-        cancelAnimationFrame(rafRef.value);
-        rafRef.value = null;
-      }
+      if (rafRef.value) cancelAnimationFrame(rafRef.value);
+      rafRef.value = null;
     }
 
     dispose() {
-      try {
-        window.removeEventListener('resize', this._resize);
-        if (this._onVisibility) document.removeEventListener('visibilitychange', this._onVisibility);
-        Mouse.dispose();
-        if (Common.renderer) {
-          const canvas = Common.renderer.domElement;
-          if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
-          Common.renderer.dispose();
-        }
-      } catch {
-        /* noop */
+      window.removeEventListener('resize', this._resize);
+      if (this._onVisibility) document.removeEventListener('visibilitychange', this._onVisibility);
+      Mouse.dispose();
+      if (Common.renderer) {
+        const canvas = Common.renderer.domElement;
+        if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
+        Common.renderer.dispose();
       }
     }
   }
 
-  const container = mountRef.value;
-  container.style.position = container.style.position || 'relative';
-  container.style.overflow = container.style.overflow || 'hidden';
-
   const webgl = new WebGLManager({
-    $wrapper: container,
+    $wrapper: mountRef.value,
     autoDemo: props.autoDemo,
     autoSpeed: props.autoSpeed,
     autoIntensity: props.autoIntensity,
@@ -1132,12 +1092,9 @@ const initWebGL = () => {
     autoResumeDelay: props.autoResumeDelay,
     autoRampDuration: props.autoRampDuration
   });
-  webglRef.value = webgl;
 
-  const applyOptionsFromProps = () => {
-    if (!webglRef.value) return;
-    const sim = webglRef.value.output?.simulation;
-    if (!sim) return;
+  const updateSimOptions = () => {
+    const sim = webgl.output.simulation;
     const prevRes = sim.options.resolution;
     Object.assign(sim.options, {
       mouse_force: props.mouseForce,
@@ -1151,41 +1108,42 @@ const initWebGL = () => {
       resolution: props.resolution,
       isBounce: props.isBounce
     });
+    if (webgl.autoDriver) {
+      webgl.autoDriver.enabled = props.autoDemo;
+      webgl.autoDriver.speed = props.autoSpeed;
+      webgl.autoDriver.resumeDelay = props.autoResumeDelay;
+      webgl.autoDriver.rampDurationMs = props.autoRampDuration * 1000;
+    }
     if (props.resolution !== prevRes) sim.resize();
   };
-  applyOptionsFromProps();
+
+  updateSimOptions();
   webgl.start();
 
   const io = new IntersectionObserver(
     entries => {
-      const entry = entries[0];
-      const isVisible = entry.isIntersecting && entry.intersectionRatio > 0;
+      const isVisible = entries[0].isIntersecting;
       isVisibleRef.value = isVisible;
-      if (!webglRef.value) return;
-      if (isVisible && !document.hidden) {
-        webglRef.value.start();
-      } else {
-        webglRef.value.pause();
-      }
+      if (isVisible && !document.hidden) webgl.start();
+      else webgl.pause();
     },
-    { threshold: [0, 0.01, 0.1] }
+    { threshold: [0, 0.01] }
   );
-  io.observe(container);
+  io.observe(mountRef.value);
   intersectionObserverRef.value = io;
 
   const ro = new ResizeObserver(() => {
-    if (!webglRef.value) return;
     if (resizeRafRef.value) cancelAnimationFrame(resizeRafRef.value);
-    resizeRafRef.value = requestAnimationFrame(() => {
-      if (!webglRef.value) return;
-      webglRef.value.resize();
-    });
+    resizeRafRef.value = requestAnimationFrame(() => webgl.resize());
   });
-  ro.observe(container);
+  ro.observe(mountRef.value);
   resizeObserverRef.value = ro;
+
+  return webgl;
 };
 
-// Watchers for prop changes
+let activeWebGL: ReturnType<typeof initWebGL> | null = null;
+
 watch(
   () => [
     props.mouseForce,
@@ -1206,60 +1164,41 @@ watch(
     props.autoRampDuration
   ],
   () => {
-    const webgl = webglRef.value;
-    if (!webgl) return;
-    const sim = webgl.output?.simulation;
-    if (!sim) return;
-    const prevRes = sim.options.resolution;
-    Object.assign(sim.options, {
-      mouse_force: props.mouseForce,
-      cursor_size: props.cursorSize,
-      isViscous: props.isViscous,
-      viscous: props.viscous,
-      iterations_viscous: props.iterationsViscous,
-      iterations_poisson: props.iterationsPoisson,
-      dt: props.dt,
-      BFECC: props.BFECC,
-      resolution: props.resolution,
-      isBounce: props.isBounce
-    });
-    if (webgl.autoDriver) {
-      webgl.autoDriver.enabled = props.autoDemo;
-      webgl.autoDriver.speed = props.autoSpeed;
-      webgl.autoDriver.resumeDelay = props.autoResumeDelay;
-      webgl.autoDriver.rampDurationMs = props.autoRampDuration * 1000;
-      if (webgl.autoDriver.mouse) {
-        webgl.autoDriver.mouse.autoIntensity = props.autoIntensity;
-        webgl.autoDriver.mouse.takeoverDuration = props.takeoverDuration;
+    if (activeWebGL) {
+      const sim = activeWebGL.output.simulation;
+      const prevRes = sim.options.resolution;
+      Object.assign(sim.options, {
+        mouse_force: props.mouseForce,
+        cursor_size: props.cursorSize,
+        isViscous: props.isViscous,
+        viscous: props.viscous,
+        iterations_viscous: props.iterationsViscous,
+        iterations_poisson: props.iterationsPoisson,
+        dt: props.dt,
+        BFECC: props.BFECC,
+        resolution: props.resolution,
+        isBounce: props.isBounce
+      });
+      if (activeWebGL.autoDriver) {
+        activeWebGL.autoDriver.enabled = props.autoDemo;
+        activeWebGL.autoDriver.speed = props.autoSpeed;
+        activeWebGL.autoDriver.resumeDelay = props.autoResumeDelay;
+        activeWebGL.autoDriver.rampDurationMs = props.autoRampDuration * 1000;
       }
+      if (props.resolution !== prevRes) sim.resize();
     }
-    if (props.resolution !== prevRes) sim.resize();
   }
 );
 
 onMounted(() => {
-  initWebGL();
+  activeWebGL = initWebGL();
 });
 
 onUnmounted(() => {
-  if (rafRef.value) cancelAnimationFrame(rafRef.value);
-  if (resizeObserverRef.value) {
-    try {
-      resizeObserverRef.value.disconnect();
-    } catch {
-      /* noop */
-    }
-  }
-  if (intersectionObserverRef.value) {
-    try {
-      intersectionObserverRef.value.disconnect();
-    } catch {
-      /* noop */
-    }
-  }
-  if (webglRef.value) {
-    webglRef.value.dispose();
-  }
-  webglRef.value = null;
+  if (resizeRafRef.value) cancelAnimationFrame(resizeRafRef.value);
+  resizeObserverRef.value?.disconnect();
+  intersectionObserverRef.value?.disconnect();
+  activeWebGL?.dispose();
+  activeWebGL = null;
 });
 </script>

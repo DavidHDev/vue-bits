@@ -1,10 +1,16 @@
-import code from '@content/Backgrounds/Prism/Prism.vue?raw';
-import { createCodeObject } from '../../../types/code';
+import code from '@/content/Backgrounds/Prism/Prism.vue?raw';
+import { createCodeObject } from '@/types/code';
 
 export const prism = createCodeObject(code, 'Backgrounds/Prism', {
   installation: `npm install ogl`,
   usage: `<template>
-  <div style="width: 100%; height: 600px; position: relative;">
+  <div
+    style="
+      width: 100%;
+      height: 600px;
+      position: relative;
+    "
+  >
     <Prism
       animation-type="rotate"
       :time-scale="0.5"
@@ -20,6 +26,6 @@ export const prism = createCodeObject(code, 'Backgrounds/Prism', {
 </template>
 
 <script setup lang="ts">
-  import Prism from "./Prism.vue";
+import Prism from './Prism.vue'
 </script>`
 });

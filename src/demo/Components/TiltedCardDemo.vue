@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Tilted Card</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="tiltedCard.usage"
+    :source="tiltedCardSource"
+    component-name="TiltedCard"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[500px] overflow-hidden">
+      <div class="h-[500px] overflow-hidden demo-container">
         <TiltedCard
           image-src="https://i.scdn.co/image/ab67616d0000b273d9985092cd88bffd97653b58"
           alt-text="Kendrick Lamar - GNX Album Cover"
@@ -22,51 +30,71 @@
           </template>
         </TiltedCard>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSlider title="Rotate Amplitude" v-model="rotateAmplitude" :min="0" :max="30" :step="1" />
-
         <PreviewSlider title="Scale on Hover" v-model="scaleOnHover" :min="1" :max="1.5" :step="0.05" />
-
         <PreviewSwitch title="Show Tooltip" v-model="showTooltip" />
-
         <PreviewSwitch title="Show Overlay Content" v-model="displayOverlayContent" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-
-      <Dependencies :dependency-list="['motion-v']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="tiltedCard" />
+      <DemoCodeTab slug="tilted-card" :usage="tiltedCard.usage!" :source="tiltedCardSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="tiltedCard.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import TiltedCard from '../../content/Components/TiltedCard/TiltedCard.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { tiltedCard } from '@/constants/code/Components/tiltedCardCode';
+import TiltedCard from '@/content/Components/TiltedCard/TiltedCard.vue';
+import tiltedCardSource from '@/content/Components/TiltedCard/TiltedCard.vue?raw';
+import { computed, ref } from 'vue';
 
-const rotateAmplitude = ref(12);
-const scaleOnHover = ref(1.05);
-const showTooltip = ref(true);
-const displayOverlayContent = ref(true);
+const { forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  rotateAmplitude: 12,
+  scaleOnHover: 1.05,
+  showTooltip: true,
+  displayOverlayContent: true
+};
+
+const rotateAmplitude = ref(DEFAULTS.rotateAmplitude);
+const scaleOnHover = ref(DEFAULTS.scaleOnHover);
+const showTooltip = ref(DEFAULTS.showTooltip);
+const displayOverlayContent = ref(DEFAULTS.displayOverlayContent);
+
+const hasChanges = computed(
+  () =>
+    rotateAmplitude.value !== DEFAULTS.rotateAmplitude ||
+    scaleOnHover.value !== DEFAULTS.scaleOnHover ||
+    showTooltip.value !== DEFAULTS.showTooltip ||
+    displayOverlayContent.value !== DEFAULTS.displayOverlayContent
+);
+
+function reset() {
+  rotateAmplitude.value = DEFAULTS.rotateAmplitude;
+  scaleOnHover.value = DEFAULTS.scaleOnHover;
+  showTooltip.value = DEFAULTS.showTooltip;
+  displayOverlayContent.value = DEFAULTS.displayOverlayContent;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'imageSrc',
     type: 'string',
@@ -88,7 +116,7 @@ const propData = [
   {
     name: 'containerHeight',
     type: 'string',
-    default: '300px',
+    default: '600px',
     description: 'Height of the overall card container.'
   },
   {

@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Radar</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="radar.usage"
+    :source="radarSource"
+    component-name="Radar"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="relative p-0 h-[600px] overflow-hidden demo-container">
+      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
         <Radar
           :speed="speed"
           :scale="scale"
@@ -19,16 +27,14 @@
           :enable-mouse-interaction="enableMouseInteraction"
           :mouse-influence="mouseInfluence"
         />
-
         <BackgroundContent pill-text="New Background" headline="Scan the horizon of your imagination!" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <div class="flex items-center gap-4 mt-4">
-          <PreviewColor title="Color" v-model="color" />
-          <PreviewColor title="Background" v-model="backgroundColor" />
-        </div>
-
+        <PreviewColorPicker title="Color" v-model="color" />
+        <PreviewColorPicker title="Background" v-model="backgroundColor" />
         <PreviewSlider title="Speed" :min="0.1" :max="5" :step="0.1" v-model="speed" />
         <PreviewSlider title="Scale" :min="0.1" :max="3" :step="0.1" v-model="scale" />
         <PreviewSlider title="Ring Count" :min="1" :max="30" :step="1" v-model="ringCount" />
@@ -50,53 +56,108 @@
           v-model="mouseInfluence"
         />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['ogl']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="radar" />
+      <DemoCodeTab slug="radar" :usage="radar.usage!" :source="radarSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="radar.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import CliInstallation from '@/components/code/CliInstallation.vue';
-import CodeExample from '@/components/code/CodeExample.vue';
-import Dependencies from '@/components/code/Dependencies.vue';
 import BackgroundContent from '@/components/common/BackgroundContent.vue';
 import Customize from '@/components/common/Customize.vue';
-import PreviewColor from '@/components/common/PreviewColor.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
-import PropTable from '@/components/common/PropTable.vue';
-import TabbedLayout from '@/components/common/TabbedLayout.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { radar } from '@/constants/code/Backgrounds/radarCode';
 import Radar from '@/content/Backgrounds/Radar/Radar.vue';
-import { ref } from 'vue';
+import radarSource from '@/content/Backgrounds/Radar/Radar.vue?raw';
+import { computed, ref } from 'vue';
 
-const speed = ref(1.0);
-const scale = ref(0.5);
-const ringCount = ref(10.0);
-const spokeCount = ref(10.0);
-const ringThickness = ref(0.05);
-const spokeThickness = ref(0.01);
-const sweepSpeed = ref(1.0);
-const sweepWidth = ref(2.0);
-const sweepLobes = ref(1.0);
-const color = ref('#27FF64');
-const backgroundColor = ref('#000000');
-const falloff = ref(2.0);
-const brightness = ref(1.0);
-const enableMouseInteraction = ref(true);
-const mouseInfluence = ref(0.1);
+const { forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  speed: 1.0,
+  scale: 0.5,
+  ringCount: 10.0,
+  spokeCount: 10.0,
+  ringThickness: 0.05,
+  spokeThickness: 0.01,
+  sweepSpeed: 1.0,
+  sweepWidth: 2.0,
+  sweepLobes: 1.0,
+  color: '#27FF64',
+  backgroundColor: '#000000',
+  falloff: 2.0,
+  brightness: 1.0,
+  enableMouseInteraction: true,
+  mouseInfluence: 0.1
+};
+
+const speed = ref(DEFAULTS.speed);
+const scale = ref(DEFAULTS.scale);
+const ringCount = ref(DEFAULTS.ringCount);
+const spokeCount = ref(DEFAULTS.spokeCount);
+const ringThickness = ref(DEFAULTS.ringThickness);
+const spokeThickness = ref(DEFAULTS.spokeThickness);
+const sweepSpeed = ref(DEFAULTS.sweepSpeed);
+const sweepWidth = ref(DEFAULTS.sweepWidth);
+const sweepLobes = ref(DEFAULTS.sweepLobes);
+const color = ref(DEFAULTS.color);
+const backgroundColor = ref(DEFAULTS.backgroundColor);
+const falloff = ref(DEFAULTS.falloff);
+const brightness = ref(DEFAULTS.brightness);
+const enableMouseInteraction = ref(DEFAULTS.enableMouseInteraction);
+const mouseInfluence = ref(DEFAULTS.mouseInfluence);
+
+const hasChanges = computed(
+  () =>
+    speed.value !== DEFAULTS.speed ||
+    scale.value !== DEFAULTS.scale ||
+    ringCount.value !== DEFAULTS.ringCount ||
+    spokeCount.value !== DEFAULTS.spokeCount ||
+    ringThickness.value !== DEFAULTS.ringThickness ||
+    spokeThickness.value !== DEFAULTS.spokeThickness ||
+    sweepSpeed.value !== DEFAULTS.sweepSpeed ||
+    sweepWidth.value !== DEFAULTS.sweepWidth ||
+    sweepLobes.value !== DEFAULTS.sweepLobes ||
+    color.value !== DEFAULTS.color ||
+    backgroundColor.value !== DEFAULTS.backgroundColor ||
+    falloff.value !== DEFAULTS.falloff ||
+    brightness.value !== DEFAULTS.brightness ||
+    enableMouseInteraction.value !== DEFAULTS.enableMouseInteraction ||
+    mouseInfluence.value !== DEFAULTS.mouseInfluence
+);
+
+function reset() {
+  speed.value = DEFAULTS.speed;
+  scale.value = DEFAULTS.scale;
+  ringCount.value = DEFAULTS.ringCount;
+  spokeCount.value = DEFAULTS.spokeCount;
+  ringThickness.value = DEFAULTS.ringThickness;
+  spokeThickness.value = DEFAULTS.spokeThickness;
+  sweepSpeed.value = DEFAULTS.sweepSpeed;
+  sweepWidth.value = DEFAULTS.sweepWidth;
+  sweepLobes.value = DEFAULTS.sweepLobes;
+  color.value = DEFAULTS.color;
+  backgroundColor.value = DEFAULTS.backgroundColor;
+  falloff.value = DEFAULTS.falloff;
+  brightness.value = DEFAULTS.brightness;
+  enableMouseInteraction.value = DEFAULTS.enableMouseInteraction;
+  mouseInfluence.value = DEFAULTS.mouseInfluence;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'speed',
     type: 'number',

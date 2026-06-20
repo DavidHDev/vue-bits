@@ -1,14 +1,14 @@
-import code from '@content/Components/Folder/Folder.vue?raw';
-import { createCodeObject } from '../../../types/code';
+import code from '@/content/Components/Folder/Folder.vue?raw';
+import { createCodeObject } from '@/types/code';
 
 export const folder = createCodeObject(code, 'Components/Folder', {
   usage: `<template>
-  <Folder :items="items" :size="2" color="#27FF64" class="my-folder-class" />
+  <div style="height: 600px; position: relative;">
+    <Folder :size="2" color="#5227FF" class="custom-folder" />
+  </div>
 </template>
 
-<script setup lang="ts">
-  import Folder from "./Folder.vue";
-
-  const items = ['Doc 1', 'Doc 2', 'Doc 3'];
+<script setup>
+import Folder from './Folder.vue'
 </script>`
 });

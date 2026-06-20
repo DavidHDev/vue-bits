@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Grid Scan</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="gridScan.usage"
+    :source="gridScanSource"
+    component-name="GridScan"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="h-[600px] overflow-hidden demo-container relative">
+      <div class="relative h-[500px] overflow-hidden demo-container">
         <GridScan
           :line-thickness="lineThickness"
           :grid-scale="gridScale"
@@ -16,77 +24,115 @@
           :enable-webcam="enableWebcam"
           :show-preview="showPreview"
         />
-
         <BackgroundContent pill-text="New Background" headline="Hold on, scanning for Angular users." />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewColor title="Lines Color" v-model="linesColor" class="mb-4" />
-        <PreviewColor title="Scan Color" v-model="scanColor" />
-
+        <PreviewColorPicker title="Lines Color" v-model="linesColor" class="mb-4" />
+        <PreviewColorPicker title="Scan Color" v-model="scanColor" />
         <PreviewSlider title="Line Thickness" v-model="lineThickness" :min="1" :max="4" :step="0.1" />
-
         <PreviewSlider title="Grid Scale" v-model="gridScale" :min="0.02" :max="0.5" :step="0.01" />
-
         <PreviewSlider title="Line Jitter" v-model="lineJitter" :min="0" :max="1" :step="0.01" />
-
         <PreviewSlider title="Scan Glow" v-model="scanGlow" :min="0.1" :max="3" :step="0.1" />
-
         <PreviewSlider title="Scan Softness" v-model="scanSoftness" :min="0.1" :max="4" :step="0.1" />
-
         <PreviewSwitch title="Enable Post" v-model="enablePost" />
-
         <PreviewSlider title="Chromatic Aberration" v-model="chromaticAberration" :min="0" :max="0.01" :step="0.0005" />
-
         <PreviewSlider title="Noise Intensity" v-model="noiseIntensity" :min="0" :max="0.1" :step="0.005" />
-
         <PreviewSwitch title="Enable Webcam" v-model="enableWebcam" />
         <PreviewSwitch title="Show Preview HUD" v-model="showPreview" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['three', 'postprocessing', 'face-api.js']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="gridScan" />
+      <DemoCodeTab slug="grid-scan" :usage="gridScan.usage!" :source="gridScanSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="gridScan.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import TabbedLayout from '@/components/common/TabbedLayout.vue';
-import PropTable from '@/components/common/PropTable.vue';
-import Dependencies from '@/components/code/Dependencies.vue';
-import CliInstallation from '@/components/code/CliInstallation.vue';
-import CodeExample from '@/components/code/CodeExample.vue';
-import Customize from '@/components/common/Customize.vue';
-import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
-import PreviewSlider from '@/components/common/PreviewSlider.vue';
-import PreviewColor from '@/components/common/PreviewColor.vue';
 import BackgroundContent from '@/components/common/BackgroundContent.vue';
-import GridScan from '../../content/Backgrounds/GridScan/GridScan.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { gridScan } from '@/constants/code/Backgrounds/gridScanCode';
+import GridScan from '@/content/Backgrounds/GridScan/GridScan.vue';
+import gridScanSource from '@/content/Backgrounds/GridScan/GridScan.vue?raw';
+import { computed, ref } from 'vue';
 
-const lineThickness = ref(1);
-const gridScale = ref(0.1);
-const lineJitter = ref(0.1);
-const linesColor = ref('#392e4e');
-const scanColor = ref('#FF9FFC');
-const enablePost = ref(true);
-const chromaticAberration = ref(0.002);
-const noiseIntensity = ref(0.01);
-const scanGlow = ref(0.5);
-const scanSoftness = ref(2);
-const enableWebcam = ref(false);
-const showPreview = ref(false);
+const { forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  lineThickness: 1,
+  gridScale: 0.1,
+  lineJitter: 0.1,
+  linesColor: '#2c3d32',
+  scanColor: '#48FF28',
+  enablePost: true,
+  chromaticAberration: 0.002,
+  noiseIntensity: 0.01,
+  scanGlow: 0.5,
+  scanSoftness: 2,
+  enableWebcam: false,
+  showPreview: false
+};
+
+const lineThickness = ref(DEFAULTS.lineThickness);
+const gridScale = ref(DEFAULTS.gridScale);
+const lineJitter = ref(DEFAULTS.lineJitter);
+const linesColor = ref(DEFAULTS.linesColor);
+const scanColor = ref(DEFAULTS.scanColor);
+const enablePost = ref(DEFAULTS.enablePost);
+const chromaticAberration = ref(DEFAULTS.chromaticAberration);
+const noiseIntensity = ref(DEFAULTS.noiseIntensity);
+const scanGlow = ref(DEFAULTS.scanGlow);
+const scanSoftness = ref(DEFAULTS.scanSoftness);
+const enableWebcam = ref(DEFAULTS.enableWebcam);
+const showPreview = ref(DEFAULTS.showPreview);
+
+const hasChanges = computed(
+  () =>
+    lineThickness.value !== DEFAULTS.lineThickness ||
+    gridScale.value !== DEFAULTS.gridScale ||
+    lineJitter.value !== DEFAULTS.lineJitter ||
+    linesColor.value !== DEFAULTS.linesColor ||
+    scanColor.value !== DEFAULTS.scanColor ||
+    enablePost.value !== DEFAULTS.enablePost ||
+    chromaticAberration.value !== DEFAULTS.chromaticAberration ||
+    noiseIntensity.value !== DEFAULTS.noiseIntensity ||
+    scanGlow.value !== DEFAULTS.scanGlow ||
+    scanSoftness.value !== DEFAULTS.scanSoftness ||
+    enableWebcam.value !== DEFAULTS.enableWebcam ||
+    showPreview.value !== DEFAULTS.showPreview
+);
+
+function reset() {
+  lineThickness.value = DEFAULTS.lineThickness;
+  gridScale.value = DEFAULTS.gridScale;
+  lineJitter.value = DEFAULTS.lineJitter;
+  linesColor.value = DEFAULTS.linesColor;
+  scanColor.value = DEFAULTS.scanColor;
+  enablePost.value = DEFAULTS.enablePost;
+  chromaticAberration.value = DEFAULTS.chromaticAberration;
+  noiseIntensity.value = DEFAULTS.noiseIntensity;
+  scanGlow.value = DEFAULTS.scanGlow;
+  scanSoftness.value = DEFAULTS.scanSoftness;
+  enableWebcam.value = DEFAULTS.enableWebcam;
+  showPreview.value = DEFAULTS.showPreview;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   { name: 'enableWebcam', type: 'boolean', default: 'false', description: 'Enable face tracking via webcam.' },
   { name: 'showPreview', type: 'boolean', default: 'false', description: 'Show webcam preview/debug HUD.' },
   {
@@ -97,7 +143,7 @@ const propData = [
   },
   { name: 'sensitivity', type: 'number', default: '0.55', description: 'Overall responsiveness to input.' },
   { name: 'lineThickness', type: 'number', default: '1', description: 'Grid line thickness.' },
-  { name: 'linesColor', type: 'string', default: "'#392e4e'", description: 'Color of the grid lines.' },
+  { name: 'linesColor', type: 'string', default: "'#2c3d32'", description: 'Color of the grid lines.' },
   { name: 'gridScale', type: 'number', default: '0.1', description: 'Grid spacing scale (smaller = denser).' },
   { name: 'lineStyle', type: "'solid' | 'dashed' | 'dotted'", default: "'solid'", description: 'Grid line style.' },
   { name: 'lineJitter', type: 'number', default: '0.1', description: 'Animated jitter along the grid lines.' },
@@ -112,7 +158,7 @@ const propData = [
     description: 'Chromatic aberration offset (post).'
   },
   { name: 'noiseIntensity', type: 'number', default: '0.01', description: 'Additive film grain intensity.' },
-  { name: 'scanColor', type: 'string', default: "'#FF9FFC'", description: 'Color of the scan beam/aura.' },
+  { name: 'scanColor', type: 'string', default: "'#48FF28'", description: 'Color of the scan beam/aura.' },
   { name: 'scanOpacity', type: 'number', default: '0.4', description: 'Opacity of the scan effect.' },
   {
     name: 'scanDirection',

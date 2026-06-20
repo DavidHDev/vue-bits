@@ -3,8 +3,8 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch, useTemplateRef } from 'vue';
 import { Camera, Mesh, Plane, Program, Renderer, Texture, Transform } from 'ogl';
+import { onMounted, onUnmounted, useTemplateRef, watch } from 'vue';
 
 interface CircularGalleryProps {
   items?: { image: string; text: string }[];
@@ -12,6 +12,7 @@ interface CircularGalleryProps {
   textColor?: string;
   borderRadius?: number;
   font?: string;
+  fontUrl?: string;
   scrollSpeed?: number;
   scrollEase?: number;
 }
@@ -27,6 +28,7 @@ const props = withDefaults(defineProps<CircularGalleryProps>(), {
 
 const containerRef = useTemplateRef<HTMLDivElement>('containerRef');
 let app: App | null = null;
+let isMounted = false;
 
 type GL = Renderer['gl'];
 
@@ -54,6 +56,91 @@ function autoBind<T extends object>(instance: T): void {
       }
     }
   });
+}
+
+const DEFAULT_FONT = 'bold 30px Figtree';
+const DEFAULT_FONT_URL = 'https://fonts.googleapis.com/css2?family=Figtree:wght@400;700&display=swap';
+
+function deriveFontFamilyFromUrl(url: string): string {
+  const fileName = (url.split('/').pop() || 'custom-font').split('?')[0];
+  const base = fileName.replace(/\.(woff2?|ttf|otf|eot)$/i, '');
+  return base.replace(/[^a-zA-Z0-9-_ ]/g, '').trim() || 'CircularGalleryFont';
+}
+
+async function loadFontFromStylesheet(url: string): Promise<string> {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Failed to fetch font stylesheet (${response.status})`);
+  const cssText = await response.text();
+  const faceBlocks = cssText.match(/@font-face\s*{[^}]*}/g) || [];
+  let family: string | null = null;
+  const fontFaces: FontFace[] = [];
+  for (const block of faceBlocks) {
+    const familyMatch = block.match(/font-family:\s*['"]?([^;'"]+)['"]?/);
+    const urlMatch = block.match(/url\(\s*['"]?([^'")]+)['"]?\s*\)/);
+    if (!familyMatch || !urlMatch) continue;
+    family = familyMatch[1].trim();
+    const descriptors: FontFaceDescriptors = {};
+    const weightMatch = block.match(/font-weight:\s*([^;]+);/);
+    const styleMatch = block.match(/font-style:\s*([^;]+);/);
+    const rangeMatch = block.match(/unicode-range:\s*([^;]+);/);
+    if (weightMatch) descriptors.weight = weightMatch[1].trim();
+    if (styleMatch) descriptors.style = styleMatch[1].trim();
+    if (rangeMatch) descriptors.unicodeRange = rangeMatch[1].trim();
+    fontFaces.push(new FontFace(family, `url(${urlMatch[1]})`, descriptors));
+  }
+  if (!family) throw new Error('No @font-face rule found in the stylesheet');
+  await Promise.allSettled(
+    fontFaces.map(async face => {
+      await face.load();
+      document.fonts.add(face);
+    })
+  );
+  return family;
+}
+
+async function loadFontFromFile(url: string): Promise<string> {
+  const family = deriveFontFamilyFromUrl(url);
+  const fontFace = new FontFace(family, `url(${url})`);
+  await fontFace.load();
+  document.fonts.add(fontFace);
+  return family;
+}
+
+async function loadCustomFont(fontUrl: string): Promise<string> {
+  const isStylesheet = fontUrl.includes('fonts.googleapis.com') || /\.css(\?.*)?$/i.test(fontUrl);
+  return isStylesheet ? loadFontFromStylesheet(fontUrl) : loadFontFromFile(fontUrl);
+}
+
+async function resolveFont(font: string, fontUrl?: string): Promise<string> {
+  const effectiveUrl = fontUrl || (font === DEFAULT_FONT ? DEFAULT_FONT_URL : null);
+  if (!effectiveUrl) {
+    if (document.fonts && document.fonts.load) {
+      try {
+        await document.fonts.load(font);
+        await document.fonts.ready;
+      } catch {
+        // ignore
+      }
+    }
+    return font;
+  }
+  try {
+    const family = await loadCustomFont(effectiveUrl);
+    const sizeMatch = font.match(/^\s*(.*?\d+px)/);
+    const prefix = sizeMatch ? sizeMatch[1].trim() : 'bold 30px';
+    const resolved = `${prefix} "${family}"`;
+    if (document.fonts && document.fonts.load) {
+      try {
+        await document.fonts.load(resolved);
+      } catch {
+        // ignore
+      }
+    }
+    return resolved;
+  } catch (error) {
+    console.error('CircularGallery: unable to load font from', fontUrl, error);
+    return font;
+  }
 }
 
 function getFontSize(font: string): number {
@@ -251,7 +338,9 @@ class Media {
   }
 
   createShader() {
-    const texture = new Texture(this.gl, { generateMipmaps: false });
+    const texture = new Texture(this.gl, {
+      generateMipmaps: true
+    });
     this.program = new Program(this.gl, {
       depthTest: false,
       depthWrite: false,
@@ -296,11 +385,11 @@ class Media {
           vec4 color = texture2D(tMap, uv);
           
           float d = roundedBoxSDF(vUv - 0.5, vec2(0.5 - uBorderRadius), uBorderRadius);
-          if(d > 0.0) {
-            discard;
-          }
           
-          gl_FragColor = vec4(color.rgb, 1.0);
+          float edgeSmooth = 0.002;
+          float alpha = 1.0 - smoothstep(-edgeSmooth, edgeSmooth, d);
+          
+          gl_FragColor = vec4(color.rgb, alpha);
         }
       `,
       uniforms: {
@@ -471,7 +560,11 @@ class App {
   }
 
   createRenderer() {
-    this.renderer = new Renderer({ alpha: true });
+    this.renderer = new Renderer({
+      alpha: true,
+      antialias: true,
+      dpr: Math.min(window.devicePixelRatio || 1, 2)
+    });
     this.gl = this.renderer.gl;
     this.gl.clearColor(0, 0, 0, 0);
     this.container.appendChild(this.renderer.gl.canvas as HTMLCanvasElement);
@@ -502,54 +595,18 @@ class App {
     font: string
   ) {
     const defaultItems = [
-      {
-        image: `https://picsum.photos/seed/1/800/600?grayscale`,
-        text: 'Bridge'
-      },
-      {
-        image: `https://picsum.photos/seed/2/800/600?grayscale`,
-        text: 'Desk Setup'
-      },
-      {
-        image: `https://picsum.photos/seed/3/800/600?grayscale`,
-        text: 'Waterfall'
-      },
-      {
-        image: `https://picsum.photos/seed/4/800/600?grayscale`,
-        text: 'Strawberries'
-      },
-      {
-        image: `https://picsum.photos/seed/5/800/600?grayscale`,
-        text: 'Deep Diving'
-      },
-      {
-        image: `https://picsum.photos/seed/16/800/600?grayscale`,
-        text: 'Train Track'
-      },
-      {
-        image: `https://picsum.photos/seed/17/800/600?grayscale`,
-        text: 'Santorini'
-      },
-      {
-        image: `https://picsum.photos/seed/8/800/600?grayscale`,
-        text: 'Blurry Lights'
-      },
-      {
-        image: `https://picsum.photos/seed/9/800/600?grayscale`,
-        text: 'New York'
-      },
-      {
-        image: `https://picsum.photos/seed/10/800/600?grayscale`,
-        text: 'Good Boy'
-      },
-      {
-        image: `https://picsum.photos/seed/21/800/600?grayscale`,
-        text: 'Coastline'
-      },
-      {
-        image: `https://picsum.photos/seed/12/800/600?grayscale`,
-        text: 'Palm Trees'
-      }
+      { image: `https://picsum.photos/seed/1/800/600?grayscale`, text: 'Bridge' },
+      { image: `https://picsum.photos/seed/2/800/600?grayscale`, text: 'Desk Setup' },
+      { image: `https://picsum.photos/seed/3/800/600?grayscale`, text: 'Waterfall' },
+      { image: `https://picsum.photos/seed/4/800/600?grayscale`, text: 'Strawberries' },
+      { image: `https://picsum.photos/seed/5/800/600?grayscale`, text: 'Deep Diving' },
+      { image: `https://picsum.photos/seed/16/800/600?grayscale`, text: 'Train Track' },
+      { image: `https://picsum.photos/seed/17/800/600?grayscale`, text: 'Santorini' },
+      { image: `https://picsum.photos/seed/8/800/600?grayscale`, text: 'Blurry Lights' },
+      { image: `https://picsum.photos/seed/9/800/600?grayscale`, text: 'New York' },
+      { image: `https://picsum.photos/seed/10/800/600?grayscale`, text: 'Good Boy' },
+      { image: `https://picsum.photos/seed/21/800/600?grayscale`, text: 'Coastline' },
+      { image: `https://picsum.photos/seed/12/800/600?grayscale`, text: 'Palm Trees' }
     ];
     const galleryItems = items && items.length ? items : defaultItems;
     this.mediasImages = galleryItems.concat(galleryItems);
@@ -593,10 +650,11 @@ class App {
 
   onWheel(e: Event) {
     const wheelEvent = e as WheelEvent;
-    // Support legacy wheel events if present
-    const legacy = wheelEvent as unknown as { wheelDelta?: number; detail?: number };
-    const delta = wheelEvent.deltaY ?? legacy.wheelDelta ?? legacy.detail ?? 0;
-    this.scroll.target += delta > 0 ? this.scrollSpeed : -this.scrollSpeed;
+    const delta =
+      wheelEvent.deltaY ||
+      (wheelEvent as unknown as { wheelDelta?: number }).wheelDelta ||
+      (wheelEvent as unknown as { detail?: number }).detail;
+    this.scroll.target += (delta && delta > 0 ? this.scrollSpeed : -this.scrollSpeed) * 0.2;
     this.onCheckDebounce();
   }
 
@@ -643,53 +701,58 @@ class App {
     this.boundOnTouchDown = this.onTouchDown.bind(this);
     this.boundOnTouchMove = this.onTouchMove.bind(this);
     this.boundOnTouchUp = this.onTouchUp.bind(this);
-
     window.addEventListener('resize', this.boundOnResize);
-
-    this.container.addEventListener('wheel', this.boundOnWheel);
-    this.container.addEventListener('mousedown', this.boundOnTouchDown);
-    this.container.addEventListener('touchstart', this.boundOnTouchDown);
-
+    window.addEventListener('mousewheel', this.boundOnWheel);
+    window.addEventListener('wheel', this.boundOnWheel);
+    window.addEventListener('mousedown', this.boundOnTouchDown);
     window.addEventListener('mousemove', this.boundOnTouchMove);
     window.addEventListener('mouseup', this.boundOnTouchUp);
+    window.addEventListener('touchstart', this.boundOnTouchDown);
     window.addEventListener('touchmove', this.boundOnTouchMove);
     window.addEventListener('touchend', this.boundOnTouchUp);
   }
 
   destroy() {
     window.cancelAnimationFrame(this.raf);
-
     window.removeEventListener('resize', this.boundOnResize);
+    window.removeEventListener('mousewheel', this.boundOnWheel);
+    window.removeEventListener('wheel', this.boundOnWheel);
+    window.removeEventListener('mousedown', this.boundOnTouchDown);
     window.removeEventListener('mousemove', this.boundOnTouchMove);
     window.removeEventListener('mouseup', this.boundOnTouchUp);
+    window.removeEventListener('touchstart', this.boundOnTouchDown);
     window.removeEventListener('touchmove', this.boundOnTouchMove);
     window.removeEventListener('touchend', this.boundOnTouchUp);
-
-    this.container.removeEventListener('wheel', this.boundOnWheel);
-    this.container.removeEventListener('mousedown', this.boundOnTouchDown);
-    this.container.removeEventListener('touchstart', this.boundOnTouchDown);
-
     if (this.renderer && this.renderer.gl && this.renderer.gl.canvas.parentNode) {
       this.renderer.gl.canvas.parentNode.removeChild(this.renderer.gl.canvas as HTMLCanvasElement);
     }
   }
 }
 
-onMounted(() => {
-  if (!containerRef.value) return;
-
-  app = new App(containerRef.value, {
+function initApp(container: HTMLElement, resolvedFont: string) {
+  return new App(container, {
     items: props.items,
     bend: props.bend,
     textColor: props.textColor,
     borderRadius: props.borderRadius,
-    font: props.font,
+    font: resolvedFont,
     scrollSpeed: props.scrollSpeed,
     scrollEase: props.scrollEase
+  });
+}
+
+onMounted(() => {
+  if (!containerRef.value) return;
+  isMounted = true;
+  const container = containerRef.value;
+  resolveFont(props.font, props.fontUrl).then(resolvedFont => {
+    if (!isMounted || !containerRef.value) return;
+    app = initApp(container, resolvedFont);
   });
 });
 
 onUnmounted(() => {
+  isMounted = false;
   if (app) {
     app.destroy();
     app = null;
@@ -703,16 +766,29 @@ watch(
     textColor: props.textColor,
     borderRadius: props.borderRadius,
     font: props.font,
+    fontUrl: props.fontUrl,
     scrollSpeed: props.scrollSpeed,
     scrollEase: props.scrollEase
   }),
   newProps => {
     if (app) {
       app.destroy();
+      app = null;
     }
-    if (containerRef.value) {
-      app = new App(containerRef.value, newProps);
-    }
+    if (!containerRef.value) return;
+    const container = containerRef.value;
+    resolveFont(newProps.font ?? props.font, newProps.fontUrl).then(resolvedFont => {
+      if (!isMounted || !containerRef.value) return;
+      app = new App(container, {
+        items: newProps.items,
+        bend: newProps.bend,
+        textColor: newProps.textColor,
+        borderRadius: newProps.borderRadius,
+        font: resolvedFont,
+        scrollSpeed: newProps.scrollSpeed,
+        scrollEase: newProps.scrollEase
+      });
+    });
   },
   { deep: true }
 );

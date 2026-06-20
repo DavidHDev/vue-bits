@@ -1,0 +1,384 @@
+/* ══════════════════════════════════════════════
+   QuickStart
+   ══════════════════════════════════════════════ */
+
+.ln-qs-section {
+  position: relative;
+  width: 100%;
+  padding: 80px 0 200px 0;
+  background: var(--bg-body);
+  z-index: 4;
+}
+
+.ln-qs-inner {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ─── Header ─── */
+
+.ln-qs-header {
+  text-align: center;
+  margin-bottom: 40px;
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
+}
+
+.ln-qs-header.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ln-qs-title {
+  font-family: 'Geist Pixel Line', sans-serif;
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 0 0 14px;
+}
+
+.ln-qs-subtitle {
+  font-family: 'Geist', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+  max-width: 44ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ═══════════════════════════════════════
+   Terminal Window
+   ═══════════════════════════════════════ */
+
+.ln-qs-terminal-wrap {
+  position: relative;
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.5s ease 0.07s,
+    transform 0.5s ease 0.07s;
+}
+
+.ln-qs-terminal-wrap.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ln-qs-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70%;
+  height: 120%;
+  background: radial-gradient(ellipse, rgba(0, 255, 169, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ln-qs-terminal {
+  position: relative;
+  z-index: 1;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(32px) saturate(1.3);
+  -webkit-backdrop-filter: blur(32px) saturate(1.3);
+  box-shadow:
+    0 4px 32px rgba(0, 0, 0, 0.3),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.06);
+  overflow: visible;
+}
+
+/* ── Tab bar ── */
+
+.ln-qs-tab-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ln-qs-tabs {
+  display: flex;
+}
+
+.ln-qs-tab {
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid transparent;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.ln-qs-tab-logo {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  flex-shrink: 0;
+  opacity: 0.55;
+  filter: grayscale(0.08);
+  transition:
+    opacity 0.2s,
+    filter 0.2s;
+}
+
+.ln-qs-tab:hover .ln-qs-tab-logo {
+  opacity: 0.85;
+}
+
+.ln-qs-tab:hover {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.ln-qs-tab--active {
+  color: rgba(255, 255, 255, 0.85);
+  border-bottom-color: rgba(0, 255, 169, 0.7);
+}
+
+.ln-qs-tab--active .ln-qs-tab-logo {
+  opacity: 1;
+  filter: none;
+}
+
+/* ── Runner dropdown ── */
+
+.ln-qs-tab-bar-right {
+  display: flex;
+  align-items: center;
+  padding-right: 8px;
+}
+
+.ln-qs-runner-dropdown {
+  position: relative;
+}
+
+.ln-qs-runner-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  padding: 5px 9px 5px 11px;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.ln-qs-runner-trigger:hover {
+  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ln-qs-caret {
+  transition: transform 0.18s ease;
+  opacity: 0.7;
+}
+
+.ln-qs-caret.open {
+  transform: rotate(180deg);
+}
+
+.ln-qs-runner-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(20, 29, 20, 0.95);
+  backdrop-filter: blur(24px) saturate(1.3);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3);
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.4),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.06);
+  z-index: 20;
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+
+.ln-qs-runner-menu.open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.ln-qs-runner-item {
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  text-align: left;
+  color: rgba(255, 255, 255, 0.65);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 10px;
+  cursor: pointer;
+  transition:
+    color 0.12s,
+    background 0.12s;
+}
+
+.ln-qs-runner-item:hover {
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.ln-qs-runner-item.active {
+  color: rgba(0, 255, 169, 0.95);
+  background: rgba(0, 255, 169, 0.08);
+}
+
+/* ── Command area ── */
+
+.ln-qs-cmd-area {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 24px 20px;
+}
+
+.ln-qs-cmd-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.ln-qs-cmd-line::-webkit-scrollbar {
+  height: 0;
+}
+
+.ln-qs-prompt {
+  font-family: 'Geist Mono', monospace;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.25);
+  flex-shrink: 0;
+}
+
+.ln-qs-cmd-text {
+  font-family: 'Geist Mono', monospace;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+  white-space: pre-line;
+  line-height: 1.5;
+}
+
+/* ── Copy button ── */
+
+.ln-qs-copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    color 0.2s,
+    border-color 0.2s,
+    background 0.2s;
+}
+
+.ln-qs-copy:hover {
+  color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ln-qs-copy--done {
+  color: rgba(0, 255, 169, 0.85);
+  border-color: rgba(0, 255, 169, 0.3);
+  background: rgba(0, 255, 169, 0.08);
+}
+
+/* ── Hint ── */
+
+.ln-qs-hint {
+  font-family: 'Geist', sans-serif;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.25);
+  text-align: center;
+  margin: 18px 0 0;
+  line-height: 1.55;
+}
+
+.ln-qs-hint-strong {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.ln-qs-hint-code {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.ln-qs-hint a {
+  color: rgba(0, 255, 169, 0.85);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0, 255, 169, 0.3);
+}
+
+.ln-qs-hint a:hover {
+  color: rgb(0, 255, 169);
+  border-bottom-color: rgba(0, 255, 169, 0.6);
+}
+
+/* ═══════════════════════════════════════
+   Responsive
+   ═══════════════════════════════════════ */
+
+@media (max-width: 480px) {
+  .ln-qs-section {
+    padding: 60px 0 80px;
+  }
+
+  .ln-qs-inner {
+    padding: 0 16px;
+  }
+
+  .ln-qs-cmd-area {
+    padding: 20px 14px;
+  }
+
+  .ln-qs-cmd-text {
+    font-size: 11px;
+  }
+}

@@ -1,5 +1,13 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Profile Card</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="profileCard.usage"
+    :source="profileCardSource"
+    component-name="ProfileCard"
+    :props-table="props"
+  >
     <template #preview>
       <div class="demo-container" style="height: 700px; overflow: hidden; position: relative">
         <ProfileCard
@@ -12,85 +20,85 @@
           avatar-url="/assets/person.png"
           :icon-url="showIcon ? '/assets/iconpattern.png' : ''"
           :show-user-info="showUserInfo"
-          :show-behind-gradient="showBehindGradient"
           grain-url="/assets/grain.webp"
-          :behind-gradient="customBehindGradient"
+          :behind-glow-enabled="showBehindGlow"
+          :behind-glow-color="behindGlowColor"
           :inner-gradient="customInnerGradient"
-          @contact-click="handleContactClick"
+          :enable-mobile-tilt="enableMobileTilt"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <button @click="generateRandomGradients" class="randomize-btn">Randomize Colors</button>
-
+        <PreviewSwitch title="Behind Glow" v-model="showBehindGlow" />
         <PreviewSwitch title="Show Icon Pattern" v-model="showIcon" />
-
         <PreviewSwitch title="Show User Info" v-model="showUserInfo" />
-
-        <PreviewSwitch title="Show BG Gradient" v-model="showBehindGradient" />
+        <PreviewSwitch title="Enable Mobile Tilt" v-model="enableMobileTilt" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="profileCard" />
+      <DemoCodeTab slug="profile-card" :usage="profileCard.usage!" :source="profileCardSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="profileCard.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import ProfileCard from '../../content/Components/ProfileCard/ProfileCard.vue';
-import { profileCard } from '@/constants/code/Components/profileCardCode';
-import { useToast } from 'primevue/usetoast';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
+import { profileCard } from '@/constants/code/Components/profileCardCode';
+import ProfileCard from '@/content/Components/ProfileCard/ProfileCard.vue';
+import profileCardSource from '@/content/Components/ProfileCard/ProfileCard.vue?raw';
+import { computed, ref } from 'vue';
 
-const showIcon = ref(true);
-const showUserInfo = ref(true);
-const showBehindGradient = ref(true);
-const customBehindGradient = ref(
-  'radial-gradient(farthest-side circle at var(--pointer-x) var(--pointer-y),hsla(266,100%,90%,var(--card-opacity)) 4%,hsla(266,50%,80%,calc(var(--card-opacity)*0.75)) 10%,hsla(266,25%,70%,calc(var(--card-opacity)*0.5)) 50%,hsla(266,0%,60%,0) 100%),radial-gradient(35% 52% at 55% 20%,#00ffaac4 0%,#073aff00 100%),radial-gradient(100% 100% at 50% 50%,#00c1ffff 1%,#073aff00 76%),conic-gradient(from 124deg at 50% 50%,#c137ffff 0%,#07c6ffff 40%,#07c6ffff 60%,#c137ffff 100%)'
-);
-const customInnerGradient = ref('linear-gradient(145deg,#60496e8c 0%,#71C4FF44 100%)');
-
-const toast = useToast();
 const { rerenderKey, forceRerender } = useForceRerender();
 
-const generateRandomGradients = () => {
-  const randomHue1 = Math.floor(Math.random() * 360);
-  const randomHue2 = Math.floor(Math.random() * 360);
-  const randomHue3 = Math.floor(Math.random() * 360);
-  const randomHue4 = Math.floor(Math.random() * 360);
+const DEFAULTS = {
+  showIcon: true,
+  showUserInfo: false,
+  enableMobileTilt: false,
+  showBehindGlow: true,
+  behindGlowColor: 'rgba(125, 200, 190, 0.67)',
+  customInnerGradient: 'linear-gradient(145deg,#60496e8c 0%,#71C4FF44 100%)'
+};
 
-  const newBehindGradient = `radial-gradient(farthest-side circle at var(--pointer-x) var(--pointer-y),hsla(${randomHue1},100%,90%,var(--card-opacity)) 4%,hsla(${randomHue1},50%,80%,calc(var(--card-opacity)*0.75)) 10%,hsla(${randomHue1},25%,70%,calc(var(--card-opacity)*0.5)) 50%,hsla(${randomHue1},0%,60%,0) 100%),radial-gradient(35% 52% at 55% 20%,hsl(${randomHue2}, 100%, 70%) 0%,transparent 100%),radial-gradient(100% 100% at 50% 50%,hsl(${randomHue3}, 100%, 65%) 1%,transparent 76%),conic-gradient(from 124deg at 50% 50%,hsl(${randomHue4}, 100%, 70%) 0%,hsl(${randomHue2}, 100%, 70%) 40%,hsl(${randomHue2}, 100%, 70%) 60%,hsl(${randomHue4}, 100%, 70%) 100%)`;
-  const newInnerGradient = `linear-gradient(145deg,hsla(${randomHue1}, 40%, 45%, 0.55) 0%,hsla(${randomHue3}, 60%, 70%, 0.27) 100%)`;
+const showIcon = ref(DEFAULTS.showIcon);
+const showUserInfo = ref(DEFAULTS.showUserInfo);
+const enableMobileTilt = ref(DEFAULTS.enableMobileTilt);
+const showBehindGlow = ref(DEFAULTS.showBehindGlow);
+const behindGlowColor = ref(DEFAULTS.behindGlowColor);
+const customInnerGradient = ref(DEFAULTS.customInnerGradient);
 
-  customBehindGradient.value = newBehindGradient;
-  customInnerGradient.value = newInnerGradient;
+const hasChanges = computed(
+  () =>
+    showIcon.value !== DEFAULTS.showIcon ||
+    showUserInfo.value !== DEFAULTS.showUserInfo ||
+    enableMobileTilt.value !== DEFAULTS.enableMobileTilt ||
+    showBehindGlow.value !== DEFAULTS.showBehindGlow ||
+    behindGlowColor.value !== DEFAULTS.behindGlowColor ||
+    customInnerGradient.value !== DEFAULTS.customInnerGradient
+);
+
+function reset() {
+  showIcon.value = DEFAULTS.showIcon;
+  showUserInfo.value = DEFAULTS.showUserInfo;
+  enableMobileTilt.value = DEFAULTS.enableMobileTilt;
+  showBehindGlow.value = DEFAULTS.showBehindGlow;
+  behindGlowColor.value = DEFAULTS.behindGlowColor;
+  customInnerGradient.value = DEFAULTS.customInnerGradient;
   forceRerender();
-};
+}
 
-const handleContactClick = () => {
-  toast.add({
-    severity: 'info',
-    summary: 'Contact Clicked!',
-    detail: 'Contact button was clicked',
-    life: 3000
-  });
-};
-
-const propData = [
+const props: PropRow[] = [
   {
     name: 'avatarUrl',
     type: 'string',
@@ -110,22 +118,28 @@ const propData = [
     description: 'Optional URL for a grain texture overlay effect'
   },
   {
-    name: 'behindGradient',
-    type: 'string',
-    default: 'undefined',
-    description: 'Custom CSS gradient string for the background gradient effect'
-  },
-  {
     name: 'innerGradient',
     type: 'string',
     default: 'undefined',
     description: 'Custom CSS gradient string for the inner card gradient'
   },
   {
-    name: 'showBehindGradient',
+    name: 'behindGlowEnabled',
     type: 'boolean',
     default: 'true',
-    description: 'Whether to display the background gradient effect'
+    description: 'Toggle the smooth radial glow that follows the cursor behind the card'
+  },
+  {
+    name: 'behindGlowColor',
+    type: 'string',
+    default: '"rgba(125, 190, 255, 0.67)"',
+    description: 'CSS color for the behind-the-card glow (e.g. rgba/hsla/hex)'
+  },
+  {
+    name: 'behindGlowSize',
+    type: 'string',
+    default: '"50%"',
+    description: 'Size of the glow as a length/percentage stop in the radial gradient'
   },
   {
     name: 'className',
@@ -138,6 +152,18 @@ const propData = [
     type: 'boolean',
     default: 'true',
     description: 'Enable or disable the 3D tilt effect on mouse hover'
+  },
+  {
+    name: 'enableMobileTilt',
+    type: 'boolean',
+    default: 'false',
+    description: 'Enable or disable the 3D tilt effect on mobile devices'
+  },
+  {
+    name: 'mobileTiltSensitivity',
+    type: 'number',
+    default: '5',
+    description: 'Sensitivity of the 3D tilt effect on mobile devices'
   },
   {
     name: 'miniAvatarUrl',
@@ -189,21 +215,3 @@ const propData = [
   }
 ];
 </script>
-
-<style scoped>
-.randomize-btn {
-  font-size: 12px;
-  background: #111;
-  border-radius: 10px;
-  border: 1px solid #333;
-  color: #fff;
-  height: 32px;
-  padding: 0 12px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.randomize-btn:hover {
-  background: #222;
-}
-</style>

@@ -1,72 +1,74 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Dock</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="dock.usage"
+    :source="dockSource"
+    component-name="Dock"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[400px]">
+      <div class="relative h-[400px] demo-container">
         <Dock
           :key="rerenderKey"
           :items="items"
           :panel-height="panelHeight"
           :base-item-size="baseItemSize"
           :magnification="magnification"
-          :distance="200"
-          :dock-height="256"
-          :spring="{ mass: 0.1, stiffness: 150, damping: 12 }"
         />
 
         <div
-          class="absolute inset-0 flex items-center justify-center pointer-events-none text-[4rem] font-[900] text-[#222] select-none"
+          class="absolute inset-0 flex justify-center items-center font-[900] text-[#222] text-[4rem] pointer-events-none select-none"
         >
           Try It!
         </div>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewSlider title="Background Height" :min="100" :max="200" :step="10" v-model="panelHeight" />
-
-        <PreviewSlider title="Base Item Size" :min="40" :max="100" :step="5" v-model="baseItemSize" />
-
+        <PreviewSlider title="Background Height" :min="30" :max="200" :step="10" v-model="panelHeight" />
+        <PreviewSlider title="Item Size" :min="20" :max="60" :step="10" v-model="baseItemSize" />
         <PreviewSlider title="Magnification" :min="50" :max="100" :step="10" v-model="magnification" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-
-      <Dependencies :dependency-list="['motion-v']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="dock" />
+      <DemoCodeTab slug="dock" :usage="dock.usage!" :source="dockSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="dock.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, h, watch } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import Dock from '../../content/Components/Dock/Dock.vue';
-import { dock } from '@/constants/code/Components/dockCode';
-import { useToast } from 'primevue/usetoast';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
-
-const panelHeight = ref(68);
-const baseItemSize = ref(50);
-const magnification = ref(70);
+import { dock } from '@/constants/code/Components/dockCode';
+import Dock, { type DockItemData } from '@/content/Components/Dock/Dock.vue';
+import dockSource from '@/content/Components/Dock/Dock.vue?raw';
+import { useToast } from 'primevue/usetoast';
+import { computed, h, ref } from 'vue';
 
 const toast = useToast();
 const { rerenderKey, forceRerender } = useForceRerender();
 
-watch([magnification, panelHeight, baseItemSize], () => {
-  forceRerender();
-});
+const DEFAULTS = {
+  panelHeight: 68,
+  baseItemSize: 50,
+  magnification: 70
+};
+
+const panelHeight = ref(DEFAULTS.panelHeight);
+const baseItemSize = ref(DEFAULTS.baseItemSize);
+const magnification = ref(DEFAULTS.magnification);
 
 const HomeIcon = () => h('i', { class: 'pi pi-home', style: { fontSize: '18px', color: 'white' } });
 const ArchiveIcon = () => h('i', { class: 'pi pi-inbox', style: { fontSize: '18px', color: 'white' } });
@@ -81,14 +83,28 @@ const showAlert = (message: string) => {
   });
 };
 
-const items = [
+const items: DockItemData[] = [
   { icon: HomeIcon, label: 'Home', onClick: () => showAlert('Home') },
   { icon: ArchiveIcon, label: 'Archive', onClick: () => showAlert('Archive') },
   { icon: ProfileIcon, label: 'Profile', onClick: () => showAlert('Profile') },
   { icon: SettingsIcon, label: 'Settings', onClick: () => showAlert('Settings') }
 ];
 
-const propData = [
+const hasChanges = computed(
+  () =>
+    panelHeight.value !== DEFAULTS.panelHeight ||
+    baseItemSize.value !== DEFAULTS.baseItemSize ||
+    magnification.value !== DEFAULTS.magnification
+);
+
+function reset() {
+  panelHeight.value = DEFAULTS.panelHeight;
+  baseItemSize.value = DEFAULTS.baseItemSize;
+  magnification.value = DEFAULTS.magnification;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'items',
     type: 'DockItemData[]',

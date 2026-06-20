@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <h2 class="demo-title">Customize</h2>
+  <div class="preview-options">
+    <h2 class="demo-title-extra">Customize</h2>
     <slot />
   </div>
 </template>

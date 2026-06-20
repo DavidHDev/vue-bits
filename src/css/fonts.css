@@ -1,0 +1,89 @@
+/* Geist Sans — variable font */
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/geist-sans/Geist-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Geist Sans Italic — variable font */
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/geist-sans/Geist-Italic[wght].woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Geist Mono — variable font */
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Geist Mono Italic — variable font */
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/fonts/geist-mono/GeistMono-Italic[wght].woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Geist Pixel variants */
+@font-face {
+  font-family: 'Geist Pixel Square';
+  src: url('/fonts/geist-pixel/GeistPixel-Square.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Pixel Grid';
+  src: url('/fonts/geist-pixel/GeistPixel-Grid.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Pixel Circle';
+  src: url('/fonts/geist-pixel/GeistPixel-Circle.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Pixel Triangle';
+  src: url('/fonts/geist-pixel/GeistPixel-Triangle.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Pixel Line';
+  src: url('/fonts/geist-pixel/GeistPixel-Line.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* CSS custom properties for easy usage */
+:root {
+  --font-geist-sans: 'Geist', sans-serif;
+  --font-geist-mono:
+    'Geist Mono', ui-monospace, SFMono-Regular, 'Roboto Mono', Menlo, Monaco, 'Liberation Mono', 'DejaVu Sans Mono',
+    'Courier New', monospace;
+  --font-geist-pixel-square: 'Geist Pixel Square', var(--font-geist-mono);
+  --font-geist-pixel-grid: 'Geist Pixel Grid', var(--font-geist-mono);
+  --font-geist-pixel-circle: 'Geist Pixel Circle', var(--font-geist-mono);
+  --font-geist-pixel-triangle: 'Geist Pixel Triangle', var(--font-geist-mono);
+  --font-geist-pixel-line: 'Geist Pixel Line', var(--font-geist-mono);
+}

@@ -1,8 +1,16 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Sticker Peel</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="stickerPeel.usage"
+    :source="stickerPeelSource"
+    component-name="StickerPeel"
+    :props-table="props"
+  >
     <template #preview>
       <div
-        class="bg-[linear-gradient(to_bottom,_#060010,_#0D0716,_#0D0716,_#060010)] h-[500px] overflow-hidden demo-container"
+        class="relative bg-[linear-gradient(to_bottom,_var(--border-primary),_var(--bg-elevated),_var(--bg-elevated),_var(--border-primary))]! h-[400px] overflow-hidden demo-container"
       >
         <StickerPeel
           :image-src="logo"
@@ -22,7 +30,9 @@
           Try dragging it!
         </p>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSlider title="Peel Direction" :min="0" :max="360" :step="1" value-unit="°" v-model="peelDirection" />
         <PreviewSlider title="Rotate" :min="0" :max="60" :step="1" value-unit="°" v-model="rotate" />
@@ -32,43 +42,74 @@
         <PreviewSlider title="Lighting Intensity" :min="0" :max="0.5" :step="0.01" v-model="lightingIntensity" />
         <PreviewSlider title="Shadow Intensity" :min="0" :max="1" :step="0.01" v-model="shadowIntensity" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['gsap']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="stickerPeel" />
+      <DemoCodeTab slug="animated-content" :usage="stickerPeel.usage!" :source="stickerPeelSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="stickerPeel.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import { stickerPeel } from '../../constants/code/Animations/stickerPeelCode';
-import StickerPeel from '../../content/Animations/StickerPeel/StickerPeel.vue';
-import logo from '../../assets/logos/vue-bits-sticker.png';
+import logo from '@/assets/logos/vue-bits-sticker.png';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
+import { stickerPeel } from '@/constants/code/Animations/stickerPeelCode';
+import StickerPeel from '@/content/Animations/StickerPeel/StickerPeel.vue';
+import stickerPeelSource from '@/content/Animations/StickerPeel/StickerPeel.vue?raw';
+import { computed, ref } from 'vue';
 
-const rotate = ref(0);
-const width = ref(200);
-const peelBackHoverPct = ref(30);
-const peelBackActivePct = ref(40);
-const lightingIntensity = ref(0.1);
-const shadowIntensity = ref(0.5);
-const peelDirection = ref(0);
+const { forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  rotate: 0,
+  width: 200,
+  peelBackHoverPct: 30,
+  peelBackActivePct: 40,
+  lightingIntensity: 0.1,
+  shadowIntensity: 0.5,
+  peelDirection: 0
+};
+
+const rotate = ref(DEFAULTS.rotate);
+const width = ref(DEFAULTS.width);
+const peelBackHoverPct = ref(DEFAULTS.peelBackHoverPct);
+const peelBackActivePct = ref(DEFAULTS.peelBackActivePct);
+const lightingIntensity = ref(DEFAULTS.lightingIntensity);
+const shadowIntensity = ref(DEFAULTS.shadowIntensity);
+const peelDirection = ref(DEFAULTS.peelDirection);
+
+const hasChanges = computed(
+  () =>
+    rotate.value !== DEFAULTS.rotate ||
+    width.value !== DEFAULTS.width ||
+    peelBackHoverPct.value !== DEFAULTS.peelBackHoverPct ||
+    peelBackActivePct.value !== DEFAULTS.peelBackActivePct ||
+    lightingIntensity.value !== DEFAULTS.lightingIntensity ||
+    shadowIntensity.value !== DEFAULTS.shadowIntensity ||
+    peelDirection.value !== DEFAULTS.peelDirection
+);
+
+function reset() {
+  rotate.value = DEFAULTS.rotate;
+  width.value = DEFAULTS.width;
+  peelBackHoverPct.value = DEFAULTS.peelBackHoverPct;
+  peelBackActivePct.value = DEFAULTS.peelBackActivePct;
+  lightingIntensity.value = DEFAULTS.lightingIntensity;
+  shadowIntensity.value = DEFAULTS.shadowIntensity;
+  peelDirection.value = DEFAULTS.peelDirection;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'imageSrc',
     type: 'string',

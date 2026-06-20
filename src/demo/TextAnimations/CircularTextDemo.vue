@@ -1,51 +1,62 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Circular Text</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="circularText.usage"
+    :source="circularTextSource"
+    component-name="CircularText"
+    :props-table="props"
+  >
     <template #preview>
       <div class="h-[400px] overflow-hidden demo-container">
         <CircularText :key="rerenderKey" :text="text" :spin-duration="spinDuration" :on-hover="onHover" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewText title="Text" v-model="text" />
+        <PreviewInput title="Text" v-model="text" placeholder="Enter text..." :maxlength="25" />
         <PreviewSelect title="On Hover" v-model="onHover" :options="hoverOptions" />
         <PreviewSlider title="Spin Duration (s)" v-model="spinDuration" :min="1" :max="60" :step="1" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-
-      <Dependencies :dependency-list="['motion-v']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="circularText" />
+      <DemoCodeTab slug="circular-text" :usage="circularText.usage!" :source="circularTextSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="circularText.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import CliInstallation from '@/components/code/CliInstallation.vue';
-import CodeExample from '@/components/code/CodeExample.vue';
-import Dependencies from '@/components/code/Dependencies.vue';
 import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewInput from '@/components/common/PreviewInput.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
-import PreviewText from '@/components/common/PreviewText.vue';
-import PropTable from '@/components/common/PropTable.vue';
-import TabbedLayout from '@/components/common/TabbedLayout.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
 import { circularText } from '@/constants/code/TextAnimations/circularTextCode';
 import CircularText from '@/content/TextAnimations/CircularText/CircularText.vue';
-import { ref } from 'vue';
+import circularTextSource from '@/content/TextAnimations/CircularText/CircularText.vue?raw';
+import { computed, ref } from 'vue';
 
-const { rerenderKey } = useForceRerender();
+const { rerenderKey, forceRerender } = useForceRerender();
 
-const text = ref('VUE*BITS*COMPONENTS*');
-const onHover = ref<'slowDown' | 'speedUp' | 'pause' | 'goBonkers'>('speedUp');
-const spinDuration = ref(20);
+const DEFAULTS = {
+  text: 'VUE*BITS*COMPONENTS*',
+  onHover: 'speedUp' as 'slowDown' | 'speedUp' | 'pause' | 'goBonkers',
+  spinDuration: 20
+};
+
+const text = ref(DEFAULTS.text);
+const onHover = ref(DEFAULTS.onHover);
+const spinDuration = ref(DEFAULTS.spinDuration);
 
 const hoverOptions = [
   { label: 'Slow Down', value: 'slowDown' },
@@ -54,7 +65,19 @@ const hoverOptions = [
   { label: 'Go Bonkers', value: 'goBonkers' }
 ];
 
-const propData = [
+const hasChanges = computed(
+  () =>
+    text.value !== DEFAULTS.text || onHover.value !== DEFAULTS.onHover || spinDuration.value !== DEFAULTS.spinDuration
+);
+
+function reset() {
+  text.value = DEFAULTS.text;
+  onHover.value = DEFAULTS.onHover;
+  spinDuration.value = DEFAULTS.spinDuration;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'text',
     type: 'string',

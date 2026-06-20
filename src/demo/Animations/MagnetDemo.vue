@@ -1,19 +1,17 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Magnet</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="magnet.usage"
+    :source="magnetSource"
+    component-name="Magnet"
+    :props-table="props"
+  >
     <template #preview>
-      <h2 class="demo-title-extra">Container</h2>
-
-      <div class="demo-container h-[400px]">
-        <Magnet :key="rerenderKey" :padding="padding" :disabled="disabled" :magnetStrength="magnetStrength">
-          <div class="magnet-container">Hover Me!</div>
-        </Magnet>
-      </div>
-
-      <h2 class="demo-title-extra">Link</h2>
-
-      <div class="demo-container h-[400px]">
+      <div class="h-[400px] demo-container">
         <Magnet
-          :key="rerenderKey + 1"
+          :key="rerenderKey"
           :padding="Math.floor(padding / 2)"
           :disabled="disabled"
           :magnetStrength="magnetStrength"
@@ -25,47 +23,66 @@
           </a>
         </Magnet>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSwitch title="Disabled" v-model="disabled" />
-
         <PreviewSlider title="Padding" v-model="padding" :min="0" :max="300" :step="10" value-unit="px" />
-
         <PreviewSlider title="Strength" v-model="magnetStrength" :min="1" :max="10" :step="1" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="magnet" />
+      <DemoCodeTab slug="magnet" :usage="magnet.usage!" :source="magnetSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="magnet.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import Magnet from '../../content/Animations/Magnet/Magnet.vue';
-import { magnet } from '@/constants/code/Animations/magnetCode';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
+import { magnet } from '@/constants/code/Animations/magnetCode';
+import Magnet from '@/content/Animations/Magnet/Magnet.vue';
+import magnetSource from '@/content/Animations/Magnet/Magnet.vue?raw';
+import { computed, ref } from 'vue';
 
-const disabled = ref(false);
-const padding = ref(100);
-const magnetStrength = ref(2);
-const { rerenderKey } = useForceRerender();
+const { rerenderKey, forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  disabled: false,
+  padding: 100,
+  magnetStrength: 2
+};
+
+const disabled = ref(DEFAULTS.disabled);
+const padding = ref(DEFAULTS.padding);
+const magnetStrength = ref(DEFAULTS.magnetStrength);
+
+const hasChanges = computed(
+  () =>
+    disabled.value !== DEFAULTS.disabled ||
+    padding.value !== DEFAULTS.padding ||
+    magnetStrength.value !== DEFAULTS.magnetStrength
+);
+
+function reset() {
+  disabled.value = DEFAULTS.disabled;
+  padding.value = DEFAULTS.padding;
+  magnetStrength.value = DEFAULTS.magnetStrength;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'padding',
     type: 'number',

@@ -19,7 +19,7 @@ export const shuffle = createCodeObject(code, 'TextAnimations/Shuffle', {
   />
 </template>
 
-<script setup lang="ts">
-import Shuffle from "./Shuffle.vue";
+<script setup>
+import Shuffle from './Shuffle.vue'
 </script>`
 });

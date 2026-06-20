@@ -1,11 +1,19 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Model Viewer</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="modelViewer.usage"
+    :source="modelViewerSource"
+    component-name="ModelViewer"
+    :props-table="propData"
+  >
     <template #preview>
       <div class="demo-container model-viewer-demo h-[400px] overflow-hidden p-0">
         <span v-if="isTextVisible" class="model-viewer-demo-text">{{ textMap[selectedModel] }}</span>
 
         <ModelViewer
-          :key="`${selectedModel}-${environmentPreset}`"
+          :key="`${selectedModel}-${environmentPreset}-${rerenderKey}`"
           :url="urlMap[selectedModel]"
           width="100%"
           height="100%"
@@ -22,7 +30,9 @@
           @model-loaded="isTextVisible = true"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSelect title="Model" v-model="selectedModel" :options="modelOptions" />
 
@@ -51,48 +61,60 @@
           :disabled="!autoRotate"
         />
       </Customize>
+    </template>
 
+    <template #propTable>
       <PropTable :data="propData" />
-      <Dependencies :dependency-list="['three', '@tresjs/core', '@tresjs/cientos']" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="modelViewer" />
+      <DemoCodeTab slug="model-viewer" :usage="modelViewer.usage!" :source="modelViewerSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="modelViewer.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import CliInstallation from '@/components/code/CliInstallation.vue';
-import CodeExample from '@/components/code/CodeExample.vue';
-import Dependencies from '@/components/code/Dependencies.vue';
 import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
-import PropTable from '@/components/common/PropTable.vue';
-import TabbedLayout from '@/components/common/TabbedLayout.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { modelViewer } from '@/constants/code/Components/modelViewerCode';
 import ModelViewer from '@/content/Components/ModelViewer/ModelViewer.vue';
-import { ref, watch } from 'vue';
+import modelViewerSource from '@/content/Components/ModelViewer/ModelViewer.vue?raw';
+import { computed, ref, watch } from 'vue';
 
 type ModelKey = 'toyCar' | 'sheenChair';
 type EnvironmentPreset = 'city' | 'sunset' | 'night' | 'dawn' | 'studio' | 'hangar' | 'urban' | 'modern' | 'none';
 
-const selectedModel = ref<ModelKey>('toyCar');
-const environmentPreset = ref<EnvironmentPreset>('city');
-const modelXOffset = ref(0.5);
-const modelYOffset = ref(0);
-const enableMouseParallax = ref(true);
-const enableHoverRotation = ref(true);
-const showScreenshotButton = ref(true);
-const fadeIn = ref(false);
-const autoRotate = ref(false);
-const autoRotateSpeed = ref(0.35);
+const { rerenderKey, forceRerender } = useForceRerender();
+
+const DEFAULTS = {
+  selectedModel: 'toyCar' as ModelKey,
+  environmentPreset: 'city' as EnvironmentPreset,
+  modelXOffset: 0.5,
+  modelYOffset: 0,
+  enableMouseParallax: true,
+  enableHoverRotation: true,
+  showScreenshotButton: true,
+  fadeIn: false,
+  autoRotate: false,
+  autoRotateSpeed: 0.35
+};
+
+const selectedModel = ref<ModelKey>(DEFAULTS.selectedModel);
+const environmentPreset = ref<EnvironmentPreset>(DEFAULTS.environmentPreset);
+const modelXOffset = ref(DEFAULTS.modelXOffset);
+const modelYOffset = ref(DEFAULTS.modelYOffset);
+const enableMouseParallax = ref(DEFAULTS.enableMouseParallax);
+const enableHoverRotation = ref(DEFAULTS.enableHoverRotation);
+const showScreenshotButton = ref(DEFAULTS.showScreenshotButton);
+const fadeIn = ref(DEFAULTS.fadeIn);
+const autoRotate = ref(DEFAULTS.autoRotate);
+const autoRotateSpeed = ref(DEFAULTS.autoRotateSpeed);
 const isTextVisible = ref(false);
 
 const urlMap: Record<ModelKey, string> = {
@@ -128,7 +150,36 @@ watch(selectedModel, () => {
   isTextVisible.value = false;
 });
 
-const propData = [
+const hasChanges = computed(
+  () =>
+    selectedModel.value !== DEFAULTS.selectedModel ||
+    environmentPreset.value !== DEFAULTS.environmentPreset ||
+    modelXOffset.value !== DEFAULTS.modelXOffset ||
+    modelYOffset.value !== DEFAULTS.modelYOffset ||
+    enableMouseParallax.value !== DEFAULTS.enableMouseParallax ||
+    enableHoverRotation.value !== DEFAULTS.enableHoverRotation ||
+    showScreenshotButton.value !== DEFAULTS.showScreenshotButton ||
+    fadeIn.value !== DEFAULTS.fadeIn ||
+    autoRotate.value !== DEFAULTS.autoRotate ||
+    autoRotateSpeed.value !== DEFAULTS.autoRotateSpeed
+);
+
+function reset() {
+  selectedModel.value = DEFAULTS.selectedModel;
+  environmentPreset.value = DEFAULTS.environmentPreset;
+  modelXOffset.value = DEFAULTS.modelXOffset;
+  modelYOffset.value = DEFAULTS.modelYOffset;
+  enableMouseParallax.value = DEFAULTS.enableMouseParallax;
+  enableHoverRotation.value = DEFAULTS.enableHoverRotation;
+  showScreenshotButton.value = DEFAULTS.showScreenshotButton;
+  fadeIn.value = DEFAULTS.fadeIn;
+  autoRotate.value = DEFAULTS.autoRotate;
+  autoRotateSpeed.value = DEFAULTS.autoRotateSpeed;
+  isTextVisible.value = false;
+  forceRerender();
+}
+
+const propData: PropRow[] = [
   { name: 'url', type: 'string', default: '-', description: 'URL of the 3D model file (glb/gltf/fbx/obj).' },
   { name: 'width', type: 'number | string', default: '400', description: 'Width of the canvas container.' },
   { name: 'height', type: 'number | string', default: '400', description: 'Height of the canvas container.' },

@@ -3,25 +3,35 @@ import { createCodeObject } from '@/types/code';
 
 export const glareHover = createCodeObject(code, 'Animations/GlareHover', {
   usage: `<template>
-  <GlareHover
-    width="400px"
-    height="300px"
-    background="#0b0b0b"
-    border-color="#222222"
-    border-radius="20px"
-    glare-color="#ffffff"
-    :glare-opacity="0.3"
-    :glare-size="300"
-    :transition-duration="800"
-    :play-once="false"
+  <div
+    style="
+      height: 600px;
+      position: relative;
+    "
   >
-    <div class="text-center text-5xl font-black text-white">
-      Hover Me
-    </div>
-  </GlareHover>
+    <GlareHover
+      glare-color="#ffffff"
+      :glare-opacity="0.3"
+      :glare-angle="-30"
+      :glare-size="300"
+      :transition-duration="800"
+      :play-once="false"
+    >
+      <h2
+        style="
+          font-size: 3rem;
+          font-weight: 900;
+          color: #333;
+          margin: 0;
+        "
+      >
+        Hover Me
+      </h2>
+    </GlareHover>
+  </div>
 </template>
 
 <script setup lang="ts">
-  import GlareHover from "./GlareHover.vue";
+import GlareHover from './GlareHover.vue'
 </script>`
 });

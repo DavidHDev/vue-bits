@@ -1,73 +1,77 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Scroll Float</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="scrollFloatCode.usage"
+    :source="scrollFloatSource"
+    component-name="ScrollFloat"
+    :props-table="props"
+  >
     <template #preview>
-      <div ref="containerRef" class="demo-container overflow-y-auto h-[600px]" @wheel="smoothScroll">
+      <div ref="containerRef" class="relative h-[400px] overflow-y-auto demo-container" @wheel="smoothScroll">
         <div class="scroll-instruction">Scroll Down</div>
-
         <div class="scroll-content">
           <ScrollFloat
-            :children="scrollText"
-            :animation-duration="animationDuration"
-            :ease="ease"
-            :scroll-start="scrollStart"
-            :scroll-end="scrollEnd"
             :stagger="stagger"
-            :container-class-name="containerClassName"
-            :text-class-name="textClassName"
-            :scroll-container-ref="{ current: containerRef }"
-            :key="rerenderKey"
-          />
+            :animation-duration="duration"
+            :key="key"
+            :scroll-container-ref="containerRef"
+          >
+            Vue Bits
+          </ScrollFloat>
         </div>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewSlider title="Stagger:" v-model="stagger" :min="0.01" :max="0.1" :step="0.01" value-unit="s" />
-
-        <PreviewSlider
-          title="Animation Duration:"
-          v-model="animationDuration"
-          :min="1"
-          :max="10"
-          :step="0.1"
-          value-unit="s"
-        />
+        <PreviewSlider title="Stagger" v-model="stagger" :min="0.01" :max="0.1" :step="0.01" value-unit="s" />
+        <PreviewSlider title="Duration" v-model="duration" :min="1" :max="10" :step="0.1" value-unit="s" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="scrollFloatCode" />
+      <DemoCodeTab slug="scroll-float" :usage="scrollFloatCode.usage!" :source="scrollFloatSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="scrollFloatCode.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, useTemplateRef } from 'vue';
-import { gsap } from 'gsap';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import ScrollFloat from '../../content/TextAnimations/ScrollFloat/ScrollFloat.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { scrollFloatCode } from '@/constants/code/TextAnimations/scrollFloatCode';
+import ScrollFloat from '@/content/TextAnimations/ScrollFloat/ScrollFloat.vue';
+import scrollFloatSource from '@/content/TextAnimations/ScrollFloat/ScrollFloat.vue?raw';
+import { gsap } from 'gsap';
+import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
 
-const containerRef = useTemplateRef<HTMLElement>('containerRef');
-const scrollText = ref('Vue Bits!');
-const animationDuration = ref(1);
-const ease = ref('back.inOut(2)');
-const scrollStart = ref('center bottom+=50%');
-const scrollEnd = ref('bottom bottom-=40%');
-const stagger = ref(0.03);
-const containerClassName = ref('');
-const textClassName = ref('');
-const rerenderKey = ref(0);
+const { rerenderKey: key, forceRerender } = useForceRerender();
+
+const DEFAULTS = {
+  stagger: 0.03,
+  duration: 1
+};
+
+const containerRef = useTemplateRef<HTMLHeadingElement>('containerRef');
+const duration = ref(DEFAULTS.duration);
+const stagger = ref(DEFAULTS.stagger);
+
+const hasChanges = computed(() => duration.value !== DEFAULTS.duration || stagger.value !== DEFAULTS.stagger);
+
+function reset() {
+  duration.value = DEFAULTS.duration;
+  stagger.value = DEFAULTS.stagger;
+  forceRerender();
+}
 
 const smoothScroll = (e: WheelEvent) => {
   e.preventDefault();
@@ -79,7 +83,7 @@ const smoothScroll = (e: WheelEvent) => {
 
   gsap.to(container, {
     scrollTop: container.scrollTop + scrollAmount,
-    duration: 1,
+    duration: 2,
     ease: 'power3.out',
     overwrite: 'auto'
   });
@@ -99,60 +103,65 @@ onUnmounted(() => {
   }
 });
 
-const propData = [
+watch([duration, stagger], () => {
+  containerRef.value?.scrollTo({ top: 0, behavior: 'smooth' });
+  forceRerender();
+});
+
+const props: PropRow[] = [
   {
     name: 'children',
-    type: 'string',
-    default: '""',
-    description: 'The text content to be animated character by character'
+    type: 'slot',
+    default: '—',
+    description: 'The content to animate. If a string, it will be split into individual characters.'
   },
   {
     name: 'scrollContainerRef',
-    type: 'object',
-    default: 'undefined',
-    description: 'Ref to a custom scroll container (defaults to window)'
+    type: 'Ref<HTMLElement | null> | HTMLElement | null',
+    default: 'null',
+    description: 'Optional ref to the scroll container. Defaults to window if not provided.'
   },
   {
     name: 'containerClassName',
     type: 'string',
     default: '""',
-    description: 'Additional CSS classes for the container element'
+    description: 'Additional Tailwind classes for the container element.'
   },
   {
     name: 'textClassName',
     type: 'string',
     default: '""',
-    description: 'Additional CSS classes for the text element'
+    description: 'Additional Tailwind classes for the text element.'
   },
   {
     name: 'animationDuration',
     type: 'number',
     default: '1',
-    description: 'Duration of the animation in seconds'
+    description: 'Duration (in seconds) of the animation.'
   },
   {
     name: 'ease',
     type: 'string',
     default: '"back.inOut(2)"',
-    description: 'GSAP easing function for the animation'
+    description: 'Easing function used for the animation.'
   },
   {
     name: 'scrollStart',
     type: 'string',
     default: '"center bottom+=50%"',
-    description: 'ScrollTrigger start position'
+    description: 'The scroll trigger start position.'
   },
   {
     name: 'scrollEnd',
     type: 'string',
     default: '"bottom bottom-=40%"',
-    description: 'ScrollTrigger end position'
+    description: 'The scroll trigger end position.'
   },
   {
     name: 'stagger',
     type: 'number',
     default: '0.03',
-    description: 'Delay between each character animation'
+    description: 'Delay between the animation start of each character.'
   }
 ];
 </script>
@@ -177,5 +186,9 @@ const propData = [
 
 .scroll-content {
   color: aliceblue;
+  position: relative;
+  padding-top: 1600px;
+  padding-bottom: 600px;
+  padding-inline: 3rem;
 }
 </style>

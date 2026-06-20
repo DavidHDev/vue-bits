@@ -3,18 +3,19 @@ import { createCodeObject } from '@/types/code';
 
 export const magnetLines = createCodeObject(code, 'Animations/MagnetLines', {
   usage: `<template>
-  <MagnetLines 
-    :rows="10" 
-    :columns="12" 
-    container-size="40vmin" 
-    line-color="#efefef"
-    line-width="2px" 
-    line-height="30px"
-    :base-angle="-10"
+  <MagnetLines
+    :rows="9"
+    :columns="9"
+    container-size="60vmin"
+    line-color="tomato"
+    line-width="0.8vmin"
+    line-height="5vmin"
+    :base-angle="0"
+    :style="{ margin: '2rem auto' }"
   />
 </template>
 
 <script setup lang="ts">
-  import MagnetLines from "./MagnetLines.vue";
+import MagnetLines from './MagnetLines.vue'
 </script>`
 });

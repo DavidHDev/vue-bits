@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Magic Bento</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="magicBento.usage"
+    :source="magicBentoSource"
+    component-name="MagicBento"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="py-[100px] overflow-hidden demo-container">
+      <div class="py-8 overflow-hidden demo-container">
         <MagicBento
           :enable-stars="enableStars"
           :enable-spotlight="enableSpotlight"
@@ -12,59 +20,86 @@
           :enable-magnetism="enableMagnetism"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSlider title="Spotlight Radius" v-model="spotlightRadius" :min="50" :max="800" :step="10" />
-
         <PreviewSwitch title="Stars Effect" v-model="enableStars" />
-
         <PreviewSwitch title="Spotlight Effect" v-model="enableSpotlight" />
-
         <PreviewSwitch title="Tilt Effect" v-model="enableTilt" />
-
         <PreviewSwitch title="Click Effect" v-model="clickEffect" />
-
         <PreviewSwitch title="Magnetism" v-model="enableMagnetism" />
-
         <PreviewSwitch title="Disable All Animations" v-model="disableAnimations" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['gsap']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="magicBento" />
+      <DemoCodeTab slug="magic-bento" :usage="magicBento.usage!" :source="magicBentoSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="magicBento.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import { magicBento } from '../../constants/code/Components/magicBentoCode';
-import MagicBento from '../../content/Components/MagicBento/MagicBento.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
+import { magicBento } from '@/constants/code/Components/magicBentoCode';
+import MagicBento from '@/content/Components/MagicBento/MagicBento.vue';
+import magicBentoSource from '@/content/Components/MagicBento/MagicBento.vue?raw';
+import { computed, ref } from 'vue';
 
-const enableStars = ref(true);
-const enableSpotlight = ref(true);
-const disableAnimations = ref(false);
-const spotlightRadius = ref(400);
-const enableTilt = ref(false);
-const clickEffect = ref(true);
-const enableMagnetism = ref(false);
+const { forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  enableStars: true,
+  enableSpotlight: true,
+  disableAnimations: false,
+  spotlightRadius: 400,
+  enableTilt: false,
+  clickEffect: true,
+  enableMagnetism: false
+};
+
+const enableStars = ref(DEFAULTS.enableStars);
+const enableSpotlight = ref(DEFAULTS.enableSpotlight);
+const disableAnimations = ref(DEFAULTS.disableAnimations);
+const spotlightRadius = ref(DEFAULTS.spotlightRadius);
+const enableTilt = ref(DEFAULTS.enableTilt);
+const clickEffect = ref(DEFAULTS.clickEffect);
+const enableMagnetism = ref(DEFAULTS.enableMagnetism);
+
+const hasChanges = computed(
+  () =>
+    enableStars.value !== DEFAULTS.enableStars ||
+    enableSpotlight.value !== DEFAULTS.enableSpotlight ||
+    disableAnimations.value !== DEFAULTS.disableAnimations ||
+    spotlightRadius.value !== DEFAULTS.spotlightRadius ||
+    enableTilt.value !== DEFAULTS.enableTilt ||
+    clickEffect.value !== DEFAULTS.clickEffect ||
+    enableMagnetism.value !== DEFAULTS.enableMagnetism
+);
+
+function reset() {
+  enableStars.value = DEFAULTS.enableStars;
+  enableSpotlight.value = DEFAULTS.enableSpotlight;
+  disableAnimations.value = DEFAULTS.disableAnimations;
+  spotlightRadius.value = DEFAULTS.spotlightRadius;
+  enableTilt.value = DEFAULTS.enableTilt;
+  clickEffect.value = DEFAULTS.clickEffect;
+  enableMagnetism.value = DEFAULTS.enableMagnetism;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'textAutoHide',
     type: 'boolean',

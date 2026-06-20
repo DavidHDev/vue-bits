@@ -1,69 +1,99 @@
 <template>
-  <div class="shape-blur-demo">
-    <TabbedLayout>
-      <template #preview>
-        <div class="demo-container h-[500px] overflow-hidden">
-          <ShapeBlur
-            :variation="0"
-            :pixel-ratio-prop="pixelRatioProp"
-            :shape-size="shapeSize"
-            :roundness="roundness"
-            :border-size="borderSize"
-            :circle-size="circleSize"
-            :circle-edge="circleEdge"
-            class="shapeblur-demo"
-          />
-          <div class="hover-text">Hover Me.</div>
-        </div>
+  <!-- <div class="shape-blur-demo"> -->
+  <h1 class="sub-category">Shape Blur</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="shapeBlur.usage"
+    :source="shapeBlurSource"
+    component-name="ShapeBlur"
+    :props-table="props"
+  >
+    <template #preview>
+      <div class="relative h-[500px] overflow-hidden demo-container">
+        <ShapeBlur
+          :variation="0"
+          :pixel-ratio-prop="pixelRatioProp"
+          :shape-size="shapeSize"
+          :roundness="roundness"
+          :border-size="borderSize"
+          :circle-size="circleSize"
+          :circle-edge="circleEdge"
+          class="z-2 relative mix-blend-difference"
+        />
+        <div class="hover-text">Hover Me.</div>
+      </div>
+    </template>
 
-        <Customize>
-          <PreviewSlider title="Shape Size" v-model="shapeSize" :min="0.1" :max="2" :step="0.1" />
+    <template #customize>
+      <Customize>
+        <PreviewSlider title="Shape Size" v-model="shapeSize" :min="0.1" :max="2" :step="0.1" />
+        <PreviewSlider title="Roundness" v-model="roundness" :min="0" :max="1" :step="0.05" />
+        <PreviewSlider title="Border Size" v-model="borderSize" :min="0.01" :max="0.2" :step="0.005" />
+        <PreviewSlider title="Circle Size" v-model="circleSize" :min="0.1" :max="0.5" :step="0.01" />
+        <PreviewSlider title="Circle Edge" v-model="circleEdge" :min="0.1" :max="2" :step="0.1" />
+      </Customize>
+    </template>
 
-          <PreviewSlider title="Roundness" v-model="roundness" :min="0" :max="1" :step="0.05" />
+    <template #propTable>
+      <PropTable :data="props" />
+    </template>
 
-          <PreviewSlider title="Border Size" v-model="borderSize" :min="0.01" :max="0.2" :step="0.005" />
-
-          <PreviewSlider title="Circle Size" v-model="circleSize" :min="0.1" :max="0.5" :step="0.01" />
-
-          <PreviewSlider title="Circle Edge" v-model="circleEdge" :min="0.1" :max="2" :step="0.1" />
-        </Customize>
-
-        <PropTable :data="propData" />
-
-        <Dependencies :dependency-list="['three']" />
-      </template>
-
-      <template #code>
-        <CodeExample :code-object="shapeBlur" />
-      </template>
-
-      <template #cli>
-        <CliInstallation :command="shapeBlur.cli" />
-      </template>
-    </TabbedLayout>
-  </div>
+    <template #code>
+      <DemoCodeTab slug="shape-blur" :usage="shapeBlur.usage!" :source="shapeBlurSource" />
+    </template>
+  </TabsLayout>
+  <!-- </div> -->
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import ShapeBlur from '../../content/Animations/ShapeBlur/ShapeBlur.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { shapeBlur } from '@/constants/code/Animations/shapeBlurCode';
+import ShapeBlur from '@/content/Animations/ShapeBlur/ShapeBlur.vue';
+import shapeBlurSource from '@/content/Animations/ShapeBlur/ShapeBlur.vue?raw';
+import { computed, ref } from 'vue';
 
-const pixelRatioProp = ref(window.devicePixelRatio || 1);
-const shapeSize = ref(1.0);
-const roundness = ref(0.5);
-const borderSize = ref(0.05);
-const circleSize = ref(0.25);
-const circleEdge = ref(1);
+const { forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  shapeSize: 1.0,
+  roundness: 0.5,
+  borderSize: 0.05,
+  circleSize: 0.25,
+  circleEdge: 1
+};
+
+const pixelRatioProp = window.devicePixelRatio || 1;
+const shapeSize = ref(DEFAULTS.shapeSize);
+const roundness = ref(DEFAULTS.roundness);
+const borderSize = ref(DEFAULTS.borderSize);
+const circleSize = ref(DEFAULTS.circleSize);
+const circleEdge = ref(DEFAULTS.circleEdge);
+
+const hasChanges = computed(
+  () =>
+    shapeSize.value !== DEFAULTS.shapeSize ||
+    roundness.value !== DEFAULTS.roundness ||
+    borderSize.value !== DEFAULTS.borderSize ||
+    circleSize.value !== DEFAULTS.circleSize ||
+    circleEdge.value !== DEFAULTS.circleEdge
+);
+
+function reset() {
+  shapeSize.value = DEFAULTS.shapeSize;
+  roundness.value = DEFAULTS.roundness;
+  borderSize.value = DEFAULTS.borderSize;
+  circleSize.value = DEFAULTS.circleSize;
+  circleEdge.value = DEFAULTS.circleEdge;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'variation',
     type: 'number',

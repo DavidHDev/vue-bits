@@ -1,93 +1,140 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Particles</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="particles.usage"
+    :source="particlesSource"
+    component-name="Particles"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="h-[600px] overflow-hidden demo-container">
+      <div class="relative h-[500px] overflow-hidden demo-container">
         <Particles
           :key="rerenderKey"
-          :particle-colors="[color]"
+          :particle-colors="[colors]"
           :particle-count="particleCount"
           :particle-spread="particleSpread"
           :speed="speed"
-          :particle-base-size="baseSize"
+          :particle-base-size="particleBaseSize"
           :move-particles-on-hover="moveParticlesOnHover"
           :alpha-particles="alphaParticles"
           :disable-rotation="disableRotation"
-          class="w-full h-full"
+          :pixel-ratio="Number(pixelRatio)"
         />
         <BackgroundContent pillText="New Background" headline="Particles that mimick the dance of the cosmos" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <div class="flex items-center gap-4">
-          <PreviewColor title="Color" v-model="color" />
-        </div>
-
+        <PreviewColorPicker title="Color" v-model="colors" />
         <PreviewSlider title="Count" v-model="particleCount" :min="100" :max="1000" :step="100" />
-
         <PreviewSlider title="Spread" v-model="particleSpread" :min="10" :max="100" :step="10" />
-
         <PreviewSlider title="Speed" v-model="speed" :min="0" :max="2" :step="0.1" />
-
-        <PreviewSlider title="Base Size" v-model="baseSize" :min="100" :max="1000" :step="100" />
-
+        <PreviewSlider title="Base Size" v-model="particleBaseSize" :min="100" :max="1000" :step="100" />
         <PreviewSwitch title="Mouse Interaction" v-model="moveParticlesOnHover" />
-
         <PreviewSwitch title="Particle Transparency" v-model="alphaParticles" />
-
         <PreviewSwitch title="Disable Rotation" v-model="disableRotation" />
+        <PreviewInput title="Pixel Ratio" v-model="pixelRatio" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-
-      <Dependencies :dependency-list="['ogl']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="particles" />
+      <DemoCodeTab slug="particles" :usage="particles.usage!" :source="particlesSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="particles.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import Particles from '@/content/Backgrounds/Particles/Particles.vue';
-import BackgroundContent from '../../components/common/BackgroundContent.vue';
+import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewInput from '@/components/common/PreviewInput.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
-import PreviewColor from '@/components/common/PreviewColor.vue';
-import { particles } from '@/constants/code/Backgrounds/particlesCode';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
+import { particles } from '@/constants/code/Backgrounds/particlesCode';
+import Particles from '@/content/Backgrounds/Particles/Particles.vue';
+import particlesSource from '@/content/Backgrounds/Particles/Particles.vue?raw';
+import { computed, ref } from 'vue';
 
-const color = ref('#ffffff');
-const particleCount = ref(200);
-const particleSpread = ref(10);
-const speed = ref(0.1);
-const baseSize = ref(100);
-const moveParticlesOnHover = ref(true);
-const alphaParticles = ref(false);
-const disableRotation = ref(false);
+const { rerenderKey, forceRerender } = useForceRerender();
 
-const { rerenderKey } = useForceRerender();
+const DEFAULTS = {
+  colors: '#ffffff',
+  particleCount: 200,
+  particleSpread: 10,
+  speed: 0.1,
+  particleBaseSize: 100,
+  moveParticlesOnHover: true,
+  alphaParticles: false,
+  disableRotation: false,
+  pixelRatio: 1
+};
 
-const propData = [
-  { name: 'particleCount', type: 'number', default: '200', description: 'The number of particles to generate.' },
+const colors = ref(DEFAULTS.colors);
+const particleCount = ref(DEFAULTS.particleCount);
+const particleSpread = ref(DEFAULTS.particleSpread);
+const speed = ref(DEFAULTS.speed);
+const particleBaseSize = ref(DEFAULTS.particleBaseSize);
+const moveParticlesOnHover = ref(DEFAULTS.moveParticlesOnHover);
+const alphaParticles = ref(DEFAULTS.alphaParticles);
+const disableRotation = ref(DEFAULTS.disableRotation);
+const pixelRatio = ref(String(DEFAULTS.pixelRatio));
+
+const hasChanges = computed(
+  () =>
+    colors.value !== DEFAULTS.colors ||
+    particleCount.value !== DEFAULTS.particleCount ||
+    particleSpread.value !== DEFAULTS.particleSpread ||
+    speed.value !== DEFAULTS.speed ||
+    particleBaseSize.value !== DEFAULTS.particleBaseSize ||
+    moveParticlesOnHover.value !== DEFAULTS.moveParticlesOnHover ||
+    alphaParticles.value !== DEFAULTS.alphaParticles ||
+    disableRotation.value !== DEFAULTS.disableRotation ||
+    pixelRatio.value !== String(DEFAULTS.pixelRatio)
+);
+
+function reset() {
+  colors.value = DEFAULTS.colors;
+  particleCount.value = DEFAULTS.particleCount;
+  particleSpread.value = DEFAULTS.particleSpread;
+  speed.value = DEFAULTS.speed;
+  particleBaseSize.value = DEFAULTS.particleBaseSize;
+  moveParticlesOnHover.value = DEFAULTS.moveParticlesOnHover;
+  alphaParticles.value = DEFAULTS.alphaParticles;
+  disableRotation.value = DEFAULTS.disableRotation;
+  pixelRatio.value = String(DEFAULTS.pixelRatio);
+  forceRerender();
+}
+
+const props: PropRow[] = [
+  {
+    name: 'particleCount',
+    type: 'number',
+    default: '200',
+    description: 'The number of particles to generate.'
+  },
   {
     name: 'particleSpread',
     type: 'number',
     default: '10',
     description: 'Controls how far particles are spread from the center.'
   },
-  { name: 'speed', type: 'number', default: '0.1', description: 'Speed factor controlling the animation pace.' },
+  {
+    name: 'speed',
+    type: 'number',
+    default: '0.1',
+    description: 'Speed factor controlling the animation pace.'
+  },
   {
     name: 'particleColors',
     type: 'string[]',
@@ -112,7 +159,12 @@ const propData = [
     default: 'false',
     description: 'If true, particles are rendered with varying transparency; otherwise, as solid circles.'
   },
-  { name: 'particleBaseSize', type: 'number', default: '100', description: 'The base size of the particles.' },
+  {
+    name: 'particleBaseSize',
+    type: 'number',
+    default: '100',
+    description: 'The base size of the particles.'
+  },
   {
     name: 'sizeRandomness',
     type: 'number',
@@ -130,6 +182,12 @@ const propData = [
     type: 'boolean',
     default: 'false',
     description: 'If true, stops the particle system from rotating.'
+  },
+  {
+    name: 'pixelRatio',
+    type: 'number',
+    default: '1',
+    description: 'Sets the pixel ratio for sharper rendering on high-DPI screens.'
   }
 ];
 </script>

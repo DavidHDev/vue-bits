@@ -1,20 +1,16 @@
 <script setup lang="ts">
+import { NEW } from '@/constants/Categories.ts';
 import { componentMetadata, type ComponentMetadata } from '@/constants/Information';
-import { getSavedComponents, isComponentSaved, removeSavedComponent, toggleSavedComponent } from '@/utils/favorites';
+import { getSavedComponents, removeSavedComponent, toggleSavedComponent } from '@/utils/favorites';
 import { fuzzyMatch } from '@/utils/fuzzy';
-import { useVirtualList } from '@vueuse/core';
 import gsap from 'gsap';
-import { Trash, X } from 'lucide-vue-next';
-import Select from 'primevue/select';
 import { useToast } from 'primevue/usetoast';
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch, watchEffect } from 'vue';
 import LazyCardMedia from './LazyCardMedia.vue';
+import PreviewSelect from './PreviewSelect.vue';
 
-const GAP_PX = 16;
-const CARD_RADIUS = 30;
-const CARD_PADDING = 6;
-const CARD_HEIGHT = 284;
-const INNER_RADIUS = `${CARD_RADIUS - CARD_PADDING}px`;
+const CARD_RADIUS = 16;
+const CLEAR_APPEAR_DEBOUNCE_MS = 300;
 
 const slug = (str: string) => (str || '').replace(/\s+/g, '-').toLowerCase();
 const fromPascal = (str: string) =>
@@ -23,180 +19,120 @@ const fromPascal = (str: string) =>
     .replace(/_/g, ' ')
     .trim();
 
-const supportsType = (type: string) => {
-  try {
-    const v = document.createElement('video');
-    if (!('canPlayType' in v)) return false;
-    const res = v.canPlayType(type);
-    return res === 'probably' || res === 'maybe';
-  } catch {
-    return false;
-  }
-};
-
-const prefersWebM = () => supportsType('video/webm; codecs="vp9,vorbis"') || supportsType('video/webm');
-
-const pickBestSource = (url: string) => {
-  if (!url) return '';
-  if (url.endsWith('.webm')) {
-    if (prefersWebM()) return url;
-    const mp4 = url.replace(/\.webm$/, '.mp4');
-    return mp4;
-  }
-  if (url.endsWith('.mp4')) {
-    return url;
-  }
-  return url;
-};
-
-interface NavigatorWithConnection extends Navigator {
-  connection?: {
-    saveData?: boolean;
-    effectiveType?: string;
-  };
-  mozConnection?: {
-    saveData?: boolean;
-    effectiveType?: string;
-  };
-  webkitConnection?: {
-    saveData?: boolean;
-    effectiveType?: string;
-  };
+interface RawEntry {
+  key?: string;
+  id?: string;
+  category?: string;
+  name?: string;
+  description?: string;
+  videoUrl?: string;
+  tags?: string[];
 }
-
-const shouldPreload = () => {
-  try {
-    const nav = navigator as NavigatorWithConnection;
-    const c = nav.connection || nav.mozConnection || nav.webkitConnection;
-    if (c?.saveData) return false;
-    const slowTypes = new Set(['slow-2g', '2g']);
-    if (c?.effectiveType && slowTypes.has(c.effectiveType)) return false;
-  } catch {
-    // noop
-  }
-  return true;
-};
 
 type ComponentInfoProps = {
   list: ComponentMetadata;
   hasDeleteButton?: boolean;
-  hasFavoriteButton?: boolean;
   sorting?: string;
   title: string;
+  emptyTitle?: string;
+  emptyDescription?: string;
 };
 
 const props = withDefaults(defineProps<ComponentInfoProps>(), {
   hasDeleteButton: false,
-  hasFavoriteButton: false,
   sorting: 'none'
 });
 
 const toast = useToast();
-const scrollRef = ref<HTMLElement | null>(null);
-const preloadedSrcsRef = ref(new Set());
 const hoveredKey = ref<string | null>(null);
-const clearSlotRef = ref(null);
-const clearBtnRef = ref(null);
-const CLEAR_APPEAR_DEBOUNCE_MS = 300;
+const clearSlotRef = ref<HTMLElement | null>(null);
+const clearBtnRef = ref<HTMLElement | null>(null);
 
-const setHoverToItemAtPoint = (x: number, y: number): void => {
-  try {
-    const el = document.elementFromPoint(x, y) as HTMLElement | null;
-    let node: HTMLElement | null = el;
-    while (node && node !== document.body) {
-      if (node.dataset && node.dataset.itemKey) {
-        hoveredKey.value = node.dataset.itemKey;
-        return;
-      }
-      node = node.parentElement as HTMLElement | null;
-    }
-    hoveredKey.value = null;
-  } catch {
-    // noop
-  }
+// ── items ─────────────────────────────────────────────────────────────────────
+const mapToItem = (entry: RawEntry | string) => {
+  const isObj = typeof entry !== 'string';
+  const key = isObj ? (entry.key ?? entry.id ?? null) : entry;
+  const meta: RawEntry = isObj ? entry : (componentMetadata?.[entry] ?? {});
+  const fullKey = key ?? (typeof entry === 'string' ? entry : '');
+  const [cat, comp] = (fullKey || '').split('/');
+  const title = fromPascal(meta.name ?? comp);
+  return {
+    key: fullKey,
+    categoryKey: cat,
+    componentKey: comp,
+    categoryLabel: fromPascal(meta.category ?? cat),
+    title: fromPascal(meta.name ?? comp),
+    description: meta.description ?? '',
+    videoUrl: meta.videoUrl ?? '',
+    tags: Array.isArray(meta.tags) ? meta.tags : [],
+    isNew: NEW.includes(title)
+  };
 };
 
 const items = computed(() => {
   if (!props.list) return [];
-  const entries = Array.isArray(props.list)
+  const entries: (RawEntry | string)[] = Array.isArray(props.list)
     ? props.list
-    : Object.entries(props.list).map(([key, meta]) => ({ key, ...meta }));
-
-  const mapToItem = (entry: ComponentMetadata[keyof ComponentMetadata] | string | { key: string }) => {
-    const key = typeof entry === 'object' && 'key' in entry ? entry.key : typeof entry === 'string' ? entry : null;
-    const meta =
-      typeof entry === 'object' && 'key' in entry
-        ? entry
-        : typeof entry === 'string' && componentMetadata?.[entry]
-          ? componentMetadata[entry]
-          : {};
-    const fullKey = key || (typeof entry === 'string' ? entry : '');
-    const [cat, comp] = (fullKey || '').split('/');
-    return {
-      key: fullKey,
-      categoryKey: cat,
-      componentKey: comp,
-      categoryLabel: fromPascal(
-        (typeof meta === 'object' && meta && 'category' in meta ? (meta.category as string) : undefined) ?? cat
-      ),
-      title: fromPascal(
-        (typeof meta === 'object' && meta && 'name' in meta ? (meta.name as string) : undefined) ?? comp
-      ),
-      description:
-        (typeof meta === 'object' && meta && 'description' in meta ? (meta.description as string) : undefined) ?? '',
-      videoUrl: (typeof meta === 'object' && meta && 'videoUrl' in meta ? (meta.videoUrl as string) : undefined) ?? '',
-      tags: typeof meta === 'object' && meta && 'tags' in meta && Array.isArray(meta.tags) ? meta.tags : [],
-      docsUrl: typeof meta === 'object' && meta && 'docsUrl' in meta ? (meta.docsUrl as string | undefined) : undefined
-    };
-  };
+    : Object.entries(props.list).map(([key, meta]) => ({ key, ...(meta as RawEntry) }));
 
   let arr = entries
     .filter(e => {
-      const key = (e.key ?? e)?.toString?.() ?? '';
-      return key.includes('/') && (e.key ? true : !!componentMetadata[key]);
+      const key = (typeof e === 'string' ? e : (e.key ?? ''))?.toString() ?? '';
+      return (
+        key.includes('/') &&
+        (typeof e !== 'string' && e.key ? true : !!componentMetadata[typeof e === 'string' ? e : ''])
+      );
     })
     .map(mapToItem);
 
   if (props.sorting === 'alphabetical') {
-    arr = arr.sort((a, b) => a.title.localeCompare(b.title));
+    arr = arr.sort((a, b) => {
+      const aNew = NEW.indexOf(a.title);
+      const bNew = NEW.indexOf(b.title);
+      // If both are new, sort by their order in the NEW array
+      if (aNew !== -1 && bNew !== -1) return aNew - bNew;
+      // If only one is new, put it first
+      if (aNew !== -1) return -1;
+      if (bNew !== -1) return 1;
+      // Otherwise, sort alphabetically
+      return a.title.localeCompare(b.title);
+    });
   }
   return arr;
 });
 
-const categories = computed(() => {
-  const set = new Set<string>();
-  items.value.forEach(i => i.categoryLabel && set.add(i.categoryLabel));
-  return ['All Components', ...Array.from(set).sort((a, b) => a.localeCompare(b))];
+// ── categories ────────────────────────────────────────────────────────────────
+const categoryOptions = computed(() => [
+  'All Components',
+  ...Array.from(new Set(items.value.map(i => i.categoryLabel))).sort((a, b) => a.localeCompare(b))
+]);
+
+const search = ref('');
+const selectedCategory = ref('All Components');
+
+watch(categoryOptions, opts => {
+  if (!opts.includes(selectedCategory.value)) selectedCategory.value = 'All Components';
 });
 
-const selectedCategory = ref(categories.value[0]);
-const search = ref('');
+// ── saved set ─────────────────────────────────────────────────────────────────
 const savedSet = ref(new Set(getSavedComponents()));
-
-const update = () => (savedSet.value = new Set(getSavedComponents()));
+const updateSaved = () => {
+  savedSet.value = new Set(getSavedComponents());
+};
 const onStorage = (e?: StorageEvent | null) => {
-  if (!e || e.key === 'savedComponents') update();
+  if (!e || e.key === 'savedComponents') updateSaved();
 };
 
 onMounted(() => {
-  window.addEventListener('favorites:updated', update);
+  window.addEventListener('favorites:updated', updateSaved);
   window.addEventListener('storage', onStorage);
 });
-
 onBeforeUnmount(() => {
-  window.removeEventListener('favorites:updated', update);
+  window.removeEventListener('favorites:updated', updateSaved);
   window.removeEventListener('storage', onStorage);
 });
 
-watch(
-  () => categories.value,
-  newCategories => {
-    if (!newCategories.includes(selectedCategory.value)) {
-      selectedCategory.value = newCategories[0];
-    }
-  }
-);
-
+// ── filtering ─────────────────────────────────────────────────────────────────
 const filtered = computed(() => {
   const term = search.value.trim();
   const all = selectedCategory.value === 'All Components';
@@ -208,21 +144,23 @@ const filtered = computed(() => {
 });
 
 const controlsDisabled = computed(() => items.value.length === 0);
-const hasCategoryFilter = computed(() => selectedCategory.value !== categories.value[0]);
 
-const debounceSearch = ref(search.value);
+// ── debounced search for clear button ─────────────────────────────────────────
+const debouncedSearch = ref(search.value);
 
-watch(search, () => {
-  const timeout = setTimeout(() => {
-    debounceSearch.value = search.value;
+watchEffect(onCleanup => {
+  const id = setTimeout(() => {
+    debouncedSearch.value = search.value;
   }, CLEAR_APPEAR_DEBOUNCE_MS);
-  return () => clearTimeout(timeout);
+  onCleanup(() => clearTimeout(id));
 });
 
 const showClear = computed(
-  () => !controlsDisabled.value && (hasCategoryFilter.value || (debounceSearch.value?.trim()?.length ?? 0) > 0)
+  () =>
+    !controlsDisabled.value && (selectedCategory.value !== 'All Components' || debouncedSearch.value.trim().length > 0)
 );
 
+// ── GSAP clear button ─────────────────────────────────────────────────────────
 watch(showClear, newVal => {
   const slot = clearSlotRef.value;
   const btn = clearBtnRef.value;
@@ -230,310 +168,496 @@ watch(showClear, newVal => {
   gsap.killTweensOf([slot, btn]);
 
   if (newVal) {
-    const tl = gsap.timeline();
-    tl.to(slot, { width: 40, duration: 0.3, ease: 'power2.out' }).fromTo(
-      btn,
-      { scale: 0.6, opacity: 0 },
-      { scale: 1, opacity: 1, duration: 0.25, ease: 'power2.out', force3D: true },
-      '<0.05'
-    );
+    gsap
+      .timeline()
+      .to(slot, { width: 40, duration: 0.3, ease: 'power2.out' })
+      .fromTo(
+        btn,
+        { scale: 0.6, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.25, ease: 'power2.out', force3D: true },
+        '<0.05'
+      );
   } else {
-    const tl = gsap.timeline();
-    tl.to(btn, { scale: 0, opacity: 0, duration: 0.15, ease: 'power2.in' }).to(
-      slot,
-      { width: 0, duration: 0.25, ease: 'power2.inOut' },
-      '+=0'
-    );
+    gsap
+      .timeline()
+      .to(btn, { scale: 0, opacity: 0, duration: 0.15, ease: 'power2.in' })
+      .to(slot, { width: 0, duration: 0.25, ease: 'power2.inOut' }, '+=0');
   }
 });
 
-const getColumnsForWidth = (w: number) => (w >= 1024 ? 3 : w >= 768 ? 2 : 1);
-
-const preloadRange = (startIdx: number, endIdx: number) => {
-  if (!shouldPreload()) return;
-  const urls = [];
-  for (let i = startIdx; i <= Math.min(endIdx, filtered.value.length - 1); i++) {
-    const url = filtered.value[i]?.videoUrl;
-    if (!url) continue;
-    const chosen = pickBestSource(url);
-    if (chosen && !preloadedSrcsRef.value.has(chosen)) {
-      urls.push(chosen);
-    }
-  }
-  if (urls.length === 0) return;
-  urls.forEach(src => {
-    try {
-      const v = document.createElement('video');
-      v.preload = 'metadata';
-      v.src = src;
-      const mark = () => {
-        preloadedSrcsRef.value.add(src);
-      };
-      v.addEventListener('loadedmetadata', mark, { once: true });
-      v.addEventListener('loadeddata', mark, { once: true });
-      v.addEventListener('canplaythrough', mark, { once: true });
-      v.load();
-      setTimeout(() => {
-        v.src = '';
-      }, 8000);
-    } catch {
-      // no-op
-    }
-  });
-};
-
-const clearFilters = () => {
-  selectedCategory.value = categories.value[0];
+// ── actions ───────────────────────────────────────────────────────────────────
+function clearFilters() {
   search.value = '';
-};
+  selectedCategory.value = 'All Components';
+}
 
-const handleDeletion = (e: MouseEvent, item: { key: string }): void => {
-  e.preventDefault();
-  e.stopPropagation();
+function removeFavorite(key: string) {
+  savedSet.value = new Set(removeSavedComponent(key));
+}
 
-  const { clientX, clientY } = e as MouseEvent & { clientX: number; clientY: number };
-  const next = removeSavedComponent(item.key);
+function toggleFavorite(key: string, componentKey: string) {
+  const { saved, list: next } = toggleSavedComponent(key);
   savedSet.value = new Set(next);
-  setHoverToItemAtPoint(clientX, clientY);
-
-  const target = e.currentTarget as HTMLElement | null;
-  if (target && typeof target.blur === 'function') {
-    target.blur();
-  }
-
-  if (typeof window !== 'undefined') {
-    const schedule: (cb: (ts?: number) => void) => number = window.requestAnimationFrame
-      ? (cb: (ts?: number) => void) => window.requestAnimationFrame(cb as FrameRequestCallback)
-      : (cb: (ts?: number) => void) => window.setTimeout(() => cb(Date.now()), 0);
-    schedule(() => setHoverToItemAtPoint(clientX, clientY));
-  }
-};
-
-const isSaved = (key: string): boolean => savedSet.value.has(key) || isComponentSaved(key);
-
-const handleFavoriteToggle = (e: MouseEvent, item: { key: string; componentKey: string }): void => {
-  e.preventDefault();
-  e.stopPropagation();
-  const { saved, list: next } = toggleSavedComponent(item.key);
-  savedSet.value = new Set(next);
-
   toast.add({
     severity: saved ? 'success' : 'error',
-    summary: saved ? `Added <${item.componentKey} /> to Favorites` : `Removed <${item.componentKey} /> from Favorites`,
+    summary: saved ? `Added <${componentKey} /> to favorites` : `Removed <${componentKey} /> from favorites`,
     life: 3000
   });
-
-  const target = e.currentTarget as HTMLElement | null;
-  if (target && typeof target.blur === 'function') {
-    target.blur();
-  }
-};
-
-// ---------- VIRTUALIZATION ----------
-const containerWidth = ref(window.innerWidth);
-
-const updateContainerWidth = () => {
-  if (scrollRef.value) {
-    containerWidth.value = scrollRef.value.offsetWidth;
-  }
-};
-
-onMounted(() => {
-  updateContainerWidth();
-  window.addEventListener('resize', updateContainerWidth);
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', updateContainerWidth);
-});
-
-const columnCount = computed(() => getColumnsForWidth(containerWidth.value));
-const rowHeight = computed(() => CARD_HEIGHT + GAP_PX);
-
-const gridRows = computed(() => {
-  const rows = [];
-  const cols = columnCount.value;
-  for (let i = 0; i < filtered.value.length; i += cols) {
-    rows.push(filtered.value.slice(i, i + cols));
-  }
-  return rows;
-});
-
-const {
-  list: virtualedRows,
-  containerProps,
-  wrapperProps
-} = useVirtualList(gridRows, {
-  itemHeight: rowHeight.value
-});
-
-watch(virtualedRows, newRows => {
-  if (newRows.length > 0) {
-    const lastRow = newRows[newRows.length - 1];
-    const lastVisibleIndex = (lastRow.index + 1) * columnCount.value - 1;
-    preloadRange(lastVisibleIndex + 1, lastVisibleIndex + 3);
-  }
-});
+}
 </script>
 
 <template>
-  <div ref="scrollRef">
-    <div class="flex md:flex-row flex-col justify-start md:justify-between items-start md:items-center gap-4 mb-3">
-      <h2 v-if="title" class="sub-category" style="margin: 0">
-        {{ title }}
-      </h2>
+  <div class="component-list-page">
+    <!-- Header -->
+    <div class="page-transition-fade component-list-header">
+      <h1 class="sub-category">{{ title }}</h1>
 
-      <div
-        class="flex md:flex-row flex-col items-center gap-2 w-full md:w-auto"
-        :style="{ opacity: controlsDisabled ? 0.6 : 1 }"
-      >
-        <div
-          class="relative flex items-center gap-2 bg-[#0b0b0b] px-4 pr-8 border border-[#333] rounded-full w-full md:w-[180px] h-10 font-semibold text-[12px] cursor-text select-none"
-          :class="{ 'opacity-60 pointer-events-none': controlsDisabled }"
-        >
-          <i class="pi pi-search search-icon"></i>
-          <input
-            v-model="search"
-            type="text"
-            placeholder="Search..."
-            class="flex-1 bg-transparent border-none outline-none placeholder:font-medium text-[#a6a6a6] placeholder-[#a6a6a6]"
-            :disabled="controlsDisabled"
-            :tabindex="controlsDisabled ? -1 : 0"
-            @focus="
-              (e: FocusEvent) => {
-                if (controlsDisabled) (e.target as HTMLInputElement).blur();
-              }
-            "
-          />
-        </div>
+      <div class="component-list-controls" :class="{ disabled: controlsDisabled }">
+        <!-- Search -->
+        <label class="component-list-search">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <input v-model="search" placeholder="Search..." :disabled="controlsDisabled" />
+        </label>
 
-        <Select
+        <!-- Category select -->
+        <PreviewSelect
           v-model="selectedCategory"
-          :options="categories"
-          class="w-full md:w-auto"
-          :disabled="controlsDisabled"
+          title="Category"
+          :options="categoryOptions"
+          :is-disabled="controlsDisabled"
+          class="category-scrubber"
         />
 
-        <div ref="clearSlotRef" class="hidden md:flex justify-center items-center w-0 overflow-hidden">
+        <!-- Clear button -->
+        <div ref="clearSlotRef" class="clear-slot" :class="{ show: showClear }">
           <button
             ref="clearBtnRef"
+            type="button"
+            class="clear-button"
             aria-label="Clear filters"
-            @click="clearFilters"
-            class="flex justify-center items-center bg-transparent hover:bg-[#0d2717] opacity-0 focus-visible:shadow-none focus:shadow-none border border-[#333] focus-visible:border-[#333] rounded-full focus-visible:outline-none focus:outline-none focus:ring-0 w-10 h-10 text-[#a6a6a6] origin-[50%_50%] transition-all duration-300"
-            :class="{
-              'pointer-events-none': !showClear,
-              'pointer-events-auto': showClear
-            }"
             :tabindex="showClear ? 0 : -1"
+            @click="clearFilters"
           >
-            <X class="size-4" />
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
           </button>
         </div>
       </div>
     </div>
 
-    <div class="mt-4">
-      <div v-if="filtered.length === 0" class="relative mt-[6em] p-6 text-center" role="status">
-        <div class="relative">
-          <h3 class="mb-1 font-medium text-white text-2xl">
-            {{ items.length > 0 ? 'No results...' : 'Nothing here yet...' }}
-          </h3>
-          <h4 class="mb-8 text-[#a6a6a6] text-base">
-            {{ items.length > 0 ? 'Try adjusting your filters' : 'Tap the heart on any component to save it' }}
-          </h4>
+    <!-- Empty state -->
+    <div v-if="filtered.length === 0" class="component-list-empty" role="status">
+      <h2>{{ items.length > 0 ? 'No results...' : (emptyTitle ?? 'Nothing here yet...') }}</h2>
+      <p>
+        {{
+          items.length > 0
+            ? 'Try adjusting your filters'
+            : (emptyDescription ?? 'Tap the heart on any component to save it')
+        }}
+      </p>
+      <button v-if="items.length > 0" type="button" class="pill-button" @click="clearFilters">Clear Filters</button>
+      <RouterLink v-else class="pill-button" to="/get-started/index">Browse Components</RouterLink>
+    </div>
 
-          <div class="flex flex-wrap justify-center gap-2">
-            <button
-              v-if="items.length > 0"
-              class="bg-transparent hover:bg-[#0d2717] px-4 border border-[#333] rounded-full h-10 font-medium text-white transition-colors duration-300 cursor-pointer"
-            >
-              Clear Filters
-            </button>
-            <component
-              :is="'router-link'"
-              to="/get-started/index"
-              v-else
-              class="flex justify-center items-center bg-transparent hover:bg-[#0d2717] px-4 border border-[#333] rounded-full h-10 font-medium text-white transition-colors duration-300 cursor-pointer"
-            >
-              Browse Components
-            </component>
+    <!-- Grid -->
+    <div v-else class="component-list-grid" :style="{ '--card-radius': `${CARD_RADIUS}px` }">
+      <div v-for="item in filtered" :key="item.key" class="component-list-card-wrap">
+        <RouterLink
+          class="component-list-card"
+          :to="`/${slug(fromPascal(item.categoryKey))}/${slug(fromPascal(item.componentKey))}`"
+          :data-item-key="item.key"
+          @mouseenter="hoveredKey = item.key"
+          @mouseleave="hoveredKey === item.key && (hoveredKey = null)"
+        >
+          <div v-if="item.isNew" class="new-badge">New</div>
+
+          <LazyCardMedia :video-url="item.videoUrl" :playing="hoveredKey === item.key" />
+
+          <div class="component-list-card-copy">
+            <h2>{{ item.title }}</h2>
+            <p>{{ item.categoryLabel }}</p>
           </div>
-        </div>
-      </div>
+        </RouterLink>
 
-      <div v-else v-bind="containerProps">
-        <div v-bind="wrapperProps">
-          <div
-            v-for="row in virtualedRows"
-            :key="row.index"
-            :style="{
-              display: 'grid',
-              gridTemplateColumns: `repeat(${columnCount}, 1fr)`,
-              gap: `${GAP_PX}px`,
-              marginBottom: `${GAP_PX}px`
-            }"
+        <!-- Favorite / delete button -->
+        <button
+          type="button"
+          class="favorite-button"
+          :class="{
+            visible: savedSet.has(item.key) || hoveredKey === item.key,
+            saved: savedSet.has(item.key)
+          }"
+          :aria-label="
+            hasDeleteButton
+              ? 'Remove from favorites'
+              : savedSet.has(item.key)
+                ? 'Remove from favorites'
+                : 'Add to favorites'
+          "
+          @click.prevent.stop="hasDeleteButton ? removeFavorite(item.key) : toggleFavorite(item.key, item.componentKey)"
+        >
+          <svg
+            v-if="hasDeleteButton"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
           >
-            <component
-              v-for="item in row.data"
-              :key="item.key"
-              :is="'router-link'"
-              :to="`/${slug(fromPascal(item.categoryKey))}/${slug(fromPascal(item.componentKey))}` || '#'"
-              :data-item-key="item.key"
-              :style="{
-                backgroundColor: '#222',
-                borderRadius: `${CARD_RADIUS}px`,
-                padding: `${CARD_PADDING}px`
-              }"
-              @mouseenter="hoveredKey = item.key"
-              @mouseleave="hoveredKey = null"
-            >
-              <div class="relative px-4 py-3">
-                <h3 class="font-medium text-white text-base leading-[1.4]">{{ item.title }}</h3>
-                <p class="font-normal text-[#27ff64] text-xs">{{ item.categoryLabel }}</p>
-
-                <button
-                  aria-label="Remove from favorites"
-                  v-if="hasDeleteButton"
-                  class="top-2 right-2 absolute flex justify-center items-center bg-transparent hover:bg-[#0d2717] focus:opacity-100 border border-[#333] rounded-full w-10 h-10 text-[#a6a6a6] transition-opacity duration-150 ease-in-out cursor-pointer focus:pointer-events-auto"
-                  :class="{
-                    'opacity-0 pointer-events-none': hoveredKey !== item.key,
-                    'opacity-100 pointer-events-auto': hoveredKey === item.key
-                  }"
-                  @click="handleDeletion($event, item)"
-                >
-                  <Trash class="size-4" />
-                </button>
-
-                <button
-                  :aria-label="isSaved(item.key) ? 'Remove from favorites' : 'Add to favorites'"
-                  v-if="!hasDeleteButton && hasFavoriteButton"
-                  class="top-2 right-2 absolute flex justify-center items-center bg-transparent hover:bg-[#0d2717] focus:opacity-100 border border-[#333] rounded-full w-10 h-10 text-[#a6a6a6] transition-opacity duration-150 ease-in-out cursor-pointer focus:pointer-events-auto"
-                  :class="{
-                    'opacity-0 pointer-events-none': hoveredKey !== item.key,
-                    'opacity-100 pointer-events-auto': hoveredKey === item.key
-                  }"
-                  @click="handleFavoriteToggle($event, item)"
-                >
-                  <i :class="isSaved(item.key) ? 'pi pi-heart-fill' : 'pi pi-heart'" :style="{ color: '#ffffff' }"></i>
-                </button>
-              </div>
-
-              <LazyCardMedia
-                :key="item.videoUrl || item.key"
-                :video-url="item.videoUrl"
-                :active="true"
-                :inner-radius="INNER_RADIUS"
-              />
-            </component>
-          </div>
-        </div>
+            <path d="M3 6h18" />
+            <path d="M8 6V4h8v2" />
+            <path d="M19 6l-1 14H6L5 6" />
+            <path d="M10 11v6" />
+            <path d="M14 11v6" />
+          </svg>
+          <svg
+            v-else
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            :fill="savedSet.has(item.key) ? 'currentColor' : 'none'"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path
+              d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z"
+            />
+          </svg>
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-::-webkit-scrollbar {
+.component-list-page {
+  width: 100%;
+}
+.component-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 3rem;
+}
+.component-list-header .sub-category {
+  margin: 0;
+}
+.component-list-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.component-list-controls.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.component-list-search,
+.clear-button,
+.pill-button {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(20, 17, 14, 0.45);
+  backdrop-filter: blur(32px) saturate(1.3);
+  -webkit-backdrop-filter: blur(32px) saturate(1.3);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+.component-list-search:hover,
+.clear-button:hover,
+.pill-button:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(20, 17, 14, 0.55);
+}
+
+.component-list-search {
+  width: 180px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  color: rgba(255, 255, 255, 0.4);
+}
+.component-list-search:focus-within {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.component-list-search input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+}
+.component-list-search input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.component-list-select {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 180px;
+  height: 36px;
+  border-radius: 10px;
+}
+.component-list-select select {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 0 46px 0 12px;
+  outline: 0;
+  cursor: pointer;
+}
+.component-list-select svg {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #fff;
+  pointer-events: none;
+}
+
+.clear-slot {
   width: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: width 0.3s ease;
+}
+.clear-slot.show {
+  width: 40px;
+}
+.clear-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.6);
+  pointer-events: none;
+}
+.clear-slot.show .clear-button {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.component-list-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.component-list-card-wrap {
+  position: relative;
+}
+.component-list-card {
+  display: block;
+  position: relative;
+  background: var(--bg-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: var(--card-radius);
+  padding: 6px;
+  text-decoration: none;
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+.component-list-card:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+  text-decoration: none;
+}
+
+.favorite-button {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: rgba(255, 255, 255, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+.component-list-card-wrap:hover .favorite-button,
+.favorite-button.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.favorite-button.saved {
+  color: var(--color-primary);
+}
+.favorite-button:hover {
+  background: rgba(0, 0, 0, 0.55);
+  transform: scale(1.1);
+  color: #72ef44;
+}
+
+.component-list-card-copy {
+  padding: 12px 8px 6px;
+}
+.component-list-card-copy h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.2px;
+}
+.component-list-card-copy p {
+  margin: 2px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.component-list-empty {
+  position: relative;
+  margin-top: 6em;
+  padding: 24px;
+  text-align: center;
+}
+.component-list-empty h2 {
+  margin: 0 0 4px;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 500;
+}
+.component-list-empty p {
+  margin: 0 0 32px;
+  color: var(--text-muted);
+  font-size: 16px;
+}
+
+.pill-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  border-radius: 10px;
+  padding: 0 16px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.new-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 2;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  text-transform: uppercase;
+  font-family: 'Geist Mono', monospace;
+  color: #fff;
+  border: 1px solid var(--color-primary);
+  background: rgba(88, 247, 85, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: none;
+}
+
+@media (max-width: 700px) {
+  .component-list-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .component-list-header {
+    align-items: flex-start;
+    flex-direction: column;
+    margin-bottom: 2rem;
+  }
+  .component-list-controls {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .component-list-search,
+  .component-list-select {
+    width: 100%;
+  }
+  .clear-slot {
+    display: none;
+  }
+  .component-list-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.category-scrubber {
+  width: 220px;
+}
+
+@media (max-width: 520px) {
+  .category-scrubber {
+    width: 100%;
+  }
 }
 </style>

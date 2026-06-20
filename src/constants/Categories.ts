@@ -1,21 +1,15 @@
 // Highlighted sidebar items
 export const NEW = [
   'Model Viewer',
+  'Dot Field',
+  'Shape Grid',
   'Strands',
   'Side Rays',
   'Ferrofluid',
   'Lightfall',
-  'Evil Eye',
-  'Border Glow',
-  'Soft Aurora',
-  'Radar',
-  'Line Waves',
-  'Antigravity',
-  'Grainient',
-  'Orbit Images',
-  'Magic Rings'
+  'Plasma Wave'
 ];
-export const UPDATED = ['Metallic Paint'];
+export const UPDATED = [];
 
 // Used for main sidebar navigation
 export const CATEGORIES = [
@@ -26,7 +20,7 @@ export const CATEGORIES = [
   {
     name: 'Text Animations',
     subcategories: [
-      'Ascii Text',
+      'ASCII Text',
       'Blur Text',
       'Circular Text',
       'Count Up',
@@ -37,16 +31,15 @@ export const CATEGORIES = [
       'Glitch Text',
       'Gradient Text',
       'Rotating Text',
+      'Scramble Text',
       'Scroll Float',
       'Scroll Reveal',
       'Scroll Velocity',
-      'Scramble Text',
       'Shiny Text',
       'Shuffle',
       'Split Text',
       'Text Cursor',
       'Text Pressure',
-      'Text Trail',
       'Text Type',
       'True Focus',
       'Variable Proximity'
@@ -72,9 +65,10 @@ export const CATEGORIES = [
       'Magic Rings',
       'Magnet',
       'Magnet Lines',
-      'Metallic Paint',
       'Meta Balls',
+      'Metallic Paint',
       'Noise',
+      'Orbit Images',
       'Pixel Trail',
       'Pixel Transition',
       'Ribbons',
@@ -83,8 +77,7 @@ export const CATEGORIES = [
       'Star Border',
       'Sticker Peel',
       'Strands',
-      'Target Cursor',
-      'Orbit Images'
+      'Target Cursor'
     ]
   },
   {
@@ -111,14 +104,12 @@ export const CATEGORIES = [
       'Glass Surface',
       'Gooey Nav',
       'Infinite Menu',
-      'Infinite Scroll',
       'Magic Bento',
       'Masonry',
       'Model Viewer',
       'Pill Nav',
       'Pixel Card',
       'Profile Card',
-      'Rolling Gallery',
       'Scroll Stack',
       'Spotlight Card',
       'Stack',
@@ -137,6 +128,7 @@ export const CATEGORIES = [
       'Color Bends',
       'Dark Veil',
       'Dither',
+      'Dot Field',
       'Dot Grid',
       'Evil Eye',
       'Faulty Terminal',
@@ -163,16 +155,25 @@ export const CATEGORIES = [
       'Pixel Blast',
       'Pixel Snow',
       'Plasma',
+      'Plasma Wave',
       'Prism',
       'Prismatic Burst',
       'Radar',
       'Ripple Grid',
+      'Shape Grid',
       'Side Rays',
       'Silk',
       'Soft Aurora',
-      'Squares',
       'Threads',
       'Waves'
     ]
   }
 ];
+
+// Slug helpers (kebab-case used in URLs).
+export const slug = (s: string) => s.replace(/\s+/g, '-').toLowerCase();
+export const decodeLabel = (s: string) =>
+  s
+    .split('-')
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');

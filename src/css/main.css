@@ -1,5 +1,61 @@
-@import './base.css';
-@import './sidebar.css';
-@import './category.css';
+@import 'tailwindcss';
+@plugin "@tailwindcss/typography";
+
+@import './fonts.css';
+@import './variables.css';
+@import './misc.css';
 @import './landing.css';
-@import './transitions.css';
+@import './docs.css';
+@import './preview.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: var(--bg-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+a {
+  font-weight: 500;
+  text-decoration: none;
+  color: inherit;
+}
+
+body {
+  font-family: 'Geist', sans-serif;
+  margin: 0;
+  min-width: 100%;
+  background: var(--bg-body);
+  color: var(--text-primary);
+}
+
+.app-container {
+  background: var(--bg-body);
+  min-height: 100vh;
+  display: flex;
+  padding: 0 2em;
+}
+
+@media only screen and (max-width: 967px) {
+  .app-container {
+    padding: 0 1em;
+  }
+}
+
+.back-to-top {
+  background: var(--bg-body) !important;
+  border: 1px solid var(--border-secondary);
+}

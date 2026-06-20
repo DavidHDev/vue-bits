@@ -1,28 +1,32 @@
-import code from '@content/Backgrounds/GridScan/GridScan.vue?raw';
+import code from '@/content/Backgrounds/GridScan/GridScan.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const gridScan = createCodeObject(code, 'Backgrounds/GridScan', {
   installation: `npm install three postprocessing face-api.js`,
   usage: `<template>
-  <div class="w-full h-[600px] relative">
+  <div
+    style="
+      width: 100%;
+      height: 600px;
+      position: relative;
+    "
+  >
     <GridScan
+      :sensitivity="0.55"
       :line-thickness="1"
+      lines-color="#2F293A"
       :grid-scale="0.1"
-      :line-jitter="0.1"
-      lines-color="#392e4e"
       scan-color="#FF9FFC"
-      :enable-post="true"
+      :scan-opacity="0.4"
+      enable-post
+      :bloom-intensity="0.6"
       :chromatic-aberration="0.002"
       :noise-intensity="0.01"
-      :scan-glow="0.5"
-      :scan-softness="2"
-      :enable-webcam="false"
-      :show-preview="false"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import GridScan from "./GridScan.vue";
+import GridScan from './GridScan.vue'
 </script>`
 });

@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Prismatic Burst</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="prismaticBurst.usage"
+    :source="prismaticBurstSource"
+    component-name="PrismaticBurst"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="relative p-0 h-[600px] overflow-hidden demo-container">
+      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
         <PrismaticBurst
           :animation-type="animationType"
           :intensity="intensity"
@@ -13,14 +21,13 @@
         />
         <BackgroundContent pill-text="New Background" headline="A burst of dancing colors, beautifully unleashed" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <div class="flex gap-4">
-          <PreviewColor title="Color 1" v-model="color0" />
-          <PreviewColor title="Color 2" v-model="color1" />
-          <PreviewColor title="Color 3" v-model="color2" />
-        </div>
-
+        <PreviewColorPicker title="Color 1" v-model="color0" />
+        <PreviewColorPicker title="Color 2" v-model="color1" />
+        <PreviewColorPicker title="Color 3" v-model="color2" />
         <PreviewSelect title="Animation Type" v-model="animationType" :options="animationOptions" />
         <PreviewSlider :min="0.1" :max="5" :step="0.1" v-model="intensity" title="Intensity" />
         <PreviewSlider :min="0" :max="2" :step="0.5" v-model="speed" title="Speed" />
@@ -35,35 +42,58 @@
           title="Hover Dampness"
         />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['ogl']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="prismaticBurst" />
+      <DemoCodeTab slug="prismatic-burst" :usage="prismaticBurst.usage!" :source="prismaticBurstSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="prismaticBurst.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
+import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { prismaticBurst } from '@/constants/code/Backgrounds/prismaticBurstCode';
+import PrismaticBurst from '@/content/Backgrounds/PrismaticBurst/PrismaticBurst.vue';
+import prismaticBurstSource from '@/content/Backgrounds/PrismaticBurst/PrismaticBurst.vue?raw';
 import { computed, ref } from 'vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
-import BackgroundContent from '../../components/common/BackgroundContent.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewColor from '../../components/common/PreviewColor.vue';
-import PreviewSelect from '../../components/common/PreviewSelect.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PrismaticBurst from '../../content/Backgrounds/PrismaticBurst/PrismaticBurst.vue';
+
+const { forceRerender } = useForceRerender();
+
+const DEFAULTS = {
+  animationType: 'rotate3d' as 'rotate' | 'rotate3d' | 'hover',
+  intensity: 2,
+  speed: 0.5,
+  distort: 0,
+  hoverDampness: 0.25,
+  rayCount: 0,
+  color0: '#10B981',
+  color1: '#84CC16',
+  color2: '#EAB308'
+};
+
+const animationType = ref<'rotate' | 'rotate3d' | 'hover'>(DEFAULTS.animationType);
+const intensity = ref(DEFAULTS.intensity);
+const speed = ref(DEFAULTS.speed);
+const distort = ref(DEFAULTS.distort);
+const hoverDampness = ref(DEFAULTS.hoverDampness);
+const rayCount = ref(DEFAULTS.rayCount);
+const color0 = ref(DEFAULTS.color0);
+const color1 = ref(DEFAULTS.color1);
+const color2 = ref(DEFAULTS.color2);
+
+const userColors = computed(() => [color0.value, color1.value, color2.value].filter(Boolean) as string[]);
 
 const animationOptions = [
   { value: 'rotate', label: 'Rotate' },
@@ -71,19 +101,33 @@ const animationOptions = [
   { value: 'hover', label: 'Hover' }
 ];
 
-const animationType = ref<'rotate' | 'rotate3d' | 'hover'>('rotate3d');
-const intensity = ref(2);
-const speed = ref(0.5);
-const distort = ref(0);
-const hoverDampness = ref(0.25);
-const rayCount = ref(0);
-const color0 = ref('');
-const color1 = ref('');
-const color2 = ref('');
+const hasChanges = computed(
+  () =>
+    animationType.value !== DEFAULTS.animationType ||
+    intensity.value !== DEFAULTS.intensity ||
+    speed.value !== DEFAULTS.speed ||
+    distort.value !== DEFAULTS.distort ||
+    hoverDampness.value !== DEFAULTS.hoverDampness ||
+    rayCount.value !== DEFAULTS.rayCount ||
+    color0.value !== DEFAULTS.color0 ||
+    color1.value !== DEFAULTS.color1 ||
+    color2.value !== DEFAULTS.color2
+);
 
-const userColors = computed(() => [color0.value, color1.value, color2.value].filter(Boolean) as string[]);
+function reset() {
+  animationType.value = DEFAULTS.animationType;
+  intensity.value = DEFAULTS.intensity;
+  speed.value = DEFAULTS.speed;
+  distort.value = DEFAULTS.distort;
+  hoverDampness.value = DEFAULTS.hoverDampness;
+  rayCount.value = DEFAULTS.rayCount;
+  color0.value = DEFAULTS.color0;
+  color1.value = DEFAULTS.color1;
+  color2.value = DEFAULTS.color2;
+  forceRerender();
+}
 
-const propData = [
+const props: PropRow[] = [
   {
     name: 'intensity',
     type: 'number',

@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Cubes</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="cubes.usage"
+    :source="cubesSource"
+    component-name="Cubes"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container h-[700px]">
+      <div class="h-[700px] demo-container">
         <Cubes
           :borderStyle="borderStyle"
           :gridSize="gridSize"
@@ -11,57 +19,80 @@
           :rippleOnClick="rippleOnClick"
         />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSelect title="Border Preference" :options="borderOptions" v-model="borderStyle" :width="150" />
-
         <PreviewSlider title="Grid Size" :min="6" :max="12" :step="1" v-model="gridSize" :width="150" />
-
         <PreviewSlider title="Max Angle" :min="15" :max="180" :step="5" v-model="maxAngle" valueUnit="°" :width="150" />
-
         <PreviewSlider title="Radius" :min="1" :max="5" :step="1" v-model="radius" :width="150" />
-
         <PreviewSwitch title="Auto Animate" v-model="autoAnimate" />
-
         <PreviewSwitch title="Ripple On Click" v-model="rippleOnClick" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-
-      <Dependencies :dependencyList="['gsap']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :codeObject="cubes" />
+      <DemoCodeTab slug="cubes" :usage="cubes.usage!" :source="cubesSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation v-bind="cubes" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSelect from '../../components/common/PreviewSelect.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import Dependencies from '../../components/code/Dependencies.vue';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender.ts';
+import { cubes } from '@/constants/code/Animations/cubesCode';
+import Cubes from '@/content/Animations/Cubes/Cubes.vue';
+import cubesSource from '@/content/Animations/Cubes/Cubes.vue?raw';
+import { computed, ref } from 'vue';
 
-import { cubes } from '../../constants/code/Animations/cubesCode';
-import Cubes from '../../content/Animations/Cubes/Cubes.vue';
+const { forceRerender } = useForceRerender();
 
-const borderStyle = ref('2px dashed #A7EF9E');
-const gridSize = ref(10);
-const maxAngle = ref(45);
-const radius = ref(3);
-const autoAnimate = ref(true);
-const rippleOnClick = ref(true);
+const DEFAULTS = {
+  borderStyle: '2px dashed #A7EF9E',
+  gridSize: 10,
+  maxAngle: 45,
+  radius: 3,
+  autoAnimate: true,
+  rippleOnClick: true
+};
+
+const borderStyle = ref(DEFAULTS.borderStyle);
+const gridSize = ref(DEFAULTS.gridSize);
+const maxAngle = ref(DEFAULTS.maxAngle);
+const radius = ref(DEFAULTS.radius);
+const autoAnimate = ref(DEFAULTS.autoAnimate);
+const rippleOnClick = ref(DEFAULTS.rippleOnClick);
+
+const hasChanges = computed(
+  () =>
+    borderStyle.value !== DEFAULTS.borderStyle ||
+    gridSize.value !== DEFAULTS.gridSize ||
+    maxAngle.value !== DEFAULTS.maxAngle ||
+    radius.value !== DEFAULTS.radius ||
+    autoAnimate.value !== DEFAULTS.autoAnimate ||
+    rippleOnClick.value !== DEFAULTS.rippleOnClick
+);
+
+function reset() {
+  borderStyle.value = DEFAULTS.borderStyle;
+  gridSize.value = DEFAULTS.gridSize;
+  maxAngle.value = DEFAULTS.maxAngle;
+  radius.value = DEFAULTS.radius;
+  autoAnimate.value = DEFAULTS.autoAnimate;
+  rippleOnClick.value = DEFAULTS.rippleOnClick;
+  forceRerender();
+}
 
 const borderOptions = [
   { value: '2px dotted #fff', label: 'Dotted White' },
@@ -69,7 +100,7 @@ const borderOptions = [
   { value: '3px solid #fff', label: 'Solid White' }
 ];
 
-const propData = [
+const props: PropRow[] = [
   {
     name: 'gridSize',
     type: 'number',

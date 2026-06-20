@@ -1,120 +1,123 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Decrypted Text</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="decryptedText.usage"
+    :source="decryptedTextSource"
+    component-name="DecryptedText"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="demo-container py-6 overflow-hidden">
+      <div class="relative py-6 h-[400px] overflow-hidden demo-container">
+        <DecryptedText
+          :key="key"
+          :speed="speed"
+          text="Hacking into the mainframe..."
+          :max-iterations="maxIterations"
+          :sequential="sequential"
+          :reveal-direction="revealDirection"
+          parent-class-name="decrypted-text"
+          :use-original-chars-only="useOriginalCharsOnly"
+          :animate-on="animateOn"
+          :click-mode="clickMode"
+        />
         <RefreshButton @click="forceRerender" />
-
-        <div :key="key" class="pl-6 m-8 w-full flex flex-col justify-start items-start">
-          <DecryptedText
-            :speed="speed"
-            text="Ahoy, matey!"
-            :max-iterations="maxIterations"
-            :sequential="sequential"
-            :reveal-direction="revealDirection"
-            parent-class-name="decrypted-text"
-            :use-original-chars-only="useOriginalCharsOnly"
-            :animate-on="animateOn"
-          />
-
-          <DecryptedText
-            :speed="speed"
-            text="Set yer eyes on this"
-            :max-iterations="maxIterations"
-            :sequential="sequential"
-            :reveal-direction="revealDirection"
-            parent-class-name="decrypted-text"
-            :use-original-chars-only="useOriginalCharsOnly"
-            :animate-on="animateOn"
-          />
-
-          <DecryptedText
-            :speed="speed"
-            text="And try tinkerin' round'"
-            :max-iterations="maxIterations"
-            :sequential="sequential"
-            :reveal-direction="revealDirection"
-            parent-class-name="decrypted-text"
-            :use-original-chars-only="useOriginalCharsOnly"
-            :animate-on="animateOn"
-          />
-
-          <DecryptedText
-            :speed="speed"
-            text="with these here props, arr!"
-            :max-iterations="maxIterations"
-            :sequential="sequential"
-            :reveal-direction="revealDirection"
-            parent-class-name="decrypted-text"
-            :use-original-chars-only="useOriginalCharsOnly"
-            :animate-on="animateOn"
-            @animation-complete="() => console.log('✅ Animation Finished!')"
-          />
-        </div>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <PreviewSwitch title="Sequential" v-model="sequential" />
-
-        <PreviewSwitch title="Original Chars" v-model="useOriginalCharsOnly" />
-
+        <PreviewSelect title="Animation On" v-model="animateOn" :options="animateOptions" />
+        <PreviewSelect
+          :is-disabled="animateOn !== 'click'"
+          title="Click Mode"
+          v-model="clickMode"
+          :options="['once', 'toggle']"
+        />
+        <PreviewSelect title="Direction" v-model="revealDirection" :options="['start', 'end', 'center']" />
         <PreviewSlider title="Speed" v-model="speed" :min="10" :max="200" :step="10" value-unit="ms" />
-
         <PreviewSlider title="Iterations" v-model="maxIterations" :min="1" :max="50" :step="1" />
-
-        <PreviewSelect title="Animation Trigger" v-model="animateOn" :options="animateOptions" />
-
-        <PreviewSelect title="Animation Direction" v-model="revealDirection" :options="directionOptions" />
+        <PreviewSwitch title="Sequential" v-model="sequential" />
+        <PreviewSwitch title="Original Chars" v-model="useOriginalCharsOnly" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="decryptedText" />
+      <DemoCodeTab slug="decrypted-text" :usage="decryptedText.usage!" :source="decryptedTextSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="decryptedText.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import PreviewSwitch from '../../components/common/PreviewSwitch.vue';
-import PreviewSelect from '../../components/common/PreviewSelect.vue';
-import RefreshButton from '../../components/common/RefreshButton.vue';
-import DecryptedText from '../../content/TextAnimations/DecryptedText/DecryptedText.vue';
-import { decryptedText } from '@/constants/code/TextAnimations/decryptedTextCode';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
+import { decryptedText } from '@/constants/code/TextAnimations/decryptedTextCode';
+import DecryptedText from '@/content/TextAnimations/DecryptedText/DecryptedText.vue';
+import decryptedTextSource from '@/content/TextAnimations/DecryptedText/DecryptedText.vue?raw';
+import { computed, ref } from 'vue';
 
 const { rerenderKey: key, forceRerender } = useForceRerender();
 
-const speed = ref(60);
-const maxIterations = ref(10);
-const sequential = ref(true);
-const useOriginalCharsOnly = ref(false);
-const revealDirection = ref<'start' | 'end' | 'center'>('start');
-const animateOn = ref<'view' | 'hover'>('view');
+const DEFAULTS = {
+  speed: 60,
+  maxIterations: 10,
+  sequential: true,
+  useOriginalCharsOnly: false,
+  revealDirection: 'start' as 'start' | 'end' | 'center',
+  animateOn: 'view' as 'view' | 'hover' | 'inViewHover' | 'click',
+  clickMode: 'once' as 'once' | 'toggle'
+};
+
+const speed = ref(DEFAULTS.speed);
+const maxIterations = ref(DEFAULTS.maxIterations);
+const sequential = ref(DEFAULTS.sequential);
+const useOriginalCharsOnly = ref(DEFAULTS.useOriginalCharsOnly);
+const revealDirection = ref<'start' | 'end' | 'center'>(DEFAULTS.revealDirection);
+const animateOn = ref<'view' | 'hover' | 'inViewHover' | 'click'>(DEFAULTS.animateOn);
+const clickMode = ref<'once' | 'toggle'>(DEFAULTS.clickMode);
 
 const animateOptions = [
   { label: 'View', value: 'view' },
-  { label: 'Hover', value: 'hover' }
+  { label: 'Hover', value: 'hover' },
+  { label: 'View & Hover', value: 'inViewHover' },
+  { label: 'Click', value: 'click' }
 ];
 
-const directionOptions = [
-  { label: 'Start', value: 'start' },
-  { label: 'End', value: 'end' },
-  { label: 'Center', value: 'center' }
-];
+const hasChanges = computed(
+  () =>
+    speed.value !== DEFAULTS.speed ||
+    maxIterations.value !== DEFAULTS.maxIterations ||
+    sequential.value !== DEFAULTS.sequential ||
+    useOriginalCharsOnly.value !== DEFAULTS.useOriginalCharsOnly ||
+    revealDirection.value !== DEFAULTS.revealDirection ||
+    animateOn.value !== DEFAULTS.animateOn ||
+    clickMode.value !== DEFAULTS.clickMode
+);
 
-const propData = [
+function reset() {
+  speed.value = DEFAULTS.speed;
+  maxIterations.value = DEFAULTS.maxIterations;
+  sequential.value = DEFAULTS.sequential;
+  useOriginalCharsOnly.value = DEFAULTS.useOriginalCharsOnly;
+  revealDirection.value = DEFAULTS.revealDirection;
+  animateOn.value = DEFAULTS.animateOn;
+  clickMode.value = DEFAULTS.clickMode;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   {
     name: 'text',
     type: 'string',
@@ -141,8 +144,8 @@ const propData = [
   },
   {
     name: 'revealDirection',
-    type: '"start" | "end" | "center"',
-    default: '"start"',
+    type: `"start" | "end" | "center"`,
+    default: `"start"`,
     description: 'From which position characters begin to reveal in sequential mode.'
   },
   {
@@ -171,23 +174,32 @@ const propData = [
   },
   {
     name: 'animateOn',
-    type: '"view" | "hover"',
-    default: '"hover"',
+    type: `"view" | "hover" | "inViewHover" | "click"`,
+    default: `"hover"`,
     description: 'Trigger scrambling on hover or scroll-into-view.'
+  },
+  {
+    name: 'clickMode',
+    type: `"once" | "toggle"`,
+    default: `"once"`,
+    description: 'Controls click behavior; only applies when animateOn is "click".'
   }
 ];
-
-watch(
-  () => [sequential.value, useOriginalCharsOnly.value],
-  () => {
-    forceRerender();
-  }
-);
 </script>
 
 <style scoped>
 .decrypted-text {
   font-size: 2rem;
-  line-height: 1.6;
+  max-width: 30ch;
+  display: inline-block;
+  font-weight: 400;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+@media only screen and (max-width: 967px) {
+  .decrypted-text {
+    font-size: 1rem;
+  }
 }
 </style>

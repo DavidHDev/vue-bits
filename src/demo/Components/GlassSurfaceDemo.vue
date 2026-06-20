@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Glass Surface</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="glassSurface.usage"
+    :source="glassSurfaceSource"
+    component-name="GlassSurface"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="overflow-y-auto no-scrollbar demo-container h-[500px]" ref="scrollContainerRef">
+      <div class="relative h-[500px] overflow-y-auto no-scrollbar demo-container" ref="scrollContainerRef">
         <GlassSurface
           :key="key"
           :width="360"
@@ -21,26 +29,28 @@
           style="position: sticky; top: 50%; transform: translateY(-50%); z-index: 10"
         />
 
-        <div class="absolute flex flex-col items-center gap-6 top-0 left-0 right-0">
-          <div class="absolute translate-y-1/2 top-12 text-4xl font-bold text-[#333] z-0 whitespace-nowrap text-center">
+        <div class="top-0 right-0 left-0 absolute flex flex-col items-center gap-6">
+          <div class="top-12 z-0 absolute font-bold text-[#333] text-4xl text-center whitespace-nowrap translate-y-1/2">
             Try scrolling.
           </div>
 
-          <div class="h-60 w-full" />
+          <div class="w-full h-60" />
 
           <div v-for="(item, index) in imageBlocks" :key="index" class="relative py-4">
-            <img :src="item.src" class="w-128 rounded-2xl object-cover grayscale-100" />
+            <img :src="item.src" class="grayscale-100 rounded-2xl w-128 object-cover" />
             <div
-              class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-extrabold text-center leading-[100%] text-[3rem] min-w-72 mix-blend-overlay text-white"
+              class="top-1/2 left-1/2 absolute min-w-72 font-extrabold text-[3rem] text-white text-center leading-[100%] -translate-x-1/2 -translate-y-1/2 mix-blend-overlay"
             >
               {{ item.text }}
             </div>
           </div>
 
-          <div class="h-60 w-full" />
+          <div class="w-full h-60" />
         </div>
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
         <PreviewSlider title="Border Radius" v-model="borderRadius" :min="0" :max="50" :step="1" />
         <PreviewSlider title="Background Opacity" v-model="backgroundOpacity" :min="0" :max="1" :step="0.01" />
@@ -55,32 +65,30 @@
         <PreviewSlider title="Green Offset" v-model="greenOffset" :min="-50" :max="50" :step="1" />
         <PreviewSlider title="Blue Offset" v-model="blueOffset" :min="-50" :max="50" :step="1" />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="glassSurface" />
+      <DemoCodeTab slug="glass-surface" :usage="glassSurface.usage!" :source="glassSurfaceSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="glassSurface.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, useTemplateRef } from 'vue';
-import Lenis from 'lenis';
-import TabbedLayout from '../../components/common/TabbedLayout.vue';
-import PropTable from '../../components/common/PropTable.vue';
-import CliInstallation from '../../components/code/CliInstallation.vue';
-import CodeExample from '../../components/code/CodeExample.vue';
-import Customize from '../../components/common/Customize.vue';
-import PreviewSlider from '../../components/common/PreviewSlider.vue';
-import GlassSurface from '../../content/Components/GlassSurface/GlassSurface.vue';
-import { glassSurface } from '@/constants/code/Components/glassSurfaceCode';
+import Customize from '@/components/common/Customize.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
 import { useForceRerender } from '@/composables/useForceRerender';
+import { glassSurface } from '@/constants/code/Components/glassSurfaceCode';
+import GlassSurface from '@/content/Components/GlassSurface/GlassSurface.vue';
+import glassSurfaceSource from '@/content/Components/GlassSurface/GlassSurface.vue?raw';
+import Lenis from 'lenis';
+import { computed, onMounted, onUnmounted, ref, useTemplateRef } from 'vue';
 
 const { rerenderKey: key, forceRerender } = useForceRerender();
 
@@ -88,35 +96,65 @@ const scrollContainerRef = useTemplateRef<HTMLElement>('scrollContainerRef');
 let lenis: Lenis | null = null;
 let rafId: number | null = null;
 
-const borderRadius = ref(50);
-const backgroundOpacity = ref(0.1);
-const saturation = ref(1);
-const borderWidth = ref(0.07);
-const brightness = ref(50);
-const opacity = ref(0.93);
-const blur = ref(11);
-const displace = ref(0.5);
-const distortionScale = ref(-180);
-const redOffset = ref(0);
-const greenOffset = ref(10);
-const blueOffset = ref(20);
+const DEFAULTS = {
+  borderRadius: 50,
+  borderWidth: 0.07,
+  brightness: 50,
+  opacity: 0.93,
+  blur: 11,
+  displace: 0.5,
+  backgroundOpacity: 0.1,
+  saturation: 1,
+  distortionScale: -180,
+  redOffset: 0,
+  greenOffset: 10,
+  blueOffset: 20
+};
 
-watch(
-  () => [
-    borderWidth.value,
-    brightness.value,
-    opacity.value,
-    blur.value,
-    displace.value,
-    distortionScale.value,
-    redOffset.value,
-    greenOffset.value,
-    blueOffset.value
-  ],
-  () => {
-    forceRerender();
-  }
+const borderRadius = ref(DEFAULTS.borderRadius);
+const backgroundOpacity = ref(DEFAULTS.backgroundOpacity);
+const saturation = ref(DEFAULTS.saturation);
+const borderWidth = ref(DEFAULTS.borderWidth);
+const brightness = ref(DEFAULTS.brightness);
+const opacity = ref(DEFAULTS.opacity);
+const blur = ref(DEFAULTS.blur);
+const displace = ref(DEFAULTS.displace);
+const distortionScale = ref(DEFAULTS.distortionScale);
+const redOffset = ref(DEFAULTS.redOffset);
+const greenOffset = ref(DEFAULTS.greenOffset);
+const blueOffset = ref(DEFAULTS.blueOffset);
+
+const hasChanges = computed(
+  () =>
+    borderRadius.value !== DEFAULTS.borderRadius ||
+    backgroundOpacity.value !== DEFAULTS.backgroundOpacity ||
+    saturation.value !== DEFAULTS.saturation ||
+    borderWidth.value !== DEFAULTS.borderWidth ||
+    brightness.value !== DEFAULTS.brightness ||
+    opacity.value !== DEFAULTS.opacity ||
+    blur.value !== DEFAULTS.blur ||
+    displace.value !== DEFAULTS.displace ||
+    distortionScale.value !== DEFAULTS.distortionScale ||
+    redOffset.value !== DEFAULTS.redOffset ||
+    greenOffset.value !== DEFAULTS.greenOffset ||
+    blueOffset.value !== DEFAULTS.blueOffset
 );
+
+function reset() {
+  borderRadius.value = DEFAULTS.borderRadius;
+  backgroundOpacity.value = DEFAULTS.backgroundOpacity;
+  saturation.value = DEFAULTS.saturation;
+  borderWidth.value = DEFAULTS.borderWidth;
+  brightness.value = DEFAULTS.brightness;
+  opacity.value = DEFAULTS.opacity;
+  blur.value = DEFAULTS.blur;
+  displace.value = DEFAULTS.displace;
+  distortionScale.value = DEFAULTS.distortionScale;
+  redOffset.value = DEFAULTS.redOffset;
+  greenOffset.value = DEFAULTS.greenOffset;
+  blueOffset.value = DEFAULTS.blueOffset;
+  forceRerender();
+}
 
 const initLenis = () => {
   if (!scrollContainerRef.value) return;
@@ -176,7 +214,13 @@ const imageBlocks = [
   }
 ];
 
-const propData = [
+const props: PropRow[] = [
+  {
+    name: 'children',
+    type: 'slot',
+    default: 'undefined',
+    description: 'Content to display inside the glass surface'
+  },
   {
     name: 'width',
     type: 'number | string',

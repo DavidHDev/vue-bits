@@ -3,9 +3,23 @@ import { createCodeObject } from '@/types/code';
 
 export const gradualBlur = createCodeObject(code, 'Animations/GradualBlur', {
   installation: `npm install mathjs`,
-  usage: `<template>
-  <section style="position: relative; height: 500px; overflow: hidden;">
-    <div style="height: 100%; overflow-y: auto; padding: 6rem 2rem;">
+  usage: `// Component added by Ansh - github.com/ansh-dhanani
+
+<template>
+  <section
+    style="
+      position: relative;
+      height: 500px;
+      overflow: hidden;
+    "
+  >
+    <div
+      style="
+        height: 100%;
+        overflow-y: auto;
+        padding: 6rem 2rem;
+      "
+    >
       <!-- Content Here - such as an image or text -->
     </div>
 
@@ -14,7 +28,7 @@ export const gradualBlur = createCodeObject(code, 'Animations/GradualBlur', {
       position="bottom"
       height="6rem"
       :strength="2"
-      :divCount="5"
+      :div-count="5"
       curve="bezier"
       :exponential="true"
       :opacity="1"
@@ -23,6 +37,6 @@ export const gradualBlur = createCodeObject(code, 'Animations/GradualBlur', {
 </template>
 
 <script setup lang="ts">
-  import GradualBlur from "./GradualBlur.vue";
+import GradualBlur from './GradualBlur.vue'
 </script>`
 });

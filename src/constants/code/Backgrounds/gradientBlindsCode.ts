@@ -1,12 +1,18 @@
-import code from '@content/Backgrounds/GradientBlinds/GradientBlinds.vue?raw';
-import { createCodeObject } from '../../../types/code';
+import code from '@/content/Backgrounds/GradientBlinds/GradientBlinds.vue?raw';
+import { createCodeObject } from '@/types/code';
 
 export const gradientBlinds = createCodeObject(code, 'Backgrounds/GradientBlinds', {
   installation: `npm install ogl`,
   usage: `<template>
-  <div style="width: 100%; height: 600px; position: relative;">
+  <div
+    style="
+      width: 100%;
+      height: 600px;
+      position: relative;
+    "
+  >
     <GradientBlinds
-      :gradient-colors="['#1EA03F', '#182FFF']"
+      :gradient-colors="['#FF9FFC', '#5227FF']"
       :angle="0"
       :noise="0.3"
       :blind-count="12"
@@ -23,6 +29,6 @@ export const gradientBlinds = createCodeObject(code, 'Backgrounds/GradientBlinds
 </template>
 
 <script setup lang="ts">
-  import GradientBlinds from "./GradientBlinds.vue";
+import GradientBlinds from './GradientBlinds.vue'
 </script>`
 });

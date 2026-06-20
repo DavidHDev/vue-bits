@@ -145,9 +145,9 @@ const props = withDefaults(defineProps<GrainientProps>(), {
   centerX: 0.0,
   centerY: 0.0,
   zoom: 0.9,
-  color1: '#FF9FFC',
-  color2: '#5227FF',
-  color3: '#B19EEF',
+  color1: '#48FF28',
+  color2: '#2c3d32',
+  color3: '#65a865',
   className: ''
 });
 

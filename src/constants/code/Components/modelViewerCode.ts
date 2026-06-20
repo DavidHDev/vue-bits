@@ -1,5 +1,5 @@
-import code from '@content/Components/ModelViewer/ModelViewer.vue?raw';
-import { createCodeObject } from '../../../types/code';
+import code from '@/content/Components/ModelViewer/ModelViewer.vue?raw';
+import { createCodeObject } from '@/types/code';
 
 export const modelViewer = createCodeObject(code, 'Components/ModelViewer', {
   installation: `npm install three @tresjs/core @tresjs/cientos`,

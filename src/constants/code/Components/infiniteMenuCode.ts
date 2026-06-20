@@ -3,34 +3,39 @@ import { createCodeObject } from '@/types/code';
 
 export const infiniteMenu = createCodeObject(code, 'Components/InfiniteMenu', {
   usage: `<template>
-  <InfiniteMenu :items="menuItems" :scale="scaleFactor" />
+  <div style="height: 600px; position: relative;">
+    <InfiniteMenu :items="items" />
+  </div>
 </template>
 
-<script setup lang="ts">
-import { ref } from 'vue';
-import InfiniteMenu from "./InfiniteMenu.vue";
+<script setup>
+import InfiniteMenu from './InfiniteMenu.vue'
 
-const scaleFactor = ref<number>(3);
-
-const menuItems = [
+const items = [
   {
-    image: 'https://images.unsplash.com/photo-1517180102446-f3ece451e9d8?w=800&h=800&fit=crop',
-    title: 'Sarah Chen',
-    description: 'UI/UX Designer',
-    link: 'https://dribbble.com/'
+    image: 'https://picsum.photos/300/300?grayscale',
+    link: 'https://google.com/',
+    title: 'Item 1',
+    description: 'This is pretty cool, right?'
   },
   {
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=800&fit=crop',
-    title: 'Mike Johnson',
-    description: 'Frontend Developer',
-    link: 'https://github.com/'
+    image: 'https://picsum.photos/400/400?grayscale',
+    link: 'https://google.com/',
+    title: 'Item 2',
+    description: 'This is pretty cool, right?'
   },
   {
-    image: 'https://images.unsplash.com/photo-1494790108755-2616b612b793?w=800&h=800&fit=crop',
-    title: 'Emma Wilson',
-    description: 'Product Designer',
-    link: 'https://behance.net/'
+    image: 'https://picsum.photos/500/500?grayscale',
+    link: 'https://google.com/',
+    title: 'Item 3',
+    description: 'This is pretty cool, right?'
+  },
+  {
+    image: 'https://picsum.photos/600/600?grayscale',
+    link: 'https://google.com/',
+    title: 'Item 4',
+    description: 'This is pretty cool, right?'
   }
-];
+]
 </script>`
 });

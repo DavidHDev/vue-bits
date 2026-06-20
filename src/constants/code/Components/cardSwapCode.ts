@@ -1,5 +1,5 @@
-import code from '@content/Components/CardSwap/CardSwap.vue?raw';
-import { createCodeObject } from '../../../types/code';
+import code from '@/content/Components/CardSwap/CardSwap.vue?raw';
+import { createCodeObject } from '@/types/code';
 
 export const cardSwap = createCodeObject(code, 'Components/CardSwap', {
   installation: `npm install gsap`,
@@ -8,10 +8,7 @@ export const cardSwap = createCodeObject(code, 'Components/CardSwap', {
     :card-distance="60"
     :vertical-distance="70"
     :delay="5000"
-    :skew-amount="6"
-    easing="elastic"
     :pause-on-hover="false"
-    @card-click="handleCardClick"
   >
     <template #card-0>
       <div class="border-b border-white bg-gradient-to-t from-[#222] to-[#0b0b0b]">
@@ -43,10 +40,6 @@ export const cardSwap = createCodeObject(code, 'Components/CardSwap', {
 </template>
 
 <script setup lang="ts">
-  import CardSwap from "./CardSwap.vue";
-
-  const handleCardClick = (index: number) => {
-    console.log(\`Card \${index} clicked\`);
-  };
+import CardSwap from "./CardSwap.vue";
 </script>`
 });

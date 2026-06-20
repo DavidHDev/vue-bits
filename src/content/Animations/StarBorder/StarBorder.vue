@@ -6,7 +6,7 @@
     :style="componentStyle"
   >
     <div
-      class="absolute w-[300%] h-[50%] opacity-70 bottom-[-11px] right-[-250%] rounded-full animate-star-movement-bottom z-0"
+      class="right-[-250%] bottom-[-11px] z-0 absolute opacity-70 rounded-full w-[300%] h-[50%] animate-star-movement-bottom"
       :style="{
         background: `radial-gradient(circle, ${color}, transparent 10%)`,
         animationDuration: speed
@@ -14,7 +14,7 @@
     ></div>
 
     <div
-      class="absolute w-[300%] h-[50%] opacity-70 top-[-10px] left-[-250%] rounded-full animate-star-movement-top z-0"
+      class="top-[-10px] left-[-250%] z-0 absolute opacity-70 rounded-full w-[300%] h-[50%] animate-star-movement-top"
       :style="{
         background: `radial-gradient(circle, ${color}, transparent 10%)`,
         animationDuration: speed
@@ -22,7 +22,7 @@
     ></div>
 
     <div
-      class="relative z-10 border border-[#333] bg-[#0b0b0b] text-white text-[16px] text-center px-[64px] py-[24px] rounded-[20px]"
+      class="z-10 relative bg-[#0b0b0b] px-[64px] py-[24px] border border-[#333] rounded-[20px] text-[16px] text-white text-center"
     >
       <slot />
     </div>
@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineProps, useAttrs } from 'vue';
+import { computed, useAttrs } from 'vue';
 
 interface StarBorderProps {
   as?: string;

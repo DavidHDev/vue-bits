@@ -1,7 +1,15 @@
 <template>
-  <TabbedLayout>
+  <h1 class="sub-category">Soft Aurora</h1>
+  <TabsLayout
+    :has-changes="hasChanges"
+    :onreset="reset"
+    :usage="softAurora.usage"
+    :source="softAuroraSource"
+    component-name="SoftAurora"
+    :props-table="props"
+  >
     <template #preview>
-      <div class="relative p-0 h-[600px] overflow-hidden demo-container">
+      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
         <SoftAurora
           :speed="speed"
           :scale="scale"
@@ -18,16 +26,14 @@
           :enable-mouse-interaction="enableMouseInteraction"
           :mouse-influence="mouseInfluence"
         />
-
         <BackgroundContent pill-text="New Background" headline="A gentle glow to light your way!" />
       </div>
+    </template>
 
+    <template #customize>
       <Customize>
-        <div class="flex items-center gap-4 mt-4">
-          <PreviewColor title="Color 1" v-model="color1" />
-          <PreviewColor title="Color 2" v-model="color2" />
-        </div>
-
+        <PreviewColorPicker title="Color 1" v-model="color1" />
+        <PreviewColorPicker title="Color 2" v-model="color2" />
         <PreviewSlider title="Speed" :min="0.1" :max="5" :step="0.1" v-model="speed" />
         <PreviewSlider title="Scale" :min="0.1" :max="3" :step="0.1" v-model="scale" />
         <PreviewSlider title="Brightness" :min="0.1" :max="3" :step="0.1" v-model="brightness" />
@@ -48,52 +54,104 @@
           v-model="mouseInfluence"
         />
       </Customize>
+    </template>
 
-      <PropTable :data="propData" />
-      <Dependencies :dependency-list="['ogl']" />
+    <template #propTable>
+      <PropTable :data="props" />
     </template>
 
     <template #code>
-      <CodeExample :code-object="softAurora" />
+      <DemoCodeTab slug="soft-aurora" :usage="softAurora.usage!" :source="softAuroraSource" />
     </template>
-
-    <template #cli>
-      <CliInstallation :command="softAurora.cli" />
-    </template>
-  </TabbedLayout>
+  </TabsLayout>
 </template>
 
 <script setup lang="ts">
-import CliInstallation from '@/components/code/CliInstallation.vue';
-import CodeExample from '@/components/code/CodeExample.vue';
-import Dependencies from '@/components/code/Dependencies.vue';
 import BackgroundContent from '@/components/common/BackgroundContent.vue';
 import Customize from '@/components/common/Customize.vue';
-import PreviewColor from '@/components/common/PreviewColor.vue';
+import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
-import PropTable from '@/components/common/PropTable.vue';
-import TabbedLayout from '@/components/common/TabbedLayout.vue';
+import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import TabsLayout from '@/components/common/TabsLayout.vue';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { softAurora } from '@/constants/code/Backgrounds/softAuroraCode';
 import SoftAurora from '@/content/Backgrounds/SoftAurora/SoftAurora.vue';
-import { ref } from 'vue';
+import softAuroraSource from '@/content/Backgrounds/SoftAurora/SoftAurora.vue?raw';
+import { computed, ref } from 'vue';
 
-const speed = ref(0.6);
-const scale = ref(1.5);
-const brightness = ref(1.0);
-const color1 = ref('#f7f7f7');
-const color2 = ref('#27FF64');
-const noiseFrequency = ref(2.5);
-const noiseAmplitude = ref(1.0);
-const bandHeight = ref(0.5);
-const bandSpread = ref(1.0);
-const octaveDecay = ref(0.1);
-const layerOffset = ref(0);
-const colorSpeed = ref(1.0);
-const enableMouseInteraction = ref(true);
-const mouseInfluence = ref(0.25);
+const { forceRerender } = useForceRerender();
 
-const propData = [
+const DEFAULTS = {
+  speed: 0.6,
+  scale: 1.5,
+  brightness: 1.0,
+  color1: '#f7f7f7',
+  color2: '#27FF64',
+  noiseFrequency: 2.5,
+  noiseAmplitude: 1.0,
+  bandHeight: 0.5,
+  bandSpread: 1.0,
+  octaveDecay: 0.1,
+  layerOffset: 0,
+  colorSpeed: 1.0,
+  enableMouseInteraction: true,
+  mouseInfluence: 0.25
+};
+
+const speed = ref(DEFAULTS.speed);
+const scale = ref(DEFAULTS.scale);
+const brightness = ref(DEFAULTS.brightness);
+const color1 = ref(DEFAULTS.color1);
+const color2 = ref(DEFAULTS.color2);
+const noiseFrequency = ref(DEFAULTS.noiseFrequency);
+const noiseAmplitude = ref(DEFAULTS.noiseAmplitude);
+const bandHeight = ref(DEFAULTS.bandHeight);
+const bandSpread = ref(DEFAULTS.bandSpread);
+const octaveDecay = ref(DEFAULTS.octaveDecay);
+const layerOffset = ref(DEFAULTS.layerOffset);
+const colorSpeed = ref(DEFAULTS.colorSpeed);
+const enableMouseInteraction = ref(DEFAULTS.enableMouseInteraction);
+const mouseInfluence = ref(DEFAULTS.mouseInfluence);
+
+const hasChanges = computed(
+  () =>
+    speed.value !== DEFAULTS.speed ||
+    scale.value !== DEFAULTS.scale ||
+    brightness.value !== DEFAULTS.brightness ||
+    color1.value !== DEFAULTS.color1 ||
+    color2.value !== DEFAULTS.color2 ||
+    noiseFrequency.value !== DEFAULTS.noiseFrequency ||
+    noiseAmplitude.value !== DEFAULTS.noiseAmplitude ||
+    bandHeight.value !== DEFAULTS.bandHeight ||
+    bandSpread.value !== DEFAULTS.bandSpread ||
+    octaveDecay.value !== DEFAULTS.octaveDecay ||
+    layerOffset.value !== DEFAULTS.layerOffset ||
+    colorSpeed.value !== DEFAULTS.colorSpeed ||
+    enableMouseInteraction.value !== DEFAULTS.enableMouseInteraction ||
+    mouseInfluence.value !== DEFAULTS.mouseInfluence
+);
+
+function reset() {
+  speed.value = DEFAULTS.speed;
+  scale.value = DEFAULTS.scale;
+  brightness.value = DEFAULTS.brightness;
+  color1.value = DEFAULTS.color1;
+  color2.value = DEFAULTS.color2;
+  noiseFrequency.value = DEFAULTS.noiseFrequency;
+  noiseAmplitude.value = DEFAULTS.noiseAmplitude;
+  bandHeight.value = DEFAULTS.bandHeight;
+  bandSpread.value = DEFAULTS.bandSpread;
+  octaveDecay.value = DEFAULTS.octaveDecay;
+  layerOffset.value = DEFAULTS.layerOffset;
+  colorSpeed.value = DEFAULTS.colorSpeed;
+  enableMouseInteraction.value = DEFAULTS.enableMouseInteraction;
+  mouseInfluence.value = DEFAULTS.mouseInfluence;
+  forceRerender();
+}
+
+const props: PropRow[] = [
   { name: 'speed', type: 'number', default: '0.6', description: 'Overall animation speed multiplier.' },
   { name: 'scale', type: 'number', default: '1.5', description: 'Scale of the noise pattern.' },
   { name: 'brightness', type: 'number', default: '1.0', description: 'Overall brightness multiplier.' },
