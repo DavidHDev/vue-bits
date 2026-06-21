@@ -1,6 +1,7 @@
 import type { Output } from 'jsrepo';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
+import { format, resolveConfig } from 'prettier';
 
 export type ComponentDependenciesOutputOptions = {
   path: string;
@@ -39,8 +40,13 @@ export function dependenciesForSlug(slug: string | undefined): string[] {
 `;
 
       const absolute = resolve(cwd, path);
+      // Format with the repo's Prettier config so the generated file matches the
+      // committed style on every code path (one-shot build, --watch, and CI).
+      // Without this the file is written with tabs and shows up as a spurious diff.
+      const prettierConfig = await resolveConfig(absolute);
+      const formatted = await format(contents, { ...prettierConfig, parser: 'typescript' });
       await mkdir(dirname(absolute), { recursive: true });
-      await writeFile(absolute, contents, 'utf8');
+      await writeFile(absolute, formatted, 'utf8');
     },
     async clean({ cwd }) {
       await rm(resolve(cwd, path), { force: true });

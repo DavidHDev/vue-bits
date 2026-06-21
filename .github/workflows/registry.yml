@@ -1,0 +1,43 @@
+name: Registry
+
+# Fails any PR/push whose committed jsrepo registry (public/r + the generated
+# componentDependencies.ts) has drifted from the component sources. This is the
+# enforcement backstop: contributors don't have to remember `pnpm build:registry`,
+# and reviewers don't have to ask — a stale registry turns the check red.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  registry-in-sync:
+    name: Registry is up to date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Rebuild registry
+        run: pnpm build:registry
+
+      - name: Fail if the registry is out of date
+        run: |
+          if ! git diff --quiet -- public/r src/constants/componentDependencies.ts; then
+            echo "::error::Registry is out of date. Run 'pnpm build:registry' locally and commit the result."
+            git --no-pager diff -- public/r src/constants/componentDependencies.ts
+            exit 1
+          fi

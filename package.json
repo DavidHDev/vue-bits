@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "run-p dev:registry dev:vite",
+    "dev:vite": "vite",
+    "dev:registry": "jsrepo build --watch",
     "build": "npm run build:registry && run-p type-check \"build-only {@}\" --",
     "build:registry": "jsrepo build",
     "preview": "vite preview",
