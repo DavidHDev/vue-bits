@@ -58,6 +58,7 @@ export const COMPONENT_DEPENDENCIES: Record<string, string[]> = {
   'magic-rings': ['three'],
   masonry: ['gsap'],
   'meta-balls': ['ogl'],
+  'model-viewer': ['three', '@tresjs/core', '@tresjs/cientos'],
   orb: ['ogl'],
   particles: ['ogl'],
   'pill-nav': ['gsap'],

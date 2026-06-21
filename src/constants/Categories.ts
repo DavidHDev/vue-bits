@@ -1,5 +1,14 @@
 // Highlighted sidebar items
-export const NEW = ['Dot Field', 'Shape Grid', 'Strands', 'Side Rays', 'Ferrofluid', 'Lightfall', 'Plasma Wave'];
+export const NEW = [
+  'Model Viewer',
+  'Dot Field',
+  'Shape Grid',
+  'Strands',
+  'Side Rays',
+  'Ferrofluid',
+  'Lightfall',
+  'Plasma Wave'
+];
 export const UPDATED = [];
 
 // Used for main sidebar navigation
@@ -97,6 +106,7 @@ export const CATEGORIES = [
       'Infinite Menu',
       'Magic Bento',
       'Masonry',
+      'Model Viewer',
       'Pill Nav',
       'Pixel Card',
       'Profile Card',

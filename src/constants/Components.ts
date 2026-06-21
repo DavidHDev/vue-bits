@@ -89,7 +89,8 @@ const components = {
   'bubble-menu': () => import('../demo/Components/BubbleMenuDemo.vue'),
   'staggered-menu': () => import('../demo/Components/StaggeredMenuDemo.vue'),
   'infinite-menu': () => import('../demo/Components/InfiniteMenuDemo.vue'),
-  'border-glow': () => import('../demo/Components/BorderGlowDemo.vue')
+  'border-glow': () => import('../demo/Components/BorderGlowDemo.vue'),
+  'model-viewer': () => import('../demo/Components/ModelViewerDemo.vue')
 };
 
 const backgrounds = {

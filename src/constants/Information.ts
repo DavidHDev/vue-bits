@@ -699,6 +699,14 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/components/staggered-menu',
     tags: []
   },
+  'Components/ModelViewer': {
+    videoUrl: '/assets/videos/modelviewer.webm',
+    name: 'ModelViewer',
+    description: 'Interactive 3D model viewer with orbit zoom, parallax, hover rotation and lighting presets.',
+    category: 'Components',
+    docsUrl: 'https://vue-bits.dev/components/model-viewer',
+    tags: []
+  },
 
   //! Backgrounds -------------------------------------------------------------------------------------------------------------------------------
   'Backgrounds/Aurora': {
