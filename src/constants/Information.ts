@@ -701,7 +701,7 @@ export const componentMetadata: ComponentMetadata = {
   },
   'Components/ModelViewer': {
     videoUrl: '/assets/videos/modelviewer.webm',
-    name: 'Model Viewer',
+    name: 'ModelViewer',
     description: 'Interactive 3D model viewer with orbit zoom, parallax, hover rotation and lighting presets.',
     category: 'Components',
     docsUrl: 'https://vue-bits.dev/components/model-viewer',

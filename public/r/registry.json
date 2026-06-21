@@ -1262,6 +1262,24 @@
 			]
 		},
 		{
+			"name": "ModelViewer",
+			"title": "ModelViewer",
+			"description": "Interactive 3D model viewer with orbit zoom, parallax, hover rotation and lighting presets.",
+			"type": "registry:component",
+			"dependencies": [
+				"three@^0.178.0",
+				"@tresjs/core@^4.3.6",
+				"@tresjs/cientos@^4.3.1"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ModelViewer/ModelViewer.vue"
+				}
+			]
+		},
+		{
 			"name": "Noise",
 			"title": "Noise",
 			"description": "Animated film grain / noise overlay adding subtle texture and motion.",
