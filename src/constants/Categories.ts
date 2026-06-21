@@ -110,6 +110,7 @@ export const CATEGORIES = [
       'Pill Nav',
       'Pixel Card',
       'Profile Card',
+      'Reflective Card',
       'Scroll Stack',
       'Spotlight Card',
       'Stack',

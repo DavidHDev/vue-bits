@@ -1529,6 +1529,22 @@
 			]
 		},
 		{
+			"name": "ReflectiveCard",
+			"title": "ReflectiveCard",
+			"description": "Metallic card with live webcam reflection and SVG displacement filter.",
+			"type": "registry:component",
+			"dependencies": [
+				"lucide-vue-next@^0.548.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ReflectiveCard/ReflectiveCard.vue"
+				}
+			]
+		},
+		{
 			"name": "Ribbons",
 			"title": "Ribbons",
 			"description": "Flowing responsive ribbons/cursor trail driven by physics and pointer motion.",

@@ -71,6 +71,7 @@ export const COMPONENT_DEPENDENCIES: Record<string, string[]> = {
   prism: ['ogl'],
   'prismatic-burst': ['ogl'],
   radar: ['ogl'],
+  'reflective-card': ['lucide-vue-next'],
   ribbons: ['ogl'],
   'ripple-grid': ['ogl'],
   'rotating-text': ['motion-v'],

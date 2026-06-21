@@ -63,6 +63,7 @@ const components = {
   'glass-surface': () => import('../demo/Components/GlassSurfaceDemo.vue'),
   'magic-bento': () => import('../demo/Components/MagicBentoDemo.vue'),
   'profile-card': () => import('../demo/Components/ProfileCardDemo.vue'),
+  'reflective-card': () => import('../demo/Components/ReflectiveCardDemo.vue'),
   dock: () => import('../demo/Components/DockDemo.vue'),
   'card-nav': () => import('../demo/Components/CardNavDemo.vue'),
   'pill-nav': () => import('../demo/Components/PillNavDemo.vue'),
