@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
+import MoltenMetal from '@/content/Backgrounds/MoltenMetal/MoltenMetal.vue';
 import './CTA.css';
 
 const GITHUB_URL = 'https://github.com/DavidHDev/vue-bits';
@@ -7,6 +8,9 @@ const GITHUB_URL = 'https://github.com/DavidHDev/vue-bits';
 const innerEl = ref<HTMLDivElement | null>(null);
 
 const visible = ref(false);
+
+const prefersReducedMotion =
+  typeof window !== 'undefined' ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
 
 let observer: IntersectionObserver | null = null;
 
@@ -54,6 +58,10 @@ onUnmounted(() => {
         <div class="ln-cta-card-border"></div>
 
         <div class="ln-cta-card">
+          <div v-if="!prefersReducedMotion" class="ln-cta-bg" aria-hidden="true">
+            <MoltenMetal color1="#00ffa9" color2="#0f9d6e" color3="#ffffff" :opacity="0.4" :mouse-interaction="false" />
+          </div>
+
           <h2 class="ln-cta-headline">Stop building from scratch.</h2>
 
           <p class="ln-cta-sub">

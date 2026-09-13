@@ -7,8 +7,12 @@ import InteractiveCode from './InteractiveCode.vue';
 
 import { preloadSounds } from '@/utils/audio';
 import { hexToHsv, hsvToHex, parseHexRgb } from '@/utils/color';
+import { useStars } from '@/composables/useStars';
+import { TOTAL_COMPONENTS } from '@/constants/Categories';
 
 import './Hero.css';
+
+const GITHUB_URL = 'https://github.com/DavidHDev/vue-bits';
 
 export type PropDef = {
   name: string;
@@ -58,6 +62,114 @@ const SNIPPET_DEFS: SnippetDef[] = [
   }
 ];
 
+type ScenePreset = {
+  label: string;
+  values: Record<string, string | number | boolean>[];
+};
+
+const SCENE_PRESETS: ScenePreset[] = [
+  {
+    label: 'Mint',
+    values: [
+      {
+        color: '#00ffa9',
+        speed: 0.2,
+        frequency: 1,
+        noise: 0.15,
+        bandWidth: 0.14,
+        rotation: 90,
+        fadeTop: 0.75,
+        iterations: 1,
+        intensity: 1.25
+      },
+      {
+        cursorRadius: 500,
+        cursorForce: 0.1,
+        bulgeOnly: true,
+        bulgeStrength: 67,
+        glowRadius: 160,
+        sparkle: false,
+        waveAmplitude: 0
+      }
+    ]
+  },
+  {
+    label: 'Aurora',
+    values: [
+      {
+        color: '#10B981',
+        speed: 0.35,
+        frequency: 1.5,
+        noise: 0.08,
+        bandWidth: 0.3,
+        rotation: 60,
+        fadeTop: 0.8,
+        iterations: 2,
+        intensity: 1.15
+      },
+      {
+        cursorRadius: 620,
+        cursorForce: 0.18,
+        bulgeOnly: true,
+        bulgeStrength: 45,
+        glowRadius: 280,
+        sparkle: false,
+        waveAmplitude: 5
+      }
+    ]
+  },
+  {
+    label: 'Ember',
+    values: [
+      {
+        color: '#F97316',
+        speed: 0.4,
+        frequency: 1.8,
+        noise: 0.18,
+        bandWidth: 0.22,
+        rotation: 115,
+        fadeTop: 0.7,
+        iterations: 1,
+        intensity: 1.4
+      },
+      {
+        cursorRadius: 420,
+        cursorForce: 0.26,
+        bulgeOnly: true,
+        bulgeStrength: 105,
+        glowRadius: 210,
+        sparkle: true,
+        waveAmplitude: 0
+      }
+    ]
+  },
+  {
+    label: 'Ice',
+    values: [
+      {
+        color: '#06B6D4',
+        speed: 0.15,
+        frequency: 1.2,
+        noise: 0.06,
+        bandWidth: 0.4,
+        rotation: 45,
+        fadeTop: 0.95,
+        iterations: 2,
+        intensity: 1.1
+      },
+      {
+        cursorRadius: 750,
+        cursorForce: 0.08,
+        bulgeOnly: true,
+        bulgeStrength: 35,
+        glowRadius: 340,
+        sparkle: false,
+        waveAmplitude: 7
+      }
+    ]
+  }
+];
+
 function makeDefaults(): Record<string, string | number | boolean>[] {
   return SNIPPET_DEFS.map(def => Object.fromEntries(def.props.map(p => [p.name, p.default])));
 }
@@ -70,6 +182,8 @@ const propValues = ref<Record<string, string | number | boolean>[]>(makeDefaults
 const dropdownEl = ref<HTMLDivElement | null>(null);
 
 function handlePropChange(name: string, value: string | number | boolean) {
+  stopTween();
+
   propValues.value[activeSnippet.value] = {
     ...propValues.value[activeSnippet.value],
     [name]: value
@@ -77,8 +191,105 @@ function handlePropChange(name: string, value: string | number | boolean) {
 }
 
 function resetProps() {
+  stopTween();
   propValues.value = makeDefaults();
 }
+
+const PRESET_DURATION = 1100;
+
+let presetRafId: number | null = null;
+
+function stopTween() {
+  if (presetRafId !== null) {
+    cancelAnimationFrame(presetRafId);
+    presetRafId = null;
+  }
+}
+
+function easeInOutCubic(t: number) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+function lerp(a: number, b: number, t: number) {
+  return a + (b - a) * t;
+}
+
+function lerpColor(from: string, to: string, t: number) {
+  const a = hexToHsv(from);
+  const b = hexToHsv(to);
+
+  let dh = b.h - a.h;
+  if (dh > 180) dh -= 360;
+  if (dh < -180) dh += 360;
+
+  let h = a.h + dh * t;
+  if (h < 0) h += 360;
+  if (h >= 360) h -= 360;
+
+  return hsvToHex(h, lerp(a.s, b.s, t), lerp(a.v, b.v, t));
+}
+
+function applyPreset(index: number) {
+  const preset = SCENE_PRESETS[index];
+  if (!preset) return;
+
+  stopTween();
+
+  const from = propValues.value.map(vals => ({ ...vals }));
+  const target = preset.values;
+  const start = performance.now();
+
+  const step = (now: number) => {
+    const t = Math.min(1, (now - start) / PRESET_DURATION);
+
+    if (t >= 1) {
+      propValues.value = from.map((vals, i) => ({ ...vals, ...target[i] }));
+      presetRafId = null;
+      return;
+    }
+
+    const e = easeInOutCubic(t);
+
+    propValues.value = SNIPPET_DEFS.map((def, i) => {
+      const a = from[i];
+      const b = target[i];
+      const out: Record<string, string | number | boolean> = { ...a };
+
+      for (const prop of def.props) {
+        if (!(prop.name in b)) continue;
+
+        if (prop.type === 'boolean') {
+          out[prop.name] = e >= 0.5 ? b[prop.name] : a[prop.name];
+        } else if (prop.type === 'color') {
+          out[prop.name] = lerpColor(a[prop.name] as string, b[prop.name] as string, e);
+        } else {
+          const v = lerp(a[prop.name] as number, b[prop.name] as number, e);
+          out[prop.name] = (prop.step ?? 1) >= 1 ? Math.round(v) : v;
+        }
+      }
+
+      return out;
+    });
+
+    presetRafId = requestAnimationFrame(step);
+  };
+
+  presetRafId = requestAnimationFrame(step);
+}
+
+const activePresetIndex = computed(() =>
+  SCENE_PRESETS.findIndex(preset =>
+    preset.values.every((vals, i) => Object.keys(vals).every(key => propValues.value[i]?.[key] === vals[key]))
+  )
+);
+
+const stars = useStars();
+
+const formattedStars = computed(() =>
+  stars.value >= 1000 ? `${(stars.value / 1000).toFixed(1).replace(/\.0$/, '')}k` : String(stars.value)
+);
+
+const componentCount = TOTAL_COMPONENTS;
 
 const hasChanges = computed(() => {
   const def = SNIPPET_DEFS[activeSnippet.value];
@@ -99,6 +310,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   document.removeEventListener('pointerdown', onClickOutside);
+  stopTween();
 });
 
 const accentColor = computed(() => propValues.value[0].color as string);
@@ -108,8 +320,14 @@ const accentDerived = computed(() => {
 
   const lum = (0.2126 * ar + 0.7152 * ag + 0.0722 * ab) / 255;
 
+  const hsv = hexToHsv(accentColor.value);
+
   return {
     accentFg: lum > 0.5 ? '#000' : '#fff',
+
+    accentText: hsvToHex(hsv.h, Math.min(hsv.s, 0.7), Math.max(hsv.v, 0.92)),
+
+    accentGlow: `0 0 24px rgba(${ar}, ${ag}, ${ab}, 0.3), 0 0 64px rgba(${ar}, ${ag}, ${ab}, 0.14)`,
 
     dotGradientFrom: `rgba(${ar}, ${ag}, ${ab}, 0.35)`,
 
@@ -216,7 +434,7 @@ const dotProps = computed(() => propValues.value[1] as Record<string, number | b
               color: accentDerived.accentFg
             }"
           >
-            New Component
+            New Animation
           </span>
 
           Glow Cursor
@@ -233,7 +451,12 @@ const dotProps = computed(() => propValues.value[1] as Record<string, number | b
 
           <br />
 
-          <span class="ln-hero-headline-line">creative developers</span>
+          <span
+            class="ln-hero-headline-line"
+            :style="{ color: accentDerived.accentText, textShadow: accentDerived.accentGlow }"
+          >
+            creative developers
+          </span>
         </h1>
 
         <p class="ln-hero-description">
@@ -243,7 +466,7 @@ const dotProps = computed(() => propValues.value[1] as Record<string, number | b
 
         <div class="ln-hero-buttons">
           <a
-            href="/get-started/index"
+            href="/get-started/introduction"
             class="ln-hero-btn ln-hero-btn-primary"
             :style="{
               background: accentColor,
@@ -253,7 +476,18 @@ const dotProps = computed(() => propValues.value[1] as Record<string, number | b
           >
             Browse Components
           </a>
+
+          <a :href="GITHUB_URL" target="_blank" rel="noopener noreferrer" class="ln-hero-btn ln-hero-btn-secondary">
+            Star on GitHub
+            <span class="ln-hero-btn-count">{{ formattedStars }}</span>
+          </a>
         </div>
+
+        <ul class="ln-hero-proof">
+          <li>{{ componentCount }}+ components</li>
+          <li aria-hidden="true" class="ln-hero-proof-sep" />
+          <li>Free forever</li>
+        </ul>
       </div>
 
       <div class="ln-hero-right">
@@ -330,7 +564,21 @@ const dotProps = computed(() => propValues.value[1] as Record<string, number | b
             />
           </div>
 
-          <p class="ln-hero-code-hint">Drag or click values to edit</p>
+          <div class="ln-hero-code-footer">
+            <div class="ln-hero-code-presets" role="group" aria-label="Presets">
+              <button
+                v-for="(preset, i) in SCENE_PRESETS"
+                :key="preset.label"
+                :class="['ln-hero-code-preset', { active: activePresetIndex === i }]"
+                :aria-pressed="activePresetIndex === i"
+                @click="applyPreset(i)"
+              >
+                {{ preset.label }}
+              </button>
+            </div>
+
+            <p class="ln-hero-code-hint">Every value is editable</p>
+          </div>
         </div>
       </div>
     </div>

@@ -1,0 +1,278 @@
+.ln-own-section {
+  position: relative;
+  width: 100%;
+  padding: 80px 0 100px;
+  background: var(--bg-body);
+  z-index: 4;
+}
+
+.ln-own-inner {
+  max-width: 1324px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.ln-own-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.82fr);
+  align-items: center;
+  gap: 72px;
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
+}
+
+.ln-own-grid.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ln-own-title {
+  font-family: 'Geist Pixel Line', sans-serif;
+  font-size: clamp(28px, 3.6vw, 40px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 0 0 16px;
+}
+
+.ln-own-subtitle {
+  font-family: 'Geist', sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.45);
+  max-width: 44ch;
+  margin: 0;
+}
+
+.ln-own-points {
+  list-style: none;
+  margin: 30px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ln-own-point {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: start;
+  column-gap: 14px;
+}
+
+.ln-own-point-icon {
+  grid-row: 1 / span 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: rgba(0, 255, 169, 0.85);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.ln-own-point-title {
+  font-family: 'Geist', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.92);
+  margin: 0 0 4px;
+}
+
+.ln-own-point-desc {
+  font-family: 'Geist', sans-serif;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.45);
+  margin: 0;
+}
+
+.ln-own-window {
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(17, 20, 14, 0.6);
+  backdrop-filter: blur(32px) saturate(1.3);
+  -webkit-backdrop-filter: blur(32px) saturate(1.3);
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.ln-own-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 0 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ln-own-tab {
+  padding: 11px 12px 10px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid transparent;
+}
+
+.ln-own-tab.is-active {
+  color: rgba(255, 255, 255, 0.85);
+  border-bottom-color: rgba(0, 255, 169, 0.6);
+}
+
+.ln-own-body {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr);
+}
+
+.ln-own-tree {
+  padding: 12px 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  font-family: 'Geist Mono', monospace;
+  font-size: 11.5px;
+  line-height: 1.95;
+}
+
+.ln-own-tree-row {
+  position: relative;
+  padding-right: 8px;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.ln-own-tree-row.is-added {
+  color: rgba(0, 255, 169, 0.85);
+}
+
+.ln-own-tree-row.is-active {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.ln-own-tree-row.is-added::before {
+  content: '+';
+  position: absolute;
+  left: 8px;
+  color: rgba(0, 255, 169, 0.85);
+}
+
+.ln-own-code {
+  padding: 12px 0;
+  font-family: 'Geist Mono', monospace;
+  font-size: 11.5px;
+  line-height: 1.95;
+  overflow: hidden;
+}
+
+.ln-own-code-line {
+  display: flex;
+  gap: 14px;
+  padding: 0 14px;
+  white-space: pre;
+}
+
+.ln-own-code-num {
+  width: 14px;
+  flex-shrink: 0;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.ln-own-code-text {
+  min-width: 0;
+}
+
+.ln-own-t-kw {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.ln-own-t-comp {
+  color: rgba(0, 255, 169, 0.85);
+}
+
+.ln-own-t-attr {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.ln-own-t-str {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.ln-own-t-num {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.ln-own-t-punc {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.ln-own-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-family: 'Geist Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+@media (max-width: 1000px) {
+  .ln-own-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+  }
+
+  .ln-own-copy {
+    order: -1;
+    text-align: center;
+  }
+
+  .ln-own-subtitle {
+    max-width: 56ch;
+    margin: 0 auto;
+  }
+
+  .ln-own-points {
+    max-width: 440px;
+    margin: 30px auto 0;
+    text-align: left;
+  }
+}
+
+@media (max-width: 600px) {
+  .ln-own-section {
+    padding: 60px 0 80px;
+  }
+
+  .ln-own-inner {
+    padding: 0 16px;
+  }
+
+  .ln-own-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ln-own-tree {
+    display: none;
+  }
+
+  .ln-own-code,
+  .ln-own-tabs .ln-own-tab {
+    font-size: 10.5px;
+  }
+
+  .ln-own-status {
+    font-size: 9.5px;
+    padding: 8px 12px;
+  }
+}
