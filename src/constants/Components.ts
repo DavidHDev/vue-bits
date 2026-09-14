@@ -175,6 +175,9 @@ const backgrounds = {
 };
 
 export const componentMap = {
+  introduction: () => import('../docs/Introduction.vue'),
+  installation: () => import('../docs/Installation.vue'),
+  mcp: () => import('../docs/McpServer.vue'),
   index: () => import('../pages/IndexPage.vue'),
 
   ...animations,

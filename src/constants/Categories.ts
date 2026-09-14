@@ -34,7 +34,7 @@ export const UPDATED = [];
 export const CATEGORIES = [
   {
     name: 'Get Started',
-    subcategories: ['Index']
+    subcategories: ['Introduction', 'Installation', 'MCP', 'Index']
   },
   {
     name: 'Text Animations',
@@ -221,6 +221,11 @@ export const CATEGORIES = [
     ]
   }
 ];
+
+export const TOTAL_COMPONENTS = CATEGORIES.filter(category => category.name !== 'Get Started').reduce(
+  (total, category) => total + category.subcategories.length,
+  0
+);
 
 // Slug helpers (kebab-case used in URLs).
 export const slug = (s: string) => s.replace(/\s+/g, '-').toLowerCase();

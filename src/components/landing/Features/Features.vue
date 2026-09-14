@@ -34,7 +34,7 @@ const CARDS: Card[] = [
   {
     key: 'variants',
     title: 'TypeScript + Tailwind',
-    desc: 'Every component ships as a typed Svelte 5 component styled with Tailwind. One stack, done right.',
+    desc: 'Every component ships as a typed Vue 3 component styled with Tailwind. One stack, done right.',
     span: 4
   },
   {
@@ -46,7 +46,7 @@ const CARDS: Card[] = [
   {
     key: 'stars',
     title: 'Growing Fast',
-    desc: "Svelte's newest creative component library. Star us on GitHub to follow along.",
+    desc: "Vue's newest creative component library. Star us on GitHub to follow along.",
     span: 3
   }
 ];

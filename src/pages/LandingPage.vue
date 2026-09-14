@@ -8,6 +8,7 @@
       <Features />
       <LiveDemo />
       <QuickStart />
+      <Ownership />
       <CTA />
       <Footer />
     </section>
@@ -22,6 +23,7 @@ import Hero from '@/components/landing/Hero/Hero.vue';
 import LandingLoader from '@/components/landing/LandingLoader/LandingLoader.vue';
 import LiveDemo from '@/components/landing/LiveDemo/LiveDemo.vue';
 import Navbar from '@/components/landing/Navbar/Navbar.vue';
+import Ownership from '@/components/landing/Ownership/Ownership.vue';
 import QuickStart from '@/components/landing/QuickStart/QuickStart.vue';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 

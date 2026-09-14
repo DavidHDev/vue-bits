@@ -105,6 +105,19 @@
   box-shadow:
     0 4px 32px rgba(0, 0, 0, 0.1),
     inset 0 0.5px 0 rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.ln-cta-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  mix-blend-mode: luminosity;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask: radial-gradient(120% 130% at 50% 50%, #000 55%, transparent 100%);
+  mask: radial-gradient(120% 130% at 50% 50%, #000 55%, transparent 100%);
 }
 
 /* ─── Headlines ─── */
@@ -116,6 +129,8 @@
   line-height: 1.1;
   letter-spacing: -0.02em;
   color: #fff;
+  position: relative;
+  z-index: 1;
   margin: 0 0 12px;
 }
 
@@ -126,6 +141,8 @@
   color: rgba(255, 255, 255, 0.35);
   margin: 0 0 32px;
   max-width: 46ch;
+  position: relative;
+  z-index: 1;
 }
 
 /* ─── Buttons ─── */
@@ -133,6 +150,8 @@
 .ln-cta-buttons {
   display: flex;
   gap: 10px;
+  position: relative;
+  z-index: 1;
 }
 
 .ln-cta-btn {

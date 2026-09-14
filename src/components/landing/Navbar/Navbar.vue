@@ -11,7 +11,7 @@ const emit = defineEmits<{ hamburger: [] }>();
 
 const GITHUB_URL = 'https://github.com/DavidHDev/vue-bits';
 
-const NAV_LINKS = [{ label: 'Docs', to: '/get-started/index', match: '/get-started' }] as const;
+const NAV_LINKS = [{ label: 'Docs', to: '/get-started/introduction', match: '/get-started' }] as const;
 
 const route = useRoute();
 const stars = useStars();
@@ -19,13 +19,10 @@ const stars = useStars();
 const scrolled = ref(false);
 const menuOpen = ref(false);
 const searchOpen = ref(false);
-const prefsOpen = ref(false);
 
 const navbarInnerEl = ref<HTMLElement | null>(null);
 const linksEl = ref<HTMLElement | null>(null);
 const highlightEl = ref<HTMLElement | null>(null);
-
-let prefsCloseTimer: ReturnType<typeof setTimeout> | null = null;
 
 // ── stars ─────────────────────────────────────────────────────────────────────
 const formattedStars = computed(() => {
@@ -86,17 +83,6 @@ function toggleSearch() {
   searchOpen.value = !searchOpen.value;
 }
 
-// ── prefs ─────────────────────────────────────────────────────────────────────
-function handlePrefsEnter() {
-  if (prefsCloseTimer) clearTimeout(prefsCloseTimer);
-  prefsOpen.value = true;
-}
-function handlePrefsLeave() {
-  prefsCloseTimer = setTimeout(() => {
-    prefsOpen.value = false;
-  }, 150);
-}
-
 // ── hamburger ─────────────────────────────────────────────────────────────────
 function handleHamburger() {
   if (showDocs) emit('hamburger');
@@ -120,7 +106,6 @@ function onPointerDown(e: PointerEvent) {
 function handleKeyDown(e: KeyboardEvent) {
   if (e.key !== 'Escape') return;
   if (menuOpen.value) menuOpen.value = false;
-  if (prefsOpen.value) prefsOpen.value = false;
 }
 
 onMounted(() => {
@@ -191,55 +176,6 @@ onUnmounted(() => {
           <span>Search</span>
           <kbd>/</kbd>
         </button>
-
-        <!-- Prefs (docs only) -->
-        <div
-          v-if="showDocs"
-          class="ln-navbar-prefs-wrapper"
-          role="presentation"
-          @mouseenter="handlePrefsEnter"
-          @mouseleave="handlePrefsLeave"
-        >
-          <button type="button" class="ln-navbar-icon-btn ln-navbar-prefs-trigger" aria-label="Preferences">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-          </button>
-
-          <Transition name="prefs">
-            <div v-if="prefsOpen" class="ln-navbar-prefs-menu">
-              <RouterLink to="/favorites" class="ln-navbar-prefs-fav" @click="prefsOpen = false">
-                <svg
-                  width="13"
-                  height="13"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z"
-                  />
-                </svg>
-                Favorites
-              </RouterLink>
-            </div>
-          </Transition>
-        </div>
 
         <!-- GitHub -->
         <a

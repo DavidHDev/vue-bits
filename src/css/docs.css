@@ -143,33 +143,38 @@
 .sidebar-item .new-tag,
 .sidebar-item .updated-tag,
 .sidebar-item .help-tag {
-  margin-left: 0.6em;
-  font-size: 10px;
-  line-height: 0;
-  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  margin-left: 7px;
+  padding: 0 5px;
+  border: 0;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 9px;
   font-weight: 600;
-  padding: 0.8em 0.6em;
-  font-family: 'Geist Mono', ui-monospace, monospace;
-  text-transform: uppercase;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  text-decoration: none !important;
 }
 
 .sidebar-item .new-tag {
-  color: #fff;
-  border: 1px solid var(--color-primary);
-  background-color: rgba(39, 255, 100, 0.3);
+  color: rgba(200, 255, 214, 0.9);
+  background: linear-gradient(180deg, rgba(124, 255, 103, 0.24), rgba(90, 214, 70, 0.14));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 .sidebar-item .updated-tag {
-  color: #fff;
-  border: 1px solid #ffffff77;
-  background-color: #ffffff26;
+  color: rgba(255, 255, 255, 0.64);
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
 }
 
 .sidebar-item .help-tag {
   color: #8a8a8a;
-  border: 1px solid rgba(255, 255, 255, 0.08);
   background-color: rgba(255, 255, 255, 0.03);
-  letter-spacing: 0.02em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
 }
 
 .sidebar-item.unimplemented {

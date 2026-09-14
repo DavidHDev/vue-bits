@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 type Token = { cls: 'kw' | 'comp' | 'tag' | 'attr' | 'punc' | 'num' | 'str'; text: string };
 
@@ -79,6 +79,8 @@ function schedule(fn: () => void, ms: number) {
 }
 
 function runConvo(i: number) {
+  idx.value = i;
+
   const c = AI_CONVOS[i];
   typed.value = '';
   phase.value = 'prompt';
@@ -113,7 +115,7 @@ function runConvo(i: number) {
   delay += 2400;
 
   schedule(() => {
-    idx.value = (idx.value + 1) % AI_CONVOS.length;
+    runConvo((i + 1) % AI_CONVOS.length);
   }, delay);
 }
 
@@ -123,13 +125,6 @@ onMounted(() => {
 
 onUnmounted(() => {
   clearTimers();
-});
-
-watch(idx, i => {
-  if (i === 0) return;
-
-  clearTimers();
-  runConvo(i);
 });
 </script>
 

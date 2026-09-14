@@ -9,7 +9,7 @@ const { showDocs = false } = defineProps<{ showDocs?: boolean }>();
 
 const GITHUB_URL = 'https://github.com/DavidHDev/vue-bits';
 
-const NAV_LINKS = [{ label: 'Docs', to: '/get-started/index', match: '/get-started' }] as const;
+const NAV_LINKS = [{ label: 'Docs', to: '/get-started/introduction', match: '/get-started' }] as const;
 
 const route = useRoute();
 const stars = useStars();
@@ -17,11 +17,9 @@ const stars = useStars();
 const scrolled = ref(false);
 const menuOpen = ref(false);
 const searchOpen = ref(false);
-const prefsOpen = ref(false);
 
 const linksEl = ref<HTMLElement | null>(null);
 const highlightEl = ref<HTMLElement | null>(null);
-let prefsCloseTimer: ReturnType<typeof setTimeout> | null = null;
 
 // ── stars ─────────────────────────────────────────────────────────────────────
 const formattedStars = computed(() => {
@@ -75,17 +73,6 @@ function onScroll() {
   scrolled.value = window.scrollY > 50;
 }
 
-// ── prefs ─────────────────────────────────────────────────────────────────────
-function handlePrefsEnter() {
-  if (prefsCloseTimer) clearTimeout(prefsCloseTimer);
-  prefsOpen.value = true;
-}
-function handlePrefsLeave() {
-  prefsCloseTimer = setTimeout(() => {
-    prefsOpen.value = false;
-  }, 150);
-}
-
 // ── body scroll lock ──────────────────────────────────────────────────────────
 watch(menuOpen, open => {
   document.body.style.overflow = open ? 'hidden' : '';
@@ -95,7 +82,6 @@ watch(menuOpen, open => {
 function handleKeyDown(e: KeyboardEvent) {
   if (e.key === 'Escape') {
     menuOpen.value = false;
-    prefsOpen.value = false;
   }
 }
 
@@ -179,49 +165,6 @@ onUnmounted(() => {
             <span class="ln-navbar-search-text">Search...</span>
             <kbd class="ln-navbar-kbd">/</kbd>
           </button>
-
-          <div class="ln-navbar-prefs-wrapper" @mouseenter="handlePrefsEnter" @mouseleave="handlePrefsLeave">
-            <button type="button" class="ln-navbar-icon-btn ln-navbar-prefs-trigger" aria-label="Preferences">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            </button>
-
-            <Transition name="prefs">
-              <div v-if="prefsOpen" class="ln-navbar-prefs-menu">
-                <div class="ln-navbar-prefs-divider" />
-                <RouterLink to="/favorites" class="ln-navbar-prefs-fav" @click="prefsOpen = false">
-                  <svg
-                    width="13"
-                    height="13"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z"
-                    />
-                  </svg>
-                  Favorites
-                </RouterLink>
-              </div>
-            </Transition>
-          </div>
         </template>
 
         <!-- GitHub -->
@@ -437,72 +380,6 @@ onUnmounted(() => {
   font-size: 10px;
   font-weight: 800;
   margin-left: 4px;
-}
-
-/* ── Prefs ─────────────────────────────────────────────────────────────────── */
-.ln-navbar-prefs-wrapper {
-  position: relative;
-}
-
-.ln-navbar-prefs-trigger {
-  width: 36px;
-  padding: 0;
-  justify-content: center;
-}
-
-.ln-navbar-prefs-menu {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  min-width: 180px;
-  background: rgba(11, 11, 11, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  padding: 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(16px);
-  z-index: 200;
-}
-
-.ln-navbar-prefs-divider {
-  height: 1px;
-  background: rgba(255, 255, 255, 0.06);
-  margin: 6px 0;
-}
-
-.ln-navbar-prefs-fav {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 13px;
-  font-weight: 500;
-  text-decoration: none;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
-}
-.ln-navbar-prefs-fav:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #fff;
-}
-
-.prefs-enter-active {
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
-}
-.prefs-leave-active {
-  transition:
-    opacity 0.1s ease,
-    transform 0.1s ease;
-}
-.prefs-enter-from,
-.prefs-leave-to {
-  opacity: 0;
-  transform: translateY(-6px);
 }
 
 /* ── GitHub ────────────────────────────────────────────────────────────────── */

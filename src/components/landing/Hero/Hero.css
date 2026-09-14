@@ -89,11 +89,11 @@
 
 .ln-hero-tag-new {
   font-size: 12px;
-  font-weight: 600;
   color: #fff;
   background: #00ffa9;
   padding: 4px 10px;
   border-radius: 6px;
+  text-transform: uppercase;
 }
 
 .ln-hero-headline {
@@ -137,6 +137,7 @@
   text-decoration: none;
   display: inline-flex;
   align-items: center;
+  gap: 9px;
 }
 
 .ln-hero-btn-primary {
@@ -158,6 +159,32 @@
 .ln-hero-btn-secondary:hover {
   border-color: rgba(255, 255, 255, 0.25);
   background: rgba(255, 255, 255, 0.04);
+}
+
+.ln-hero-btn-count {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.ln-hero-proof {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.ln-hero-proof-sep {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .ln-hero-right {
@@ -496,13 +523,51 @@
   border-color: rgba(255, 255, 255, 0.5);
 }
 
+.ln-hero-code-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 4px 16px 12px;
+}
+
+.ln-hero-code-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ln-hero-code-preset {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  background: transparent;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.ln-hero-code-preset:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.ln-hero-code-preset.active {
+  background: rgba(0, 255, 169, 0.1);
+  color: rgba(0, 255, 169, 0.9);
+}
+
 .ln-hero-code-hint {
   font-family: 'Geist Mono', monospace;
   font-size: 11px;
   color: rgba(255, 255, 255, 0.2);
-  padding: 0 16px 10px;
   margin: 0;
-  text-align: right;
+  flex-shrink: 0;
 }
 
 /* ── Responsive ── */
@@ -541,6 +606,12 @@
 }
 
 @media (max-width: 640px) {
+  .ln-hero-code-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
   .ln-hero-content {
     padding: clamp(90px, 16vw, 120px) 16px 48px;
   }
@@ -565,5 +636,6 @@
   .ln-hero-tag-new {
     font-size: 11px;
     padding: 3px 8px;
+    text-transform: uppercase;
   }
 }

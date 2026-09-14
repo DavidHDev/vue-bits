@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { customToastStyles } from '@/utils/utils';
+import { X } from 'lucide-vue-next';
 import { onMounted, onUnmounted, ref } from 'vue';
+import Logo from '../../assets/logos/vue-bits-logo.svg';
 import Footer from '../landing/Footer/Footer.vue';
 import Navbar from '../landing/Navbar/Navbar.vue';
 import Sidebar from '../navs/Sidebar.vue';
@@ -67,7 +69,15 @@ onUnmounted(() => document.removeEventListener('keydown', onKey));
       :aria-hidden="!drawerOpen"
       :inert="!drawerOpen || undefined"
     >
-      <Sidebar @navigate="close" />
+      <div class="docs-drawer-header">
+        <RouterLink to="/" class="docs-drawer-logo" @click="close">
+          <img :src="Logo" alt="Vue Bits" />
+        </RouterLink>
+        <button type="button" class="docs-drawer-close" aria-label="Close navigation" @click="close">
+          <X :size="18" />
+        </button>
+      </div>
+      <Sidebar variant="drawer" @navigate="close" />
     </div>
 
     <!-- Main content -->
@@ -99,7 +109,40 @@ onUnmounted(() => document.removeEventListener('keydown', onKey));
   display: block;
 }
 
+.docs-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0 1em;
+  margin: -0.25em 0 1em;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.docs-drawer-logo img {
+  height: 24px;
+  display: block;
+}
+
+.docs-drawer-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.docs-drawer-close:hover {
+  background: var(--bg-elevated);
+}
+
 .docs-content {
+  grid-column: 2;
   min-width: 0;
   flex: 1;
 }

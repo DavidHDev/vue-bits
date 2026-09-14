@@ -139,6 +139,7 @@ onBeforeUnmount(() => {
 }
 
 .docs-content {
+  grid-column: 2;
   min-width: 0;
   flex: 1;
 }
