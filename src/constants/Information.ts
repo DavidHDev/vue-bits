@@ -968,6 +968,14 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/backgrounds/crt-warp',
     tags: []
   },
+  'Backgrounds/Scanner': {
+    videoUrl: '/assets/videos/scanner.webm',
+    description: 'Retro CRT scanner background with sweep lines, chromatic aberration, and mouse interaction.',
+    category: 'Backgrounds',
+    name: 'Scanner',
+    docsUrl: 'https://vue-bits.dev/backgrounds/scanner',
+    tags: []
+  },
   'Backgrounds/DarkVeil': {
     videoUrl: '/assets/videos/darkveil.webm',
     description: 'Subtle dark background with a smooth animation and postprocessing.',

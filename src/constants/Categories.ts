@@ -26,7 +26,8 @@ export const NEW = [
   'Warp Text',
   'Web Threads',
   'CRT Warp',
-  'Glow Cursor'
+  'Glow Cursor',
+  'Scanner'
 ];
 export const UPDATED = [];
 
@@ -165,6 +166,7 @@ export const CATEGORIES = [
   {
     name: 'Backgrounds',
     subcategories: [
+      'Scanner',
       'CRT Warp',
       'Web Threads',
       'Topography',

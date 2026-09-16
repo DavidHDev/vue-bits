@@ -1914,6 +1914,22 @@
 			]
 		},
 		{
+			"name": "Scanner",
+			"title": "Scanner",
+			"description": "Retro CRT scanner background with sweep lines, chromatic aberration, and mouse interaction.",
+			"type": "registry:component",
+			"dependencies": [
+				"ogl@^1.0.11"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Scanner/Scanner.vue"
+				}
+			]
+		},
+		{
 			"name": "ScrambleText",
 			"title": "ScrambleText",
 			"description": "Detects cursor position and applies a distortion effect to text.",

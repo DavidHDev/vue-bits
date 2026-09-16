@@ -88,6 +88,7 @@ export const COMPONENT_DEPENDENCIES: Record<string, string[]> = {
   'ripple-distortion': ['ogl'],
   'ripple-grid': ['ogl'],
   'rotating-text': ['motion-v'],
+  scanner: ['ogl'],
   'scramble-text': ['gsap'],
   'scroll-float': ['gsap'],
   'scroll-reveal': ['gsap'],

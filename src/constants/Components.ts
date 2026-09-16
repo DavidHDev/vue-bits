@@ -171,7 +171,8 @@ const backgrounds = {
   'sliced-waves': () => import('../demo/Backgrounds/SlicedWavesDemo.vue'),
   topography: () => import('../demo/Backgrounds/TopographyDemo.vue'),
   'web-threads': () => import('../demo/Backgrounds/WebThreadsDemo.vue'),
-  'crt-warp': () => import('../demo/Backgrounds/CRTWarpDemo.vue')
+  'crt-warp': () => import('../demo/Backgrounds/CRTWarpDemo.vue'),
+  scanner: () => import('../demo/Backgrounds/ScannerDemo.vue')
 };
 
 export const componentMap = {
