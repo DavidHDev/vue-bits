@@ -17,6 +17,8 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@hugeicons/core-free-icons": "^4.3.3",
+    "@hugeicons/vue": "^1.0.8",
     "@primeuix/themes": "^1.2.1",
     "@tresjs/cientos": "^4.3.1",
     "@tresjs/core": "^4.3.6",

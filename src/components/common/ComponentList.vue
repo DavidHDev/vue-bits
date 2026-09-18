@@ -6,6 +6,7 @@ import { fuzzyMatch } from '@/utils/fuzzy';
 import gsap from 'gsap';
 import { useToast } from 'primevue/usetoast';
 import { computed, onBeforeUnmount, onMounted, ref, watch, watchEffect } from 'vue';
+import { useRoute } from 'vue-router';
 import LazyCardMedia from './LazyCardMedia.vue';
 import PreviewSelect from './PreviewSelect.vue';
 
@@ -107,8 +108,18 @@ const categoryOptions = computed(() => [
   ...Array.from(new Set(items.value.map(i => i.categoryLabel))).sort((a, b) => a.localeCompare(b))
 ]);
 
+const route = useRoute();
 const search = ref('');
 const selectedCategory = ref('All Components');
+
+watch(
+  () => route.query.category,
+  fromQuery => {
+    selectedCategory.value =
+      typeof fromQuery === 'string' && categoryOptions.value.includes(fromQuery) ? fromQuery : 'All Components';
+  },
+  { immediate: true }
+);
 
 watch(categoryOptions, opts => {
   if (!opts.includes(selectedCategory.value)) selectedCategory.value = 'All Components';
