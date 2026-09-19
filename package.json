@@ -39,6 +39,7 @@
     "primeicons": "^7.0.0",
     "primevue": "^4.3.6",
     "three": "^0.178.0",
+    "vgpu": "^0.5.0",
     "vue": "^3.5.17",
     "vue-icons-plus": "^0.1.9",
     "vue-router": "^4.5.1",

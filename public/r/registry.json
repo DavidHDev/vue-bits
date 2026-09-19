@@ -36,6 +36,22 @@
 			]
 		},
 		{
+			"name": "AeroShards",
+			"title": "AeroShards",
+			"description": "A GPU-driven wind sculpture of folded foil shards with crisp detail, content-safe placements, and responsive pointer interactions.",
+			"type": "registry:component",
+			"dependencies": [
+				"vgpu@^0.5.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "AeroShards/AeroShards.vue"
+				}
+			]
+		},
+		{
 			"name": "AnimatedContent",
 			"title": "AnimatedContent",
 			"description": "Wrapper that animates any children on scroll or mount with configurable direction, distance, duration, easing and disappear options.",
@@ -917,6 +933,22 @@
 			]
 		},
 		{
+			"name": "GhostFibers",
+			"title": "GhostFibers",
+			"description": "A deep-blue recursive fiber field with luminous bands, radial twisting and soft atmospheric glow.",
+			"type": "registry:component",
+			"dependencies": [
+				"ogl@^1.0.11"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "GhostFibers/GhostFibers.vue"
+				}
+			]
+		},
+		{
 			"name": "GlareHover",
 			"title": "GlareHover",
 			"description": "Adds a realistic moving glare highlight on hover over any element.",
@@ -1196,6 +1228,20 @@
 				{
 					"type": "registry:component",
 					"path": "InfiniteMenu/InfiniteMenu.vue"
+				}
+			]
+		},
+		{
+			"name": "InfiniteSpiral",
+			"title": "InfiniteSpiral",
+			"description": "An endlessly looping 3D helix of images with customizable motion, depth, spacing and interaction.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "InfiniteSpiral/InfiniteSpiral.vue"
 				}
 			]
 		},
@@ -1708,6 +1754,20 @@
 			]
 		},
 		{
+			"name": "PixelSwap",
+			"title": "PixelSwap",
+			"description": "Pixel fragments assemble into a full cover, swap arbitrary content, then dissolve away with reversible colors and triggers.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "PixelSwap/PixelSwap.vue"
+				}
+			]
+		},
+		{
 			"name": "PixelTrail",
 			"title": "PixelTrail",
 			"description": "Pixelated cursor trail emitting fading squares with retro digital feel.",
@@ -2034,6 +2094,22 @@
 				{
 					"type": "registry:component",
 					"path": "ShapeGrid/ShapeGrid.vue"
+				}
+			]
+		},
+		{
+			"name": "ShapeWaves",
+			"title": "ShapeWaves",
+			"description": "A WebGPU field of triangles, circles and squares that brighten and grow along rolling waves, with an optional text cutout the waves flow around.",
+			"type": "registry:component",
+			"dependencies": [
+				"vgpu@^0.5.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ShapeWaves/ShapeWaves.vue"
 				}
 			]
 		},

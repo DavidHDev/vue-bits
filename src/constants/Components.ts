@@ -35,7 +35,8 @@ const animations = {
   'ripple-distortion': () => import('../demo/Animations/RippleDistortionDemo.vue'),
   'scroll-expand': () => import('../demo/Animations/ScrollExpandDemo.vue'),
   'swarm-cursor': () => import('../demo/Animations/SwarmCursorDemo.vue'),
-  'glow-cursor': () => import('../demo/Animations/GlowCursorDemo.vue')
+  'glow-cursor': () => import('../demo/Animations/GlowCursorDemo.vue'),
+  'pixel-swap': () => import('../demo/Animations/PixelSwapDemo.vue')
 };
 
 const textAnimations = {
@@ -115,7 +116,8 @@ const components = {
   'accordion-gallery': () => import('../demo/Components/AccordionGalleryDemo.vue'),
   'depth-carousel': () => import('../demo/Components/DepthCarouselDemo.vue'),
   'drift-wall': () => import('../demo/Components/DriftWallDemo.vue'),
-  'morph-slider': () => import('../demo/Components/MorphSliderDemo.vue')
+  'morph-slider': () => import('../demo/Components/MorphSliderDemo.vue'),
+  'infinite-spiral': () => import('../demo/Components/InfiniteSpiralDemo.vue')
 };
 
 const backgrounds = {
@@ -171,7 +173,10 @@ const backgrounds = {
   'sliced-waves': () => import('../demo/Backgrounds/SlicedWavesDemo.vue'),
   topography: () => import('../demo/Backgrounds/TopographyDemo.vue'),
   'web-threads': () => import('../demo/Backgrounds/WebThreadsDemo.vue'),
-  'crt-warp': () => import('../demo/Backgrounds/CRTWarpDemo.vue')
+  'crt-warp': () => import('../demo/Backgrounds/CRTWarpDemo.vue'),
+  'aero-shards': () => import('../demo/Backgrounds/AeroShardsDemo.vue'),
+  'ghost-fibers': () => import('../demo/Backgrounds/GhostFibersDemo.vue'),
+  'shape-waves': () => import('../demo/Backgrounds/ShapeWavesDemo.vue')
 };
 
 export const componentMap = {

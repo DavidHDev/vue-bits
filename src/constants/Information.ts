@@ -215,6 +215,15 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/animations/orbit-images',
     tags: []
   },
+  'Animations/PixelSwap': {
+    videoUrl: '/assets/videos/pixelswap.webm',
+    description:
+      'Pixel fragments assemble into a full cover, swap arbitrary content, then dissolve away with reversible colors and triggers.',
+    category: 'Animations',
+    name: 'PixelSwap',
+    docsUrl: 'https://vue-bits.dev/animations/pixel-swap',
+    tags: []
+  },
   'Animations/PixelTrail': {
     videoUrl: '/assets/videos/pixeltrail.webm',
     description: 'Pixelated cursor trail emitting fading squares with retro digital feel.',
@@ -772,6 +781,14 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/components/infinite-menu',
     tags: []
   },
+  'Components/InfiniteSpiral': {
+    videoUrl: '/assets/videos/infinitespiral.webm',
+    description: 'An endlessly looping 3D helix of images with customizable motion, depth, spacing and interaction.',
+    category: 'Components',
+    name: 'InfiniteSpiral',
+    docsUrl: 'https://vue-bits.dev/components/infinite-spiral',
+    tags: []
+  },
   'Components/LineSidebar': {
     videoUrl: '/assets/videos/linesidebar.webm',
     description: 'Static list navigation with a cursor-proximity effect that shifts and highlights nearby items.',
@@ -920,6 +937,15 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/backgrounds/acid-squares',
     tags: []
   },
+  'Backgrounds/AeroShards': {
+    videoUrl: '/assets/videos/aeroshards.webm',
+    description:
+      'A GPU-driven wind sculpture of folded foil shards with crisp detail, content-safe placements, and responsive pointer interactions.',
+    category: 'Backgrounds',
+    name: 'AeroShards',
+    docsUrl: 'https://vue-bits.dev/backgrounds/aero-shards',
+    tags: ['webgpu', 'vgpu', 'particles', 'procedural', 'post-processing', 'interactive']
+  },
   'Backgrounds/Aurora': {
     videoUrl: '/assets/videos/aurora.webm',
     description: 'Flowing aurora gradient background.',
@@ -1038,6 +1064,14 @@ export const componentMetadata: ComponentMetadata = {
     category: 'Backgrounds',
     name: 'Galaxy',
     docsUrl: 'https://vue-bits.dev/backgrounds/galaxy',
+    tags: []
+  },
+  'Backgrounds/GhostFibers': {
+    videoUrl: '/assets/videos/ghostfibers.webm',
+    description: 'A deep-blue recursive fiber field with luminous bands, radial twisting and soft atmospheric glow.',
+    category: 'Backgrounds',
+    name: 'GhostFibers',
+    docsUrl: 'https://vue-bits.dev/backgrounds/ghost-fibers',
     tags: []
   },
   'Backgrounds/GradientBlinds': {
@@ -1263,6 +1297,15 @@ export const componentMetadata: ComponentMetadata = {
     name: 'ShapeGrid',
     docsUrl: 'https://vue-bits.dev/backgrounds/shape-grid',
     tags: []
+  },
+  'Backgrounds/ShapeWaves': {
+    videoUrl: '/assets/videos/shapewaves.webm',
+    description:
+      'A WebGPU field of triangles, circles and squares that brighten and grow along rolling waves, with an optional text cutout the waves flow around.',
+    category: 'Backgrounds',
+    name: 'ShapeWaves',
+    docsUrl: 'https://vue-bits.dev/backgrounds/shape-waves',
+    tags: ['webgpu', 'vgpu', 'grid', 'shapes', 'text', 'procedural']
   },
   'Backgrounds/SideRays': {
     videoUrl: '/assets/videos/siderays.webm',

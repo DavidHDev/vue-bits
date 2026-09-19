@@ -1,17 +1,8 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
-import {
-  Check,
-  ChevronDown,
-  FileCode2,
-  FileText,
-  MoreHorizontal,
-  RotateCcw,
-  Sparkles,
-  Terminal
-} from 'lucide-vue-next';
+import { Check, ChevronDown, FileCode2, FileText, MoreHorizontal, Sparkles, Terminal } from 'lucide-vue-next';
 import { FiCode, FiEye } from 'vue-icons-plus/fi';
 import { PiShareFat } from 'vue-icons-plus/pi';
 import { RiHeartFill, RiHeartLine } from 'vue-icons-plus/ri';
@@ -23,6 +14,7 @@ import { dependenciesForSlug } from '@/constants/componentDependencies';
 import { buildCompactPrompt, copyText, openInAI } from '@/utils/aiExport';
 import { isComponentSaved, toggleSavedComponent } from '@/utils/favorites';
 import { useToast } from 'primevue/usetoast';
+import { CUSTOMIZE_ACTIONS } from './customizeActions';
 import ComponentPager from './ComponentPager.vue';
 import Dependencies from './Dependencies.vue';
 
@@ -52,6 +44,11 @@ const props = withDefaults(
 );
 
 const toast = useToast();
+
+provide(CUSTOMIZE_ACTIONS, {
+  reset: () => props.onreset?.(),
+  canReset: computed(() => Boolean(props.onreset) && props.hasChanges)
+});
 const route = useRoute();
 
 const activeTab = ref<'preview' | 'code'>('preview');
@@ -382,18 +379,6 @@ function handleTabKey(event: KeyboardEvent) {
 
       <!-- Actions -->
       <div class="flex flex-wrap items-center gap-2">
-        <button
-          v-if="onreset && activeTab === 'preview' && hasChanges"
-          @click="onreset"
-          type="button"
-          class="flex items-center gap-2 px-4 border rounded-[10px] h-10 transition-colors duration-200 hover:bg-(--bg-hover)"
-          :style="TAB_STYLE_PROPS"
-        >
-          <RotateCcw :size="14" />
-
-          Reset
-        </button>
-
         <!-- Desktop: full action buttons -->
         <div class="hidden md:flex items-center gap-2">
           <div v-if="showFavorite" class="group relative">

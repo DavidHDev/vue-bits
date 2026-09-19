@@ -2,6 +2,7 @@
 export const COMPONENT_DEPENDENCIES: Record<string, string[]> = {
   'accordion-gallery': ['gsap'],
   'acid-squares': ['ogl'],
+  'aero-shards': ['vgpu'],
   'animated-content': ['gsap'],
   'animated-list': ['motion-v'],
   antigravity: ['three'],
@@ -43,6 +44,7 @@ export const COMPONENT_DEPENDENCIES: Record<string, string[]> = {
   'fold-text': ['gsap'],
   galaxy: ['ogl'],
   'ghost-cursor': ['three'],
+  'ghost-fibers': ['ogl'],
   'glow-cursor': ['ogl'],
   'gradient-blinds': ['ogl'],
   'gradient-text': ['motion-v'],
@@ -94,6 +96,7 @@ export const COMPONENT_DEPENDENCIES: Record<string, string[]> = {
   'scroll-stack': ['lenis'],
   'scroll-velocity': ['gsap'],
   'shape-blur': ['three'],
+  'shape-waves': ['vgpu'],
   'shiny-text': ['motion-v'],
   shuffle: ['gsap'],
   'side-rays': ['ogl'],
