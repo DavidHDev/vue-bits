@@ -120,6 +120,9 @@ export const COMPONENT_DEPENDENCIES: Record<string, string[]> = {
   'web-threads': ['ogl']
 };
 
+const normalize = (s: string) => s.replace(/[^a-z0-9]/gi, '').toLowerCase();
+const DEPENDENCIES_BY_NORMALIZED = new Map(Object.entries(COMPONENT_DEPENDENCIES).map(([k, v]) => [normalize(k), v]));
+
 export function dependenciesForSlug(slug: string | undefined): string[] {
-  return slug ? (COMPONENT_DEPENDENCIES[slug] ?? []) : [];
+  return slug ? (DEPENDENCIES_BY_NORMALIZED.get(normalize(slug)) ?? []) : [];
 }

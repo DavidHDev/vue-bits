@@ -4,7 +4,17 @@
 // Per-item URLs are `{REGISTRY_BASE}/<slug>.json`; jsrepo resolves the manifest by loading
 // `registry.json` under that directory. Point `jsrepo init` at `REGISTRY_BASE` (same as the HTTPS site path).
 
+import { componentMetadata } from './Information';
+
 export const REGISTRY_BASE = 'https://vue-bits.dev/r';
+
+const normalizeSlug = (slug: string): string => slug.replace(/[^a-z0-9]/gi, '').toLowerCase();
+
+// Registry items are named after the PascalCase component,
+// but demos pass slugs in kebab/camel/lower case. Resolve any form to the item name.
+const REGISTRY_NAME_BY_SLUG = new Map(Object.values(componentMetadata).map(({ name }) => [normalizeSlug(name), name]));
+
+export const registryItemName = (slug: string): string => REGISTRY_NAME_BY_SLUG.get(normalizeSlug(slug)) ?? slug;
 
 export type PackageManager = 'npm' | 'pnpm' | 'yarn' | 'bun';
 export type Runner = 'npx' | 'pnpm dlx' | 'yarn dlx' | 'bunx --bun';
@@ -27,7 +37,7 @@ export const RUNNER_TO_PKG: Record<Runner, PackageManager> = {
 
 export const RUNNERS: Runner[] = ['npx', 'pnpm dlx', 'bunx --bun', 'yarn dlx'];
 
-export const registryUrl = (slug: string): string => `${REGISTRY_BASE}/${slug}.json`;
+export const registryUrl = (slug: string): string => `${REGISTRY_BASE}/${registryItemName(slug)}.json`;
 
 /**
  * Printed in documentation: configure the registry in the user's project (`jsrepo init`), then install an item (`jsrepo add`).
