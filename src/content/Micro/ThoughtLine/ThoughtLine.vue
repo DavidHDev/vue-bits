@@ -6,6 +6,7 @@ import {
   computed,
   defineComponent,
   h,
+  onMounted,
   ref,
   useSlots,
   watch,
@@ -104,6 +105,9 @@ const sheen = computed(() => props.shimmer && !reduce.value);
 const toggle = computed(() => hasTrace.value && props.collapsible);
 const hasGlyph = computed(() => props.glyph !== 'none' || !!slots.glyph);
 
+// post watchers need the refs, so they wait for this flag instead of running immediately
+const mounted = ref(false);
+onMounted(() => (mounted.value = true));
 const glyphRef = ref<HTMLSpanElement | null>(null);
 const breathRef = ref<HTMLSpanElement | null>(null);
 const timerRef = ref<HTMLSpanElement | null>(null);
@@ -134,7 +138,7 @@ watch(
 );
 
 watch(
-  [isWorking, period, depth, trough, () => props.settleDuration, () => props.glyph, sheen, hasGlyph],
+  [mounted, isWorking, period, depth, trough, () => props.settleDuration, () => props.glyph, sheen, hasGlyph],
   (_v, _o, onCleanup) => {
     const glyphEl = glyphRef.value;
     const breathEl = breathRef.value;
@@ -172,7 +176,7 @@ watch(
       running.forEach(a => a.stop());
     });
   },
-  { flush: 'post', immediate: true }
+  { flush: 'post' }
 );
 
 // the clock is written by hand so ten ticks a second never render the component
@@ -181,7 +185,7 @@ const paint = (next: number) => {
   if (timerRef.value) timerRef.value.textContent = fmt(next);
 };
 watch(
-  [isWorking, () => props.elapsed, () => props.settleAfter, () => props.showTimer],
+  [mounted, isWorking, () => props.elapsed, () => props.settleAfter, () => props.showTimer],
   (_v, _o, onCleanup) => {
     if (props.elapsed != null) {
       paint(Math.round(props.elapsed * 10));
@@ -200,11 +204,11 @@ watch(
     }, 100);
     onCleanup(() => clearInterval(id));
   },
-  { flush: 'post', immediate: true }
+  { flush: 'post' }
 );
 
 watch(
-  [isWorking, () => props.label, doneText, () => props.fontSize, () => props.showTimer],
+  [mounted, isWorking, () => props.label, doneText, () => props.fontSize, () => props.showTimer],
   (_v, _o, onCleanup) => {
     const t = timerRef.value;
     const stack = stackRef.value;
@@ -227,12 +231,12 @@ watch(
     if (doneRef.value) ro.observe(doneRef.value);
     onCleanup(() => ro.disconnect());
   },
-  { flush: 'post', immediate: true }
+  { flush: 'post' }
 );
 
 watch(
-  isWorking,
-  working => {
+  [mounted, isWorking],
+  ([, working]) => {
     if (working) {
       announce.value = props.label;
       return;
@@ -240,7 +244,7 @@ watch(
     announce.value = props.showTimer ? `${doneText.value} ${spoken(ds)}` : doneText.value;
     emit('settle', ds / 10);
   },
-  { flush: 'post', immediate: true }
+  { flush: 'post' }
 );
 
 const headAttrs = computed(() => {

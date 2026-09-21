@@ -99,6 +99,8 @@ let leaving = false;
 let frame = 0;
 const offs: (() => void)[] = [];
 
+// post watchers need the refs, so they wait for this flag instead of running immediately
+const refsReady = ref(false);
 const y = motionValue(0);
 const fade = motionValue(1);
 
@@ -144,7 +146,7 @@ watch(
   { immediate: true }
 );
 watch(
-  [phase, () => props.duration],
+  [phase, () => props.duration, refsReady],
   (_v, _o, onCleanup) => {
     if (phase.value !== 'open' || props.duration <= 0 || !fuseRef.value) return;
     anim?.cancel();
@@ -157,7 +159,7 @@ watch(
       a.pause();
     });
   },
-  { flush: 'post', immediate: true }
+  { flush: 'post' }
 );
 watch(
   () => props.pauseOnHover,
@@ -170,6 +172,7 @@ watch(
 );
 
 onMounted(() => {
+  refsReady.value = true;
   if (!HAS_STARTING_STYLE) frame = requestAnimationFrame(() => (mounted.value = true));
   // the card's transform and opacity are written by hand so a drag never triggers a Vue render
   offs.push(
