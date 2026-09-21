@@ -1,5 +1,8 @@
 // Highlighted sidebar items
 export const NEW = [
+  'Paper Crumple',
+  'Tear Ticket',
+  'Flip Card',
   'Branched Menu',
   'Folder Float',
   'Refine Frame',
@@ -136,6 +139,44 @@ export const CATEGORIES = [
       'Sticker Peel',
       'Strands',
       'Target Cursor'
+    ]
+  },
+  {
+    name: 'Micro',
+    subcategories: [
+      'Paper Crumple',
+      'Warm Tooltip',
+      'Wake Slider',
+      'Voice Pill',
+      'Thought Line',
+      'Tear Ticket',
+      'Swipe Toast',
+      'Swipe Row',
+      'Status Mark',
+      'Squish Switch',
+      'Spring Check',
+      'Slosh Gauge',
+      'Sling Button',
+      'Slide Commit',
+      'Scrub Field',
+      'Rubber Segment',
+      'Refine Frame',
+      'Pulse Heart',
+      'Prompt Bar',
+      'Peek Rating',
+      'Lattice Loader',
+      'Jelly Radio',
+      'Hold Button',
+      'Glide Select',
+      'Fuse Button',
+      'Folder Float',
+      'Flip Card',
+      'Dodge Field',
+      'Comet Dial',
+      'Code Slots',
+      'Call Chip',
+      'Branched Menu',
+      'Bell Toggle'
     ]
   },
   {

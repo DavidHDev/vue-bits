@@ -1,9 +1,5 @@
 <template>
-  <div
-    ref="containerRef"
-    :class="['w-full h-full overflow-hidden relative', className]"
-    :style="containerStyle"
-  />
+  <div ref="containerRef" :class="['w-full h-full overflow-hidden relative', className]" :style="containerStyle" />
 </template>
 
 <script setup lang="ts">
@@ -441,12 +437,7 @@ onUnmounted(() => {
 });
 
 watch(
-  [
-    () => props.dpr,
-    () => props.colors,
-    () => props.mouseInteraction,
-    () => props.mouseDampening
-  ],
+  [() => props.dpr, () => props.colors, () => props.mouseInteraction, () => props.mouseDampening],
   () => {
     teardown();
     setupWebGL();

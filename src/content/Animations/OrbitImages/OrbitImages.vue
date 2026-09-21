@@ -176,30 +176,22 @@ const path = computed(() => {
 });
 
 const containerWidth = computed(() => {
-  return props.responsive ? '100%' : (typeof props.width === 'number' ? `${props.width}px` : '100%');
+  return props.responsive ? '100%' : typeof props.width === 'number' ? `${props.width}px` : '100%';
 });
 
 const containerHeight = computed(() => {
-  return props.responsive ? 'auto' : (typeof props.height === 'number' ? `${props.height}px` : (typeof props.width === 'number' ? `${props.width}px` : 'auto'));
+  return props.responsive
+    ? 'auto'
+    : typeof props.height === 'number'
+      ? `${props.height}px`
+      : typeof props.width === 'number'
+        ? `${props.width}px`
+        : 'auto';
 });
 
 function updateScale() {
   if (!props.responsive || !containerRef.value) return;
   scale.value = containerRef.value.clientWidth / props.baseWidth;
-}
-
-function applyEasing(t: number): number {
-  switch (props.easing) {
-    case 'easeIn':
-      return t * t;
-    case 'easeOut':
-      return 1 - (1 - t) * (1 - t);
-    case 'easeInOut':
-      return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-    case 'linear':
-    default:
-      return t;
-  }
 }
 
 function animationLoop(currentTime: number) {
@@ -218,8 +210,8 @@ function animationLoop(currentTime: number) {
 
   const progressPerSecond = 100 / props.duration;
   const delta = props.direction === 'reverse' ? -progressPerSecond * deltaTime : progressPerSecond * deltaTime;
-  
-  progress.value = ((progress.value + delta) % 100 + 100) % 100;
+
+  progress.value = (((progress.value + delta) % 100) + 100) % 100;
 
   animationFrameId = requestAnimationFrame(animationLoop);
 }
@@ -235,12 +227,6 @@ function stopAnimation() {
     cancelAnimationFrame(animationFrameId);
     animationFrameId = null;
   }
-}
-
-function getOffsetDistance(index: number): string {
-  const itemOffset = props.fill ? (index / props.images.length) * 100 : 0;
-  const offset = (((progress.value + itemOffset) % 100) + 100) % 100;
-  return `${offset}%`;
 }
 
 let resizeObserver: ResizeObserver | null = null;
@@ -273,7 +259,7 @@ watch(
 
 watch(
   () => props.responsive,
-  (newVal) => {
+  newVal => {
     if (newVal && containerRef.value) {
       updateScale();
       if (!resizeObserver) {
@@ -332,12 +318,7 @@ const offsetDistances = computed(() => {
           :viewBox="`0 0 ${props.baseWidth} ${props.baseWidth}`"
           class="absolute inset-0 pointer-events-none"
         >
-          <path
-            :d="path"
-            fill="none"
-            :stroke="props.pathColor"
-            :stroke-width="props.pathWidth / scale"
-          />
+          <path :d="path" fill="none" :stroke="props.pathColor" :stroke-width="props.pathWidth / scale" />
         </svg>
 
         <!-- Orbit Items -->
@@ -367,10 +348,7 @@ const offsetDistances = computed(() => {
     </div>
 
     <!-- Center Content Slot -->
-    <div
-      v-if="$slots.centerContent"
-      class="absolute inset-0 flex items-center justify-center z-10"
-    >
+    <div v-if="$slots.centerContent" class="absolute inset-0 flex items-center justify-center z-10">
       <slot name="centerContent" />
     </div>
   </div>
