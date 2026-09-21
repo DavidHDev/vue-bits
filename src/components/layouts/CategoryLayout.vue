@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { customToastStyles } from '@/utils/utils';
-import { X } from 'lucide-vue-next';
 import { onMounted, onUnmounted, ref } from 'vue';
-import Logo from '../../assets/logos/vue-bits-logo.svg';
 import Footer from '../landing/Footer/Footer.vue';
 import Navbar from '../landing/Navbar/Navbar.vue';
 import Sidebar from '../navs/Sidebar.vue';
@@ -52,7 +50,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKey));
 
 <template>
   <div class="docs-app">
-    <Navbar :show-docs="true" @hamburger="toggle" />
+    <Navbar :show-docs="true" :drawer-open="drawerOpen" @hamburger="toggle" />
 
     <!-- Mobile drawer backdrop -->
     <div class="docs-drawer-backdrop" :data-open="drawerOpen" role="presentation" @click="close" />
@@ -69,14 +67,6 @@ onUnmounted(() => document.removeEventListener('keydown', onKey));
       :aria-hidden="!drawerOpen"
       :inert="!drawerOpen || undefined"
     >
-      <div class="docs-drawer-header">
-        <RouterLink to="/" class="docs-drawer-logo" @click="close">
-          <img :src="Logo" alt="Vue Bits" />
-        </RouterLink>
-        <button type="button" class="docs-drawer-close" aria-label="Close navigation" @click="close">
-          <X :size="18" />
-        </button>
-      </div>
       <Sidebar variant="drawer" @navigate="close" />
     </div>
 
@@ -98,49 +88,6 @@ onUnmounted(() => document.removeEventListener('keydown', onKey));
 </template>
 
 <style scoped>
-/* ─── Docs drawer sidebar override ────────────────────────────────────────── */
-.docs-drawer .sidebar {
-  position: static;
-  padding: 0;
-  margin-left: 0;
-  max-width: none;
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.docs-drawer-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 0 1em;
-  margin: -0.25em 0 1em;
-  border-bottom: 1px solid var(--border-primary);
-}
-
-.docs-drawer-logo img {
-  height: 24px;
-  display: block;
-}
-
-.docs-drawer-close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  border: 1px solid transparent;
-  background: var(--bg-hover);
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: background-color var(--transition-fast);
-}
-
-.docs-drawer-close:hover {
-  background: var(--bg-elevated);
-}
-
 .docs-content {
   grid-column: 2;
   min-width: 0;
@@ -149,7 +96,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKey));
 
 @media only screen and (max-width: 967px) {
   .docs-content {
-    padding: 6em 1.25em 5.5em;
+    padding: 4em 0.65em 5em;
   }
 }
 </style>

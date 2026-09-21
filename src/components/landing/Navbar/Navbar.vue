@@ -6,7 +6,7 @@ import { useRoute } from 'vue-router';
 import Logo from '../../../assets/logos/vue-bits-logo.svg';
 import './Navbar.css';
 
-const { showDocs = false } = defineProps<{ showDocs?: boolean }>();
+const { showDocs = false, drawerOpen = false } = defineProps<{ showDocs?: boolean; drawerOpen?: boolean }>();
 const emit = defineEmits<{ hamburger: [] }>();
 
 const GITHUB_URL = 'https://github.com/DavidHDev/vue-bits';
@@ -84,6 +84,8 @@ function toggleSearch() {
 }
 
 // ── hamburger ─────────────────────────────────────────────────────────────────
+const isMenuOpen = computed(() => (showDocs ? drawerOpen : menuOpen.value));
+
 function handleHamburger() {
   if (showDocs) emit('hamburger');
   else menuOpen.value = !menuOpen.value;
@@ -204,8 +206,8 @@ onUnmounted(() => {
         <button
           type="button"
           class="ln-navbar-hamburger"
-          :class="{ open: menuOpen }"
-          :aria-expanded="menuOpen"
+          :class="{ open: isMenuOpen }"
+          :aria-expanded="isMenuOpen"
           aria-label="Menu"
           @click="handleHamburger"
         >

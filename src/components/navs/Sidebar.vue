@@ -1,5 +1,14 @@
 <script setup lang="ts">
 import { getSavedComponents } from '@/utils/favorites';
+import {
+  DashboardSquare01Icon,
+  Image01Icon,
+  Motion01Icon,
+  MousePointerClickIcon,
+  PuzzleIcon,
+  TextFontIcon
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/vue';
 import { Search } from 'lucide-vue-next';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -16,6 +25,44 @@ const router = useRouter();
 
 const activeCategory = computed(() => (route.params.category as string) ?? '');
 const activeSub = computed(() => (route.params.subcategory as string) ?? '');
+
+// ── category picker ──────────────────────────────────────────────────────────
+const PICKER = [
+  { key: 'all', label: 'All', icon: DashboardSquare01Icon },
+  { key: 'text-animations', label: 'Text Animations', icon: TextFontIcon },
+  { key: 'components', label: 'Components', icon: PuzzleIcon },
+  { key: 'micro', label: 'Micro', icon: MousePointerClickIcon },
+  { key: 'animations', label: 'Animations', icon: Motion01Icon },
+  { key: 'backgrounds', label: 'Backgrounds', icon: Image01Icon }
+] as const;
+
+const pickerActiveKey = computed(() => {
+  const queryCategory = route.query.category as string | undefined;
+  if (queryCategory) {
+    const found = CATEGORIES.find(cat => cat.name === queryCategory);
+    return found ? slug(found.name) : 'all';
+  }
+
+  const found = CATEGORIES.find(cat => cat.name !== 'Get Started' && slug(cat.name) === activeCategory.value);
+  return found ? slug(found.name) : 'all';
+});
+
+const pickerIndex = computed(() =>
+  Math.max(
+    0,
+    PICKER.findIndex(option => option.key === pickerActiveKey.value)
+  )
+);
+
+function pickCategory(key: string) {
+  if (key === 'all') {
+    router.push('/get-started/index');
+    return;
+  }
+  if (key === pickerActiveKey.value) return;
+  const category = CATEGORIES.find(cat => slug(cat.name) === key);
+  if (category) router.push({ path: '/get-started/index', query: { category: category.name } });
+}
 
 function isActive(cat: string, sub: string) {
   return slug(cat) === activeCategory.value && slug(sub) === activeSub.value;
@@ -247,6 +294,30 @@ onMounted(() => {
 
 <template>
   <aside class="sidebar" :class="{ 'sidebar--drawer': variant === 'drawer' }" aria-label="Docs navigation">
+    <div
+      v-if="variant === 'desktop'"
+      class="sidebar-picker"
+      role="tablist"
+      aria-label="Category"
+      :style="{ '--sp-i': pickerIndex, '--sp-n': PICKER.length }"
+    >
+      <span class="sidebar-picker__pill" aria-hidden="true" />
+      <button
+        v-for="(option, i) in PICKER"
+        :key="option.key"
+        type="button"
+        role="tab"
+        :aria-selected="i === pickerIndex"
+        :aria-label="option.label"
+        :title="option.label"
+        class="sidebar-picker__item"
+        :class="{ 'is-active': i === pickerIndex }"
+        @click="pickCategory(option.key)"
+      >
+        <HugeiconsIcon :icon="option.icon" :size="18" :stroke-width="1.8" aria-hidden="true" />
+      </button>
+    </div>
+
     <label class="sidebar-filter">
       <Search :size="13" aria-hidden="true" />
       <input
@@ -356,7 +427,7 @@ onMounted(() => {
   top: 76px;
   left: 16px;
   height: calc(100vh - 92px);
-  width: 200px;
+  width: 240px;
   margin: 0;
   display: flex;
   flex-direction: column;
@@ -370,6 +441,54 @@ onMounted(() => {
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   isolation: isolate;
+}
+
+.sidebar-picker {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  gap: 2px;
+  margin: 0 14px;
+  padding: 3px;
+  border: 1px solid var(--border-primary);
+  border-radius: 11px;
+  background: var(--bg-body);
+}
+
+.sidebar-picker__pill {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: calc((100% - 6px) / var(--sp-n));
+  height: calc(100% - 6px);
+  border-radius: 8px;
+  background: var(--bg-hover);
+  transform: translateX(calc(var(--sp-i) * 100%));
+  transition: transform var(--transition-base);
+}
+
+.sidebar-picker__item {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.sidebar-picker__item:hover {
+  color: var(--text-primary);
+}
+
+.sidebar-picker__item.is-active {
+  color: var(--color-accent);
 }
 
 .sidebar-filter {
@@ -510,6 +629,10 @@ onMounted(() => {
   .sidebar-hover-preview {
     display: none;
   }
+
+  .sidebar:not(.sidebar--drawer) {
+    display: none;
+  }
 }
 
 /* ── Drawer variant ───────────────────────────────────────────────────────── */
@@ -517,7 +640,7 @@ onMounted(() => {
   position: static;
   left: auto;
   top: auto;
-  padding: 0;
+  padding: 14px 0 0 0;
   margin: 0;
   max-width: none;
   width: 100%;
@@ -544,6 +667,64 @@ onMounted(() => {
 
 .sidebar--drawer .sidebar-scroll-shell::before,
 .sidebar--drawer .sidebar-scroll-shell::after {
+  display: none;
+}
+
+.sidebar--drawer .sidebar-active-line {
+  display: none;
+}
+
+.sidebar--drawer .sidebar-stack {
+  gap: 2px;
+  padding-left: 0;
+  border-left: 0;
+}
+
+.sidebar--drawer .sidebar-cat-list {
+  gap: 14px;
+}
+
+.sidebar--drawer .category-name {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.sidebar--drawer .sidebar-filter {
+  height: 36px;
+  padding: 0 11px;
+  margin: 0 14px 10px;
+}
+
+.sidebar--drawer .sidebar-filter input {
+  font-size: 13px;
+}
+
+.sidebar--drawer .sidebar-item {
+  font-size: 13px;
+  color: var(--text-muted);
+  border-radius: 7px;
+  padding: 6px 9px;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-base),
+    transform var(--transition-base);
+}
+
+.sidebar--drawer .sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-primary);
+}
+
+.sidebar--drawer .sidebar-item.active {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.sidebar--drawer .new-tag,
+.sidebar--drawer .updated-tag,
+.sidebar--drawer .favorite-sidebar-icon {
   display: none;
 }
 </style>

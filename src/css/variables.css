@@ -22,6 +22,13 @@
   --text-dimmed: #a1a1aa;
   --text-link: #ffffff;
 
+  /* Ghost surfaces (framed card panels: Customize, Props, Dependencies) */
+  --surface-ghost: rgba(255, 255, 255, 0.07);
+  --surface-ghost-track: rgba(255, 255, 255, 0.04);
+  --surface-ghost-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --inset-border: rgba(255, 255, 255, 0.055);
+  --inset-divider: rgba(255, 255, 255, 0.045);
+
   /* Radii */
   --radius-sm: 10px;
   --radius-md: 12px;

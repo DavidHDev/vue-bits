@@ -686,3 +686,23 @@
     padding: 0 16px;
   }
 }
+
+/* The docs sidebar hides at 967px (see docs.css), so the docs navbar's
+   hamburger/search-icon-only mode must kick in at the same width — otherwise
+   widths between 769px and 966px have no sidebar and no way to open it. */
+@media (max-width: 967px) {
+  .ln-navbar-docs .ln-navbar-hamburger {
+    display: flex;
+  }
+
+  .ln-navbar-docs .ln-navbar-search span,
+  .ln-navbar-docs .ln-navbar-search kbd {
+    display: none;
+  }
+
+  .ln-navbar-docs .ln-navbar-search {
+    width: 36px;
+    justify-content: center;
+    padding: 0;
+  }
+}

@@ -426,7 +426,7 @@ const dotProps = computed(() => propValues.value[1] as Record<string, number | b
 
     <div class="ln-hero-content">
       <div class="ln-hero-left">
-        <a href="/animations/glow-cursor" class="ln-hero-tag">
+        <a href="/get-started/index?category=Micro" class="ln-hero-tag">
           <span
             class="ln-hero-tag-new"
             :style="{
@@ -434,10 +434,10 @@ const dotProps = computed(() => propValues.value[1] as Record<string, number | b
               color: accentDerived.accentFg
             }"
           >
-            New Animation
+            New Category
           </span>
 
-          Glow Cursor
+          MICRO-INTERACTIONS
 
           <svg width="10" height="10" viewBox="0 0 448 512" fill="currentColor" aria-hidden="true">
             <path
@@ -466,7 +466,7 @@ const dotProps = computed(() => propValues.value[1] as Record<string, number | b
 
         <div class="ln-hero-buttons">
           <a
-            href="/get-started/introduction"
+            href="/get-started/index"
             class="ln-hero-btn ln-hero-btn-primary"
             :style="{
               background: accentColor,
