@@ -9,9 +9,9 @@
 .scrubber-track {
   position: relative;
   height: 40px;
-  border-radius: var(--radius-sm);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-primary);
+  border-radius: 7px;
+  background: var(--surface-ghost-track);
+  border: 1px solid transparent;
   cursor: pointer;
   overflow: hidden;
   touch-action: none;
@@ -309,13 +309,39 @@
 
 /* ─── Prop Table ───────────────────────────────────────────────────────────── */
 .prop-table-section {
-  margin-top: 3em;
+  margin-top: 8px;
+}
+
+.prop-table-frame {
+  padding: 4px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: var(--surface-ghost-track);
+  box-shadow: var(--surface-ghost-highlight);
+}
+
+.prop-table-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0.75rem 0.7rem;
+}
+
+.prop-table-heading .demo-title-extra {
+  margin: 0;
+}
+
+.prop-table-heading > span {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .prop-table-wrap {
-  margin-top: 1.5em;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
+  border: 1px solid var(--inset-border);
+  border-radius: 12px;
+  background: var(--bg-body);
   overflow: hidden;
 }
 
@@ -379,13 +405,14 @@
 .prop-cards {
   display: none;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 1.5em;
+  gap: 1px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--inset-border);
 }
 
 .prop-card {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  background: var(--bg-body);
   padding: 16px;
   display: flex;
   flex-direction: column;

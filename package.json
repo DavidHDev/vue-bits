@@ -17,6 +17,8 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@hugeicons/core-free-icons": "^4.3.3",
+    "@hugeicons/vue": "^1.0.8",
     "@primeuix/themes": "^1.2.1",
     "@tresjs/cientos": "^4.3.1",
     "@tresjs/core": "^4.3.6",
@@ -37,6 +39,7 @@
     "primeicons": "^7.0.0",
     "primevue": "^4.3.6",
     "three": "^0.178.0",
+    "vgpu": "^0.5.0",
     "vue": "^3.5.17",
     "vue-icons-plus": "^0.1.9",
     "vue-router": "^4.5.1",

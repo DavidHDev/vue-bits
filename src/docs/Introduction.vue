@@ -27,7 +27,7 @@ onMounted(() => window.scrollTo(0, 0));
 
 <template>
   <section class="mx-auto pb-24 max-w-168.75 docs-page">
-    <div class="flex justify-between items-start gap-4">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
       <h1 class="m-0 text-4xl md:text-[2.75rem] font-bold leading-[1.04] tracking-tight text-(--text-primary)">
         Introduction
       </h1>

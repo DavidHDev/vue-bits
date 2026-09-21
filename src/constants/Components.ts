@@ -35,7 +35,8 @@ const animations = {
   'ripple-distortion': () => import('../demo/Animations/RippleDistortionDemo.vue'),
   'scroll-expand': () => import('../demo/Animations/ScrollExpandDemo.vue'),
   'swarm-cursor': () => import('../demo/Animations/SwarmCursorDemo.vue'),
-  'glow-cursor': () => import('../demo/Animations/GlowCursorDemo.vue')
+  'glow-cursor': () => import('../demo/Animations/GlowCursorDemo.vue'),
+  'pixel-swap': () => import('../demo/Animations/PixelSwapDemo.vue')
 };
 
 const textAnimations = {
@@ -115,7 +116,8 @@ const components = {
   'accordion-gallery': () => import('../demo/Components/AccordionGalleryDemo.vue'),
   'depth-carousel': () => import('../demo/Components/DepthCarouselDemo.vue'),
   'drift-wall': () => import('../demo/Components/DriftWallDemo.vue'),
-  'morph-slider': () => import('../demo/Components/MorphSliderDemo.vue')
+  'morph-slider': () => import('../demo/Components/MorphSliderDemo.vue'),
+  'infinite-spiral': () => import('../demo/Components/InfiniteSpiralDemo.vue')
 };
 
 const backgrounds = {
@@ -172,8 +174,48 @@ const backgrounds = {
   topography: () => import('../demo/Backgrounds/TopographyDemo.vue'),
   'web-threads': () => import('../demo/Backgrounds/WebThreadsDemo.vue'),
   'crt-warp': () => import('../demo/Backgrounds/CRTWarpDemo.vue'),
-  scanner: () => import('../demo/Backgrounds/ScannerDemo.vue')
+  scanner: () => import('../demo/Backgrounds/ScannerDemo.vue'),
+  'aero-shards': () => import('../demo/Backgrounds/AeroShardsDemo.vue'),
+  'ghost-fibers': () => import('../demo/Backgrounds/GhostFibersDemo.vue'),
+  'shape-waves': () => import('../demo/Backgrounds/ShapeWavesDemo.vue')
 };
+
+const micro = {
+  'squish-switch': () => import('../demo/Micro/SquishSwitchDemo.vue'),
+  'hold-button': () => import('../demo/Micro/HoldButtonDemo.vue'),
+  'peek-rating': () => import('../demo/Micro/PeekRatingDemo.vue'),
+  'spring-check': () => import('../demo/Micro/SpringCheckDemo.vue'),
+  'pulse-heart': () => import('../demo/Micro/PulseHeartDemo.vue'),
+  'rubber-segment': () => import('../demo/Micro/RubberSegmentDemo.vue'),
+  'slide-commit': () => import('../demo/Micro/SlideCommitDemo.vue'),
+  'warm-tooltip': () => import('../demo/Micro/WarmTooltipDemo.vue'),
+  'fuse-button': () => import('../demo/Micro/FuseButtonDemo.vue'),
+  'scrub-field': () => import('../demo/Micro/ScrubFieldDemo.vue'),
+  'lattice-loader': () => import('../demo/Micro/LatticeLoaderDemo.vue'),
+  'dodge-field': () => import('../demo/Micro/DodgeFieldDemo.vue'),
+  'code-slots': () => import('../demo/Micro/CodeSlotsDemo.vue'),
+  'wake-slider': () => import('../demo/Micro/WakeSliderDemo.vue'),
+  'comet-dial': () => import('../demo/Micro/CometDialDemo.vue'),
+  'jelly-radio': () => import('../demo/Micro/JellyRadioDemo.vue'),
+  'swipe-row': () => import('../demo/Micro/SwipeRowDemo.vue'),
+  'glide-select': () => import('../demo/Micro/GlideSelectDemo.vue'),
+  'status-mark': () => import('../demo/Micro/StatusMarkDemo.vue'),
+  'call-chip': () => import('../demo/Micro/CallChipDemo.vue'),
+  'bell-toggle': () => import('../demo/Micro/BellToggleDemo.vue'),
+  'sling-button': () => import('../demo/Micro/SlingButtonDemo.vue'),
+  'swipe-toast': () => import('../demo/Micro/SwipeToastDemo.vue'),
+  'prompt-bar': () => import('../demo/Micro/PromptBarDemo.vue'),
+  'slosh-gauge': () => import('../demo/Micro/SloshGaugeDemo.vue'),
+  'voice-pill': () => import('../demo/Micro/VoicePillDemo.vue'),
+  'thought-line': () => import('../demo/Micro/ThoughtLineDemo.vue'),
+  'refine-frame': () => import('../demo/Micro/RefineFrameDemo.vue'),
+  'folder-float': () => import('../demo/Micro/FolderFloatDemo.vue'),
+  'branched-menu': () => import('../demo/Micro/BranchedMenuDemo.vue'),
+  'flip-card': () => import('../demo/Micro/FlipCardDemo.vue'),
+  'tear-ticket': () => import('../demo/Micro/TearTicketDemo.vue'),
+  'paper-crumple': () => import('../demo/Micro/PaperCrumpleDemo.vue')
+};
+
 
 export const componentMap = {
   introduction: () => import('../docs/Introduction.vue'),
@@ -183,6 +225,7 @@ export const componentMap = {
 
   ...animations,
   ...textAnimations,
+  ...micro,
   ...components,
   ...backgrounds
 };

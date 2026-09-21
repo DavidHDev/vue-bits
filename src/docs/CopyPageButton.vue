@@ -81,10 +81,10 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="rootRef" class="inline-flex relative items-stretch">
+  <div ref="rootRef" class="inline-flex relative items-stretch shrink-0">
     <button
       type="button"
-      class="inline-flex items-center gap-2 pl-3.5 pr-3 h-9 rounded-l-[10px] text-sm font-medium text-(--text-primary) bg-(--bg-elevated) border border-(--border-primary) border-r-0 cursor-pointer transition-colors duration-200 hover:bg-white/7"
+      class="inline-flex items-center gap-2 pl-3.5 pr-3 h-9 rounded-l-[10px] text-sm font-medium whitespace-nowrap text-(--text-primary) bg-(--bg-elevated) border border-(--border-primary) border-r-0 cursor-pointer transition-colors duration-200 hover:bg-white/7"
       aria-label="Copy this page as Markdown"
       @click="handleCopy"
     >

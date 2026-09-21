@@ -52,7 +52,12 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from 'vue';
 
-type Option = { label: string; value: string | number };
+type Option = { label?: string; value: string | number };
+type NormalizedOption = { label: string; value: string | number };
+
+const LABEL_OVERRIDES: Record<string, string> = { pingpong: 'Ping Pong', rotate3d: 'Rotate 3D' };
+const formatOptionLabel = (str: string) =>
+  LABEL_OVERRIDES[str] ?? str.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
 const {
   title = '',
@@ -61,7 +66,7 @@ const {
 } = defineProps<{
   title?: string;
   isDisabled?: boolean;
-  options?: Option[] | string[];
+  options?: (Option | string | number)[];
 }>();
 
 const modelValue = defineModel<string | number>({ default: '' });
@@ -69,7 +74,21 @@ const modelValue = defineModel<string | number>({ default: '' });
 const open = ref(false);
 const rootEl = ref<HTMLDivElement | null>(null);
 
-const normalized = computed<Option[]>(() => options.map(o => (typeof o === 'string' ? { label: o, value: o } : o)));
+const normalized = computed<NormalizedOption[]>(() =>
+  options.map(o => {
+    if (typeof o === 'string') {
+      return { value: o, label: formatOptionLabel(o) };
+    } else if (typeof o === 'number') {
+      return { value: o, label: String(o) };
+    } else if (typeof o === 'object' && o !== null) {
+      return {
+        ...o,
+        label: o.label != null ? o.label : formatOptionLabel(String(o.value))
+      };
+    }
+    return { value: String(o), label: String(o) };
+  })
+);
 
 const current = computed(() => normalized.value.find(o => o.value === modelValue.value));
 
