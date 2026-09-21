@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { getSavedComponents } from '@/utils/favorites';
-import { DashboardSquare01Icon, Image01Icon, Motion01Icon, PuzzleIcon, TextFontIcon } from '@hugeicons/core-free-icons';
+import {
+  DashboardSquare01Icon,
+  Image01Icon,
+  Motion01Icon,
+  MousePointerClickIcon,
+  PuzzleIcon,
+  TextFontIcon
+} from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/vue';
 import { Search } from 'lucide-vue-next';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
@@ -24,6 +31,7 @@ const PICKER = [
   { key: 'all', label: 'All', icon: DashboardSquare01Icon },
   { key: 'text-animations', label: 'Text Animations', icon: TextFontIcon },
   { key: 'components', label: 'Components', icon: PuzzleIcon },
+  { key: 'micro', label: 'Micro', icon: MousePointerClickIcon },
   { key: 'animations', label: 'Animations', icon: Motion01Icon },
   { key: 'backgrounds', label: 'Backgrounds', icon: Image01Icon }
 ] as const;
@@ -419,7 +427,7 @@ onMounted(() => {
   top: 76px;
   left: 16px;
   height: calc(100vh - 92px);
-  width: 200px;
+  width: 240px;
   margin: 0;
   display: flex;
   flex-direction: column;

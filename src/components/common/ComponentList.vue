@@ -156,6 +156,32 @@ const filtered = computed(() => {
 
 const controlsDisabled = computed(() => items.value.length === 0);
 
+function findMatchingCategory(input: string | undefined): string | null {
+  if (!input) return null;
+  const normalizedInput = slug(input);
+  if (normalizedInput === 'get-started') return null;
+
+  return (
+    categoryOptions.value.find(opt => opt !== 'All Components' && (opt === input || slug(opt) === normalizedInput)) ??
+    null
+  );
+}
+
+const hasCategoryInUrl = computed(() => {
+  const fromQuery = findMatchingCategory(route.query.category as string);
+  const fromParam = findMatchingCategory(route.params.category as string);
+  return Boolean(fromQuery || fromParam);
+});
+
+watch(
+  [() => route.query.category, () => route.params.category, categoryOptions],
+  ([queryCat, paramCat]) => {
+    const matchedCat = findMatchingCategory(queryCat as string) || findMatchingCategory(paramCat as string);
+    selectedCategory.value = matchedCat ?? 'All Components';
+  },
+  { immediate: true }
+);
+
 // ── debounced search for clear button ─────────────────────────────────────────
 const debouncedSearch = ref(search.value);
 
@@ -245,6 +271,7 @@ function toggleFavorite(key: string, componentKey: string) {
 
         <!-- Category select -->
         <PreviewSelect
+          v-if="!hasCategoryInUrl"
           v-model="selectedCategory"
           title="Category"
           :options="categoryOptions"
@@ -253,7 +280,7 @@ function toggleFavorite(key: string, componentKey: string) {
         />
 
         <!-- Clear button -->
-        <div ref="clearSlotRef" class="clear-slot" :class="{ show: showClear }">
+        <div v-if="!hasCategoryInUrl" ref="clearSlotRef" class="clear-slot" :class="{ show: showClear }">
           <button
             ref="clearBtnRef"
             type="button"
