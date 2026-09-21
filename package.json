@@ -56,6 +56,7 @@
     "@vitejs/plugin-vue-jsx": "^5.0.0",
     "@vue/eslint-config-typescript": "^14.5.1",
     "@vue/tsconfig": "^0.7.0",
+    "@webgpu/types": "^0.1.74",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.29.0",
     "eslint-plugin-vue": "~10.2.0",
