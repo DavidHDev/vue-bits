@@ -248,7 +248,7 @@ const rootStyle = computed<MotionStyle & CSSProperties>(
 <template>
   <motion.span
     ref="rootRef"
-    class="group inline-grid relative grid-cols-[max-content] data-[disabled]:opacity-55 data-[disabled]:data-[pressed]:scale-100 data-[pressed]:scale-[0.97] motion-reduce:data-[pressed]:scale-100 [-webkit-touch-callout:none] select-none [transition:transform_160ms_cubic-bezier(0.23,1,0.32,1)]"
+    class="group inline-grid relative grid-cols-[max-content] data-[disabled]:opacity-55 data-[disabled]:data-[pressed]:[transform:none] data-[pressed]:[transform:scale(0.97)] motion-reduce:data-[pressed]:[transform:none] [-webkit-touch-callout:none] select-none [transition:transform_160ms_cubic-bezier(0.23,1,0.32,1)]"
     :class="className"
     :data-on="on ? 'true' : 'false'"
     :data-disabled="disabled ? '' : undefined"
@@ -322,7 +322,7 @@ const rootStyle = computed<MotionStyle & CSSProperties>(
         >
           <span
             :key="count"
-            class="block opacity-100 starting:opacity-0 translate-y-0 starting:translate-y-[5px] [transition:opacity_200ms_ease,transform_200ms_cubic-bezier(0.23,1,0.32,1)] motion-reduce:[transform:none]! motion-reduce:[transition:opacity_200ms_ease]"
+            class="block opacity-100 starting:opacity-0 [transform:translateY(0)] starting:[transform:translateY(5px)] [transition:opacity_200ms_ease,transform_200ms_cubic-bezier(0.23,1,0.32,1)] motion-reduce:[transform:none]! motion-reduce:[transition:opacity_200ms_ease]"
           >
             {{ count > 9 ? '9+' : count }}
           </span>
