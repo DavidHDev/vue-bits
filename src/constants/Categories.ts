@@ -39,6 +39,7 @@ export const NEW = [
   'Infinite Spiral',
   'CRT Warp',
   'Glow Cursor',
+  'Scanner',
   'Scroll Expand',
   'Ripple Distortion',
   'Depth Carousel',
@@ -230,6 +231,7 @@ export const CATEGORIES = [
   {
     name: 'Backgrounds',
     subcategories: [
+      'Scanner',
       'Shape Waves',
       'Ghost Fibers',
       'Aero Shards',

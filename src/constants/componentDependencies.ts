@@ -107,6 +107,7 @@ export const COMPONENT_DEPENDENCIES: Record<string, string[]> = {
   'ripple-grid': ['ogl'],
   'rotating-text': ['motion-v'],
   'rubber-segment': ['@hugeicons/vue', 'motion-v'],
+  scanner: ['ogl'],
   'scramble-text': ['gsap'],
   'scroll-float': ['gsap'],
   'scroll-reveal': ['gsap'],

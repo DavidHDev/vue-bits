@@ -174,6 +174,7 @@ const backgrounds = {
   topography: () => import('../demo/Backgrounds/TopographyDemo.vue'),
   'web-threads': () => import('../demo/Backgrounds/WebThreadsDemo.vue'),
   'crt-warp': () => import('../demo/Backgrounds/CRTWarpDemo.vue'),
+  scanner: () => import('../demo/Backgrounds/ScannerDemo.vue'),
   'aero-shards': () => import('../demo/Backgrounds/AeroShardsDemo.vue'),
   'ghost-fibers': () => import('../demo/Backgrounds/GhostFibersDemo.vue'),
   'shape-waves': () => import('../demo/Backgrounds/ShapeWavesDemo.vue')
