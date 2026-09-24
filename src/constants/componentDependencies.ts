@@ -35,6 +35,7 @@ export const COMPONENT_DEPENDENCIES: Record<string, string[]> = {
   'decay-card': ['gsap'],
   'depth-carousel': ['gsap'],
   dither: ['ogl'],
+  'dither-veil': ['ogl'],
   dock: ['motion-v'],
   'dodge-field': ['motion-v'],
   'dot-grid': ['gsap'],
