@@ -532,6 +532,15 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/text-animations/stroke-text',
     tags: []
   },
+  'TextAnimations/TechText': {
+    videoUrl: '/assets/videos/techtext.webm',
+    description:
+      'A wordmark whose letters turn into dashed vector paths under the cursor. Grab any letter to drag it off the baseline and it springs back home.',
+    category: 'TextAnimations',
+    name: 'TechText',
+    docsUrl: 'https://vue-bits.dev/text-animations/tech-text',
+    tags: []
+  },
   'TextAnimations/TextCursor': {
     videoUrl: '/assets/videos/textcursor.webm',
     description: 'Make any text element follow your cursor, leaving a trail of copies behind it.',
@@ -1637,14 +1646,5 @@ export const componentMetadata: ComponentMetadata = {
     name: 'VoicePill',
     docsUrl: 'https://vue-bits.dev/micro/voice-pill',
     tags: ['mic', 'voice', 'dictation', 'equalizer', 'press', 'ai']
-  },
-  'Micro/WakeSlider': {
-    videoUrl: '/assets/videos/wakeslider.webm',
-    description:
-      'Range slider drawn as thin bars with no thumb: drag speed raises a wake that trails behind the handle and flattens again at rest.',
-    category: 'Micro',
-    name: 'WakeSlider',
-    docsUrl: 'https://vue-bits.dev/micro/wake-slider',
-    tags: ['slider', 'range', 'input', 'drag', 'bars', 'velocity']
   }
 };

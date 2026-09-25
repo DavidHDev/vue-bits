@@ -72,7 +72,8 @@ const textAnimations = {
   'split-flap-text': () => import('../demo/TextAnimations/SplitFlapTextDemo.vue'),
   'stroke-text': () => import('../demo/TextAnimations/StrokeTextDemo.vue'),
   'text-loop': () => import('../demo/TextAnimations/TextLoopDemo.vue'),
-  'warp-text': () => import('../demo/TextAnimations/WarpTextDemo.vue')
+  'warp-text': () => import('../demo/TextAnimations/WarpTextDemo.vue'),
+  'tech-text': () => import('../demo/TextAnimations/TechTextDemo.vue')
 };
 
 const components = {
