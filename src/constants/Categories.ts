@@ -1,5 +1,8 @@
 // Highlighted sidebar items
 export const NEW = [
+  'Tech Text',
+  'Dither Veil',
+  'Shredder',
   'Paper Crumple',
   'Tear Ticket',
   'Flip Card',
@@ -65,6 +68,7 @@ export const CATEGORIES = [
   {
     name: 'Text Animations',
     subcategories: [
+      'Tech Text',
       'Warp Text',
       'Text Loop',
       'Stroke Text',
@@ -102,6 +106,7 @@ export const CATEGORIES = [
   {
     name: 'Animations',
     subcategories: [
+      'Dither Veil',
       'Pixel Swap',
       'Glow Cursor',
       'Swarm Cursor',
@@ -145,6 +150,7 @@ export const CATEGORIES = [
   {
     name: 'Micro',
     subcategories: [
+      'Shredder',
       'Paper Crumple',
       'Warm Tooltip',
       'Wake Slider',

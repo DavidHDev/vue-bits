@@ -36,7 +36,8 @@ const animations = {
   'scroll-expand': () => import('../demo/Animations/ScrollExpandDemo.vue'),
   'swarm-cursor': () => import('../demo/Animations/SwarmCursorDemo.vue'),
   'glow-cursor': () => import('../demo/Animations/GlowCursorDemo.vue'),
-  'pixel-swap': () => import('../demo/Animations/PixelSwapDemo.vue')
+  'pixel-swap': () => import('../demo/Animations/PixelSwapDemo.vue'),
+  'dither-veil': () => import('../demo/Animations/DitherVeilDemo.vue')
 };
 
 const textAnimations = {
@@ -71,7 +72,8 @@ const textAnimations = {
   'split-flap-text': () => import('../demo/TextAnimations/SplitFlapTextDemo.vue'),
   'stroke-text': () => import('../demo/TextAnimations/StrokeTextDemo.vue'),
   'text-loop': () => import('../demo/TextAnimations/TextLoopDemo.vue'),
-  'warp-text': () => import('../demo/TextAnimations/WarpTextDemo.vue')
+  'warp-text': () => import('../demo/TextAnimations/WarpTextDemo.vue'),
+  'tech-text': () => import('../demo/TextAnimations/TechTextDemo.vue')
 };
 
 const components = {
@@ -213,7 +215,8 @@ const micro = {
   'branched-menu': () => import('../demo/Micro/BranchedMenuDemo.vue'),
   'flip-card': () => import('../demo/Micro/FlipCardDemo.vue'),
   'tear-ticket': () => import('../demo/Micro/TearTicketDemo.vue'),
-  'paper-crumple': () => import('../demo/Micro/PaperCrumpleDemo.vue')
+  'paper-crumple': () => import('../demo/Micro/PaperCrumpleDemo.vue'),
+  shredder: () => import('../demo/Micro/ShredderDemo.vue')
 };
 
 

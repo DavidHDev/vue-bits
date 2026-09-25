@@ -70,6 +70,15 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/animations/cursor-grid',
     tags: []
   },
+  'Animations/DitherVeil': {
+    videoUrl: '/assets/videos/ditherveil.webm',
+    description:
+      'A photo printed as a 1-bit dither that the cursor burns through to full colour, leaving a trail that knits back cell by cell.',
+    category: 'Animations',
+    name: 'DitherVeil',
+    docsUrl: 'https://vue-bits.dev/animations/dither-veil',
+    tags: []
+  },
   'Animations/ElasticMesh': {
     videoUrl: '/assets/videos/elasticmesh.webm',
     description: 'Spring-mesh surface that stretches under the pointer and settles back with damped physics.',
@@ -521,6 +530,15 @@ export const componentMetadata: ComponentMetadata = {
     category: 'TextAnimations',
     name: 'StrokeText',
     docsUrl: 'https://vue-bits.dev/text-animations/stroke-text',
+    tags: []
+  },
+  'TextAnimations/TechText': {
+    videoUrl: '/assets/videos/techtext.webm',
+    description:
+      'A wordmark whose letters turn into dashed vector paths under the cursor. Grab any letter to drag it off the baseline and it springs back home.',
+    category: 'TextAnimations',
+    name: 'TechText',
+    docsUrl: 'https://vue-bits.dev/text-animations/tech-text',
     tags: []
   },
   'TextAnimations/TextCursor': {
@@ -994,14 +1012,6 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/backgrounds/crt-warp',
     tags: []
   },
-  'Backgrounds/Scanner': {
-    videoUrl: '/assets/videos/scanner.webm',
-    description: 'Retro CRT scanner background with sweep lines, chromatic aberration, and mouse interaction.',
-    category: 'Backgrounds',
-    name: 'Scanner',
-    docsUrl: 'https://vue-bits.dev/backgrounds/scanner',
-    tags: []
-  },
   'Backgrounds/DarkVeil': {
     videoUrl: '/assets/videos/darkveil.webm',
     description: 'Subtle dark background with a smooth animation and postprocessing.',
@@ -1298,6 +1308,14 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/backgrounds/ripple-grid',
     tags: []
   },
+  'Backgrounds/Scanner': {
+    videoUrl: '/assets/videos/scanner.webm',
+    description: 'Retro CRT scanner background with sweep lines, chromatic aberration, and mouse interaction.',
+    category: 'Backgrounds',
+    name: 'Scanner',
+    docsUrl: 'https://vue-bits.dev/backgrounds/scanner',
+    tags: []
+  },
   'Backgrounds/ShapeGrid': {
     videoUrl: '/assets/videos/squares.webm',
     description: 'Animated grid with shape variants (square, hexagon, circle, triangle) + direction customization.',
@@ -1458,6 +1476,15 @@ export const componentMetadata: ComponentMetadata = {
     docsUrl: 'https://vue-bits.dev/micro/lattice-loader',
     tags: ['loader', 'status', 'ai', 'agent', 'timer', 'grid']
   },
+  'Micro/PaperCrumple': {
+    videoUrl: '/assets/videos/papercrumple.webm',
+    description:
+      'An image that crumples into a textured 3D sheet while held and follows the grabbed point as you drag. Release it as a crumpled ball, unfold it flat, or leave the paper creased, with customizable folds, paper grain, lighting and shadows.',
+    category: 'Micro',
+    name: 'PaperCrumple',
+    docsUrl: 'https://vue-bits.dev/micro/paper-crumple',
+    tags: ['paper', 'crumple', '3d', 'three', 'image', 'drag', 'hold', 'fold', 'crease']
+  },
   'Micro/PeekRating': {
     videoUrl: '/assets/videos/peekrating.webm',
     description:
@@ -1511,6 +1538,15 @@ export const componentMetadata: ComponentMetadata = {
     name: 'ScrubField',
     docsUrl: 'https://vue-bits.dev/micro/scrub-field',
     tags: ['input', 'number', 'drag', 'scrub', 'form', 'inspector']
+  },
+  'Micro/Shredder': {
+    videoUrl: '/assets/videos/shredder.webm',
+    description:
+      'A list with a paper shredder at the bottom. Drag a row into the slit and the rollers tug it in, pull it through and cut it into strips that curl out underneath, tumble away and fade out. The rest of the list settles down on a spring and the shredded item is handed to you to delete.',
+    category: 'Micro',
+    name: 'Shredder',
+    docsUrl: 'https://vue-bits.dev/micro/shredder',
+    tags: ['shredder', 'delete', 'drag', 'list', 'strips', 'paper', 'physics', 'remove']
   },
   'Micro/SlideCommit': {
     videoUrl: '/assets/videos/slidecommit.webm',
@@ -1610,32 +1646,5 @@ export const componentMetadata: ComponentMetadata = {
     name: 'VoicePill',
     docsUrl: 'https://vue-bits.dev/micro/voice-pill',
     tags: ['mic', 'voice', 'dictation', 'equalizer', 'press', 'ai']
-  },
-  'Micro/WakeSlider': {
-    videoUrl: '/assets/videos/wakeslider.webm',
-    description:
-      'Range slider drawn as thin bars with no thumb: drag speed raises a wake that trails behind the handle and flattens again at rest.',
-    category: 'Micro',
-    name: 'WakeSlider',
-    docsUrl: 'https://vue-bits.dev/micro/wake-slider',
-    tags: ['slider', 'range', 'input', 'drag', 'bars', 'velocity']
-  },
-  'Micro/WarmTooltip': {
-    videoUrl: '/assets/videos/warmtooltip.webm',
-    description:
-      'Tooltip group with one shared delay: the first label waits and pops from its trigger, then siblings open instantly while the group is warm, with an optional velocity lean.',
-    category: 'Micro',
-    name: 'WarmTooltip',
-    docsUrl: 'https://vue-bits.dev/micro/warm-tooltip',
-    tags: ['tooltip', 'hover', 'toolbar', 'delay', 'group', 'label']
-  },
-  'Micro/PaperCrumple': {
-    videoUrl: '/assets/videos/papercrumple.webm',
-    description:
-      'An image that crumples into a textured 3D sheet while held and follows the grabbed point as you drag. Release it as a crumpled ball, unfold it flat, or leave the paper creased, with customizable folds, paper grain, lighting and shadows.',
-    category: 'Micro',
-    name: 'PaperCrumple',
-    docsUrl: 'https://vue-bits.dev/micro/paper-crumple',
-    tags: ['paper', 'crumple', '3d', 'three', 'image', 'drag', 'hold', 'fold', 'crease']
   }
 };
