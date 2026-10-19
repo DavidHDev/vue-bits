@@ -39,7 +39,7 @@
       <div class="bg-content-hero">
         <div class="bg-content-glass bg-content-tag">
           <span class="bg-content-tag-new">New</span>
-          <span>Just shipped v2.0</span>
+          <span>Creative Components</span>
         </div>
 
         <h2>{{ headline }}</h2>
