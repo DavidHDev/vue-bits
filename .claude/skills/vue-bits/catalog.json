@@ -1,0 +1,2374 @@
+[
+  {
+    "name": "AnimatedContent",
+    "category": "Animations",
+    "description": "Wrapper that animates any children on scroll or mount with configurable direction, distance, duration, easing and disappear options.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "AnimatedContent/AnimatedContent.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/animated-content"
+  },
+  {
+    "name": "Antigravity",
+    "category": "Animations",
+    "description": "3D antigravity particle field that repels from the cursor with smooth motion.",
+    "dependencies": [
+      "three@^0.178.0"
+    ],
+    "files": [
+      "Antigravity/Antigravity.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/antigravity"
+  },
+  {
+    "name": "BlobCursor",
+    "category": "Animations",
+    "description": "Organic blob cursor that smoothly follows the pointer with inertia and elastic morphing.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "BlobCursor/BlobCursor.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/blob-cursor"
+  },
+  {
+    "name": "ClickSpark",
+    "category": "Animations",
+    "description": "Creates particle spark bursts at click position.",
+    "dependencies": [],
+    "files": [
+      "ClickSpark/ClickSpark.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/click-spark"
+  },
+  {
+    "name": "Crosshair",
+    "category": "Animations",
+    "description": "Custom crosshair cursor with tracking, and link hover effects.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "Crosshair/Crosshair.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/crosshair"
+  },
+  {
+    "name": "Cubes",
+    "category": "Animations",
+    "description": "3D rotating cube cluster. Supports auto-rotation or hover interaction.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "Cubes/Cubes.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/cubes"
+  },
+  {
+    "name": "CursorGrid",
+    "category": "Animations",
+    "description": "Canvas grid whose cells light up around the cursor with configurable radius, falloff and click pulses.",
+    "dependencies": [],
+    "files": [
+      "CursorGrid/CursorGrid.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/cursor-grid"
+  },
+  {
+    "name": "DitherVeil",
+    "category": "Animations",
+    "description": "A photo printed as a 1-bit dither that the cursor burns through to full colour, leaving a trail that knits back cell by cell.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "DitherVeil/DitherVeil.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/dither-veil"
+  },
+  {
+    "name": "ElasticMesh",
+    "category": "Animations",
+    "description": "Spring-mesh surface that stretches under the pointer and settles back with damped physics.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "ElasticMesh/ElasticMesh.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/elastic-mesh"
+  },
+  {
+    "name": "ElectricBorder",
+    "category": "Animations",
+    "description": "Jittery electric energy border with animated arcs, glow and adjustable intensity.",
+    "dependencies": [],
+    "files": [
+      "ElectricBorder/ElectricBorder.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/electric-border"
+  },
+  {
+    "name": "ElectricLogo",
+    "category": "Animations",
+    "description": "Turns any SVG or PNG into a living lightning outline, with flowing strands, arcs that leap off the edges and a charge that follows the cursor.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "ElectricLogo/ElectricLogo.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/electric-logo"
+  },
+  {
+    "name": "FadeContent",
+    "category": "Animations",
+    "description": "Simple directional fade / slide entrance / exit wrapper with threshold-based activation.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "FadeContent/FadeContent.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/fade-content"
+  },
+  {
+    "name": "GhostCursor",
+    "category": "Animations",
+    "description": "Semi-transparent ghost cursor that smoothly follows the real cursor with a trailing effect.",
+    "dependencies": [
+      "three@^0.178.0"
+    ],
+    "files": [
+      "GhostCursor/GhostCursor.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/ghost-cursor"
+  },
+  {
+    "name": "GlareHover",
+    "category": "Animations",
+    "description": "Adds a realistic moving glare highlight on hover over any element.",
+    "dependencies": [],
+    "files": [
+      "GlareHover/GlareHover.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/glare-hover"
+  },
+  {
+    "name": "GlowCursor",
+    "category": "Animations",
+    "description": "Shader-powered light trail that smoothly follows the pointer with customizable glow, color, taper and pulse.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "GlowCursor/GlowCursor.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/glow-cursor"
+  },
+  {
+    "name": "GradualBlur",
+    "category": "Animations",
+    "description": "Progressively un-blurs content based on scroll or trigger creating a cinematic reveal.",
+    "dependencies": [],
+    "files": [
+      "GradualBlur/GradualBlur.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/gradual-blur"
+  },
+  {
+    "name": "HalftoneReveal",
+    "category": "Animations",
+    "description": "Print-style halftone dot matrix that resolves into sharp content around the cursor.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "HalftoneReveal/HalftoneReveal.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/halftone-reveal"
+  },
+  {
+    "name": "ImageTrail",
+    "category": "Animations",
+    "description": "Cursor-based image trail with several built-in variants.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "ImageTrail/ImageTrail.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/image-trail"
+  },
+  {
+    "name": "LaserFlow",
+    "category": "Animations",
+    "description": "Dynamic laser light that flows onto a surface, customizable effect.",
+    "dependencies": [
+      "three@^0.178.0"
+    ],
+    "files": [
+      "LaserFlow/LaserFlow.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/laser-flow"
+  },
+  {
+    "name": "LogoLoop",
+    "category": "Animations",
+    "description": "Continuously looping marquee of brand or tech logos with seamless repeat and hover pause.",
+    "dependencies": [],
+    "files": [
+      "LogoLoop/LogoLoop.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/logo-loop"
+  },
+  {
+    "name": "MagicRings",
+    "category": "Animations",
+    "description": "Interactive magic rings effect with customizable parameters.",
+    "dependencies": [
+      "three@^0.178.0"
+    ],
+    "files": [
+      "MagicRings/MagicRings.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/magic-rings"
+  },
+  {
+    "name": "Magnet",
+    "category": "Animations",
+    "description": "Elements magnetically ease toward the cursor then settle back with spring physics.",
+    "dependencies": [],
+    "files": [
+      "Magnet/Magnet.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/magnet"
+  },
+  {
+    "name": "MagnetLines",
+    "category": "Animations",
+    "description": "Animated field lines bend toward the cursor.",
+    "dependencies": [],
+    "files": [
+      "MagnetLines/MagnetLines.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/magnet-lines"
+  },
+  {
+    "name": "MetaBalls",
+    "category": "Animations",
+    "description": "Liquid metaball blobs that merge and separate with smooth implicit surface animation.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "MetaBalls/MetaBalls.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/meta-balls"
+  },
+  {
+    "name": "MetallicPaint",
+    "category": "Animations",
+    "description": "Liquid metallic paint shader which can be applied to SVG elements.",
+    "dependencies": [],
+    "files": [
+      "MetallicPaint/MetallicPaint.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/metallic-paint"
+  },
+  {
+    "name": "Noise",
+    "category": "Animations",
+    "description": "Animated film grain / noise overlay adding subtle texture and motion.",
+    "dependencies": [],
+    "files": [
+      "Noise/Noise.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/noise"
+  },
+  {
+    "name": "OrbitImages",
+    "category": "Animations",
+    "description": "SVG Path customizable orbiting images effect",
+    "dependencies": [],
+    "files": [
+      "OrbitImages/OrbitImages.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/orbit-images"
+  },
+  {
+    "name": "PixelSwap",
+    "category": "Animations",
+    "description": "Pixel fragments assemble into a full cover, swap arbitrary content, then dissolve away with reversible colors and triggers.",
+    "dependencies": [],
+    "files": [
+      "PixelSwap/PixelSwap.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/pixel-swap"
+  },
+  {
+    "name": "PixelTrail",
+    "category": "Animations",
+    "description": "Pixelated cursor trail emitting fading squares with retro digital feel.",
+    "dependencies": [
+      "three@^0.178.0"
+    ],
+    "files": [
+      "PixelTrail/PixelTrail.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/pixel-trail"
+  },
+  {
+    "name": "PixelTransition",
+    "category": "Animations",
+    "description": "Pixel dissolve transition for content reveal on hover.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "PixelTransition/PixelTransition.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/pixel-transition"
+  },
+  {
+    "name": "Ribbons",
+    "category": "Animations",
+    "description": "Flowing responsive ribbons/cursor trail driven by physics and pointer motion.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "Ribbons/Ribbons.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/ribbons"
+  },
+  {
+    "name": "RippleDistortion",
+    "category": "Animations",
+    "description": "Pointer-driven water displacement that warps content and leaves a decaying wake.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "RippleDistortion/RippleDistortion.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/ripple-distortion"
+  },
+  {
+    "name": "ScrollExpand",
+    "category": "Animations",
+    "description": "A rounded media frame that grows to full bleed as it scrolls through the viewport.",
+    "dependencies": [],
+    "files": [
+      "ScrollExpand/ScrollExpand.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/scroll-expand"
+  },
+  {
+    "name": "ShapeBlur",
+    "category": "Animations",
+    "description": "Morphing blurred geometric shape. The effect occurs on hover.",
+    "dependencies": [
+      "three@^0.178.0"
+    ],
+    "files": [
+      "ShapeBlur/ShapeBlur.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/shape-blur"
+  },
+  {
+    "name": "SplashCursor",
+    "category": "Animations",
+    "description": "Liquid splash burst at cursor with curling ripples and waves.",
+    "dependencies": [],
+    "files": [
+      "SplashCursor/SplashCursor.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/splash-cursor"
+  },
+  {
+    "name": "StarBorder",
+    "category": "Animations",
+    "description": "Animated star / sparkle border orbiting content with twinkle pulses.",
+    "dependencies": [],
+    "files": [
+      "StarBorder/StarBorder.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/star-border"
+  },
+  {
+    "name": "StickerPeel",
+    "category": "Animations",
+    "description": "Sticker corner lift + peel interaction using 3D transform and shadow depth.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "StickerPeel/StickerPeel.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/sticker-peel"
+  },
+  {
+    "name": "Strands",
+    "category": "Animations",
+    "description": "Glowing ribbon-like strands that ripple and weave across a transparent canvas.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "Strands/Strands.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/strands"
+  },
+  {
+    "name": "SwarmCursor",
+    "category": "Animations",
+    "description": "Flocking particle swarm that chases the pointer, jostles for space and drifts apart at rest.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "SwarmCursor/SwarmCursor.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/swarm-cursor"
+  },
+  {
+    "name": "TargetCursor",
+    "category": "Animations",
+    "description": "A cursor follow animation with 4 corners that lock onto targets.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "TargetCursor/TargetCursor.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/animations/target-cursor"
+  },
+  {
+    "name": "AcidSquares",
+    "category": "Backgrounds",
+    "description": "A crystalline corridor of stacked squares receding into depth.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "AcidSquares/AcidSquares.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/acid-squares"
+  },
+  {
+    "name": "AeroShards",
+    "category": "Backgrounds",
+    "description": "A GPU-driven wind sculpture of folded foil shards with crisp detail, content-safe placements, and responsive pointer interactions.",
+    "dependencies": [
+      "vgpu@^0.5.0"
+    ],
+    "files": [
+      "AeroShards/AeroShards.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/aero-shards"
+  },
+  {
+    "name": "Aurora",
+    "category": "Backgrounds",
+    "description": "Flowing aurora gradient background.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "Aurora/Aurora.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/aurora"
+  },
+  {
+    "name": "Balatro",
+    "category": "Backgrounds",
+    "description": "The balatro shader, fully customizalbe and interactive.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "Balatro/Balatro.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/balatro"
+  },
+  {
+    "name": "Ballpit",
+    "category": "Backgrounds",
+    "description": "Physics ball pit simulation with bouncing colorful spheres.",
+    "dependencies": [
+      "gsap@^3.13.0",
+      "three@^0.178.0"
+    ],
+    "files": [
+      "Ballpit/Ballpit.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/ballpit"
+  },
+  {
+    "name": "Beams",
+    "category": "Backgrounds",
+    "description": "Crossing animated ribbons with customizable properties.",
+    "dependencies": [
+      "three@^0.178.0"
+    ],
+    "files": [
+      "Beams/Beams.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/beams"
+  },
+  {
+    "name": "ColorBends",
+    "category": "Backgrounds",
+    "description": "Vibrant color bends with smooth flowing animation.",
+    "dependencies": [
+      "three@^0.178.0"
+    ],
+    "files": [
+      "ColorBends/ColorBends.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/color-bends"
+  },
+  {
+    "name": "CRTWarp",
+    "category": "Backgrounds",
+    "description": "Full-canvas CRT plasma with curved distortion, scanlines, bloom and pointer interaction.",
+    "dependencies": [
+      "three@^0.178.0"
+    ],
+    "files": [
+      "CRTWarp/CRTWarp.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/crt-warp"
+  },
+  {
+    "name": "DarkVeil",
+    "category": "Backgrounds",
+    "description": "Subtle dark background with a smooth animation and postprocessing.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "DarkVeil/DarkVeil.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/dark-veil"
+  },
+  {
+    "name": "Dither",
+    "category": "Backgrounds",
+    "description": "Retro dithered noise shader background.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "Dither/Dither.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/dither"
+  },
+  {
+    "name": "DotField",
+    "category": "Backgrounds",
+    "description": "Interactive dot grid with cursor bulge, glow, sparkle, and wave effects.",
+    "dependencies": [],
+    "files": [
+      "DotField/DotField.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/dot-field"
+  },
+  {
+    "name": "DotGrid",
+    "category": "Backgrounds",
+    "description": "Animated dot grid with cursor interactions.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "DotGrid/DotGrid.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/dot-grid"
+  },
+  {
+    "name": "EvilEye",
+    "category": "Backgrounds",
+    "description": "Procedural evil eye shader with animated iris, slit pupil, and fiery outer glow.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "EvilEye/EvilEye.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/evil-eye"
+  },
+  {
+    "name": "FaultyTerminal",
+    "category": "Backgrounds",
+    "description": "Terminal CRT scanline squares effect with flicker + noise.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "FaultyTerminal/FaultyTerminal.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/faulty-terminal"
+  },
+  {
+    "name": "Ferrofluid",
+    "category": "Backgrounds",
+    "description": "A churning magnetic fluid traced by glowing contour lines, with a cursor magnet.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "Ferrofluid/Ferrofluid.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/ferrofluid"
+  },
+  {
+    "name": "FloatingLines",
+    "category": "Backgrounds",
+    "description": "3D floating lines that react to cursor movement.",
+    "dependencies": [
+      "three@^0.178.0"
+    ],
+    "files": [
+      "FloatingLines/FloatingLines.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/floating-lines"
+  },
+  {
+    "name": "Galaxy",
+    "category": "Backgrounds",
+    "description": "Parallax realistic starfield with pointer interactions.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "Galaxy/Galaxy.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/galaxy"
+  },
+  {
+    "name": "GhostFibers",
+    "category": "Backgrounds",
+    "description": "A deep-blue recursive fiber field with luminous bands, radial twisting and soft atmospheric glow.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "GhostFibers/GhostFibers.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/ghost-fibers"
+  },
+  {
+    "name": "GradientBlinds",
+    "category": "Backgrounds",
+    "description": "Layered gradient blinds with spotlight and noise distortion.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "GradientBlinds/GradientBlinds.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/gradient-blinds"
+  },
+  {
+    "name": "GradientWaves",
+    "category": "Backgrounds",
+    "description": "Raymarched sine waves rolling toward a soft, hazy horizon.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "GradientWaves/GradientWaves.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/gradient-waves"
+  },
+  {
+    "name": "Grainient",
+    "category": "Backgrounds",
+    "description": "Grainy gradient swirls with soft wave distortion.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "Grainient/Grainient.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/grainient"
+  },
+  {
+    "name": "GridDistortion",
+    "category": "Backgrounds",
+    "description": "Warped grid mesh distorts smoothly reacting to cursor.",
+    "dependencies": [
+      "three@^0.178.0"
+    ],
+    "files": [
+      "GridDistortion/GridDistortion.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/grid-distortion"
+  },
+  {
+    "name": "GridMotion",
+    "category": "Backgrounds",
+    "description": "Perspective moving grid lines based on cusror position.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "GridMotion/GridMotion.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/grid-motion"
+  },
+  {
+    "name": "GridScan",
+    "category": "Backgrounds",
+    "description": "Animated grid room 3D scan effect and cool interactions.",
+    "dependencies": [
+      "face-api.js@^0.22.2",
+      "postprocessing@^6.37.6",
+      "three@^0.178.0"
+    ],
+    "files": [
+      "GridScan/GridScan.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/grid-scan"
+  },
+  {
+    "name": "Hyperspeed",
+    "category": "Backgrounds",
+    "description": "Animated lines continuously moving to simulate hyperspace travel on click hold.",
+    "dependencies": [
+      "three@^0.178.0",
+      "postprocessing@^6.37.6"
+    ],
+    "files": [
+      "Hyperspeed/Hyperspeed.vue",
+      "Hyperspeed/HyperspeedPresets.ts"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/hyperspeed"
+  },
+  {
+    "name": "Iridescence",
+    "category": "Backgrounds",
+    "description": "Slick iridescent shader with shifting waves.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "Iridescence/Iridescence.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/iridescence"
+  },
+  {
+    "name": "LetterGlitch",
+    "category": "Backgrounds",
+    "description": "Matrix style letter animation.",
+    "dependencies": [],
+    "files": [
+      "LetterGlitch/LetterGlitch.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/letter-glitch"
+  },
+  {
+    "name": "Lightfall",
+    "category": "Backgrounds",
+    "description": "Colorful light streaks raining down a glowing tunnel with a cursor light.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "Lightfall/Lightfall.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/lightfall"
+  },
+  {
+    "name": "Lightning",
+    "category": "Backgrounds",
+    "description": "Procedural lightning bolts with branching and glow flicker.",
+    "dependencies": [],
+    "files": [
+      "Lightning/Lightning.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/lightning"
+  },
+  {
+    "name": "LightPillar",
+    "category": "Backgrounds",
+    "description": "Vertical pillar of light with glow effects.",
+    "dependencies": [
+      "three@^0.178.0"
+    ],
+    "files": [
+      "LightPillar/LightPillar.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/light-pillar"
+  },
+  {
+    "name": "LightRays",
+    "category": "Backgrounds",
+    "description": "Volumetric light rays/beams with customizable direction.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "LightRays/LightRays.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/light-rays"
+  },
+  {
+    "name": "LightTunnel",
+    "category": "Backgrounds",
+    "description": "A radial fibre-optic tunnel with light pulses racing into depth.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "LightTunnel/LightTunnel.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/light-tunnel"
+  },
+  {
+    "name": "LineWaves",
+    "category": "Backgrounds",
+    "description": "Animated line wave pattern with colorful warped distortion.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "LineWaves/LineWaves.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/line-waves"
+  },
+  {
+    "name": "LiquidChrome",
+    "category": "Backgrounds",
+    "description": "Liquid metallic chrome shader with flowing reflective surface.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "LiquidChrome/LiquidChrome.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/liquid-chrome"
+  },
+  {
+    "name": "LiquidEther",
+    "category": "Backgrounds",
+    "description": "Interactive liquid shader with flowing distortion and customizable colors.",
+    "dependencies": [
+      "three@^0.178.0"
+    ],
+    "files": [
+      "LiquidEther/LiquidEther.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/liquid-ether"
+  },
+  {
+    "name": "MicroSlats",
+    "category": "Backgrounds",
+    "description": "A wall of tiny slats that becomes a rolling sea in perspective, with glinting crests, four presets, a real fluid the cursor stirs and an intro that rolls in from the horizon.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "MicroSlats/MicroSlats.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/micro-slats"
+  },
+  {
+    "name": "MoltenMetal",
+    "category": "Backgrounds",
+    "description": "Swirling caustic plasma filaments with molten, white-hot cores.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "MoltenMetal/MoltenMetal.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/molten-metal"
+  },
+  {
+    "name": "Orb",
+    "category": "Backgrounds",
+    "description": "Floating energy orb with customizable hover effect.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "Orb/Orb.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/orb"
+  },
+  {
+    "name": "Particles",
+    "category": "Backgrounds",
+    "description": "Configurable particle system.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "Particles/Particles.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/particles"
+  },
+  {
+    "name": "PixelBlast",
+    "category": "Backgrounds",
+    "description": "Exploding pixel particle bursts with optional liquid postprocessing.",
+    "dependencies": [
+      "postprocessing@^6.37.6",
+      "three@^0.178.0"
+    ],
+    "files": [
+      "PixelBlast/PixelBlast.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/pixel-blast"
+  },
+  {
+    "name": "Plasma",
+    "category": "Backgrounds",
+    "description": "Organic plasma gradients swirl + morph with smooth turbulence.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "Plasma/Plasma.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/plasma"
+  },
+  {
+    "name": "PlasmaWave",
+    "category": "Backgrounds",
+    "description": "Raymarched plasma waves with dual-wave interference and OGL.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "PlasmaWave/PlasmaWave.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/plasma-wave"
+  },
+  {
+    "name": "Prism",
+    "category": "Backgrounds",
+    "description": "Rotating prism with configurable intensity, size, and colors.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "Prism/Prism.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/prism"
+  },
+  {
+    "name": "PrismaticBurst",
+    "category": "Backgrounds",
+    "description": "Burst of light rays with controllable color, distortion, amount.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "PrismaticBurst/PrismaticBurst.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/prismatic-burst"
+  },
+  {
+    "name": "Radar",
+    "category": "Backgrounds",
+    "description": "Radar sweep effect with concentric rings, radial spokes, and a rotating beam.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "Radar/Radar.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/radar"
+  },
+  {
+    "name": "RippleGrid",
+    "category": "Backgrounds",
+    "description": "A grid that continuously animates with a ripple effect.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "RippleGrid/RippleGrid.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/ripple-grid"
+  },
+  {
+    "name": "Scanner",
+    "category": "Backgrounds",
+    "description": "Retro CRT scanner background with sweep lines, chromatic aberration, and mouse interaction.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "Scanner/Scanner.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/scanner"
+  },
+  {
+    "name": "ShapeGrid",
+    "category": "Backgrounds",
+    "description": "Animated grid with shape variants (square, hexagon, circle, triangle) + direction customization.",
+    "dependencies": [],
+    "files": [
+      "ShapeGrid/ShapeGrid.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/shape-grid"
+  },
+  {
+    "name": "ShapeWaves",
+    "category": "Backgrounds",
+    "description": "A WebGPU field of triangles, circles and squares that brighten and grow along rolling waves, with an optional text cutout the waves flow around.",
+    "dependencies": [
+      "vgpu@^0.5.0"
+    ],
+    "files": [
+      "ShapeWaves/ShapeWaves.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/shape-waves"
+  },
+  {
+    "name": "SideRays",
+    "category": "Backgrounds",
+    "description": "Animated light rays emanating from the side with customizable colors and speed.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "SideRays/SideRays.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/side-rays"
+  },
+  {
+    "name": "Topography",
+    "category": "Backgrounds",
+    "description": "A living contour map with glowing, elevation-tinted lines.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "Topography/Topography.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/topography"
+  },
+  {
+    "name": "WebThreads",
+    "category": "Backgrounds",
+    "description": "Glowing sine threads woven through a luminous convergence point.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "WebThreads/WebThreads.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/backgrounds/web-threads"
+  },
+  {
+    "name": "AccordionGallery",
+    "category": "Components",
+    "description": "Panels expand on hover or focus, revealing parallax imagery and captions.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "AccordionGallery/AccordionGallery.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/accordion-gallery"
+  },
+  {
+    "name": "AnimatedList",
+    "category": "Components",
+    "description": "List items enter with staggered motion variants for polished reveals.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "AnimatedList/AnimatedList.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/animated-list"
+  },
+  {
+    "name": "BorderGlow",
+    "category": "Components",
+    "description": "Glowing mesh-gradient border that follows cursor direction and intensifies near edges.",
+    "dependencies": [],
+    "files": [
+      "BorderGlow/BorderGlow.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/border-glow"
+  },
+  {
+    "name": "BounceCards",
+    "category": "Components",
+    "description": "Cards bounce that bounce in on mount.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "BounceCards/BounceCards.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/bounce-cards"
+  },
+  {
+    "name": "BubbleMenu",
+    "category": "Components",
+    "description": "Floating circular expanding menu with staggered item reveal.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "BubbleMenu/BubbleMenu.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/bubble-menu"
+  },
+  {
+    "name": "CardNav",
+    "category": "Components",
+    "description": "Expandable navigation bar with card panels revealing nested links.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "CardNav/CardNav.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/card-nav"
+  },
+  {
+    "name": "CardSwap",
+    "category": "Components",
+    "description": "Cards animate position swapping with smooth layout transitions.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "CardSwap/CardSwap.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/card-swap"
+  },
+  {
+    "name": "Carousel",
+    "category": "Components",
+    "description": "Responsive carousel with touch gestures, looping and transitions.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "Carousel/Carousel.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/carousel"
+  },
+  {
+    "name": "ChromaGrid",
+    "category": "Components",
+    "description": "A responsive grid of grayscale tiles. Hovering the grid reaveals their colors.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "ChromaGrid/ChromaGrid.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/chroma-grid"
+  },
+  {
+    "name": "CircularGallery",
+    "category": "Components",
+    "description": "Circular orbit gallery rotating images.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "CircularGallery/CircularGallery.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/circular-gallery"
+  },
+  {
+    "name": "Counter",
+    "category": "Components",
+    "description": "Flexible animated counter supporting increments + easing.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "Counter/Counter.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/counter"
+  },
+  {
+    "name": "CurvedInput",
+    "category": "Components",
+    "description": "Arc-bent input bar with text, caret and submit button all following the curve.",
+    "dependencies": [],
+    "files": [
+      "CurvedInput/CurvedInput.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/curved-input"
+  },
+  {
+    "name": "DecayCard",
+    "category": "Components",
+    "description": "Hover parallax effect that disintegrates the content of a card.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "DecayCard/DecayCard.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/decay-card"
+  },
+  {
+    "name": "DepthCarousel",
+    "category": "Components",
+    "description": "Cards recede into depth on a 3D rail, with drag, keyboard and auto-advance.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "DepthCarousel/DepthCarousel.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/depth-carousel"
+  },
+  {
+    "name": "Dock",
+    "category": "Components",
+    "description": "macOS style magnifying dock with proximity scaling of icons.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "Dock/Dock.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/dock"
+  },
+  {
+    "name": "DomeGallery",
+    "category": "Components",
+    "description": "Immersive 3D dome gallery projecting images on a hemispheric surface.",
+    "dependencies": [],
+    "files": [
+      "DomeGallery/DomeGallery.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/dome-gallery"
+  },
+  {
+    "name": "DriftWall",
+    "category": "Components",
+    "description": "An endless perspective wall of tiles drifting past, lifting on hover.",
+    "dependencies": [],
+    "files": [
+      "DriftWall/DriftWall.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/drift-wall"
+  },
+  {
+    "name": "ElasticSlider",
+    "category": "Components",
+    "description": "Slider handle stretches elastically then snaps with spring physics.",
+    "dependencies": [],
+    "files": [
+      "ElasticSlider/ElasticSlider.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/elastic-slider"
+  },
+  {
+    "name": "FlexCarousel",
+    "category": "Components",
+    "description": "An infinite image row that flows through invisible liquid glass at its edges, with four bend presets, five entrances, a speed squeeze and click to focus.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "FlexCarousel/FlexCarousel.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/flex-carousel"
+  },
+  {
+    "name": "FlowingMenu",
+    "category": "Components",
+    "description": "Liquid flowing active indicator glides between menu items.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "FlowingMenu/FlowingMenu.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/flowing-menu"
+  },
+  {
+    "name": "FlyingPosters",
+    "category": "Components",
+    "description": "3D posters rotate on scroll infinitely.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "FlyingPosters/FlyingPosters.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/flying-posters"
+  },
+  {
+    "name": "Folder",
+    "category": "Components",
+    "description": "Interactive folder opens to reveal nested content smooth motion.",
+    "dependencies": [],
+    "files": [
+      "Folder/Folder.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/folder"
+  },
+  {
+    "name": "GlassIcons",
+    "category": "Components",
+    "description": "Icon set styled with frosted glass blur.",
+    "dependencies": [],
+    "files": [
+      "GlassIcons/GlassIcons.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/glass-icons"
+  },
+  {
+    "name": "GlassSurface",
+    "category": "Components",
+    "description": "Advanced Apple-style glass surface with real-time distortion + lighting.",
+    "dependencies": [],
+    "files": [
+      "GlassSurface/GlassSurface.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/glass-surface"
+  },
+  {
+    "name": "GooeyNav",
+    "category": "Components",
+    "description": "Navigation indicator morphs with gooey blob transitions between items.",
+    "dependencies": [],
+    "files": [
+      "GooeyNav/GooeyNav.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/gooey-nav"
+  },
+  {
+    "name": "InfiniteMenu",
+    "category": "Components",
+    "description": "Horizontally looping menu effect that scrolls endlessly with seamless wrap.",
+    "dependencies": [
+      "gl-matrix@^3.4.3"
+    ],
+    "files": [
+      "InfiniteMenu/InfiniteMenu.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/infinite-menu"
+  },
+  {
+    "name": "InfiniteSpiral",
+    "category": "Components",
+    "description": "An endlessly looping 3D helix of images with customizable motion, depth, spacing and interaction.",
+    "dependencies": [],
+    "files": [
+      "InfiniteSpiral/InfiniteSpiral.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/infinite-spiral"
+  },
+  {
+    "name": "LineSidebar",
+    "category": "Components",
+    "description": "Static list navigation with a cursor-proximity effect that shifts and highlights nearby items.",
+    "dependencies": [],
+    "files": [
+      "LineSidebar/LineSidebar.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/line-sidebar"
+  },
+  {
+    "name": "MagicBento",
+    "category": "Components",
+    "description": "Interactive bento grid tiles expand + animate with various options.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "MagicBento/MagicBento.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/magic-bento"
+  },
+  {
+    "name": "Masonry",
+    "category": "Components",
+    "description": "Responsive masonry layout with animated reflow + gaps optimization.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "Masonry/Masonry.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/masonry"
+  },
+  {
+    "name": "ModelViewer",
+    "category": "Components",
+    "description": "Interactive 3D model viewer with orbit zoom, parallax, hover rotation and lighting presets.",
+    "dependencies": [
+      "three@^0.178.0",
+      "@tresjs/core@^4.3.6",
+      "@tresjs/cientos@^4.3.1"
+    ],
+    "files": [
+      "ModelViewer/ModelViewer.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/model-viewer"
+  },
+  {
+    "name": "MorphSlider",
+    "category": "Components",
+    "description": "WebGL slider that melts between images with a displacement transition.",
+    "dependencies": [
+      "gsap@^3.13.0",
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "MorphSlider/MorphSlider.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/morph-slider"
+  },
+  {
+    "name": "OptionWheel",
+    "category": "Components",
+    "description": "Curved option picker that spins via scroll, drag, or arrow keys, fading and tilting items away from the selection.",
+    "dependencies": [],
+    "files": [
+      "OptionWheel/OptionWheel.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/option-wheel"
+  },
+  {
+    "name": "PillNav",
+    "category": "Components",
+    "description": "Minimal pill nav with sliding active highlight + smooth easing.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "PillNav/PillNav.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/pill-nav"
+  },
+  {
+    "name": "PixelCard",
+    "category": "Components",
+    "description": "Card content revealed through pixel expansion transition.",
+    "dependencies": [],
+    "files": [
+      "PixelCard/PixelCard.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/pixel-card"
+  },
+  {
+    "name": "ProfileCard",
+    "category": "Components",
+    "description": "Animated profile card glare with 3D hover effect.",
+    "dependencies": [],
+    "files": [
+      "ProfileCard/ProfileCard.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/profile-card"
+  },
+  {
+    "name": "ReflectiveCard",
+    "category": "Components",
+    "description": "Metallic card with live webcam reflection and SVG displacement filter.",
+    "dependencies": [
+      "lucide-vue-next@^0.548.0"
+    ],
+    "files": [
+      "ReflectiveCard/ReflectiveCard.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/reflective-card"
+  },
+  {
+    "name": "ScrollStack",
+    "category": "Components",
+    "description": "Overlapping card stack reveals on scroll with depth layering.",
+    "dependencies": [
+      "lenis@^1.3.13"
+    ],
+    "files": [
+      "ScrollStack/ScrollStack.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/scroll-stack"
+  },
+  {
+    "name": "SpecularButton",
+    "category": "Components",
+    "description": "Glass button with a shader-driven specular rim light that sweeps around the edge and follows the cursor.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "SpecularButton/SpecularButton.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/specular-button"
+  },
+  {
+    "name": "SpotlightCard",
+    "category": "Components",
+    "description": "Dynamic spotlight follows cursor casting gradient illumination.",
+    "dependencies": [],
+    "files": [
+      "SpotlightCard/SpotlightCard.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/spotlight-card"
+  },
+  {
+    "name": "Stack",
+    "category": "Components",
+    "description": "Layered stack with swipe animations, autoplay and smooth transitions.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "Stack/Stack.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/stack"
+  },
+  {
+    "name": "StaggeredMenu",
+    "category": "Components",
+    "description": "Menu with staggered item animations and smooth transitions on open/close.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "StaggeredMenu/StaggeredMenu.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/staggered-menu"
+  },
+  {
+    "name": "Stepper",
+    "category": "Components",
+    "description": "Animated multi-step progress indicator with active state transitions.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "Stepper/React to Vue Differences Stepper.vue",
+      "Stepper/Stepper.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/stepper"
+  },
+  {
+    "name": "TiltedCard",
+    "category": "Components",
+    "description": "3D perspective tilt card reacting to pointer.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "TiltedCard/TiltedCard.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/components/tilted-card"
+  },
+  {
+    "name": "BellToggle",
+    "category": "Micro",
+    "description": "Pill toggle that answers a press at three tempos: the bell rings on damped keyframes, the label blur-crossfades, and the pill unfurls to the longer label through a clip-path on a critically damped spring. The pressed state is the receipt.",
+    "dependencies": [
+      "@hugeicons/core-free-icons@^4.3.3",
+      "@hugeicons/vue@^1.0.8",
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "BellToggle/BellToggle.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/bell-toggle"
+  },
+  {
+    "name": "BranchedMenu",
+    "category": "Micro",
+    "description": "Collapsible menu whose sections unfold into a trunk with a curved branch to each child, and an accent line that travels down the trunk and around the curve to whatever you pick, while a marker glides to the open section.",
+    "dependencies": [
+      "@hugeicons/core-free-icons@^4.3.3",
+      "@hugeicons/vue@^1.0.8"
+    ],
+    "files": [
+      "BranchedMenu/BranchedMenu.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/branched-menu"
+  },
+  {
+    "name": "CallChip",
+    "category": "Micro",
+    "description": "Inline tool-call chip whose fill wipes across while a live ms counter ticks, completing with a green wash on success or stopping short and shaking red with a retry glyph on error.",
+    "dependencies": [
+      "@hugeicons/core-free-icons@^4.3.3",
+      "@hugeicons/vue@^1.0.8"
+    ],
+    "files": [
+      "CallChip/CallChip.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/call-chip"
+  },
+  {
+    "name": "CodeSlots",
+    "category": "Micro",
+    "description": "One-time-code input where a hidden overlay input owns focus, paste and SMS autofill while each slot lands its digit on one spring: the fill swells from the centre, the digit rises and the caret glides; a wrong code drains the slots in a cascade, a right one merges them into a single accent wash.",
+    "dependencies": [
+      "@hugeicons/core-free-icons@^4.3.3",
+      "@hugeicons/vue@^1.0.8",
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "CodeSlots/CodeSlots.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/code-slots"
+  },
+  {
+    "name": "CometDial",
+    "category": "Micro",
+    "description": "Tick-ring dial you flick by angle: the reading launches on a spring and a velocity-driven comet streaks behind the lit head, trailing the direction of travel and vanishing at rest.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "CometDial/CometDial.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/comet-dial"
+  },
+  {
+    "name": "DodgeField",
+    "category": "Micro",
+    "description": "Wrapper that makes any child flee the pointer inside a bounded field, dodges once per approach, then relents after a few tries and glides home.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "DodgeField/DodgeField.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/dodge-field"
+  },
+  {
+    "name": "FlipCard",
+    "category": "Micro",
+    "description": "Two-faced card that flips in 3D on a click, a drag or a flick, settling on a spring that carries your release velocity, with an optional cursor tilt, a sheen that follows the pointer and a shadow that narrows as it turns edge on.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "FlipCard/FlipCard.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/flip-card"
+  },
+  {
+    "name": "FolderFloat",
+    "category": "Micro",
+    "description": "Folder that opens on hover or press: the flap tilts toward you, a paper edge rises, and its notes spring out from behind the flap into a floating cloud to pick from, then sink back when the folder closes.",
+    "dependencies": [
+      "matter-js@^0.20.0"
+    ],
+    "files": [
+      "FolderFloat/FolderFloat.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/folder-float"
+  },
+  {
+    "name": "FuseButton",
+    "category": "Micro",
+    "description": "Action button whose done state carries its own undo on a burning fuse: press, the label crossfades to Undo, a hairline burns for the undo window, and Undo or Escape runs it back.",
+    "dependencies": [
+      "@hugeicons/core-free-icons@^4.3.3",
+      "@hugeicons/vue@^1.0.8"
+    ],
+    "files": [
+      "FuseButton/FuseButton.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/fuse-button"
+  },
+  {
+    "name": "GlideSelect",
+    "category": "Micro",
+    "description": "Select chip whose menu pops out of its own corner and whose single hover highlight glides between rows, remembering where you left it so re-entry slides from there instead of blinking in.",
+    "dependencies": [
+      "@hugeicons/core-free-icons@^4.3.3",
+      "@hugeicons/vue@^1.0.8"
+    ],
+    "files": [
+      "GlideSelect/GlideSelect.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/glide-select"
+  },
+  {
+    "name": "HoldButton",
+    "category": "Micro",
+    "description": "Hold-to-confirm button whose liquid fill rises while pressed, snaps back on an early release and swaps its label through a blur when the hold completes.",
+    "dependencies": [],
+    "files": [
+      "HoldButton/HoldButton.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/hold-button"
+  },
+  {
+    "name": "JellyRadio",
+    "category": "Micro",
+    "description": "Radio group of labelled chips where the chosen one swells wide-then-tall on two springs and barges its neighbours outward with a travelling stagger, so a selection reads as a force moving through the row.",
+    "dependencies": [
+      "@hugeicons/vue@^1.0.8",
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "JellyRadio/JellyRadio.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/jelly-radio"
+  },
+  {
+    "name": "LatticeLoader",
+    "category": "Micro",
+    "description": "Inline agent-status row: a 3x3 or 4x4 lattice whose cells brighten in a phase-offset wave beside a verb and a live stopwatch, resolving into a check or a cross when the task ends.",
+    "dependencies": [],
+    "files": [
+      "LatticeLoader/LatticeLoader.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/lattice-loader"
+  },
+  {
+    "name": "PaperCrumple",
+    "category": "Micro",
+    "description": "An image that crumples into a textured 3D sheet while held and follows the grabbed point as you drag. Release it as a crumpled ball, unfold it flat, or leave the paper creased, with customizable folds, paper grain, lighting and shadows.",
+    "dependencies": [
+      "three@^0.178.0"
+    ],
+    "files": [
+      "PaperCrumple/PaperCrumple.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/paper-crumple"
+  },
+  {
+    "name": "PeekRating",
+    "category": "Micro",
+    "description": "Star rating you can try before you commit: sweeping the row lifts a trailing wave of stars up to the pointer while a tip hops along with the label; a click commits with a pop.",
+    "dependencies": [
+      "@hugeicons/core-free-icons@^4.3.3",
+      "@hugeicons/vue@^1.0.8"
+    ],
+    "files": [
+      "PeekRating/PeekRating.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/peek-rating"
+  },
+  {
+    "name": "PromptBar",
+    "category": "Micro",
+    "description": "Chat composer with an @ sources menu, a / commands menu, a model picker, dictation and attachments, whose send tile charges to ink the moment there is something to send and morphs its arrow into a stop square while busy.",
+    "dependencies": [
+      "@hugeicons/core-free-icons@^4.3.3",
+      "@hugeicons/vue@^1.0.8",
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "PromptBar/PromptBar.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/prompt-bar"
+  },
+  {
+    "name": "PulseHeart",
+    "category": "Micro",
+    "description": "Like button that contracts to a dot, flips colour at its smallest frame and pulses back while the count swaps one glyph.",
+    "dependencies": [
+      "@hugeicons/core-free-icons@^4.3.3"
+    ],
+    "files": [
+      "PulseHeart/PulseHeart.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/pulse-heart"
+  },
+  {
+    "name": "RefineFrame",
+    "category": "Micro",
+    "description": "Reserved-aspect frame that walks any media through queued, generating, refining and complete without layout shift: each stage is one blur, saturate, scale and opacity tween, a soft band sweeps while it works, a chip reports the stage, and an error dims the picture behind a retry pill.",
+    "dependencies": [
+      "@hugeicons/core-free-icons@^4.3.3",
+      "@hugeicons/vue@^1.0.8"
+    ],
+    "files": [
+      "RefineFrame/RefineFrame.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/refine-frame"
+  },
+  {
+    "name": "RubberSegment",
+    "category": "Micro",
+    "description": "Segmented control with a rubber thumb: taps stretch it across the gap and squash it onto the target, and you can grab, drag and flick it between slots.",
+    "dependencies": [
+      "@hugeicons/vue@^1.0.8",
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "RubberSegment/RubberSegment.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/rubber-segment"
+  },
+  {
+    "name": "ScrubField",
+    "category": "Micro",
+    "description": "Number chip you drag to scrub: the value follows the hand, pushes past the range on a rubber band, and a click without moving opens it for typing.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "ScrubField/ScrubField.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/scrub-field"
+  },
+  {
+    "name": "Shredder",
+    "category": "Micro",
+    "description": "A list with a paper shredder at the bottom. Drag a row into the slit and the rollers tug it in, pull it through and cut it into strips that curl out underneath, tumble away and fade out. The rest of the list settles down on a spring and the shredded item is handed to you to delete.",
+    "dependencies": [],
+    "files": [
+      "Shredder/Shredder.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/shredder"
+  },
+  {
+    "name": "SlideCommit",
+    "category": "Micro",
+    "description": "Slide-to-confirm handle that plants with a spinner while your action runs, unfurls into a done pill on success and springs home with a squash and shake on failure.",
+    "dependencies": [
+      "@hugeicons/core-free-icons@^4.3.3",
+      "@hugeicons/vue@^1.0.8",
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "SlideCommit/SlideCommit.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/slide-commit"
+  },
+  {
+    "name": "SlingButton",
+    "category": "Micro",
+    "description": "Send button you pull back like a slingshot: the band stretches, a power arc arms it, and releasing fires the action with the flick's velocity.",
+    "dependencies": [
+      "@hugeicons/core-free-icons@^4.3.3",
+      "@hugeicons/vue@^1.0.8",
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "SlingButton/SlingButton.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/sling-button"
+  },
+  {
+    "name": "SloshGauge",
+    "category": "Micro",
+    "description": "Tank gauge whose liquid chases the value with mass, tilts with its own speed and splashes against the top when it slams full; optionally a vertical slider.",
+    "dependencies": [],
+    "files": [
+      "SloshGauge/SloshGauge.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/slosh-gauge"
+  },
+  {
+    "name": "SpringCheck",
+    "category": "Micro",
+    "description": "Checkbox row where a single spring fills the box, draws the tick, strikes the label and dims the words in one press.",
+    "dependencies": [
+      "@hugeicons/core-free-icons@^4.3.3",
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "SpringCheck/SpringCheck.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/spring-check"
+  },
+  {
+    "name": "SquishSwitch",
+    "category": "Micro",
+    "description": "Drag-scrubbable switch whose thumb stretches by how fast it moves, flips at the midpoint and squashes against the track end on a flick.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "SquishSwitch/SquishSwitch.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/squish-switch"
+  },
+  {
+    "name": "StatusMark",
+    "category": "Micro",
+    "description": "A 20px status glyph for agent task lists that morphs in place from a dashed idle ring to a spinning or real-progress arc, then draws a check or a cross, with an optional label strike.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "StatusMark/StatusMark.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/status-mark"
+  },
+  {
+    "name": "SwipeRow",
+    "category": "Micro",
+    "description": "List row that swipes open to reveal actions, snaps by flick velocity, and deletes on a full swipe that stretches the action colour across the row.",
+    "dependencies": [
+      "@hugeicons/core-free-icons@^4.3.3",
+      "@hugeicons/vue@^1.0.8",
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "SwipeRow/SwipeRow.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/swipe-row"
+  },
+  {
+    "name": "SwipeToast",
+    "category": "Micro",
+    "description": "Single toast that rises through its bottom edge, swipes down to dismiss on a flick or a distance, and burns a thin fuse for exactly its remaining time; hover pauses it and an inline mode keeps it inside any container.",
+    "dependencies": [
+      "@hugeicons/core-free-icons@^4.3.3",
+      "@hugeicons/vue@^1.0.8",
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "SwipeToast/SwipeToast.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/swipe-toast"
+  },
+  {
+    "name": "TearTicket",
+    "category": "Micro",
+    "description": "Ticket whose perforated stub tears off by hand: paper bridges stretch into fibres and snap one by one from the far end, the torn edges are jagged and fit each other, the freed stub dangles and drops, and the body is stamped as used. The artwork tilts in 3D with parallax on hover.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "TearTicket/TearTicket.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/tear-ticket"
+  },
+  {
+    "name": "ThoughtLine",
+    "category": "Micro",
+    "description": "Reasoning-trace header: a glyph and a label breathe beside a live clock while steps appear beneath, then the line settles on one beat into \"Thought for 4.2s\" through a blur crossfade and the trace folds into it.",
+    "dependencies": [
+      "@hugeicons/core-free-icons@^4.3.3",
+      "@hugeicons/vue@^1.0.8",
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "ThoughtLine/ThoughtLine.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/thought-line"
+  },
+  {
+    "name": "VoicePill",
+    "category": "Micro",
+    "description": "Mic button that swells into a tinted capsule of level-driven equalizer bars and an elapsed clock while held or toggled, then relaxes back into the mic on release; simulated voice by default, real microphone as an opt-in.",
+    "dependencies": [
+      "@hugeicons/core-free-icons@^4.3.3",
+      "@hugeicons/vue@^1.0.8"
+    ],
+    "files": [
+      "VoicePill/VoicePill.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/voice-pill"
+  },
+  {
+    "name": "WakeSlider",
+    "category": "Micro",
+    "description": "Range slider drawn as thin bars with no thumb: drag speed raises a wake that trails behind the handle and flattens again at rest.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "WakeSlider/WakeSlider.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/wake-slider"
+  },
+  {
+    "name": "WarmTooltip",
+    "category": "Micro",
+    "description": "Tooltip group with one shared delay: the first label waits and pops from its trigger, then siblings open instantly while the group is warm, with an optional velocity lean.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "WarmTooltip/WarmTooltip.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/micro-interactions/warm-tooltip"
+  },
+  {
+    "name": "ASCIIText",
+    "category": "TextAnimations",
+    "description": "Renders text with an animated ASCII background for a retro feel.",
+    "dependencies": [
+      "three@^0.178.0"
+    ],
+    "files": [
+      "ASCIIText/ASCIIText.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/ascii-text"
+  },
+  {
+    "name": "BlurText",
+    "category": "TextAnimations",
+    "description": "Text starts blurred then crisply resolves for a soft-focus reveal effect.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "BlurText/BlurText.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/blur-text"
+  },
+  {
+    "name": "CircularText",
+    "category": "TextAnimations",
+    "description": "Layouts characters around a circle with optional rotation animation.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "CircularText/CircularText.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/circular-text"
+  },
+  {
+    "name": "CountUp",
+    "category": "TextAnimations",
+    "description": "Animated number counter supporting formatting and decimals.",
+    "dependencies": [],
+    "files": [
+      "CountUp/CountUp.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/count-up"
+  },
+  {
+    "name": "CurvedLoop",
+    "category": "TextAnimations",
+    "description": "Flowing looping text path along a customizable curve with drag interaction.",
+    "dependencies": [],
+    "files": [
+      "CurvedLoop/CurvedLoop.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/curved-loop"
+  },
+  {
+    "name": "DecryptedText",
+    "category": "TextAnimations",
+    "description": "Hacker-style decryption cycling random glyphs until resolving to real text.",
+    "dependencies": [],
+    "files": [
+      "DecryptedText/DecryptedText.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/decrypted-text"
+  },
+  {
+    "name": "DepthText",
+    "category": "TextAnimations",
+    "description": "Layered extruded type with parallax that shifts against the pointer.",
+    "dependencies": [],
+    "files": [
+      "DepthText/DepthText.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/depth-text"
+  },
+  {
+    "name": "EchoText",
+    "category": "TextAnimations",
+    "description": "Ghosted copies trail behind the text and settle into a single word.",
+    "dependencies": [],
+    "files": [
+      "EchoText/EchoText.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/echo-text"
+  },
+  {
+    "name": "FallingText",
+    "category": "TextAnimations",
+    "description": "Characters fall with gravity + bounce creating a playful entrance.",
+    "dependencies": [
+      "matter-js@^0.20.0"
+    ],
+    "files": [
+      "FallingText/FallingText.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/falling-text"
+  },
+  {
+    "name": "FoldText",
+    "category": "TextAnimations",
+    "description": "Lines unfold into place like creased paper opening flat.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "FoldText/FoldText.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/fold-text"
+  },
+  {
+    "name": "FuzzyText",
+    "category": "TextAnimations",
+    "description": "Vibrating fuzzy text with controllable hover intensity.",
+    "dependencies": [],
+    "files": [
+      "FuzzyText/FuzzyText.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/fuzzy-text"
+  },
+  {
+    "name": "GlitchText",
+    "category": "TextAnimations",
+    "description": "RGB split and distortion glitch effect with jitter effects.",
+    "dependencies": [],
+    "files": [
+      "GlitchText/GlitchText.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/glitch-text"
+  },
+  {
+    "name": "GradientText",
+    "category": "TextAnimations",
+    "description": "Animated gradient sweep across live text with speed and color control.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "GradientText/GradientText.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/gradient-text"
+  },
+  {
+    "name": "MaskedHeading",
+    "category": "TextAnimations",
+    "description": "A large headline with a drifting colour mesh or image showing through the glyphs, revealed word by word.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "MaskedHeading/MaskedHeading.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/masked-heading"
+  },
+  {
+    "name": "ParticleText",
+    "category": "TextAnimations",
+    "description": "Text assembles from drifting particles that scatter and reform on demand.",
+    "dependencies": [],
+    "files": [
+      "ParticleText/ParticleText.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/particle-text"
+  },
+  {
+    "name": "RotatingText",
+    "category": "TextAnimations",
+    "description": "Cycles through multiple phrases with 3D rotate / flip transitions.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "RotatingText/RotatingText.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/rotating-text"
+  },
+  {
+    "name": "ScrambleText",
+    "category": "TextAnimations",
+    "description": "Detects cursor position and applies a distortion effect to text.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "ScrambleText/ScrambleText.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/scramble-text"
+  },
+  {
+    "name": "ScrollFloat",
+    "category": "TextAnimations",
+    "description": "Text gently floats / parallax shifts on scroll.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "ScrollFloat/ScrollFloat.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/scroll-float"
+  },
+  {
+    "name": "ScrollReveal",
+    "category": "TextAnimations",
+    "description": "Text gently unblurs and reveals on scroll.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "ScrollReveal/ScrollReveal.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/scroll-reveal"
+  },
+  {
+    "name": "ScrollVelocity",
+    "category": "TextAnimations",
+    "description": "Text marquee animatio - speed and distortion scale with user's scroll velocity.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "ScrollVelocity/ScrollVelocity.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/scroll-velocity"
+  },
+  {
+    "name": "ShinyText",
+    "category": "TextAnimations",
+    "description": "Metallic sheen sweeps across text producing a reflective highlight.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "ShinyText/ShinyText.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/shiny-text"
+  },
+  {
+    "name": "Shuffle",
+    "category": "TextAnimations",
+    "description": "Animated text reveal where characters shuffle before settling.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "Shuffle/Shuffle.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/shuffle"
+  },
+  {
+    "name": "SplitFlapText",
+    "category": "TextAnimations",
+    "description": "Mechanical split-flap departure board that clacks through to each new phrase.",
+    "dependencies": [],
+    "files": [
+      "SplitFlapText/SplitFlapText.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/split-flap-text"
+  },
+  {
+    "name": "SplitText",
+    "category": "TextAnimations",
+    "description": "Splits text into characters / words for staggered entrance animation.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "SplitText/SplitText.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/split-text"
+  },
+  {
+    "name": "StrokeText",
+    "category": "TextAnimations",
+    "description": "Outlined letterforms draw themselves on, then flood with fill.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "StrokeText/StrokeText.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/stroke-text"
+  },
+  {
+    "name": "TechText",
+    "category": "TextAnimations",
+    "description": "A wordmark whose letters turn into dashed vector paths under the cursor. Grab any letter to drag it off the baseline and it springs back home.",
+    "dependencies": [],
+    "files": [
+      "TechText/TechText.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/tech-text"
+  },
+  {
+    "name": "TextCursor",
+    "category": "TextAnimations",
+    "description": "Make any text element follow your cursor, leaving a trail of copies behind it.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "TextCursor/TextCursor.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/text-cursor"
+  },
+  {
+    "name": "TextLoop",
+    "category": "TextAnimations",
+    "description": "A seamless text marquee that flows along curved SVG paths.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "TextLoop/TextLoop.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/text-loop"
+  },
+  {
+    "name": "TextPressure",
+    "category": "TextAnimations",
+    "description": "Characters scale / warp interactively based on pointer pressure zone.",
+    "dependencies": [],
+    "files": [
+      "TextPressure/TextPressure.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/text-pressure"
+  },
+  {
+    "name": "TextType",
+    "category": "TextAnimations",
+    "description": "Typewriter effect with blinking cursor and adjustable typing cadence.",
+    "dependencies": [
+      "gsap@^3.13.0"
+    ],
+    "files": [
+      "TextType/TextType.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/text-type"
+  },
+  {
+    "name": "TrueFocus",
+    "category": "TextAnimations",
+    "description": "Applies dynamic blur / clarity based over a series of words in order.",
+    "dependencies": [
+      "motion-v@^1.10.2"
+    ],
+    "files": [
+      "TrueFocus/TrueFocus.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/true-focus"
+  },
+  {
+    "name": "VariableProximity",
+    "category": "TextAnimations",
+    "description": "Letter styling changes continuously with pointer distance mapping.",
+    "dependencies": [],
+    "files": [
+      "VariableProximity/VariableProximity.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/variable-proximity"
+  },
+  {
+    "name": "WarpText",
+    "category": "TextAnimations",
+    "description": "WebGL warp that bends and refracts the text around the pointer.",
+    "dependencies": [
+      "ogl@^1.0.11"
+    ],
+    "files": [
+      "WarpText/WarpText.vue"
+    ],
+    "docsUrl": "https://vue-bits.dev/text-animations/warp-text"
+  }
+]
