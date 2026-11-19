@@ -1,244 +1,333 @@
 <template>
-  <h1 class="sub-category">Ferrofluid</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="ferrofluid.usage"
-    :source="ferrofluidSource"
-    component-name="Ferrofluid"
-    :props-table="props"
+    :demo-only-props="['preset']"
   >
-    <template #preview>
-      <div
-        class="relative p-0 h-[500px] overflow-hidden demo-container"
-        style="background: linear-gradient(to bottom right, #04130a, #0a2a14, #04130a)"
-      >
-        <Ferrofluid
-          :colors="colors"
-          :speed="speed"
-          :scale="scale"
-          :turbulence="turbulence"
-          :fluidity="fluidity"
-          :rim-width="rimWidth"
-          :sharpness="sharpness"
-          :shimmer="shimmer"
-          :glow="glow"
-          :flow-direction="flowDirection"
-          :mouse-interaction="mouseInteraction"
-          :mouse-strength="mouseStrength"
-          :mouse-radius="mouseRadius"
-        />
-        <BackgroundContent pill-text="New Background" headline="Bend the magnetic fluid" />
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 500px; padding: 0">
+          <Ferrofluid :key="rerenderKey" v-bind="settings" />
+          <BackgroundContent headline="Bend the magnetic fluid" />
+          <RefreshButton @click="forceRerender" />
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewColorPicker title="Color 1" v-model="color1" />
-        <PreviewColorPicker title="Color 2" v-model="color2" />
-        <PreviewColorPicker title="Color 3" v-model="color3" />
-        <PreviewSwitch title="Cursor Magnet" v-model="mouseInteraction" />
-        <PreviewSelect title="Flow Direction" v-model="flowDirection" :options="['down', 'up', 'left', 'right']" />
-        <PreviewSlider title="Speed" :min="0" :max="3" :step="0.1" v-model="speed" />
-        <PreviewSlider title="Scale" :min="0.3" :max="3" :step="0.1" v-model="scale" />
-        <PreviewSlider title="Turbulence" :min="0" :max="2" :step="0.05" v-model="turbulence" />
-        <PreviewSlider title="Fluidity" :min="0.02" :max="0.5" :step="0.01" v-model="fluidity" />
-        <PreviewSlider title="Rim Width" :min="0.05" :max="0.5" :step="0.01" v-model="rimWidth" />
-        <PreviewSlider title="Sharpness" :min="1" :max="6" :step="0.1" v-model="sharpness" />
-        <PreviewSlider title="Shimmer" :min="0" :max="2" :step="0.05" v-model="shimmer" />
-        <PreviewSlider title="Glow" :min="0.5" :max="5" :step="0.1" v-model="glow" />
-        <PreviewSlider title="Cursor Strength" :min="0" :max="3" :step="0.1" v-model="mouseStrength" />
-        <PreviewSlider title="Cursor Radius" :min="0.05" :max="1" :step="0.05" v-model="mouseRadius" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewSelect
+            title="Preset"
+            :options="PRESET_OPTIONS"
+            :model-value="props.preset"
+            @update:model-value="applyPreset"
+          />
+          <PreviewColorPickerCustom
+            v-for="light in LIGHTS"
+            :key="light.title"
+            :title="light.title"
+            :color="colorAt(light.index)"
+            @change="(value: string) => setLight(light.index, value)"
+          />
+          <PreviewSlider
+            title="Brightness"
+            :min="0.2"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.brightness"
+            @update:model-value="value => updateProp('brightness', value)"
+          />
+          <PreviewSlider
+            title="Scale"
+            :min="0.8"
+            :max="3"
+            :step="0.05"
+            :model-value="settings.scale"
+            @update:model-value="value => updateProp('scale', value)"
+          />
+          <PreviewSlider
+            title="Spike Height"
+            :min="0.2"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.spikeHeight"
+            @update:model-value="value => updateProp('spikeHeight', value)"
+          />
+          <PreviewSlider
+            title="Sharpness"
+            :min="1"
+            :max="5"
+            :step="0.1"
+            :model-value="settings.sharpness"
+            @update:model-value="value => updateProp('sharpness', value)"
+          />
+          <PreviewSlider
+            title="Tilt"
+            :min="25"
+            :max="65"
+            :step="1"
+            value-unit="°"
+            :model-value="settings.tilt"
+            @update:model-value="value => updateProp('tilt', value)"
+          />
+          <PreviewSlider
+            title="Turbulence"
+            :min="0"
+            :max="3"
+            :step="0.05"
+            :model-value="settings.turbulence"
+            @update:model-value="value => updateProp('turbulence', value)"
+          />
+          <PreviewSlider
+            title="Fluidity"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="settings.fluidity"
+            @update:model-value="value => updateProp('fluidity', value)"
+          />
+          <PreviewSlider
+            title="Speed"
+            :min="0"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.speed"
+            @update:model-value="value => updateProp('speed', value)"
+          />
+          <PreviewSlider
+            title="Magnetism"
+            :min="0"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.magnetism"
+            @update:model-value="value => updateProp('magnetism', value)"
+          />
+          <PreviewSlider
+            title="Variation"
+            :min="0"
+            :max="10"
+            :step="1"
+            :model-value="settings.variation"
+            @update:model-value="value => updateProp('variation', value)"
+          />
+          <PreviewSelect
+            title="Flow Direction"
+            :options="FLOW_OPTIONS"
+            :model-value="settings.flowDirection"
+            @update:model-value="value => updateProp('flowDirection', value as FerrofluidFlow)"
+          />
+          <PreviewSlider
+            title="Cursor Strength"
+            :min="0"
+            :max="2"
+            :step="0.05"
+            :is-disabled="!settings.mouseInteraction"
+            :model-value="settings.mouseStrength"
+            @update:model-value="value => updateProp('mouseStrength', value)"
+          />
+          <PreviewSlider
+            title="Cursor Radius"
+            :min="0.08"
+            :max="0.45"
+            :step="0.01"
+            :is-disabled="!settings.mouseInteraction"
+            :model-value="settings.mouseRadius"
+            @update:model-value="value => updateProp('mouseRadius', value)"
+          />
+          <PreviewSwitch
+            title="Cursor Magnet"
+            :model-value="settings.mouseInteraction"
+            @update:model-value="value => updateProp('mouseInteraction', value)"
+          />
+          <PreviewSwitch
+            title="Click Pulse"
+            :model-value="settings.clickPulse"
+            @update:model-value="value => updateProp('clickPulse', value)"
+          />
+          <PreviewSwitch
+            title="Intro"
+            :model-value="settings.intro"
+            @update:model-value="value => updateProp('intro', value)"
+          />
+          <PreviewSwitch
+            title="Light Mode"
+            :model-value="settings.lightMode"
+            @update:model-value="value => updateProp('lightMode', value)"
+          />
+        </Customize>
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+        <PropTable :data="propData" />
+      </template>
 
-    <template #code>
-      <DemoCodeTab slug="ferrofluid" :usage="ferrofluid.usage!" :source="ferrofluidSource" />
-    </template>
-  </TabsLayout>
+      <template #code>
+        <CodeExample :code-object="ferrofluid" component-name="Ferrofluid" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewColorPickerCustom from '@/components/common/PreviewColorPickerCustom.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
 import { useForceRerender } from '@/composables/useForceRerender';
 import { ferrofluid } from '@/constants/code/Backgrounds/ferrofluidCode';
-import Ferrofluid, { type FerrofluidFlowDirection } from '@/content/Backgrounds/Ferrofluid/Ferrofluid.vue';
-import ferrofluidSource from '@/content/Backgrounds/Ferrofluid/Ferrofluid.vue?raw';
-import { computed, ref } from 'vue';
+import Ferrofluid from '@/content/Backgrounds/Ferrofluid/Ferrofluid.vue';
+import { DEFAULT_PROPS, PRESET_OPTIONS, presetProps, type FerrofluidFlow } from './presets/Ferrofluid';
 
-const { forceRerender } = useForceRerender();
+const FLOW_OPTIONS = [
+  { value: 'down', label: 'Down' },
+  { value: 'up', label: 'Up' },
+  { value: 'left', label: 'Left' },
+  { value: 'right', label: 'Right' },
+  { value: 'none', label: 'None' }
+];
 
-const DEFAULTS = {
-  color1: '#27FF64',
-  color2: '#7CFF67',
-  color3: '#A8FFB6',
-  speed: 0.5,
-  scale: 1.6,
-  turbulence: 1,
-  fluidity: 0.1,
-  rimWidth: 0.2,
-  sharpness: 2.5,
-  shimmer: 1.5,
-  glow: 2,
-  flowDirection: 'down' as FerrofluidFlowDirection,
-  mouseInteraction: true,
-  mouseStrength: 1,
-  mouseRadius: 0.35
+const LIGHTS = [
+  { title: 'Key Light', index: 0 },
+  { title: 'Side Lights', index: 1 },
+  { title: 'Fill Light', index: 2 }
+];
+
+const { rerenderKey, forceRerender } = useForceRerender();
+const { props, defaultProps, updateProp, updateProps, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
+
+const settings = computed(() => {
+  const { preset: _preset, ...rest } = props.value;
+  void _preset;
+  return { ...rest, flowDirection: rest.flowDirection as FerrofluidFlow };
+});
+
+const colorAt = (index: number) => settings.value.colors?.[index] ?? settings.value.colors?.[0] ?? '#ffffff';
+
+const applyPreset = (value: string | number) => {
+  const name = String(value);
+  updateProps({ ...presetProps(name, { defaults: defaultProps.value }), preset: name });
 };
 
-const color1 = ref(DEFAULTS.color1);
-const color2 = ref(DEFAULTS.color2);
-const color3 = ref(DEFAULTS.color3);
-const speed = ref(DEFAULTS.speed);
-const scale = ref(DEFAULTS.scale);
-const turbulence = ref(DEFAULTS.turbulence);
-const fluidity = ref(DEFAULTS.fluidity);
-const rimWidth = ref(DEFAULTS.rimWidth);
-const sharpness = ref(DEFAULTS.sharpness);
-const shimmer = ref(DEFAULTS.shimmer);
-const glow = ref(DEFAULTS.glow);
-const flowDirection = ref<FerrofluidFlowDirection>(DEFAULTS.flowDirection);
-const mouseInteraction = ref(DEFAULTS.mouseInteraction);
-const mouseStrength = ref(DEFAULTS.mouseStrength);
-const mouseRadius = ref(DEFAULTS.mouseRadius);
+const setLight = (index: number, value: string) => {
+  const next = [0, 1, 2].map(i => colorAt(i));
+  next[index] = value;
+  updateProp('colors', next);
+};
 
-const colors = computed(() => [color1.value, color2.value, color3.value]);
-
-const hasChanges = computed(
-  () =>
-    color1.value !== DEFAULTS.color1 ||
-    color2.value !== DEFAULTS.color2 ||
-    color3.value !== DEFAULTS.color3 ||
-    speed.value !== DEFAULTS.speed ||
-    scale.value !== DEFAULTS.scale ||
-    turbulence.value !== DEFAULTS.turbulence ||
-    fluidity.value !== DEFAULTS.fluidity ||
-    rimWidth.value !== DEFAULTS.rimWidth ||
-    sharpness.value !== DEFAULTS.sharpness ||
-    shimmer.value !== DEFAULTS.shimmer ||
-    glow.value !== DEFAULTS.glow ||
-    flowDirection.value !== DEFAULTS.flowDirection ||
-    mouseInteraction.value !== DEFAULTS.mouseInteraction ||
-    mouseStrength.value !== DEFAULTS.mouseStrength ||
-    mouseRadius.value !== DEFAULTS.mouseRadius
-);
-
-function reset() {
-  color1.value = DEFAULTS.color1;
-  color2.value = DEFAULTS.color2;
-  color3.value = DEFAULTS.color3;
-  speed.value = DEFAULTS.speed;
-  scale.value = DEFAULTS.scale;
-  turbulence.value = DEFAULTS.turbulence;
-  fluidity.value = DEFAULTS.fluidity;
-  rimWidth.value = DEFAULTS.rimWidth;
-  sharpness.value = DEFAULTS.sharpness;
-  shimmer.value = DEFAULTS.shimmer;
-  glow.value = DEFAULTS.glow;
-  flowDirection.value = DEFAULTS.flowDirection;
-  mouseInteraction.value = DEFAULTS.mouseInteraction;
-  mouseStrength.value = DEFAULTS.mouseStrength;
-  mouseRadius.value = DEFAULTS.mouseRadius;
-  forceRerender();
-}
-
-const props: PropRow[] = [
+const propData: PropRow[] = [
   {
     name: 'colors',
     type: 'string[]',
-    default: "['#27FF64', '#7CFF67', '#A8FFB6']",
-    description:
-      'Array of hex colors (up to 8) used to tint the fluid rim. Colors are spread across the surface by height; a single color makes the whole effect uniform.'
+    default: "['#ffffff', '#ffffff', '#ffffff']",
+    description: 'Colors of the studio lights reflected in the fluid: key light, side lights and fill light.'
   },
-  { name: 'speed', type: 'number', default: '0.5', description: 'Multiplier for how fast the fluid churns and flows.' },
+  { name: 'brightness', type: 'number', default: '1', description: 'Strength of the reflections.' },
   {
     name: 'scale',
     type: 'number',
     default: '1.6',
-    description: 'Overall feature size. Higher values zoom in for larger, fewer blobs.'
+    description: 'Zoom of the fluid. Higher values show bigger, fewer spikes.'
+  },
+  { name: 'spikeHeight', type: 'number', default: '1', description: 'How tall the spikes grow in a strong field.' },
+  {
+    name: 'sharpness',
+    type: 'number',
+    default: '2.5',
+    description:
+      'How peaked the spikes are. Low values give soft mounds, high values taller cones. Tips always stay rounded.'
+  },
+  {
+    name: 'tilt',
+    type: 'number',
+    default: '48',
+    description: 'Viewing angle in degrees. Low values look down from above, high values look across the fluid.'
   },
   {
     name: 'turbulence',
     type: 'number',
     default: '1',
-    description: 'Amount of domain distortion. Higher values create more chaotic, swirling motion.'
+    description: 'How much the spike pattern sways and drifts out of its regular grid.'
   },
   {
     name: 'fluidity',
     type: 'number',
-    default: '0.1',
-    description: 'Smoothness of the merge between the two fluid layers. Higher = softer, more liquid blending.'
+    default: '0.5',
+    description: 'How loosely the spikes respond, from 0 (thick and slow) to 1 (bouncy).'
+  },
+  { name: 'speed', type: 'number', default: '0.5', description: 'How fast the swells roll across the surface.' },
+  {
+    name: 'magnetism',
+    type: 'number',
+    default: '1',
+    description: 'Strength of the magnetic field that raises swells of spikes across the surface.'
   },
   {
-    name: 'rimWidth',
+    name: 'variation',
     type: 'number',
-    default: '0.2',
-    description: 'Thickness of the glowing contour lines tracing the fluid surface.'
+    default: '0',
+    description: 'Picks a different arrangement of swells.'
   },
-  {
-    name: 'sharpness',
-    type: 'number',
-    default: '2.5',
-    description: 'Contrast of the rim highlights. Higher values give crisper, thinner edges.'
-  },
-  {
-    name: 'shimmer',
-    type: 'number',
-    default: '1.5',
-    description: 'Amount of fine grainy break-up applied to the rim. 0 = smooth lines.'
-  },
-  { name: 'glow', type: 'number', default: '2', description: 'Overall brightness multiplier of the rim highlights.' },
   {
     name: 'flowDirection',
-    type: "'up' | 'down' | 'left' | 'right'",
+    type: "'down' | 'up' | 'left' | 'right' | 'none'",
     default: "'down'",
-    description: 'Primary direction the fluid surface drifts.'
+    description: 'Direction the swells roll. None keeps them morphing in place.'
   },
-  { name: 'opacity', type: 'number', default: '1', description: 'Overall alpha of the rendered canvas.' },
   {
     name: 'mouseInteraction',
     type: 'boolean',
     default: 'true',
-    description: 'Enables a magnetic spike that rises and glows under the cursor.'
+    description: 'Turns the cursor into a magnet that raises a crown of spikes.'
   },
-  { name: 'mouseStrength', type: 'number', default: '1', description: 'Intensity of the magnetic cursor spike.' },
-  { name: 'mouseRadius', type: 'number', default: '0.35', description: 'Falloff radius of the magnetic cursor spike.' },
+  { name: 'mouseStrength', type: 'number', default: '1', description: 'Strength of the cursor magnet.' },
+  {
+    name: 'mouseRadius',
+    type: 'number',
+    default: '0.22',
+    description: 'Reach of the cursor magnet, as a fraction of the height.'
+  },
   {
     name: 'mouseDampening',
     type: 'number',
     default: '0.15',
-    description: 'Easing time constant (seconds) for the cursor to follow the pointer. 0 = immediate.'
+    description: 'Time in seconds the crown takes to catch up with the cursor. 0 follows instantly.'
   },
   {
-    name: 'mixBlendMode',
-    type: 'string',
-    default: 'undefined',
-    description: "CSS mix-blend-mode applied to the canvas (e.g. 'screen', 'lighten')."
+    name: 'clickPulse',
+    type: 'boolean',
+    default: 'true',
+    description: 'Clicking sends a magnetic pulse through the fluid.'
   },
+  { name: 'intro', type: 'boolean', default: 'true', description: 'Raises the spikes when the field switches on.' },
   {
-    name: 'paused',
+    name: 'lightMode',
     type: 'boolean',
     default: 'false',
-    description: 'If true, stops rendering updates (freezing the current frame).'
+    description: 'Renders the fluid as glossy white liquid for light backgrounds.'
   },
   {
-    name: 'dpr',
-    type: 'number',
-    default: 'window.devicePixelRatio',
-    description: 'Overrides device pixel ratio; lower for performance, higher for sharpness.'
+    name: 'transparent',
+    type: 'boolean',
+    default: 'true',
+    description: 'Lets the page show through. When off, the fluid sits on the color below.'
   },
-  { name: 'className', type: 'string', default: '""', description: 'Additional class names for the root container.' }
+  {
+    name: 'color',
+    type: 'string',
+    default: "'#111111'",
+    description: 'Background color when transparent is off. Defaults to white in light mode.'
+  },
+  { name: 'opacity', type: 'number', default: '1', description: 'Opacity of the whole effect.' },
+  { name: 'paused', type: 'boolean', default: 'false', description: 'Freezes the fluid.' },
+  { name: 'mixBlendMode', type: 'string', default: '-', description: 'CSS mix-blend-mode applied to the container.' },
+  { name: 'dpr', type: 'number', default: 'auto', description: 'Maximum device pixel ratio, capped at 2.' },
+  { name: 'className', type: 'string', default: "''", description: 'Extra class names for the container.' },
+  { name: 'style', type: 'CSSProperties', default: '-', description: 'Inline styles for the container.' }
 ];
 </script>

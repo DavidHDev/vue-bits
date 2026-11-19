@@ -1,6 +1,10 @@
+<template>
+  <div ref="containerRef" :class="`micro-slats ${className}`.trim()" :style="style" />
+</template>
+
 <script setup lang="ts">
-import { Mesh, Program, Renderer, RenderTarget, Texture, Triangle } from 'ogl';
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch, type CSSProperties } from 'vue';
+import { Renderer, Program, Mesh, Triangle, RenderTarget, Texture } from 'ogl';
 
 type SwellPreset = 'swell' | 'tide' | 'storm' | 'signal';
 type Rgba = [number, number, number, number];
@@ -17,7 +21,7 @@ interface WaveValues {
   fog: number;
 }
 
-interface MicroSlatsProps {
+interface MicroSlatsProps extends Partial<WaveValues> {
   preset?: SwellPreset;
   color?: string;
   glintColor?: string;
@@ -26,15 +30,6 @@ interface MicroSlatsProps {
   slatHeight?: number;
   gap?: number;
   roundness?: number;
-  scale?: number;
-  speed?: number;
-  direction?: number;
-  chop?: number;
-  stretch?: number;
-  glint?: number;
-  contrast?: number;
-  perspective?: number;
-  fog?: number;
   interactive?: boolean;
   cursorStrength?: number;
   cursorSize?: number;
@@ -45,6 +40,7 @@ interface MicroSlatsProps {
   introDuration?: number;
   paused?: boolean;
   className?: string;
+  style?: CSSProperties;
 }
 
 interface Settings extends WaveValues {
@@ -438,7 +434,7 @@ void main() {
 
 const props = withDefaults(defineProps<MicroSlatsProps>(), {
   preset: 'swell',
-  color: '#10B981',
+  color: '#7cff67',
   glintColor: '#ffffff',
   backgroundColor: '#000000',
   slatWidth: 10,
@@ -463,65 +459,62 @@ const props = withDefaults(defineProps<MicroSlatsProps>(), {
   intro: true,
   introDuration: 1.5,
   paused: false,
-  className: ''
+  className: '',
+  style: undefined
 });
 
 const containerRef = ref<HTMLDivElement | null>(null);
-let settings: Settings | null = null;
-let wake = () => {};
+let wake: (() => void) | null = null;
+let cleanup: (() => void) | null = null;
 
-const pick = <K extends keyof WaveValues>(key: K): WaveValues[K] => {
-  const value = props[key] as WaveValues[K] | undefined;
+const pick = <K extends keyof WaveValues>(value: WaveValues[K] | undefined, key: K): WaveValues[K] => {
   const base = SWELL_PRESETS[props.preset] || SWELL_PRESETS.swell;
   return value === undefined || value === null ? base[key] : value;
 };
 
-watch(
-  () => ({ ...props }),
-  () => {
-    settings = {
-      color: parseColor(props.color, [0.66, 0.33, 0.97, 1]),
-      glintColor: parseColor(props.glintColor, [1, 1, 1, 1]),
-      backgroundColor: parseColor(props.backgroundColor, [0, 0, 0, 1]),
-      slatWidth: props.slatWidth,
-      slatHeight: props.slatHeight,
-      gap: props.gap,
-      roundness: props.roundness,
-      scale: pick('scale'),
-      speed: pick('speed'),
-      direction: pick('direction'),
-      chop: pick('chop'),
-      stretch: pick('stretch'),
-      glint: pick('glint'),
-      contrast: pick('contrast'),
-      perspective: pick('perspective'),
-      fog: pick('fog'),
-      interactive: props.interactive,
-      cursorStrength: props.cursorStrength,
-      cursorSize: props.cursorSize,
-      swirl: props.swirl,
-      trail: props.trail,
-      lean: props.lean,
-      intro: props.intro,
-      introDuration: props.introDuration,
-      paused: props.paused
-    };
-    wake();
-  },
-  { immediate: true }
-);
+const colors = computed(() => ({
+  color: parseColor(props.color, [0.49, 1, 0.4, 1]),
+  glintColor: parseColor(props.glintColor, [1, 1, 1, 1]),
+  backgroundColor: parseColor(props.backgroundColor, [0, 0, 0, 1])
+}));
 
-let disposeScene: (() => void) | undefined;
+const settings = computed<Settings>(() => ({
+  ...colors.value,
+  slatWidth: props.slatWidth,
+  slatHeight: props.slatHeight,
+  gap: props.gap,
+  roundness: props.roundness,
+  scale: pick(props.scale, 'scale'),
+  speed: pick(props.speed, 'speed'),
+  direction: pick(props.direction, 'direction'),
+  chop: pick(props.chop, 'chop'),
+  stretch: pick(props.stretch, 'stretch'),
+  glint: pick(props.glint, 'glint'),
+  contrast: pick(props.contrast, 'contrast'),
+  perspective: pick(props.perspective, 'perspective'),
+  fog: pick(props.fog, 'fog'),
+  interactive: props.interactive,
+  cursorStrength: props.cursorStrength,
+  cursorSize: props.cursorSize,
+  swirl: props.swirl,
+  trail: props.trail,
+  lean: props.lean,
+  intro: props.intro,
+  introDuration: props.introDuration,
+  paused: props.paused
+}));
 
-const mountScene = () => {
+const currentSettings = (): Settings | null => settings.value;
+
+const setup = () => {
   const container = containerRef.value;
-  if (!container) return;
+  if (!container) return undefined;
 
   const renderer = new Renderer({ alpha: true, premultipliedAlpha: true, antialias: false, depth: false });
   const gl = renderer.gl;
   if (!renderer.isWebgl2) {
     gl.getExtension('WEBGL_lose_context')?.loseContext();
-    return;
+    return undefined;
   }
   gl.clearColor(0, 0, 0, 0);
   const canvas = gl.canvas;
@@ -713,6 +706,20 @@ const mountScene = () => {
     fluidTexel.value = [1 / w, 1 / h];
   };
 
+  let resizePending = false;
+  const applyResize = () => {
+    width = Math.max(1, container.clientWidth);
+    height = Math.max(1, container.clientHeight);
+    renderer.dpr = Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(PIXEL_BUDGET / (width * height)));
+    renderer.setSize(width, height);
+    buildFluid();
+  };
+
+  const resize = () => {
+    resizePending = true;
+    start();
+  };
+
   const layout = (s: Settings): GridLayout => {
     const slatW = clamp(s.slatWidth, 1, 64);
     const slatH = clamp(s.slatHeight, 2, 240);
@@ -810,8 +817,12 @@ const mountScene = () => {
 
   const frame = (now: number) => {
     raf = 0;
+    if (resizePending) {
+      resizePending = false;
+      applyResize();
+    }
     if (!alive) return;
-    const s = settings;
+    const s = currentSettings();
     const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
     last = now;
     if (!s) return;
@@ -903,15 +914,6 @@ const mountScene = () => {
     raf = requestAnimationFrame(frame);
   };
 
-  const resize = () => {
-    width = Math.max(1, container.clientWidth);
-    height = Math.max(1, container.clientHeight);
-    renderer.dpr = Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(PIXEL_BUDGET / (width * height)));
-    renderer.setSize(width, height);
-    buildFluid();
-    start();
-  };
-
   const locate = (e: PointerEvent) => {
     const rect = container.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -924,12 +926,13 @@ const mountScene = () => {
   const queue = (u: number, v: number, du: number, dv: number, turn: number | null) => {
     if (splats.length > 32) splats.shift();
     splats.push([u, v, du, dv, turn]);
-    fluidUntil = performance.now() + Math.max(1.5, (settings ? settings.trail : 1.4) * 5) * 1000;
+    const s = currentSettings();
+    fluidUntil = performance.now() + Math.max(1.5, (s ? s.trail : 1.4) * 5) * 1000;
     start();
   };
 
   const onPointerMove = (e: PointerEvent) => {
-    const s = settings;
+    const s = currentSettings();
     const spot = locate(e);
     if (!fluid || !s || !s.interactive || reducedMotion || !spot.inside) {
       pointer.tracked = false;
@@ -944,7 +947,7 @@ const mountScene = () => {
   };
 
   const onPointerDown = (e: PointerEvent) => {
-    const s = settings;
+    const s = currentSettings();
     const spot = locate(e);
     if (!fluid || !s || !s.interactive || reducedMotion || !spot.inside) return;
     splashTurn += 2.39996;
@@ -954,9 +957,11 @@ const mountScene = () => {
   const onPointerLeave = () => {
     pointer.tracked = false;
   };
+
   const onPointerOut = (e: PointerEvent) => {
     if (!e.relatedTarget) onPointerLeave();
   };
+
   const onVisibility = () => {
     if (!document.hidden) start();
   };
@@ -978,7 +983,7 @@ const mountScene = () => {
   wake = start;
   resize();
 
-  disposeScene = () => {
+  return () => {
     alive = false;
     visible = false;
     cancelAnimationFrame(raf);
@@ -989,7 +994,7 @@ const mountScene = () => {
     window.removeEventListener('pointerout', onPointerOut);
     window.removeEventListener('blur', onPointerLeave);
     document.removeEventListener('visibilitychange', onVisibility);
-    wake = () => {};
+    wake = null;
     disposeFluid();
     dispose(fieldTarget);
     gl.getExtension('WEBGL_lose_context')?.loseContext();
@@ -997,10 +1002,23 @@ const mountScene = () => {
   };
 };
 
-onMounted(mountScene);
-onBeforeUnmount(() => disposeScene?.());
+onMounted(() => {
+  cleanup = setup() ?? null;
+});
+
+onBeforeUnmount(() => {
+  cleanup?.();
+  cleanup = null;
+});
+
+watch(settings, () => wake?.());
 </script>
 
-<template>
-  <div ref="containerRef" class="relative w-full h-full overflow-hidden" :class="className" />
-</template>
+<style>
+.micro-slats {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+</style>

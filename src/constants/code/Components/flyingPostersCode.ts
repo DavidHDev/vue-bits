@@ -2,20 +2,29 @@ import code from '@/content/Components/FlyingPosters/FlyingPosters.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const flyingPosters = createCodeObject(code, 'Components/FlyingPosters', {
-  installation: `npm install ogl`,
+  dependencies: '',
   usage: `<template>
-  <div style="height: 600px; position: relative;">
-    <FlyingPosters :items="items" />
+  <div style="height: 600px; position: relative">
+    <FlyingPosters
+      :items="items"
+      :plane-width="320"
+      :plane-height="320"
+      :distortion="3"
+      :scroll-ease="0.01"
+      :camera-fov="45"
+      :camera-z="20"
+    />
   </div>
 </template>
 
-<script setup>
-import FlyingPosters from './FlyingPosters.vue'
+<script setup lang="ts">
+import FlyingPosters from './FlyingPosters.vue';
 
 const items = [
-  'https://picsum.photos/500/500?grayscale', 
-  'https://picsum.photos/600/600?grayscale', 
-  'https://picsum.photos/400/400?grayscale'
-]
+  '/assets/demo/day-portrait.webp',
+  '/assets/demo/night-landscape.webp',
+  '/assets/demo/day-landscape.webp',
+  '/assets/demo/night-portrait.webp'
+];
 </script>`
 });

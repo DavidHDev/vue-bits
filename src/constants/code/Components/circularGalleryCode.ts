@@ -2,21 +2,20 @@ import code from '@/content/Components/CircularGallery/CircularGallery.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const circularGallery = createCodeObject(code, 'Components/CircularGallery', {
-  installation: `npm install ogl`,
+  dependencies: '',
   usage: `<template>
-  <div style="height: 600px; position: relative;">
+  <div style="height: 600px; position: relative">
     <CircularGallery
       :bend="3"
       text-color="#ffffff"
       :border-radius="0.05"
-      :scroll-ease="0.02"
-      font-url="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap"
-      font="bold 30px Orbitron"
+      :scroll-ease="0.05"
+      @item-click="(item, index) => console.log(item.text, index)"
     />
   </div>
 </template>
 
-<script setup>
-import CircularGallery from './CircularGallery.vue'
+<script setup lang="ts">
+import CircularGallery from './CircularGallery.vue';
 </script>`
 });

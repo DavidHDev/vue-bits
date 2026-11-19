@@ -2,31 +2,22 @@ import code from '@/content/Backgrounds/Lightfall/Lightfall.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const lightfall = createCodeObject(code, 'Backgrounds/Lightfall', {
-  installation: `npm install ogl`,
+  dependencies: '',
   usage: `<template>
-  <div
-    style="
-      width: 100%;
-      height: 600px;
-      position: relative;
-    "
-  >
+  <div style="width: 100%; height: 600px; position: relative">
     <Lightfall
-      :colors="['#A6C8FF', '#5227FF', '#FF9FFC']"
-      background-color="#0A29FF"
-      :speed="1"
-      :streak-count="8"
-      :streak-width="1"
-      :streak-length="1"
-      :glow="1"
-      :density="1"
-      :twinkle="1"
-      :zoom="2"
-      :background-glow="1"
-      :opacity="1"
+      :colors="['#ffffff']"
+      background-color="#94a3b8"
+      :speed="0.3"
+      :streak-count="2"
+      :streak-width="0.8"
+      :twinkle="0.3"
+      :background-glow="0.1"
+      :head-glow="0.6"
+      :bloom="0.35"
       :mouse-interaction="true"
-      :mouse-strength="1"
-      :mouse-radius="0.6"
+      :hold-to-warp="true"
+      :intro="true"
     />
   </div>
 </template>

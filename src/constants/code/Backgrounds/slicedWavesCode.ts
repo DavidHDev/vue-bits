@@ -2,36 +2,25 @@ import code from '@/content/Backgrounds/SlicedWaves/SlicedWaves.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const slicedWaves = createCodeObject(code, 'Backgrounds/SlicedWaves', {
-  usage: `<script setup>
-import SlicedWaves from './SlicedWaves.vue'
-</script>
+  dependencies: '',
+  usage: `<template>
+  <div style="width: 100%; height: 600px; position: relative">
+    <SlicedWaves
+      color1="#ffd9a8"
+      color2="#42b883"
+      color3="#5b8cff"
+      :ribbons="3"
+      :spacing="28"
+      :perspective="0.45"
+      :blur="0.6"
+      :glow="1"
+      :position="0.78"
+      :mouse-interaction="true"
+    />
+  </div>
+</template>
 
-<template>
-<div :style="{ width: '100%', height: '600px', position: 'relative' }">
-  <SlicedWaves
-    color1="#FF9FFC"
-    color2="#5227FF"
-    color3="#B497CF"
-    :columns="14"
-    :rows="8"
-    :barThickness="0.1"
-    :speed="0.35"
-    :travel="0.7"
-    :waveSpread="0.9"
-    :rowOffset="1.0"
-    :softness="0.05"
-    :glow="0"
-    :brightness="1.0"
-    :contrast="1.0"
-    :opacity="0.5"
-    orientation="horizontal"
-    :alternate="false"
-    :mouseInteraction="true"
-    :mouseStrength="1"
-    :mouseRadius="0.3"
-    :grain="true"
-    :grainIntensity="0.05"
-  />
-</div>
-</template>`
+<script setup lang="ts">
+import SlicedWaves from './SlicedWaves.vue';
+</script>`
 });

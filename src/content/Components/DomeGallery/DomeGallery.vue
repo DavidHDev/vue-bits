@@ -117,7 +117,7 @@
         class="z-[3] absolute inset-0 m-auto pointer-events-none"
         :style="
           {
-            backgroundImage: 'radial-gradient(rgba(235,235,235,0) 65%, var(--overlay-blur-color, #120F17) 100%)'
+            backgroundImage: 'radial-gradient(rgba(235,235,235,0) 65%, var(--overlay-blur-color, #111111) 100%)'
           } as StyleValue
         "
       />
@@ -125,8 +125,8 @@
         class="z-[3] absolute inset-0 m-auto pointer-events-none"
         :style="
           {
-            WebkitMaskImage: 'radial-gradient(rgba(235,235,235,0) 70%, var(--overlay-blur-color, #120F17) 90%)',
-            maskImage: 'radial-gradient(rgba(235,235,235,0) 70%, var(--overlay-blur-color, #120F17) 90%)',
+            WebkitMaskImage: 'radial-gradient(rgba(235,235,235,0) 70%, var(--overlay-blur-color, #111111) 90%)',
+            maskImage: 'radial-gradient(rgba(235,235,235,0) 70%, var(--overlay-blur-color, #111111) 90%)',
             backdropFilter: 'blur(3px)'
           } as StyleValue
         "
@@ -134,13 +134,13 @@
       <div
         class="top-0 right-0 left-0 z-[5] absolute h-[120px] rotate-180 pointer-events-none"
         :style="
-          { background: 'linear-gradient(to bottom, transparent, var(--overlay-blur-color, #120F17))' } as StyleValue
+          { background: 'linear-gradient(to bottom, transparent, var(--overlay-blur-color, #111111))' } as StyleValue
         "
       />
       <div
         class="right-0 bottom-0 left-0 z-[5] absolute h-[120px] pointer-events-none"
         :style="
-          { background: 'linear-gradient(to bottom, transparent, var(--overlay-blur-color, #120F17))' } as StyleValue
+          { background: 'linear-gradient(to bottom, transparent, var(--overlay-blur-color, #111111))' } as StyleValue
         "
       />
 
@@ -233,7 +233,7 @@ const props = withDefaults(defineProps<DomeGalleryProps>(), {
   minRadius: 600,
   maxRadius: Infinity,
   padFactor: 0.25,
-  overlayBlurColor: '#120F17',
+  overlayBlurColor: '#111111',
   maxVerticalRotationDeg: 5,
   dragSensitivity: 20,
   enlargeTransitionMs: 300,

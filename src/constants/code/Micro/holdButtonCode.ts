@@ -12,7 +12,7 @@ const remove = () => api.deleteAccount()
 <HoldButton
   doneLabel="Deleted"
   backgroundColor="#27272a"
-  fillColor="#5227FF"
+  fillColor="#29ff27"
   textColor="#f5f5f5"
   fillTextColor="#ffffff"
   size="md"

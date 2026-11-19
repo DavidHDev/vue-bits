@@ -40,8 +40,9 @@ export const customToastStyles = {
   message: {
     style: {
       borderRadius: '10px',
-      border: '1px solid #333',
-      backgroundColor: '#0b0b0b'
+      border: '1px solid var(--border-primary)',
+      backgroundColor: 'var(--menu-bg)',
+      color: 'var(--text-primary)'
     }
   },
   messageContent: {

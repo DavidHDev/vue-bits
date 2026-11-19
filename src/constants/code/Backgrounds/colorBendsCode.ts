@@ -5,7 +5,7 @@ export const colorBends = createCodeObject(code, 'Backgrounds/ColorBends', {
   installation: `npm install three`,
   usage: `<template>
   <ColorBends
-    :colors="['#ff5c7a', '#8a5cff', '#00ffd1']"
+    :colors="['#ff5c7a', '#42b883', '#00ffd1']"
     :rotation="90"
     :speed="0.2"
     :scale="1"

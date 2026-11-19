@@ -2,25 +2,15 @@ import code from '@/content/Animations/PixelTrail/PixelTrail.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const pixelTrail = createCodeObject(code, 'Animations/PixelTrail', {
-  installation: `npm install three @types/three`,
+  dependencies: '',
   usage: `<template>
-  <div
-    style="
-      height: 500px;
-      position: relative;
-      overflow: hidden;
-    "
-  >
+  <div style="height: 500px; position: relative; overflow: hidden">
     <PixelTrail
       :grid-size="50"
       :trail-size="0.1"
-      :max-age="250"
+      :max-age="500"
       :interpolate="5"
-      color="#fff"
-      :gooey-filter="{
-        id: 'custom-goo-filter',
-        strength: 2
-      }"
+      color="#7cff67"
     />
   </div>
 </template>

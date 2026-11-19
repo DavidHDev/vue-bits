@@ -2,44 +2,29 @@ import code from '@/content/Components/CardSwap/CardSwap.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const cardSwap = createCodeObject(code, 'Components/CardSwap', {
-  installation: `npm install gsap`,
+  installation: `npm install @hugeicons/vue @hugeicons/core-free-icons`,
   usage: `<template>
-  <CardSwap 
-    :card-distance="60"
-    :vertical-distance="70"
-    :delay="5000"
-    :pause-on-hover="false"
-  >
-    <template #card-0>
-      <div class="border-b border-white bg-gradient-to-t from-[#222] to-[#0b0b0b]">
-        <div class="m-2 flex items-center">
-          <i class="pi pi-circle-fill mr-2"></i>
-          <span>Smooth</span>
-        </div>
-      </div>
-    </template>
-    
-    <template #card-1>
-      <div class="border-b border-white bg-gradient-to-t from-[#222] to-[#0b0b0b]">
-        <div class="m-2 flex items-center">
-          <i class="pi pi-code mr-2"></i>
-          <span>Reliable</span>
-        </div>
-      </div>
-    </template>
-    
-    <template #card-2>
-      <div class="border-b border-white bg-gradient-to-t from-[#222] to-[#0b0b0b]">
-        <div class="m-2 flex items-center">
-          <i class="pi pi-sliders-h mr-2"></i>
-          <span>Customizable</span>
-        </div>
-      </div>
-    </template>
-  </CardSwap>
+  <div style="height: 600px">
+    <CardSwap :items="items" :delay="4000" />
+  </div>
+
+  <div style="height: 600px">
+    <CardSwap :width="420" :height="300">
+      <Card>Your content</Card>
+      <Card>Your content</Card>
+      <Card>Your content</Card>
+    </CardSwap>
+  </div>
 </template>
 
 <script setup lang="ts">
-import CardSwap from "./CardSwap.vue";
+import CardSwap, { Card, type CardSwapItem } from './CardSwap.vue';
+
+const items: CardSwapItem[] = [
+  { title: 'Golden hour', image: '/photos/sky.jpg' },
+  { title: 'Canola field', image: '/photos/field.jpg' },
+  { title: 'The pier', image: '/photos/pier.jpg' },
+  { title: 'Pink drift', image: '/photos/clouds.jpg' }
+];
 </script>`
 });

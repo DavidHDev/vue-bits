@@ -40,7 +40,7 @@
 
         <button
           ref="toggleBtnRef"
-          class="inline-flex relative items-center gap-[0.3rem] bg-transparent border-0 overflow-visible font-medium text-[#e9e9ef] leading-none cursor-pointer pointer-events-auto sm-toggle"
+          class="inline-flex relative items-center gap-[0.3rem] bg-transparent border-0 overflow-visible font-medium text-[#e9ebe9] leading-none cursor-pointer pointer-events-auto sm-toggle"
           :aria-label="open ? 'Close menu' : 'Open menu'"
           :aria-expanded="open"
           aria-controls="staggered-menu-panel"
@@ -630,7 +630,7 @@ onBeforeUnmount(() => {
   background: transparent;
   border: none;
   cursor: pointer;
-  color: #e9e9ef;
+  color: #e9ebe9;
   font-weight: 500;
   line-height: 1;
   overflow: visible;
@@ -873,6 +873,9 @@ onBeforeUnmount(() => {
     width: 100%;
     left: 0;
     right: 0;
+  }
+  .sm-scope .sm-prelayers {
+    width: 100%;
   }
   .sm-scope .staggered-menu-wrapper[data-open] .sm-logo-img {
     filter: invert(100%);

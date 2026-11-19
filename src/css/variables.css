@@ -1,55 +1,208 @@
 :root {
-  /* Background colors */
-  --bg-body: #111;
+  --bg-body: #111111;
   --bg-card: #070f07;
   --bg-elevated: #070f07;
   --bg-hover: #2a3a2a;
 
-  /* Border colors */
   --border-primary: #222222;
   --border-secondary: #222222;
   --border-subtle: #222222;
 
-  /* Brand colors — Vue green */
   --color-primary: #7cff67;
   --color-accent: #a0ffbc;
   --color-accent-muted: #a0ffbc;
 
-  /* Text colors */
   --text-primary: #fff;
   --text-secondary: #f5f5f5;
   --text-muted: #aaaaaa;
   --text-dimmed: #a1a1aa;
   --text-link: #ffffff;
+  --section-heading: #f3f5f3;
 
-  /* Ghost surfaces (framed card panels: Customize, Props, Dependencies) */
-  --surface-ghost: rgba(255, 255, 255, 0.07);
-  --surface-ghost-track: rgba(255, 255, 255, 0.04);
-  --surface-ghost-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.07);
-  --inset-border: rgba(255, 255, 255, 0.055);
-  --inset-divider: rgba(255, 255, 255, 0.045);
-
-  /* Radii */
+  --radius-xs: 6px;
   --radius-sm: 10px;
   --radius-md: 12px;
-  --radius-lg: 16px;
+  --radius-lg: 14px;
   --radius-xl: 24px;
-  --radius-full: 50px;
+  --radius-full: 999px;
 
-  /* Shadows */
   --shadow-dropdown: 0 8px 32px rgba(0, 0, 0, 0.4);
   --shadow-primary: 0 2px 8px rgba(66, 184, 131, 0.4);
 
-  /* Transitions */
-  --transition-fast: 0.15s ease;
-  --transition-base: 0.2s ease;
-  --transition-slow: 0.3s ease;
+  --docs-header-height: 60px;
 
-  /* Shared gradient for section titles */
+  --docs-content-max-width: 675px;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --dur-press: 120ms;
+  --dur-tooltip: 160ms;
+  --dur-menu: 200ms;
+  --dur-panel: 280ms;
+
+  --transition-fast: 0.15s var(--ease-out);
+  --transition-base: 0.2s var(--ease-out);
+  --transition-slow: 0.3s var(--ease-out);
+
   --gradient-title: linear-gradient(135deg, #fff 0%, #66c2a4 20%, #7cff67 40%, #66c2a4 60%, #7cff67 80%, #fff 100%);
+
+  --surface-ghost: rgba(255, 255, 255, 0.07);
+  --surface-ghost-hover: rgba(255, 255, 255, 0.12);
+  --surface-ghost-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --surface-ghost-blur: blur(32px) saturate(1.3);
+  --surface-ghost-track: rgba(255, 255, 255, 0.04);
+  --action-control-bg: var(--surface-ghost-track);
+  --action-control-border: transparent;
+  --action-control-hover: var(--surface-ghost-hover);
+  --action-control-selected: var(--surface-ghost);
+  --action-control-selected-border: transparent;
+  --action-control-shadow: var(--surface-ghost-highlight);
+
+  --shell-panel: rgba(17, 17, 17, 0.82);
+  --shell-panel-solid: #111111;
+  --shell-border: rgba(255, 255, 255, 0.07);
+  --shell-border-strong: rgba(255, 255, 255, 0.1);
+  --shell-fade-rgb: 17, 17, 17;
+  --field-bg: #111111;
+  --text-on-accent: #fff;
+  --inset-border: rgba(255, 255, 255, 0.055);
+  --preview-border: rgba(255, 255, 255, 0.05);
+  --inset-divider: rgba(255, 255, 255, 0.045);
+  --row-hover: rgba(255, 255, 255, 0.022);
+  --code-name: rgba(160, 255, 188, 0.9);
+  --code-type: rgba(205, 226, 211, 0.68);
+  --code-value: rgba(214, 229, 218, 0.86);
+  --code-chip: rgba(255, 255, 255, 0.055);
+  --skeleton-base: #1a1c1a;
+  --skeleton-shine: #262a26;
+  --shadow-elevated: 0 14px 40px rgba(0, 0, 0, 0.14);
+  --shadow-elevated-hover: 0 18px 42px rgba(0, 0, 0, 0.18);
+  --shadow-menu: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --slider-thumb: rgba(255, 255, 255, 0.9);
+  --slider-fill: rgba(255, 255, 255, 0.06);
+  --switch-track: #2c302c;
+  --switch-track-checked: #d3d7d3;
+  --switch-knob: #a1a1aa;
+  --switch-knob-checked: #1c1f1c;
+  --floating-control-bg: rgba(17, 17, 17, 0.72);
+  --floating-control-hover: rgba(30, 34, 30, 0.94);
+  --code-bg: #111111;
+  --code-bg-accent: #1a1c1a;
+  --new-badge-text: #c4ffd2;
+  --new-badge-bg: rgba(124, 255, 103, 0.2);
+  --tool-track: rgba(255, 255, 255, 0.045);
+  --tool-track-hover: rgba(255, 255, 255, 0.08);
+  --tool-hover: rgba(255, 255, 255, 0.06);
+  --tool-raised: rgba(255, 255, 255, 0.1);
+  --tool-raised-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 1px 2px rgba(0, 0, 0, 0.35);
+  --tool-muted: rgba(244, 244, 245, 0.58);
+  --tool-float: rgba(32, 36, 32, 0.62);
+  --tool-float-hover: rgba(44, 50, 44, 0.78);
+  --tool-float-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --tool-tooltip: #1c1f1c;
+  --tool-tooltip-shadow: 0 8px 20px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --menu-bg: #191b19;
+  --menu-bg-rgb: 25, 27, 25;
+  --menu-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.045), 0 18px 44px -12px rgba(0, 0, 0, 0.7),
+    0 6px 14px -6px rgba(0, 0, 0, 0.45);
+  --menu-highlight: rgba(255, 255, 255, 0.065);
+  --menu-label: rgba(244, 244, 245, 0.42);
+  --surface-well: #0b0d0b;
+  --surface-band: #0c0e0c;
+  --surface-raised: #1a1c1a;
 }
 
-/* Shared keyframes — used by section titles across multiple components */
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg-body: #ffffff;
+  --bg-card: #ffffff;
+  --bg-elevated: #f0f2f0;
+  --bg-hover: #e8ebe8;
+  --border-primary: #d0d4d0;
+  --border-secondary: #dde0dd;
+  --border-subtle: #e6e9e6;
+  --color-primary: #1f9d45;
+  --color-accent: #17843a;
+  --color-accent-muted: #5f8a6b;
+  --text-primary: #161816;
+  --text-secondary: #2d312e;
+  --text-muted: #4f5550;
+  --text-dimmed: #6c736d;
+  --text-link: #252825;
+  --section-heading: #3c413d;
+  --shadow-dropdown: 0 16px 42px rgba(22, 24, 22, 0.12);
+  --shadow-primary: 0 4px 18px rgba(31, 157, 69, 0.2);
+  --surface-ghost: rgba(22, 24, 22, 0.07);
+  --surface-ghost-hover: rgba(22, 24, 22, 0.11);
+  --surface-ghost-highlight: 0 1px 2px rgba(22, 24, 22, 0.05);
+  --surface-ghost-track: rgba(22, 24, 22, 0.055);
+  --action-control-bg: #ffffff;
+  --action-control-border: var(--border-subtle);
+  --action-control-hover: #f8f9f8;
+  --action-control-selected: #ffffff;
+  --action-control-selected-border: var(--border-primary);
+  --action-control-shadow: none;
+  --shell-panel: rgba(255, 255, 255, 0.86);
+  --shell-panel-solid: #ffffff;
+  --shell-border: rgba(22, 24, 22, 0.09);
+  --shell-border-strong: rgba(22, 24, 22, 0.14);
+  --shell-fade-rgb: 255, 255, 255;
+  --field-bg: #ffffff;
+  --inset-border: rgba(22, 24, 22, 0.14);
+  --preview-border: rgba(22, 24, 22, 0.055);
+  --inset-divider: rgba(22, 24, 22, 0.1);
+  --row-hover: rgba(22, 24, 22, 0.035);
+  --code-name: #157a35;
+  --code-type: #4c5e51;
+  --code-value: #2a3a2f;
+  --code-chip: rgba(22, 24, 22, 0.06);
+  --skeleton-base: #e6e9e6;
+  --skeleton-shine: #f3f5f3;
+  --shadow-elevated: 0 14px 38px rgba(22, 24, 22, 0.07);
+  --shadow-elevated-hover: 0 18px 44px rgba(22, 24, 22, 0.1);
+  --shadow-menu: 0 16px 36px rgba(22, 24, 22, 0.13);
+  --slider-thumb: #6c736d;
+  --slider-fill: rgba(22, 24, 22, 0.09);
+  --switch-track: #d3d7d3;
+  --switch-track-checked: #4f5550;
+  --switch-knob: #ffffff;
+  --switch-knob-checked: #ffffff;
+  --floating-control-bg: rgba(255, 255, 255, 0.92);
+  --floating-control-hover: #fff;
+  --code-bg: #ffffff;
+  --code-bg-accent: #ebedeb;
+  --new-badge-text: #17602f;
+  --new-badge-bg: #dff5e5;
+  --tool-track: rgba(22, 24, 22, 0.045);
+  --tool-track-hover: rgba(22, 24, 22, 0.075);
+  --tool-hover: rgba(22, 24, 22, 0.045);
+  --tool-raised: #ffffff;
+  --tool-raised-shadow: 0 1px 2px rgba(22, 24, 22, 0.08), 0 0 0 1px rgba(22, 24, 22, 0.05);
+  --tool-muted: rgba(37, 40, 37, 0.6);
+  --tool-float: rgba(255, 255, 255, 0.86);
+  --tool-float-hover: #ffffff;
+  --tool-float-shadow: 0 1px 3px rgba(22, 24, 22, 0.08), 0 0 0 1px rgba(22, 24, 22, 0.06);
+  --tool-tooltip: #ffffff;
+  --tool-tooltip-shadow: 0 8px 20px rgba(22, 24, 22, 0.12), 0 0 0 1px rgba(22, 24, 22, 0.07);
+  --menu-bg: #ffffff;
+  --menu-bg-rgb: 255, 255, 255;
+  --menu-shadow:
+    0 0 0 1px rgba(22, 24, 22, 0.07), 0 18px 44px -14px rgba(22, 24, 22, 0.2), 0 6px 14px -8px rgba(22, 24, 22, 0.1);
+  --menu-highlight: rgba(22, 24, 22, 0.05);
+  --menu-label: rgba(37, 40, 37, 0.46);
+  --surface-well: #f3f5f3;
+  --surface-band: #f6f8f6;
+  --surface-raised: #ffffff;
+  --gradient-title: linear-gradient(135deg, #12241a 0%, #2f9a5c 25%, #1f9d45 50%, #2b8a52 75%, #12241a 100%);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
 @keyframes gradientShift {
   0%,
   100% {

@@ -1,0 +1,257 @@
+.prop-table-section {
+  margin-top: 3rem;
+}
+
+.prop-table-frame {
+  --prop-inset-background: var(--bg-body);
+  padding: 4px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  background: var(--surface-ghost-track);
+  box-shadow: var(--surface-ghost-highlight);
+}
+
+:root[data-theme='light'] .prop-table-frame {
+  --prop-inset-background: #ffffff;
+  border-color: var(--border-subtle);
+  background: #fafbfa;
+  box-shadow: none;
+}
+
+.prop-table-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0.75rem 0.7rem;
+}
+
+.prop-table-heading h2 {
+  margin: 0;
+  color: var(--section-heading);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.prop-table-heading > span {
+  color: var(--text-dimmed);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.prop-table-wrap {
+  border-radius: calc(var(--radius-lg) - 5px);
+}
+
+.prop-table-surface {
+  overflow: hidden;
+  border: 1px solid var(--inset-border);
+  border-radius: calc(var(--radius-lg) - 5px);
+  background: var(--prop-inset-background);
+}
+
+.prop-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-family: 'Geist', sans-serif;
+}
+
+.prop-table caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.prop-column-name {
+  width: 20%;
+}
+
+.prop-column-type {
+  width: 21%;
+}
+
+.prop-column-default {
+  width: 22%;
+}
+
+.prop-column-description {
+  width: 37%;
+}
+
+.prop-table thead th {
+  text-align: left;
+  padding: 0.8rem 1rem;
+  background: var(--prop-inset-background);
+  color: var(--text-dimmed);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border-bottom: 1px solid var(--inset-border);
+  white-space: nowrap;
+}
+
+.prop-table tbody tr {
+  transition: background-color var(--transition-fast);
+}
+
+.prop-table tbody tr:hover {
+  background: var(--row-hover);
+}
+
+.prop-table tbody td {
+  padding: 0.9rem 1rem;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--inset-divider);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  vertical-align: middle;
+}
+
+.prop-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.prop-type {
+  font-family: 'Geist Mono', monospace;
+  color: var(--code-type) !important;
+  font-size: 0.75rem !important;
+  overflow-wrap: anywhere;
+}
+
+.prop-name,
+.prop-default {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.prop-name {
+  color: var(--code-name);
+  overflow-wrap: anywhere;
+}
+
+.prop-default {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0.2rem 0.45rem;
+  border-radius: 6px;
+  background: var(--code-chip);
+  box-shadow: inset 0 0 0 1px var(--inset-divider);
+  color: var(--code-value);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prop-cards {
+  display: none;
+  flex-direction: column;
+  border-radius: calc(var(--radius-lg) - 5px);
+}
+
+.prop-cards-surface {
+  overflow: hidden;
+  border: 1px solid var(--inset-border);
+  border-radius: calc(var(--radius-lg) - 5px);
+  background: var(--prop-inset-background);
+}
+
+.prop-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--inset-divider);
+  transition: background-color var(--transition-fast);
+}
+
+.prop-card:first-child {
+  border-radius: calc(var(--radius-lg) - 5px) calc(var(--radius-lg) - 5px) 0 0;
+}
+
+.prop-card:last-child {
+  border-bottom: 0;
+  border-radius: 0 0 calc(var(--radius-lg) - 5px) calc(var(--radius-lg) - 5px);
+}
+
+.prop-card:hover {
+  background: var(--row-hover);
+}
+
+.prop-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.prop-card-type {
+  font-family: 'Geist Mono', monospace;
+  color: var(--code-type);
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.prop-card-desc {
+  font-family: 'Geist', sans-serif;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.prop-card-default {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.prop-card-label {
+  font-family: 'Geist', sans-serif;
+  color: var(--text-dimmed);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+@media (max-width: 860px) {
+  .prop-table-wrap {
+    display: none;
+  }
+
+  .prop-cards {
+    display: flex;
+  }
+}
+
+@media (max-width: 480px) {
+  .prop-table-section {
+    margin-top: 2.5rem;
+  }
+
+  .prop-table-heading > span {
+    font-size: 0.6875rem;
+  }
+
+  .prop-card {
+    padding: 0.9rem 0.8rem;
+  }
+
+  .prop-card-header {
+    align-items: flex-start;
+  }
+
+  .prop-card-type {
+    max-width: 50%;
+    overflow-wrap: anywhere;
+  }
+}

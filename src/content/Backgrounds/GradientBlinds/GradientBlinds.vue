@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { Renderer, Program, Mesh, Triangle } from 'ogl';
-import { onBeforeUnmount, onMounted, ref, useTemplateRef, watch, type CSSProperties } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch, type CSSProperties } from 'vue';
 
-export interface GradientBlindsProps {
+type BlindsShineDirection = 'left' | 'right';
+type BlindsClickEffect = 'ripple' | 'none';
+type BlindsIdle = 'drift' | 'center' | 'stay';
+
+interface GradientBlindsProps {
   className?: string;
+  style?: CSSProperties;
   dpr?: number;
   paused?: boolean;
   gradientColors?: string[];
@@ -17,32 +21,314 @@ export interface GradientBlindsProps {
   spotlightSoftness?: number;
   spotlightOpacity?: number;
   distortAmount?: number;
-  shineDirection?: 'left' | 'right';
-  mixBlendMode?: string;
+  shineDirection?: BlindsShineDirection;
+  lightColor?: string;
+  perspective?: number;
+  gradientSpeed?: number;
+  shine?: number;
+  relief?: number;
+  glow?: number;
+  sway?: number;
+  speed?: number;
+  hoverTilt?: number;
+  clickEffect?: BlindsClickEffect;
+  idle?: BlindsIdle;
+  intro?: boolean;
+  mixBlendMode?: CSSProperties['mixBlendMode'];
+  lightMode?: boolean;
 }
 
-const MAX_COLORS = 8;
+type Settings = {
+  paused: boolean;
+  colorKey: string;
+  gradientColors?: string[];
+  angle: number;
+  noise: number;
+  blindCount: number;
+  blindMinWidth: number;
+  mouseDampening: number;
+  mirrorGradient: boolean;
+  spotlightRadius: number;
+  spotlightSoftness: number;
+  spotlightOpacity: number;
+  distortAmount: number;
+  shineDirection: BlindsShineDirection;
+  lightColor: string;
+  perspective: number;
+  gradientSpeed: number;
+  shine: number;
+  relief: number;
+  glow: number;
+  sway: number;
+  speed: number;
+  hoverTilt: number;
+  clickEffect: BlindsClickEffect;
+  idle: BlindsIdle;
+  intro: boolean;
+  lightMode: boolean;
+  dpr?: number;
+};
 
-const hexToRGB = (hex: string): [number, number, number] => {
-  const c = hex.replace('#', '').padEnd(6, '0');
+type Program = { program: WebGLProgram; uniforms: Record<string, WebGLUniformLocation | null> };
+
+const MAX_COLORS = 8;
+const MAX_WAVES = 4;
+const INTRO_SECONDS = 1.8;
+const RIPPLE_SECONDS = 1.6;
+
+const VERTEX = `#version 300 es
+void main() {
+  vec2 p = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2));
+  gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0);
+}`;
+
+const FRAGMENT = `#version 300 es
+precision highp float;
+precision highp int;
+
+uniform vec2 uResolution;
+uniform float uTime;
+uniform vec2 uMouse;
+uniform float uAngle;
+uniform float uNoise;
+uniform float uBlindCount;
+uniform float uSpotlightRadius;
+uniform float uSpotlightSoftness;
+uniform float uSpotlightOpacity;
+uniform float uMirror;
+uniform float uDistort;
+uniform float uShineFlip;
+uniform vec3 uColors[8];
+uniform int uColorCount;
+uniform float uLightMode;
+uniform float uShine;
+uniform float uRelief;
+uniform float uGlow;
+uniform float uSway;
+uniform float uSwayTime;
+uniform float uHover;
+uniform vec4 uWaves[4];
+uniform float uIntro;
+uniform float uGrainTime;
+uniform vec3 uLightColor;
+uniform float uPerspective;
+uniform float uGradientShift;
+
+out vec4 outColor;
+
+float hash(vec2 p) {
+  vec3 q = fract(vec3(p.xyx) * 0.1031);
+  q += dot(q, q.yzx + 33.33);
+  return fract((q.x + q.y) * q.z);
+}
+
+vec2 rotate2D(vec2 p, float a) {
+  float c = cos(a);
+  float s = sin(a);
+  return mat2(c, -s, s, c) * p;
+}
+
+vec2 blindSpace(vec2 uv0) {
+  float aspect = uResolution.x / uResolution.y;
+  vec2 p = uv0 * 2.0 - 1.0;
+  p.x *= aspect;
+  vec2 pr = rotate2D(p, uAngle);
+  pr.x /= aspect;
+  vec2 uv = pr * 0.5 + 0.5;
+  if (abs(uPerspective) > 0.001) {
+    float k = uPerspective * 2.2;
+    uv.x = (exp(k * uv.x) - 1.0) / (exp(k) - 1.0);
+  }
+  if (uDistort > 0.0) {
+    float a = uv.y * 6.0;
+    float b = uv.x * 6.0;
+    float w = 0.01 * uDistort;
+    uv.x += sin(a) * w;
+    uv.y += cos(b) * w;
+  }
+  return uv;
+}
+
+vec3 gradientColor(float t) {
+  float tt = clamp(t, 0.0, 1.0);
+  int count = max(uColorCount, 2);
+  float scaled = tt * float(count - 1);
+  int seg = min(int(floor(scaled)), count - 2);
+  float f = scaled - float(seg);
+  if (tt >= 1.0) return uColors[count - 1];
+  return mix(uColors[seg], uColors[seg + 1], f);
+}
+
+void main() {
+  vec2 frag = gl_FragCoord.xy;
+  vec2 uv0 = frag / uResolution;
+  vec2 uvMod = blindSpace(uv0);
+
+  float count = max(uBlindCount, 1.0);
+  float stripePhase = uvMod.x * count;
+  float pixel = max(fwidth(stripePhase), 1e-5);
+
+  float t = uvMod.x;
+  if (uGradientShift != 0.0) {
+    t = 1.0 - abs(1.0 - fract((t + uGradientShift) * 0.5) * 2.0);
+  }
+  if (uMirror > 0.5) {
+    t = 1.0 - abs(1.0 - 2.0 * fract(t));
+  }
+  vec3 base = gradientColor(t);
+
+  vec2 offset = uMouse / uResolution;
+  float d = length(uv0 - offset);
+  float r = max(uSpotlightRadius, 1e-4);
+  float spot = (1.0 - 2.0 * pow(d / r, uSpotlightSoftness)) * uSpotlightOpacity;
+
+  float slat = floor(stripePhase);
+  float s = stripePhase - slat;
+  float stripeAA = clamp(count * 1.25 / min(uResolution.x, uResolution.y), 0.001, 0.12);
+  float edgeBlend = 1.0 - smoothstep(0.0, stripeAA, min(s, 1.0 - s));
+  float across = mix(s, 0.5, edgeBlend);
+  float ramp = uShineFlip > 0.5 ? 1.0 - across : across;
+
+  float unit = min(uResolution.x, uResolution.y);
+  float reach = max(uSpotlightRadius, 0.05) * unit;
+  vec2 toLight = uMouse - frag;
+  float nearLight = exp(-dot(toLight, toLight) / (reach * reach));
+
+  float tilt = 0.0;
+  float pulse = 0.0;
+  if (uSway > 0.0) {
+    tilt += uSway * 0.5 * sin(uSwayTime * 0.9 + slat * 0.55) * (0.6 + 0.4 * sin(uSwayTime * 0.37 + slat * 0.21));
+  }
+  tilt += uHover * nearLight * 0.7;
+  float aspect = uResolution.x / uResolution.y;
+  for (int i = 0; i < 4; i++) {
+    vec4 wave = uWaves[i];
+    if (wave.w <= 0.0) continue;
+    float age = uTime - wave.z;
+    if (age < 0.0 || age > ${RIPPLE_SECONDS.toFixed(2)}) continue;
+    float life = age / ${RIPPLE_SECONDS.toFixed(2)};
+    vec2 origin = blindSpace(wave.xy / uResolution);
+    float slats = abs(slat + 0.5 - origin.x * count);
+    float front = age * max(count, 4.0) * 0.95;
+    float k = (slats - front) / (0.8 + life * 1.2);
+    float along = (uvMod.y - origin.y) / max(0.42 + life * 0.5, 0.01);
+    float fade = (1.0 - life) * (1.0 - life);
+    float ring = exp(-k * k) * exp(-along * along) * fade * smoothstep(0.0, 0.2, age);
+    tilt += ring * 0.9;
+    pulse += ring;
+  }
+  if (uIntro < 1.0) {
+    float settle = smoothstep(0.0, 1.0, clamp(uIntro * 1.5 - uv0.x * 0.5, 0.0, 1.0));
+    tilt -= (1.0 - settle) * 1.2;
+  }
+
+  float edge = ramp;
+  float calm = 1.0 - 0.6 * clamp(spot, 0.0, 1.0);
+  ramp = pow(clamp(ramp, 0.0, 1.0), exp(tilt * 0.9));
+  ramp *= 1.0 - 0.3 * min(pulse, 1.0) * calm;
+  float crease = uRelief * 0.38 * smoothstep(0.62, 1.0, ramp);
+  float sheen = uShine * exp(-pow((edge - 0.035) / 0.07, 2.0)) * (0.3 + 0.7 * nearLight) * (1.0 - edgeBlend);
+
+  vec3 lit = spot > 0.0 ? uLightColor * spot : vec3(spot);
+  lit += uLightColor * min(pulse, 1.0) * 0.35 * calm;
+  vec3 revealSignal = lit + base - vec3(ramp + crease);
+
+  vec3 col;
+  if (uLightMode > 0.5) {
+    vec3 luma = vec3(0.2126, 0.7152, 0.0722);
+    float peak = max(base.r, max(base.g, base.b));
+    float low = min(base.r, min(base.g, base.b));
+    float chroma = (peak - low) / max(peak, 0.0001);
+    vec3 hue = base / max(peak, 0.0001);
+    hue = clamp(mix(vec3(dot(hue, luma)), hue, 1.3), 0.0, 1.0);
+    hue *= mix(1.0, 0.82, smoothstep(0.55, 0.9, dot(hue, luma)));
+    vec3 tint = mix(base, hue, smoothstep(0.06, 0.28, chroma));
+    vec3 revealed = clamp(revealSignal, 0.0, 1.0);
+    float coverage = max(revealed.r, max(revealed.g, revealed.b));
+    float stroke = 1.0 - smoothstep(pixel, pixel * 2.2, edge);
+    col = mix(vec3(1.0), tint, 0.72 * smoothstep(0.0, 1.0, coverage));
+    col = mix(col, tint * 0.85, stroke * clamp(coverage * 1.5, 0.0, 1.0) * 0.7);
+    col = mix(col, vec3(1.0), clamp(sheen, 0.0, 1.0) * 0.5);
+    float grain = max(0.5 * (hash(frag + uGrainTime) + hash(frag.yx + uGrainTime * 1.7)) - 0.5, 0.0);
+    col = clamp(col - vec3(grain * uNoise * 0.12 * coverage), 0.0, 1.0);
+  } else {
+    vec3 haze = base * uGlow * 0.4 * smoothstep(0.0, 1.0, spot) * (0.4 + 0.6 * ramp);
+    col = revealSignal + haze + mix(base, uLightColor, 0.45) * sheen * 0.7;
+    vec3 over = max(col - 0.8, 0.0);
+    col = min(col, vec3(0.8)) + 0.2 * (1.0 - exp(-over / 0.2));
+    float luma = dot(clamp(col, 0.0, 1.0), vec3(0.2126, 0.7152, 0.0722));
+    float grain = 0.5 * (hash(frag + uGrainTime) + hash(frag.yx + uGrainTime * 1.7)) - 0.5;
+    col += grain * uNoise * (0.45 + 0.55 * smoothstep(0.0, 0.5, luma));
+  }
+
+  float presence = smoothstep(0.0, 0.65, uIntro);
+  col = uLightMode > 0.5 ? mix(vec3(1.0), col, presence) : col * presence;
+  outColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+}`;
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+const compile = (gl: WebGL2RenderingContext, type: number, source: string) => {
+  const shader = gl.createShader(type);
+  if (!shader) return null;
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  if (gl.getShaderParameter(shader, gl.COMPILE_STATUS)) return shader;
+  gl.deleteShader(shader);
+  return null;
+};
+
+const link = (gl: WebGL2RenderingContext): Program | null => {
+  const vertex = compile(gl, gl.VERTEX_SHADER, VERTEX);
+  const fragment = compile(gl, gl.FRAGMENT_SHADER, FRAGMENT);
+  const program = gl.createProgram();
+  if (!vertex || !fragment || !program) return null;
+  gl.attachShader(program, vertex);
+  gl.attachShader(program, fragment);
+  gl.linkProgram(program);
+  gl.deleteShader(vertex);
+  gl.deleteShader(fragment);
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    gl.deleteProgram(program);
+    return null;
+  }
+  const uniforms: Record<string, WebGLUniformLocation | null> = {};
+  const count = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+  for (let i = 0; i < count; i++) {
+    const info = gl.getActiveUniform(program, i);
+    if (!info) continue;
+    const name = info.name.replace(/\[0\]$/, '');
+    uniforms[name] = gl.getUniformLocation(program, name);
+  }
+  return { program, uniforms };
+};
+
+const hexToRGB = (hex: string): number[] => {
+  const c = String(hex || '')
+    .replace('#', '')
+    .padEnd(6, '0');
   const r = parseInt(c.slice(0, 2), 16) / 255;
   const g = parseInt(c.slice(2, 4), 16) / 255;
   const b = parseInt(c.slice(4, 6), 16) / 255;
-  return [r, g, b];
+  return [r || 0, g || 0, b || 0];
 };
 
 const prepStops = (stops?: string[]) => {
-  const base = (stops && stops.length ? stops : ['#FF9FFC', '#27FF64']).slice(0, MAX_COLORS);
+  const base = (stops && stops.length ? stops : ['#a0ffbc', '#42b883']).slice(0, MAX_COLORS);
   if (base.length === 1) base.push(base[0]);
   while (base.length < MAX_COLORS) base.push(base[base.length - 1]);
-  const arr: [number, number, number][] = [];
-  for (let i = 0; i < MAX_COLORS; i++) arr.push(hexToRGB(base[i]));
+  const flat = new Float32Array(MAX_COLORS * 3);
+  for (let i = 0; i < MAX_COLORS; i++) flat.set(hexToRGB(base[i]), i * 3);
   const count = Math.max(2, Math.min(MAX_COLORS, stops?.length ?? 2));
-  return { arr, count };
+  return { flat, count };
 };
 
 const props = withDefaults(defineProps<GradientBlindsProps>(), {
+  className: '',
+  style: undefined,
+  dpr: undefined,
   paused: false,
+  gradientColors: undefined,
   angle: 0,
   noise: 0.3,
   blindCount: 16,
@@ -54,336 +340,341 @@ const props = withDefaults(defineProps<GradientBlindsProps>(), {
   spotlightOpacity: 1,
   distortAmount: 0,
   shineDirection: 'left',
-  mixBlendMode: 'lighten'
+  lightColor: '#ffffff',
+  perspective: 0,
+  gradientSpeed: 0,
+  shine: 0.4,
+  relief: 0.5,
+  glow: 0.4,
+  sway: 0.35,
+  speed: 1,
+  hoverTilt: 0.6,
+  clickEffect: 'ripple',
+  idle: 'drift',
+  intro: true,
+  mixBlendMode: 'lighten',
+  lightMode: false
 });
 
-const containerRef = useTemplateRef('containerRef');
-const rafRef = ref<number>(0);
-const programRef = ref<Program | null>(null);
-const meshRef = ref<Mesh<Triangle> | null>(null);
-const geometryRef = ref<Triangle | null>(null);
-const rendererRef = ref<Renderer | null>(null);
-const mouseTargetRef = ref<[number, number]>([0, 0]);
-const lastTimeRef = ref<number>(0);
-const firstResizeRef = ref<boolean>(true);
+const containerRef = ref<HTMLDivElement | null>(null);
+const canvasRef = ref<HTMLCanvasElement | null>(null);
+let wakeHandler: (() => void) | null = null;
+let teardown: (() => void) | null = null;
 
-let cleanup: (() => void) | null = null;
+const settings = computed<Settings>(() => ({
+  paused: props.paused,
+  colorKey: (props.gradientColors && props.gradientColors.length ? props.gradientColors : ['#a0ffbc', '#42b883']).join(
+    ','
+  ),
+  gradientColors: props.gradientColors,
+  angle: props.angle,
+  noise: clamp(props.noise, 0, 2),
+  blindCount: Math.max(1, props.blindCount || 1),
+  blindMinWidth: props.blindMinWidth,
+  mouseDampening: Math.max(0, props.mouseDampening),
+  mirrorGradient: props.mirrorGradient,
+  spotlightRadius: props.spotlightRadius,
+  spotlightSoftness: props.spotlightSoftness,
+  spotlightOpacity: props.spotlightOpacity,
+  distortAmount: props.distortAmount,
+  shineDirection: props.shineDirection,
+  lightColor: props.lightColor,
+  perspective: clamp(props.perspective, -1, 1),
+  gradientSpeed: props.gradientSpeed,
+  shine: clamp(props.shine, 0, 2),
+  relief: clamp(props.relief, 0, 1),
+  glow: clamp(props.glow, 0, 2),
+  sway: clamp(props.sway, 0, 1),
+  speed: clamp(props.speed, 0, 4),
+  hoverTilt: clamp(props.hoverTilt, 0, 1.5),
+  clickEffect: props.clickEffect,
+  idle: props.idle,
+  intro: props.intro,
+  lightMode: props.lightMode,
+  dpr: props.dpr
+}));
+
+const containerStyle = computed<CSSProperties>(() => ({
+  ...(!props.lightMode && props.mixBlendMode ? { mixBlendMode: props.mixBlendMode } : null),
+  ...props.style
+}));
 
 const setup = () => {
   const container = containerRef.value;
-  if (!container) return;
-
-  const renderer = new Renderer({
-    dpr: props.dpr ?? (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1),
-    alpha: true,
-    antialias: true
+  const canvas = canvasRef.value;
+  const gl = canvas?.getContext('webgl2', {
+    alpha: false,
+    antialias: false,
+    depth: false,
+    stencil: false,
+    premultipliedAlpha: false
   });
-  rendererRef.value = renderer;
-  const gl = renderer.gl;
-  const canvas = gl.canvas as HTMLCanvasElement;
+  if (!container || !canvas || !gl) return;
+  const shader = link(gl);
+  if (!shader) return;
+  const u = shader.uniforms;
+  const vao = gl.createVertexArray();
 
-  canvas.style.width = '100%';
-  canvas.style.height = '100%';
-  canvas.style.display = 'block';
-  container.appendChild(canvas);
+  const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  const view = { width: 1, height: 1, ratio: 1, count: 1 };
+  const pointer = { x: 0, y: 0, inside: false };
+  const light = { x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0, ready: false };
+  const waves = new Float32Array(MAX_WAVES * 4);
+  let waveIndex = 0;
+  let hover = 0;
+  let time = 0;
+  let swayTime = 0;
+  let shift = 0;
+  let grainTime = 0;
+  let introClock = settings.value.intro && !reduce ? 0 : 1;
+  let colorKeyCache = '';
+  let colorStops = prepStops(settings.value.gradientColors);
+  let raf = 0;
+  let last = 0;
+  let visible = true;
 
-  const vertex = `
-attribute vec2 position;
-attribute vec2 uv;
-varying vec2 vUv;
-
-void main() {
-  vUv = uv;
-  gl_Position = vec4(position, 0.0, 1.0);
-}
-`;
-
-  const fragment = `
-#ifdef GL_ES
-precision mediump float;
-#endif
-
-uniform vec3  iResolution;
-uniform vec2  iMouse;
-uniform float iTime;
-
-uniform float uAngle;
-uniform float uNoise;
-uniform float uBlindCount;
-uniform float uSpotlightRadius;
-uniform float uSpotlightSoftness;
-uniform float uSpotlightOpacity;
-uniform float uMirror;
-uniform float uDistort;
-uniform float uShineFlip;
-uniform vec3  uColor0;
-uniform vec3  uColor1;
-uniform vec3  uColor2;
-uniform vec3  uColor3;
-uniform vec3  uColor4;
-uniform vec3  uColor5;
-uniform vec3  uColor6;
-uniform vec3  uColor7;
-uniform int   uColorCount;
-
-varying vec2 vUv;
-
-float rand(vec2 co){
-  return fract(sin(dot(co, vec2(12.9898,78.233))) * 43758.5453);
-}
-
-vec2 rotate2D(vec2 p, float a){
-  float c = cos(a);
-  float s = sin(a);
-  return mat2(c, -s, s, c) * p;
-}
-
-vec3 getGradientColor(float t){
-  float tt = clamp(t, 0.0, 1.0);
-  int count = uColorCount;
-  if (count < 2) count = 2;
-  float scaled = tt * float(count - 1);
-  float seg = floor(scaled);
-  float f = fract(scaled);
-
-  if (seg < 1.0) return mix(uColor0, uColor1, f);
-  if (seg < 2.0 && count > 2) return mix(uColor1, uColor2, f);
-  if (seg < 3.0 && count > 3) return mix(uColor2, uColor3, f);
-  if (seg < 4.0 && count > 4) return mix(uColor3, uColor4, f);
-  if (seg < 5.0 && count > 5) return mix(uColor4, uColor5, f);
-  if (seg < 6.0 && count > 6) return mix(uColor5, uColor6, f);
-  if (seg < 7.0 && count > 7) return mix(uColor6, uColor7, f);
-  if (count > 7) return uColor7;
-  if (count > 6) return uColor6;
-  if (count > 5) return uColor5;
-  if (count > 4) return uColor4;
-  if (count > 3) return uColor3;
-  if (count > 2) return uColor2;
-  return uColor1;
-}
-
-void mainImage( out vec4 fragColor, in vec2 fragCoord )
-{
-    vec2 uv0 = fragCoord.xy / iResolution.xy;
-
-    float aspect = iResolution.x / iResolution.y;
-    vec2 p = uv0 * 2.0 - 1.0;
-    p.x *= aspect;
-    vec2 pr = rotate2D(p, uAngle);
-    pr.x /= aspect;
-    vec2 uv = pr * 0.5 + 0.5;
-
-    vec2 uvMod = uv;
-    if (uDistort > 0.0) {
-      float a = uvMod.y * 6.0;
-      float b = uvMod.x * 6.0;
-      float w = 0.01 * uDistort;
-      uvMod.x += sin(a) * w;
-      uvMod.y += cos(b) * w;
+  const blindTotal = (s: Settings) => {
+    if (s.blindMinWidth && s.blindMinWidth > 0) {
+      const byWidth = Math.max(1, Math.floor(view.width / s.blindMinWidth));
+      return Math.max(1, s.blindCount ? Math.min(s.blindCount, byWidth) : byWidth);
     }
-    float t = uvMod.x;
-    if (uMirror > 0.5) {
-      t = 1.0 - abs(1.0 - 2.0 * fract(t));
-    }
-    vec3 base = getGradientColor(t);
-
-    vec2 offset = vec2(iMouse.x/iResolution.x, iMouse.y/iResolution.y);
-  float d = length(uv0 - offset);
-  float r = max(uSpotlightRadius, 1e-4);
-  float dn = d / r;
-  float spot = (1.0 - 2.0 * pow(dn, uSpotlightSoftness)) * uSpotlightOpacity;
-  vec3 cir = vec3(spot);
-  float stripe = fract(uvMod.x * max(uBlindCount, 1.0));
-  if (uShineFlip > 0.5) stripe = 1.0 - stripe;
-    vec3 ran = vec3(stripe);
-
-    vec3 col = cir + base - ran;
-    col += (rand(gl_FragCoord.xy + iTime) - 0.5) * uNoise;
-
-    fragColor = vec4(col, 1.0);
-}
-
-void main() {
-    vec4 color;
-    mainImage(color, vUv * iResolution.xy);
-    gl_FragColor = color;
-}
-`;
-
-  const { arr: colorArr, count: colorCount } = prepStops(props.gradientColors);
-  const uniforms: {
-    iResolution: { value: [number, number, number] };
-    iMouse: { value: [number, number] };
-    iTime: { value: number };
-    uAngle: { value: number };
-    uNoise: { value: number };
-    uBlindCount: { value: number };
-    uSpotlightRadius: { value: number };
-    uSpotlightSoftness: { value: number };
-    uSpotlightOpacity: { value: number };
-    uMirror: { value: number };
-    uDistort: { value: number };
-    uShineFlip: { value: number };
-    uColor0: { value: [number, number, number] };
-    uColor1: { value: [number, number, number] };
-    uColor2: { value: [number, number, number] };
-    uColor3: { value: [number, number, number] };
-    uColor4: { value: [number, number, number] };
-    uColor5: { value: [number, number, number] };
-    uColor6: { value: [number, number, number] };
-    uColor7: { value: [number, number, number] };
-    uColorCount: { value: number };
-  } = {
-    iResolution: {
-      value: [gl.drawingBufferWidth, gl.drawingBufferHeight, 1]
-    },
-    iMouse: { value: [0, 0] },
-    iTime: { value: 0 },
-    uAngle: { value: (props.angle * Math.PI) / 180 },
-    uNoise: { value: props.noise },
-    uBlindCount: { value: Math.max(1, props.blindCount) },
-    uSpotlightRadius: { value: props.spotlightRadius },
-    uSpotlightSoftness: { value: props.spotlightSoftness },
-    uSpotlightOpacity: { value: props.spotlightOpacity },
-    uMirror: { value: props.mirrorGradient ? 1 : 0 },
-    uDistort: { value: props.distortAmount },
-    uShineFlip: { value: props.shineDirection === 'right' ? 1 : 0 },
-    uColor0: { value: colorArr[0] },
-    uColor1: { value: colorArr[1] },
-    uColor2: { value: colorArr[2] },
-    uColor3: { value: colorArr[3] },
-    uColor4: { value: colorArr[4] },
-    uColor5: { value: colorArr[5] },
-    uColor6: { value: colorArr[6] },
-    uColor7: { value: colorArr[7] },
-    uColorCount: { value: colorCount }
+    return Math.max(1, s.blindCount);
   };
 
-  const program = new Program(gl, {
-    vertex,
-    fragment,
-    uniforms
-  });
-  programRef.value = program;
+  const draw = () => {
+    const s = settings.value;
+    if (colorKeyCache !== s.colorKey) {
+      colorStops = prepStops(s.gradientColors);
+      colorKeyCache = s.colorKey;
+    }
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.useProgram(shader.program);
+    gl.bindVertexArray(vao);
+    gl.uniform2f(u.uResolution, canvas.width, canvas.height);
+    gl.uniform1f(u.uTime, time);
+    gl.uniform2f(u.uMouse, light.x * view.ratio, (view.height - light.y) * view.ratio);
+    gl.uniform1f(u.uAngle, (s.angle * Math.PI) / 180);
+    gl.uniform1f(u.uNoise, s.noise);
+    gl.uniform1f(u.uBlindCount, blindTotal(s));
+    gl.uniform1f(u.uSpotlightRadius, s.spotlightRadius);
+    gl.uniform1f(u.uSpotlightSoftness, s.spotlightSoftness);
+    gl.uniform1f(u.uSpotlightOpacity, s.spotlightOpacity);
+    gl.uniform1f(u.uMirror, s.mirrorGradient ? 1 : 0);
+    gl.uniform1f(u.uDistort, s.distortAmount);
+    gl.uniform1f(u.uShineFlip, s.shineDirection === 'right' ? 1 : 0);
+    gl.uniform3fv(u.uColors, colorStops.flat);
+    gl.uniform1i(u.uColorCount, colorStops.count);
+    gl.uniform1f(u.uLightMode, s.lightMode ? 1 : 0);
+    gl.uniform1f(u.uShine, s.shine);
+    gl.uniform1f(u.uRelief, s.relief);
+    gl.uniform1f(u.uGlow, s.glow);
+    gl.uniform1f(u.uSway, reduce ? 0 : s.sway);
+    gl.uniform1f(u.uSwayTime, swayTime);
+    gl.uniform1f(u.uHover, hover * s.hoverTilt);
+    gl.uniform4fv(u.uWaves, waves);
+    gl.uniform1f(u.uIntro, introClock);
+    gl.uniform1f(u.uGrainTime, grainTime);
+    gl.uniform3fv(u.uLightColor, hexToRGB(s.lightColor || '#ffffff'));
+    gl.uniform1f(u.uPerspective, s.perspective);
+    gl.uniform1f(u.uGradientShift, shift);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.bindVertexArray(null);
+  };
 
-  const geometry = new Triangle(gl);
-  geometryRef.value = geometry;
-  const mesh = new Mesh(gl, { geometry, program });
-  meshRef.value = mesh;
+  const aim = (s: Settings) => {
+    if (pointer.inside) {
+      light.tx = pointer.x;
+      light.ty = pointer.y;
+    } else if (s.idle === 'center') {
+      light.tx = view.width / 2;
+      light.ty = view.height / 2;
+    } else if (s.idle === 'drift' && !reduce) {
+      light.tx = view.width * (0.5 + 0.22 * Math.sin(swayTime * 0.23) + 0.05 * Math.sin(swayTime * 0.61 + 1.3));
+      light.ty = view.height * (0.5 + 0.16 * Math.sin(swayTime * 0.31 + 0.7) + 0.04 * Math.sin(swayTime * 0.83));
+    }
+  };
+
+  const follow = (s: Settings, dt: number) => {
+    const tau = s.mouseDampening;
+    if (tau <= 0) {
+      light.x = light.tx;
+      light.y = light.ty;
+      light.vx = 0;
+      light.vy = 0;
+      return;
+    }
+    const omega = 2.4 / tau;
+    const k = omega * omega;
+    const c = 2 * omega;
+    const steps = Math.max(1, Math.ceil(dt / 0.008));
+    const h = dt / steps;
+    for (let i = 0; i < steps; i++) {
+      light.vx += (k * (light.tx - light.x) - c * light.vx) * h;
+      light.vy += (k * (light.ty - light.y) - c * light.vy) * h;
+      light.x += light.vx * h;
+      light.y += light.vy * h;
+    }
+  };
 
   const resize = () => {
+    const s = settings.value;
+    view.width = Math.max(1, container.clientWidth);
+    view.height = Math.max(1, container.clientHeight);
+    view.ratio = Math.min(s.dpr || window.devicePixelRatio || 1, 2);
+    canvas.width = Math.max(1, Math.round(view.width * view.ratio));
+    canvas.height = Math.max(1, Math.round(view.height * view.ratio));
+    if (!light.ready) {
+      light.ready = true;
+      light.x = light.tx = view.width / 2;
+      light.y = light.ty = view.height / 2;
+    }
+    draw();
+    wake();
+  };
+
+  const frame = (now: number) => {
+    raf = 0;
+    if (!visible || document.hidden) return;
+    const s = settings.value;
+    const dt = last ? clamp((now - last) / 1000, 0.001, 1 / 20) : 1 / 60;
+    last = now;
+    if (s.paused) return;
+    time += dt;
+    if (!reduce) {
+      swayTime += dt * s.speed;
+      shift = (shift + dt * s.gradientSpeed * 0.06) % 2;
+    }
+    grainTime = Math.floor(time * 24) * 17.13;
+    if (introClock < 1) introClock = Math.min(1, introClock + dt / INTRO_SECONDS);
+    hover += ((pointer.inside ? 1 : 0) - hover) * (1 - Math.exp(-dt / 0.35));
+    aim(s);
+    follow(s, dt);
+    for (let i = 0; i < MAX_WAVES; i++) {
+      if (waves[i * 4 + 3] > 0 && time - waves[i * 4 + 2] > RIPPLE_SECONDS) waves[i * 4 + 3] = 0;
+    }
+    draw();
+    const settling =
+      Math.abs(light.tx - light.x) > 0.05 ||
+      Math.abs(light.ty - light.y) > 0.05 ||
+      Math.abs(light.vx) + Math.abs(light.vy) > 0.05 ||
+      Math.abs((pointer.inside ? 1 : 0) - hover) > 0.002;
+    const active =
+      settling ||
+      introClock < 1 ||
+      waves.some((value, index) => index % 4 === 3 && value > 0) ||
+      (!reduce &&
+        (s.noise > 0 ||
+          s.gradientSpeed !== 0 ||
+          (s.sway > 0 && s.speed > 0) ||
+          (s.idle === 'drift' && !pointer.inside)));
+    if (active) raf = requestAnimationFrame(frame);
+  };
+
+  function wake() {
+    if (!raf && visible && !document.hidden) {
+      last = 0;
+      raf = requestAnimationFrame(frame);
+    }
+  }
+
+  const locate = (event: PointerEvent) => {
     const rect = container.getBoundingClientRect();
-    renderer.setSize(rect.width, rect.height);
-    uniforms.iResolution.value = [gl.drawingBufferWidth, gl.drawingBufferHeight, 1];
-
-    if (props.blindMinWidth && props.blindMinWidth > 0) {
-      const maxByMinWidth = Math.max(1, Math.floor(rect.width / props.blindMinWidth));
-
-      const effective = props.blindCount ? Math.min(props.blindCount, maxByMinWidth) : maxByMinWidth;
-      uniforms.uBlindCount.value = Math.max(1, effective);
-    } else {
-      uniforms.uBlindCount.value = Math.max(1, props.blindCount);
-    }
-
-    if (firstResizeRef.value) {
-      firstResizeRef.value = false;
-      const cx = gl.drawingBufferWidth / 2;
-      const cy = gl.drawingBufferHeight / 2;
-      uniforms.iMouse.value = [cx, cy];
-      mouseTargetRef.value = [cx, cy];
-    }
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    return { x, y, inside: x >= 0 && y >= 0 && x <= rect.width && y <= rect.height };
   };
 
+  const onPointerMove = (event: PointerEvent) => {
+    const { x, y, inside } = locate(event);
+    pointer.x = x;
+    pointer.y = y;
+    pointer.inside = inside;
+    if (inside) wake();
+  };
+
+  const onPointerDown = (event: PointerEvent) => {
+    const s = settings.value;
+    const { x, y, inside } = locate(event);
+    if (!inside || reduce || s.clickEffect !== 'ripple') return;
+    const o = waveIndex * 4;
+    waves[o] = x * view.ratio;
+    waves[o + 1] = (view.height - y) * view.ratio;
+    waves[o + 2] = time;
+    waves[o + 3] = 1;
+    waveIndex = (waveIndex + 1) % MAX_WAVES;
+    wake();
+  };
+
+  const onPointerLeave = () => {
+    pointer.inside = false;
+    wake();
+  };
+
+  const onVisibility = () => {
+    last = 0;
+    wake();
+  };
+
+  const resizeObserver = new ResizeObserver(resize);
+  resizeObserver.observe(container);
+  const intersection = new IntersectionObserver(entries => {
+    visible = entries.some(entry => entry.isIntersecting);
+    if (visible) wake();
+  });
+  intersection.observe(container);
+  window.addEventListener('pointermove', onPointerMove, { passive: true });
+  window.addEventListener('pointerdown', onPointerDown, { passive: true });
+  document.documentElement.addEventListener('pointerleave', onPointerLeave);
+  document.addEventListener('visibilitychange', onVisibility);
   resize();
-  const ro = new ResizeObserver(resize);
-  ro.observe(container);
+  wakeHandler = wake;
 
-  const onPointerMove = (e: PointerEvent) => {
-    const rect = canvas.getBoundingClientRect();
-    const scale = (renderer as unknown as { dpr?: number }).dpr || 1;
-    const x = (e.clientX - rect.left) * scale;
-    const y = (rect.height - (e.clientY - rect.top)) * scale;
-    mouseTargetRef.value = [x, y];
-    if (props.mouseDampening <= 0) {
-      uniforms.iMouse.value = [x, y];
-    }
-  };
-  canvas.addEventListener('pointermove', onPointerMove);
-
-  const loop = (t: number) => {
-    rafRef.value = requestAnimationFrame(loop);
-    uniforms.iTime.value = t * 0.001;
-    if (props.mouseDampening > 0) {
-      if (!lastTimeRef.value) lastTimeRef.value = t;
-      const dt = (t - lastTimeRef.value) / 1000;
-      lastTimeRef.value = t;
-      const tau = Math.max(1e-4, props.mouseDampening);
-      let factor = 1 - Math.exp(-dt / tau);
-      if (factor > 1) factor = 1;
-      const target = mouseTargetRef.value;
-      const cur = uniforms.iMouse.value;
-      cur[0] += (target[0] - cur[0]) * factor;
-      cur[1] += (target[1] - cur[1]) * factor;
-    } else {
-      lastTimeRef.value = t;
-    }
-    if (!props.paused && programRef.value && meshRef.value) {
-      try {
-        renderer.render({ scene: meshRef.value });
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  };
-  rafRef.value = requestAnimationFrame(loop);
-
-  cleanup = () => {
-    if (rafRef.value) cancelAnimationFrame(rafRef.value);
-    canvas.removeEventListener('pointermove', onPointerMove);
-    ro.disconnect();
-    if (canvas.parentElement === container) {
-      container.removeChild(canvas);
-    }
-    const callIfFn = <T extends object, K extends keyof T>(obj: T | null, key: K) => {
-      if (obj && typeof obj[key] === 'function') {
-        (obj[key] as unknown as () => void).call(obj);
-      }
-    };
-    callIfFn(programRef.value, 'remove');
-    callIfFn(geometryRef.value, 'remove');
-    callIfFn(meshRef.value as unknown as { remove?: () => void }, 'remove');
-    callIfFn(rendererRef.value as unknown as { destroy?: () => void }, 'destroy');
-    programRef.value = null;
-    geometryRef.value = null;
-    meshRef.value = null;
-    rendererRef.value = null;
+  teardown = () => {
+    cancelAnimationFrame(raf);
+    wakeHandler = null;
+    resizeObserver.disconnect();
+    intersection.disconnect();
+    window.removeEventListener('pointermove', onPointerMove);
+    window.removeEventListener('pointerdown', onPointerDown);
+    document.documentElement.removeEventListener('pointerleave', onPointerLeave);
+    document.removeEventListener('visibilitychange', onVisibility);
+    gl.deleteVertexArray(vao);
+    gl.deleteProgram(shader.program);
+    if (!canvas.isConnected) gl.getExtension('WEBGL_lose_context')?.loseContext();
   };
 };
 
-onMounted(() => {
-  setup();
+onMounted(setup);
+
+onUnmounted(() => {
+  teardown?.();
+  teardown = null;
 });
 
-onBeforeUnmount(() => {
-  cleanup?.();
+watch(settings, () => {
+  wakeHandler?.();
 });
-
-watch(
-  props,
-  () => {
-    cleanup?.();
-    setup();
-  },
-  { deep: true }
-);
 </script>
 
 <template>
-  <div
-    ref="containerRef"
-    :class="['w-full h-full overflow-hidden relative', className]"
-    :style="{
-      ...(mixBlendMode ? { mixBlendMode: mixBlendMode as CSSProperties['mixBlendMode'] } : {})
-    }"
-  />
+  <div ref="containerRef" :class="['gradient-blinds-container', className]" :style="containerStyle">
+    <canvas ref="canvasRef" class="gradient-blinds-canvas" aria-hidden="true" />
+  </div>
 </template>
+
+<style>
+.gradient-blinds-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.gradient-blinds-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+</style>

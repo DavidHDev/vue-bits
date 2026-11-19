@@ -1,6 +1,6 @@
-<script setup lang="ts">
-import { Mesh, Program, Renderer, RenderTarget, Texture, Triangle } from 'ogl';
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+<script lang="ts">
+import { Renderer, Program, Mesh, Triangle, Texture, RenderTarget } from 'ogl';
+import type { StyleValue } from 'vue';
 
 type Pattern = 'bayer' | 'noise' | 'atkinson' | 'floyd' | 'lines';
 type Palette = 'duotone' | 'rgb';
@@ -8,7 +8,7 @@ type Fit = 'contain' | 'cover';
 type Kernel = [number, number, number][];
 type Rgb = [number, number, number];
 
-interface DitherVeilProps {
+export interface DitherVeilProps {
   src?: string;
   fit?: Fit;
   pattern?: Pattern;
@@ -28,9 +28,10 @@ interface DitherVeilProps {
   wander?: boolean;
   clickBurst?: boolean;
   className?: string;
+  style?: StyleValue;
 }
 
-type Settings = Required<Omit<DitherVeilProps, 'src' | 'className'>>;
+type Settings = Required<Omit<DitherVeilProps, 'src' | 'className' | 'style'>>;
 
 const DEFAULT_SRC = 'https://images.unsplash.com/photo-1737071371043-761e02b1ef95?q=80&w=1400&auto=format&fit=crop';
 
@@ -402,6 +403,10 @@ void main() {
   fragColor = vec4(mix(uInk, color, appear), 1.0);
 }
 `;
+</script>
+
+<script setup lang="ts">
+import { onBeforeUnmount, onMounted, useTemplateRef, watch } from 'vue';
 
 const props = withDefaults(defineProps<DitherVeilProps>(), {
   src: DEFAULT_SRC,
@@ -410,75 +415,56 @@ const props = withDefaults(defineProps<DitherVeilProps>(), {
   pixelSize: 2,
   levels: 2,
   palette: 'duotone',
-  inkColor: '#10170f',
+  inkColor: '#111111',
   paperColor: '#f4f1ea',
   contrast: 1.15,
   brightness: 0,
   revealRadius: 200,
   softness: 0.6,
   linger: 1,
-  rimColor: '#8bfaaa',
+  rimColor: '#a0ffbc',
   rim: 0,
   reverse: false,
   wander: false,
   clickBurst: true,
-  className: ''
+  className: '',
+  style: undefined
 });
 
-const containerRef = ref<HTMLDivElement | null>(null);
-let settings: Settings | null = null;
-let wake = () => {};
+const containerRef = useTemplateRef<HTMLDivElement>('containerRef');
+const settingsRef: { current: Settings | null } = { current: null };
+const wakeRef: { current: () => void } = { current: () => {} };
 
 watch(
-  () => [
-    props.fit,
-    props.pattern,
-    props.pixelSize,
-    props.levels,
-    props.palette,
-    props.inkColor,
-    props.paperColor,
-    props.contrast,
-    props.brightness,
-    props.revealRadius,
-    props.softness,
-    props.linger,
-    props.rimColor,
-    props.rim,
-    props.reverse,
-    props.wander,
-    props.clickBurst
-  ],
-  () => {
-    settings = {
-      fit: props.fit,
-      pattern: props.pattern,
-      pixelSize: props.pixelSize,
-      levels: props.levels,
-      palette: props.palette,
-      inkColor: props.inkColor,
-      paperColor: props.paperColor,
-      contrast: props.contrast,
-      brightness: props.brightness,
-      revealRadius: props.revealRadius,
-      softness: props.softness,
-      linger: props.linger,
-      rimColor: props.rimColor,
-      rim: props.rim,
-      reverse: props.reverse,
-      wander: props.wander,
-      clickBurst: props.clickBurst
-    };
-    wake();
+  () => ({
+    fit: props.fit,
+    pattern: props.pattern,
+    pixelSize: props.pixelSize,
+    levels: props.levels,
+    palette: props.palette,
+    inkColor: props.inkColor,
+    paperColor: props.paperColor,
+    contrast: props.contrast,
+    brightness: props.brightness,
+    revealRadius: props.revealRadius,
+    softness: props.softness,
+    linger: props.linger,
+    rimColor: props.rimColor,
+    rim: props.rim,
+    reverse: props.reverse,
+    wander: props.wander,
+    clickBurst: props.clickBurst
+  }),
+  value => {
+    settingsRef.current = value;
+    wakeRef.current();
   },
   { immediate: true }
 );
 
-let disposeScene: (() => void) | undefined;
-
-const mountScene = () => {
+const setup = (): (() => void) | undefined => {
   const container = containerRef.value;
-  if (!container) return;
+  if (!container) return undefined;
 
   const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const renderer = new Renderer({ dpr: Math.min(window.devicePixelRatio || 1, 2), alpha: false, antialias: false });
@@ -585,7 +571,8 @@ const mountScene = () => {
   const brush = { x: 0, y: 0, px: 0, py: 0 };
   const bursts: { x: number; y: number; start: number }[] = [];
 
-  const layout = () => {
+  let resizePending = false;
+  const applyLayout = () => {
     width = Math.max(1, container.clientWidth);
     height = Math.max(1, container.clientHeight);
     renderer.setSize(width, height);
@@ -595,13 +582,23 @@ const mountScene = () => {
     const mw = Math.max(2, Math.round(width * MASK_SCALE));
     const mh = Math.max(2, Math.round(height * MASK_SCALE));
     if (mw !== masks[0].width || mh !== masks[0].height) {
-      masks.forEach(destroyMask);
+      const previous = masks;
       masks = [createMask(mw, mh), createMask(mw, mh)];
+      maskUniforms.tPrev.value = previous[0].texture;
+      maskUniforms.uStrength.value = 0;
+      maskUniforms.uFade.value = 0;
+      renderer.render({ scene: maskMesh, target: masks[0] });
+      previous.forEach(destroyMask);
     }
     if (!pointer.placed) {
       pointer.x = width / 2;
       pointer.y = height / 2;
     }
+  };
+
+  const layout = () => {
+    resizePending = true;
+    wake();
   };
 
   const updateDiffusion = (cell: number, s: Settings) => {
@@ -663,7 +660,11 @@ const mountScene = () => {
 
   const frame = (now: number) => {
     raf = 0;
-    const s = settings;
+    if (resizePending) {
+      resizePending = false;
+      applyLayout();
+    }
+    const s = settingsRef.current;
     if (!s) return;
     const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
     last = now;
@@ -773,15 +774,16 @@ const mountScene = () => {
     renderer.render({ scene: viewMesh });
 
     const busy =
-      pointer.inside || wanderOn || presence > 0.002 || bursts.length > 0 || now < trailUntil || (!!image && intro < 1);
+      pointer.inside || wanderOn || presence > 0.002 || bursts.length > 0 || now < trailUntil || (image && intro < 1);
     if (busy && visible) raf = requestAnimationFrame(frame);
   };
 
-  wake = () => {
+  const wake = () => {
     if (raf || !visible) return;
     last = performance.now();
     raf = requestAnimationFrame(frame);
   };
+  wakeRef.current = wake;
 
   const img = new Image();
   img.crossOrigin = 'anonymous';
@@ -795,9 +797,7 @@ const mountScene = () => {
         viewUniforms.uMatte.value = edge.matte;
         viewUniforms.uKey.value = edge.plain ? 1 : 0;
       }
-    } catch {
-      // measurement is best-effort
-    }
+    } catch {}
     introStart = performance.now();
     wake();
   };
@@ -823,7 +823,7 @@ const mountScene = () => {
   };
   const onDown = (e: PointerEvent) => {
     onMove(e);
-    if (!settings?.clickBurst || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    if (!settingsRef.current?.clickBurst || (e.pointerType === 'mouse' && e.button !== 0)) return;
     bursts.push({ x: pointer.x, y: pointer.y, start: performance.now() });
     if (bursts.length > MAX_BURSTS) bursts.shift();
   };
@@ -847,9 +847,9 @@ const mountScene = () => {
   layout();
   wake();
 
-  disposeScene = () => {
+  return () => {
     cancelAnimationFrame(raf);
-    wake = () => {};
+    wakeRef.current = () => {};
     resizeObserver.disconnect();
     intersectionObserver.disconnect();
     img.onload = null;
@@ -863,17 +863,36 @@ const mountScene = () => {
   };
 };
 
+let teardown: (() => void) | undefined;
+
+onMounted(() => {
+  teardown = setup();
+});
+
 watch(
   () => props.src,
   () => {
-    disposeScene?.();
-    mountScene();
+    teardown?.();
+    teardown = setup();
   }
 );
-onMounted(mountScene);
-onBeforeUnmount(() => disposeScene?.());
+
+onBeforeUnmount(() => {
+  teardown?.();
+  teardown = undefined;
+});
 </script>
 
 <template>
-  <div ref="containerRef" class="relative w-full h-full overflow-hidden touch-pan-y" :class="className" />
+  <div ref="containerRef" :class="`dither-veil ${className}`.trim()" :style="style" />
 </template>
+
+<style>
+.dither-veil {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+</style>

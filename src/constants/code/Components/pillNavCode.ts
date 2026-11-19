@@ -2,29 +2,26 @@ import code from '@/content/Components/PillNav/PillNav.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const pillNav = createCodeObject(code, 'Components/PillNav', {
-  installation: `npm install gsap`,
+  dependencies: '',
   usage: `<template>
   <PillNav
     :logo="logo"
-    logo-alt="Company Logo"
+    logo-alt="Company"
     :items="[
       { label: 'Home', href: '/' },
-      { label: 'About', href: '/about' },
-      { label: 'Services', href: '/services' },
-      { label: 'Contact', href: '/contact' }
+      { label: 'Journal', href: '/journal' },
+      { label: 'Photos', href: '/photos' },
+      { label: 'About', href: '/about' }
     ]"
     active-href="/"
-    class="custom-nav"
-    ease="power2.easeOut"
-    base-color="#000000"
-    pill-color="#ffffff"
-    hovered-pill-text-color="#ffffff"
-    pill-text-color="#000000"
+    item-style="pill"
+    hover-effect="fill"
+    indicator="dot"
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import PillNav from './PillNav.vue'
-import logo from '/path/to/logo.svg'
+import logo from './logo.svg'
 </script>`
 });

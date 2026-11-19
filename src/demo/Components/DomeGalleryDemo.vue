@@ -134,7 +134,7 @@ const props: PropRow[] = [
   {
     name: 'overlayBlurColor',
     type: 'string',
-    default: "'#120F17'",
+    default: "'#111111'",
     description: 'Color for the outer portion of the radial overlay blur'
   },
   {

@@ -14,6 +14,16 @@ export default defineConfigWithVueTs(
   vueTsConfigs.recommended,
 
   {
+    name: 'app/ts-rules',
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_', ignoreRestSiblings: true }
+      ]
+    }
+  },
+
+  {
     name: 'app/vue-rules',
     files: ['**/*.vue'],
     rules: {

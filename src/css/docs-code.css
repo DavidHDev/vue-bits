@@ -1,0 +1,502 @@
+.docs-code-header {
+  position: absolute;
+  top: 12px;
+  right: 11px;
+  z-index: 10;
+}
+
+.docs-copy-button {
+  background-color: var(--floating-control-bg);
+  border: 1px solid var(--inset-border);
+  box-shadow: var(--surface-ghost-highlight);
+  backdrop-filter: var(--surface-ghost-blur);
+  -webkit-backdrop-filter: var(--surface-ghost-blur);
+  color: var(--text-muted);
+  padding: 0.4em;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition:
+    background-color var(--transition-base),
+    color var(--transition-base),
+    opacity var(--transition-base),
+    transform var(--dur-press) var(--ease-out);
+  width: 32px;
+  height: 32px;
+  opacity: 0.8;
+}
+
+.docs-copy-button:hover {
+  background-color: var(--floating-control-hover);
+  color: var(--text-primary);
+  opacity: 1;
+}
+
+.docs-copy-button--done {
+  color: var(--text-primary);
+  opacity: 1;
+}
+
+.docs-expand-button {
+  position: absolute;
+  bottom: 0.9em;
+  right: 0.8em;
+  z-index: 2;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 0 14px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-primary);
+  background-color: var(--floating-control-bg);
+  border: 1px solid var(--inset-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--surface-ghost-highlight);
+  backdrop-filter: var(--surface-ghost-blur);
+  -webkit-backdrop-filter: var(--surface-ghost-blur);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-base),
+    transform var(--dur-press) var(--ease-out);
+}
+
+.docs-expand-button:hover {
+  background-color: var(--floating-control-hover);
+}
+
+.docs-expand-button:active {
+  transform: scale(0.97);
+}
+
+.docs-copy-button:active {
+  transform: scale(0.95);
+}
+
+@media (max-width: 999px) {
+  .docs-code-header {
+    top: 0.3em;
+    right: 0.3em;
+  }
+
+  .docs-copy-button {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+}
+
+@keyframes docs-section-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cli-install {
+  margin-top: 1em;
+}
+
+.cli-install.code-section-frame {
+  margin-top: 1rem;
+}
+
+.cli-install.code-section-frame .code-section-heading {
+  padding-right: 0.45rem;
+}
+
+.cli-install.code-section-frame .cli-toggle-button {
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 7px;
+  font-size: 12px;
+}
+
+.cli-install.code-section-frame .code-section-body > .cli-install-section {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.cli-install-actions {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+.install-options-trigger {
+  display: inline-flex;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 9px;
+  border: 1px solid var(--action-control-border);
+  border-radius: 7px;
+  background: var(--action-control-bg);
+  color: var(--text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    background-color var(--transition-base),
+    color var(--transition-base),
+    transform var(--dur-press) var(--ease-out);
+}
+
+.install-options-trigger:hover,
+.install-options-trigger[data-state='open'] {
+  background: var(--action-control-hover);
+  color: var(--text-primary);
+}
+
+.install-options-trigger:active {
+  transform: scale(0.98);
+}
+
+.install-options-trigger svg {
+  width: 14px;
+  height: 14px;
+  margin-left: 2px;
+  color: var(--text-dimmed);
+}
+
+.install-options-dot {
+  color: var(--text-dimmed);
+}
+
+.install-options-menu {
+  min-width: 172px;
+  padding: 4px;
+  border: 1px solid var(--border-secondary);
+  border-radius: 10px;
+  background: var(--shell-panel-solid);
+  box-shadow: var(--shadow-menu);
+  z-index: 1600;
+}
+
+.install-options-label {
+  padding: 7px 8px 4px;
+  color: var(--text-dimmed);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.install-options-item {
+  display: flex;
+  min-height: 30px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 8px;
+  border-radius: 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.install-options-item:hover,
+.install-options-item[data-highlighted] {
+  background: var(--action-control-hover);
+  color: var(--text-primary);
+}
+
+.install-options-item svg {
+  width: 14px;
+  height: 14px;
+  color: var(--color-accent);
+}
+
+.install-options-separator {
+  height: 1px;
+  margin: 4px 6px;
+  border: 0;
+  background: linear-gradient(90deg, transparent, var(--inset-divider) 14%, var(--inset-divider) 86%, transparent);
+}
+
+.cli-install.code-section-frame .code-section-body > .code-wrapper {
+  border: 0;
+  border-radius: 0;
+}
+
+@media (max-width: 640px) {
+  .cli-install.code-section-frame .code-section-heading {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .cli-install.code-section-frame .code-section-actions {
+    width: auto;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+  }
+
+  .cli-install-actions {
+    width: max-content;
+  }
+}
+
+.icon-select-icon {
+  flex-shrink: 0;
+  opacity: 0.3;
+}
+
+:root[data-theme='light'] .icon-select-icon {
+  filter: brightness(0) saturate(100%);
+  opacity: 0.3;
+}
+
+.icon-select-icon.icon-select-icon--cli {
+  opacity: 0.3;
+}
+
+:root[data-theme='light'] .icon-select-icon.icon-select-icon--cli {
+  opacity: 0.3;
+}
+
+.cli-install .cli-toggle-button {
+  border: 1px solid var(--action-control-border);
+  background-color: var(--action-control-bg);
+  color: var(--text-muted);
+  height: 40px;
+  font-size: 14px;
+  padding: 0.4em 1em;
+  border-radius: 10px;
+  letter-spacing: -0.3px;
+  cursor: pointer;
+  transition:
+    background-color var(--transition-base),
+    color var(--transition-base);
+}
+
+.cli-install .cli-toggle-button:hover:not(.disabled):not(:disabled) {
+  background-color: var(--action-control-hover);
+  color: var(--text-primary);
+}
+
+.cli-install .pkg-buttons {
+  font-family: 'Geist', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cli-install .cli-tool-tab {
+  display: inline-flex;
+  min-width: 58px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--dur-press) var(--ease-out);
+}
+
+.cli-install .cli-tool-tab:hover {
+  color: var(--text-primary);
+  background: var(--surface-ghost-hover);
+}
+
+.cli-install .cli-tool-tab:active {
+  transform: scale(0.97);
+}
+
+.cli-install .cli-toggle-button[data-active='true'] {
+  background-color: var(--action-control-selected);
+  border-color: var(--action-control-selected-border);
+  box-shadow: var(--action-control-shadow);
+  color: var(--color-accent);
+}
+
+.cli-install .cli-toggle-button.disabled,
+.cli-install .cli-toggle-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: transparent;
+  color: var(--text-dimmed);
+  border-style: dashed;
+  border-color: var(--border-secondary);
+}
+
+.cli-install .cli-tool-tab[data-active='true']::before {
+  content: none;
+}
+
+.cli-install .cli-tool-tab[data-active='true'] {
+  color: var(--color-accent);
+  border-color: transparent;
+  background: var(--surface-ghost-hover);
+  box-shadow: none;
+}
+
+.cli-install .cli-install-section {
+  padding: 4px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  background: var(--surface-ghost-track);
+  box-shadow: var(--surface-ghost-highlight);
+  position: relative;
+}
+
+:root[data-theme='light'] .cli-install .cli-install-section {
+  border-color: var(--border-subtle);
+  background: #fafbfa;
+  box-shadow: none;
+}
+
+.cli-install .cli-row {
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 46px;
+  padding: 5px 7px 9px;
+  border: 0;
+  border-radius: calc(var(--radius-lg) - 5px);
+  flex-wrap: wrap;
+}
+
+:root[data-theme='light'] .cli-install .cli-row {
+  background: transparent;
+}
+
+:root[data-theme='light'] .cli-install .pkg-buttons {
+  background: transparent;
+}
+
+:root[data-theme='light'] .cli-install .cli-tool-tab[data-active='true'] {
+  border-color: var(--border-subtle);
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(22, 24, 22, 0.06);
+}
+
+.cli-install .cli-install-section > .code-wrapper {
+  overflow: hidden;
+  border: 1px solid var(--inset-border);
+  border-radius: calc(var(--radius-lg) - 5px);
+  background: var(--bg-body);
+}
+
+:root[data-theme='light'] .cli-install .cli-install-section > .code-wrapper {
+  background: #fff;
+}
+
+.cli-install .label {
+  text-transform: uppercase;
+  color: #8cbf9a;
+  background: rgba(158, 239, 177, 0.08);
+  padding: 0.25em 0.6em;
+}
+
+.cli-install code {
+  font-family: 'Google Sans Code', monospace;
+  white-space: pre;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: none;
+  color: var(--text-primary);
+  font-size: 14px;
+  display: flex;
+  letter-spacing: -0.2px;
+  align-items: center;
+  padding: 0 1.4em;
+  height: 60px;
+  border-radius: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-secondary) transparent;
+  scrollbar-width: none;
+}
+
+.cli-install code::-webkit-scrollbar {
+  height: 0;
+  width: 0;
+}
+
+.cli-install .cli-custom-scrollbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 4px;
+  height: 4px;
+  margin: 0 1rem;
+  background: var(--surface-ghost);
+  border-radius: 50px;
+  pointer-events: auto;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.cli-install .cli-custom-scrollbar-thumb {
+  height: 100%;
+  background: linear-gradient(90deg, var(--border-secondary), #2f6b45);
+  border-radius: 50px;
+  transition: background 0.25s ease;
+  will-change: transform, width;
+}
+
+.cli-install .cli-custom-scrollbar.dragging .cli-custom-scrollbar-thumb {
+  background: linear-gradient(90deg, #2f6b45, #42b883);
+}
+
+.cli-install .cli-custom-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, #2f6b45, #42b883);
+}
+
+.cli-install code::-webkit-scrollbar {
+  height: 2px;
+}
+
+.cli-install code::-webkit-scrollbar-track {
+  height: 2px;
+  background: transparent;
+}
+
+.cli-install code::-webkit-scrollbar-thumb {
+  height: 2px;
+  background: var(--border-secondary);
+  border-radius: 50px;
+}
+
+.cli-install code::-webkit-scrollbar-thumb:hover {
+  background: #2f6b45;
+}
+
+.cli-install .right-group {
+  margin-left: auto;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.cli-install [data-row='cli'] .right-group {
+  align-items: center;
+}
+
+.cli-install [data-row] {
+  --shadow-color: rgba(158, 239, 177, 0.15);
+}

@@ -1,61 +1,201 @@
 <template>
-  <h1 class="sub-category">Shape Waves</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="themedProps"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="shapeWaves.usage"
-    :source="shapeWavesSource"
-    componentName="ShapeWaves"
-    :props-table="props"
   >
-    <template #preview>
-      <div class="relative bg-[#14110e] rounded-2xl w-full h-125 overflow-hidden demo-container">
-        <RefreshButton @click="introKey++" />
-        <ShapeWaves :key="key" :intro-key="introKey" v-bind="shapeWavesProps" />
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 500px; padding: 0">
+          <RefreshButton @click="introKey++" />
+          <ShapeWaves v-bind="themedProps" :intro-key="introKey" @error="handleError" />
+          <BackgroundContent headline="Shapes that ripple in waves around your words." />
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewInput title="Text" placeholder="Leave empty for no cutout" :maxLength="24" v-model="text" />
-        <PreviewColorPicker title="Color" v-model="color" />
-        <PreviewColorPicker title="Splash Color" v-model="hoverColor" />
-        <PreviewColorPicker title="Background" v-model="backgroundColor" />
-        <PreviewSelect title="Shapes" :options="SHAPE_OPTIONS" v-model="shapes" />
-        <PreviewSlider title="Cell Size" :min="6" :max="24" :step="1" v-model="cellSize" />
-        <PreviewSlider title="Dot Size" :min="0.3" :max="1" :step="0.01" v-model="dotSize" />
-        <PreviewSlider title="Text Size" :min="0.1" :max="0.6" :step="0.01" v-model="textSize" />
-        <PreviewSlider title="Speed" :min="0" :max="4" :step="0.1" v-model="speed" />
-        <PreviewSlider title="Wave Scale" :min="0.3" :max="3" :step="0.05" v-model="scale" />
-        <PreviewSlider title="Contrast" :min="0.3" :max="3" :step="0.05" v-model="contrast" />
-        <PreviewSlider title="Brightness" :min="0" :max="1" :step="0.01" v-model="brightness" />
-        <PreviewSlider title="Flow" :min="0" :max="4" :step="0.1" v-model="flow" />
-        <PreviewSlider title="Direction" :min="0" :max="360" :step="5" v-model="direction" />
-        <PreviewSlider title="Edge Fade" :min="0" :max="0.45" :step="0.01" v-model="fade" />
-        <PreviewSwitch title="Interactive" v-model="interactive" />
-        <PreviewSlider title="Splash Radius" :min="10" :max="120" :step="2" v-model="splashRadius" />
-        <PreviewSlider title="Splash Strength" :min="0.2" :max="2.5" :step="0.05" v-model="splashStrength" />
-        <PreviewSlider title="Glow" :min="0" :max="3" :step="0.05" v-model="glow" />
-        <PreviewSwitch title="Intro" v-model="intro" />
-        <PreviewSlider title="Intro Duration" :min="0.5" :max="4" :step="0.1" v-model="introDuration" />
-        <PreviewSwitch title="Paused" v-model="paused" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewInput
+            title="Text"
+            placeholder="Leave empty for no cutout"
+            :max-length="24"
+            :model-value="props.text"
+            @update:model-value="value => updateProp('text', value)"
+          />
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+          <PreviewColorPickerCustom
+            title="Color"
+            :color="themedProps.color"
+            @change="(value: string) => updateProp('color', value)"
+          />
+          <PreviewColorPickerCustom
+            title="Splash Color"
+            :color="themedProps.hoverColor"
+            @change="(value: string) => updateProp('hoverColor', value)"
+          />
+          <PreviewColorPickerCustom
+            title="Background"
+            :color="themedProps.backgroundColor"
+            @change="(value: string) => updateProp('backgroundColor', value)"
+          />
 
-    <template #code>
-      <DemoCodeTab slug="shapeWaves" :usage="shapeWaves.usage!" :source="shapeWavesSource" />
-    </template>
-  </TabsLayout>
+          <PreviewSelect
+            title="Shapes"
+            :options="SHAPE_OPTIONS"
+            :model-value="props.shapes"
+            @update:model-value="value => updateProp('shapes', value as ShapeWavesShapes)"
+          />
+
+          <PreviewSlider
+            title="Cell Size"
+            :min="6"
+            :max="24"
+            :step="1"
+            :model-value="props.cellSize"
+            @update:model-value="value => updateProp('cellSize', value)"
+          />
+          <PreviewSlider
+            title="Dot Size"
+            :min="0.3"
+            :max="1"
+            :step="0.01"
+            :model-value="props.dotSize"
+            @update:model-value="value => updateProp('dotSize', value)"
+          />
+          <PreviewSlider
+            title="Text Size"
+            :min="0.1"
+            :max="0.6"
+            :step="0.01"
+            :model-value="props.textSize"
+            @update:model-value="value => updateProp('textSize', value)"
+          />
+
+          <PreviewSlider
+            title="Speed"
+            :min="0"
+            :max="4"
+            :step="0.1"
+            :model-value="props.speed"
+            @update:model-value="value => updateProp('speed', value)"
+          />
+          <PreviewSlider
+            title="Wave Scale"
+            :min="0.3"
+            :max="3"
+            :step="0.05"
+            :model-value="props.scale"
+            @update:model-value="value => updateProp('scale', value)"
+          />
+          <PreviewSlider
+            title="Contrast"
+            :min="0.3"
+            :max="3"
+            :step="0.05"
+            :model-value="props.contrast"
+            @update:model-value="value => updateProp('contrast', value)"
+          />
+          <PreviewSlider
+            title="Brightness"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="props.brightness"
+            @update:model-value="value => updateProp('brightness', value)"
+          />
+          <PreviewSlider
+            title="Flow"
+            :min="0"
+            :max="4"
+            :step="0.1"
+            :model-value="props.flow"
+            @update:model-value="value => updateProp('flow', value)"
+          />
+          <PreviewSlider
+            title="Direction"
+            :min="0"
+            :max="360"
+            :step="5"
+            :model-value="props.direction"
+            @update:model-value="value => updateProp('direction', value)"
+          />
+          <PreviewSlider
+            title="Edge Fade"
+            :min="0"
+            :max="0.45"
+            :step="0.01"
+            :model-value="props.fade"
+            @update:model-value="value => updateProp('fade', value)"
+          />
+
+          <PreviewSwitch
+            title="Interactive"
+            :model-value="props.interactive"
+            @update:model-value="value => updateProp('interactive', value)"
+          />
+          <PreviewSlider
+            title="Splash Radius"
+            :min="10"
+            :max="120"
+            :step="2"
+            :model-value="props.splashRadius"
+            @update:model-value="value => updateProp('splashRadius', value)"
+          />
+          <PreviewSlider
+            title="Splash Strength"
+            :min="0.2"
+            :max="2.5"
+            :step="0.05"
+            :model-value="props.splashStrength"
+            @update:model-value="value => updateProp('splashStrength', value)"
+          />
+          <PreviewSlider
+            title="Glow"
+            :min="0"
+            :max="3"
+            :step="0.05"
+            :model-value="props.glow"
+            @update:model-value="value => updateProp('glow', value)"
+          />
+
+          <PreviewSwitch
+            title="Intro"
+            :model-value="props.intro"
+            @update:model-value="value => updateProp('intro', value)"
+          />
+          <PreviewSlider
+            title="Intro Duration"
+            :min="0.5"
+            :max="4"
+            :step="0.1"
+            :model-value="props.introDuration"
+            @update:model-value="value => updateProp('introDuration', value)"
+          />
+
+          <PreviewSwitch
+            title="Paused"
+            :model-value="props.paused"
+            @update:model-value="value => updateProp('paused', value)"
+          />
+        </Customize>
+
+        <PropTable :data="propData" />
+        <Dependencies :dependency-list="['vgpu']" />
+      </template>
+
+      <template #code>
+        <CodeExample :code-object="shapeWaves" component-name="ShapeWaves" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
+import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import Dependencies from '@/components/common/Dependencies.vue';
+import PreviewColorPickerCustom from '@/components/common/PreviewColorPickerCustom.vue';
 import PreviewInput from '@/components/common/PreviewInput.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
@@ -63,23 +203,21 @@ import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
 import RefreshButton from '@/components/common/RefreshButton.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
-import { useForceRerender } from '@/composables/useForceRerender';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
+import { useThemedProps } from '@/composables/useThemedProps';
 import { shapeWaves } from '@/constants/code/Backgrounds/shapeWavesCode';
 import ShapeWaves, { type ShapeWavesShapes } from '@/content/Backgrounds/ShapeWaves/ShapeWaves.vue';
-import shapeWavesSource from '@/content/Backgrounds/ShapeWaves/ShapeWaves.vue?raw';
-import { computed, ref } from 'vue';
 
-const { rerenderKey: key, forceRerender } = useForceRerender();
-
-const DEFAULTS = {
-  text: 'Vue Bits',
+const DEFAULT_PROPS = {
+  text: '</>',
   textSize: 0.6,
   shapes: 'mixed' as ShapeWavesShapes,
   cellSize: 10,
   dotSize: 0.75,
   color: '#929292',
   hoverColor: '#ffffff',
-  backgroundColor: '#120f17',
+  backgroundColor: '#111111',
   speed: 1,
   scale: 1,
   contrast: 1,
@@ -96,6 +234,12 @@ const DEFAULTS = {
   paused: false
 };
 
+const LIGHT_PROPS = {
+  color: '#8a8a8a',
+  hoverColor: '#161816',
+  backgroundColor: '#ffffff'
+};
+
 const SHAPE_OPTIONS = [
   { value: 'mixed', label: 'Mixed' },
   { value: 'squares', label: 'Squares' },
@@ -103,108 +247,13 @@ const SHAPE_OPTIONS = [
   { value: 'triangles', label: 'Triangles' }
 ];
 
+const { props, updateProp, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
+const themedProps = useThemedProps(props, DEFAULT_PROPS, LIGHT_PROPS);
 const introKey = ref(0);
-const text = ref(DEFAULTS.text);
-const textSize = ref(DEFAULTS.textSize);
-const shapes = ref(DEFAULTS.shapes);
-const cellSize = ref(DEFAULTS.cellSize);
-const dotSize = ref(DEFAULTS.dotSize);
-const color = ref(DEFAULTS.color);
-const hoverColor = ref(DEFAULTS.hoverColor);
-const backgroundColor = ref(DEFAULTS.backgroundColor);
-const speed = ref(DEFAULTS.speed);
-const scale = ref(DEFAULTS.scale);
-const contrast = ref(DEFAULTS.contrast);
-const brightness = ref(DEFAULTS.brightness);
-const flow = ref(DEFAULTS.flow);
-const direction = ref(DEFAULTS.direction);
-const fade = ref(DEFAULTS.fade);
-const interactive = ref(DEFAULTS.interactive);
-const splashRadius = ref(DEFAULTS.splashRadius);
-const splashStrength = ref(DEFAULTS.splashStrength);
-const glow = ref(DEFAULTS.glow);
-const intro = ref(DEFAULTS.intro);
-const introDuration = ref(DEFAULTS.introDuration);
-const paused = ref(DEFAULTS.paused);
 
-const shapeWavesProps = computed(() => ({
-  text: text.value,
-  textSize: textSize.value,
-  shapes: shapes.value,
-  cellSize: cellSize.value,
-  dotSize: dotSize.value,
-  color: color.value,
-  hoverColor: hoverColor.value,
-  backgroundColor: backgroundColor.value,
-  speed: speed.value,
-  scale: scale.value,
-  contrast: contrast.value,
-  brightness: brightness.value,
-  flow: flow.value,
-  direction: direction.value,
-  fade: fade.value,
-  interactive: interactive.value,
-  splashRadius: splashRadius.value,
-  splashStrength: splashStrength.value,
-  glow: glow.value,
-  intro: intro.value,
-  introDuration: introDuration.value,
-  paused: paused.value
-}));
+const handleError = (error: Error) => console.error('[ShapeWaves]', error);
 
-const hasChanges = computed(
-  () =>
-    text.value !== DEFAULTS.text ||
-    textSize.value !== DEFAULTS.textSize ||
-    shapes.value !== DEFAULTS.shapes ||
-    cellSize.value !== DEFAULTS.cellSize ||
-    dotSize.value !== DEFAULTS.dotSize ||
-    color.value !== DEFAULTS.color ||
-    hoverColor.value !== DEFAULTS.hoverColor ||
-    backgroundColor.value !== DEFAULTS.backgroundColor ||
-    speed.value !== DEFAULTS.speed ||
-    scale.value !== DEFAULTS.scale ||
-    contrast.value !== DEFAULTS.contrast ||
-    brightness.value !== DEFAULTS.brightness ||
-    flow.value !== DEFAULTS.flow ||
-    direction.value !== DEFAULTS.direction ||
-    fade.value !== DEFAULTS.fade ||
-    interactive.value !== DEFAULTS.interactive ||
-    splashRadius.value !== DEFAULTS.splashRadius ||
-    splashStrength.value !== DEFAULTS.splashStrength ||
-    glow.value !== DEFAULTS.glow ||
-    intro.value !== DEFAULTS.intro ||
-    introDuration.value !== DEFAULTS.introDuration ||
-    paused.value !== DEFAULTS.paused
-);
-
-function reset() {
-  text.value = DEFAULTS.text;
-  textSize.value = DEFAULTS.textSize;
-  shapes.value = DEFAULTS.shapes;
-  cellSize.value = DEFAULTS.cellSize;
-  dotSize.value = DEFAULTS.dotSize;
-  color.value = DEFAULTS.color;
-  hoverColor.value = DEFAULTS.hoverColor;
-  backgroundColor.value = DEFAULTS.backgroundColor;
-  speed.value = DEFAULTS.speed;
-  scale.value = DEFAULTS.scale;
-  contrast.value = DEFAULTS.contrast;
-  brightness.value = DEFAULTS.brightness;
-  flow.value = DEFAULTS.flow;
-  direction.value = DEFAULTS.direction;
-  fade.value = DEFAULTS.fade;
-  interactive.value = DEFAULTS.interactive;
-  splashRadius.value = DEFAULTS.splashRadius;
-  splashStrength.value = DEFAULTS.splashStrength;
-  glow.value = DEFAULTS.glow;
-  intro.value = DEFAULTS.intro;
-  introDuration.value = DEFAULTS.introDuration;
-  paused.value = DEFAULTS.paused;
-  forceRerender();
-}
-
-const props: PropRow[] = [
+const propData: PropRow[] = [
   {
     name: 'text',
     type: 'string',

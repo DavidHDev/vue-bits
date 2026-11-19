@@ -1,346 +1,340 @@
 <template>
-  <h1 class="sub-category">Sliced Waves</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="slicedWaves.usage"
-    :source="slicedWavesSource"
-    componentName="SlicedWaves"
-    :props-table="props"
+    :demo-only-props="['preset']"
   >
-    <template #preview>
-      <div class="relative bg-[#14110e] rounded-2xl w-full h-125 overflow-hidden demo-container">
-        <SlicedWaves :key="key" v-bind="slicedWavesProps" />
-        <BackgroundContent pillText="New Background" headline="A soft slatted wave rippling across the grid." />
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 500px; padding: 0">
+          <SlicedWaves :key="rerenderKey" v-bind="settings" />
+          <BackgroundContent headline="Waves of light, sliced and set in motion." />
+          <RefreshButton @click="forceRerender" />
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewColorPicker title="Color 1" v-model="color1" />
-        <PreviewColorPicker title="Color 2" v-model="color2" />
-        <PreviewColorPicker title="Color 3" v-model="color3" />
-        <PreviewSlider title="Speed" :min="0" :max="2" :step="0.05" v-model="speed" />
-        <PreviewSlider title="Travel" :min="0" :max="1" :step="0.01" v-model="travel" />
-        <PreviewSlider title="Wave Spread" :min="0" :max="3" :step="0.05" v-model="waveSpread" />
-        <PreviewSlider title="Row Offset" :min="0" :max="3" :step="0.05" v-model="rowOffset" />
-        <PreviewSlider title="Columns" :min="2" :max="40" :step="1" v-model="columns" />
-        <PreviewSlider title="Rows" :min="1" :max="24" :step="1" v-model="rows" />
-        <PreviewSlider title="Bar Thickness" :min="0.05" :max="0.9" :step="0.01" v-model="barThickness" />
-        <PreviewSelect
-          title="Orientation"
-          name="sliced-waves-orientation"
-          v-model="orientation"
-          :options="[
-            { label: 'Horizontal', value: 'horizontal' },
-            { label: 'Vertical', value: 'vertical' }
-          ]"
-        />
-        <PreviewSlider title="Softness" :min="0" :max="0.4" :step="0.005" v-model="softness" />
-        <PreviewSlider title="Glow" :min="0" :max="1" :step="0.01" v-model="glow" />
-        <PreviewSlider title="Brightness" :min="0.2" :max="2" :step="0.05" v-model="brightness" />
-        <PreviewSlider title="Contrast" :min="0.2" :max="2" :step="0.05" v-model="contrast" />
-        <PreviewSlider title="Opacity" :min="0" :max="1" :step="0.05" v-model="opacity" />
-        <PreviewSwitch title="Alternate Rows" v-model="alternate" />
-        <PreviewSwitch title="Cursor Interaction" v-model="mouseInteraction" />
-        <PreviewSwitch title="Grain" v-model="grain" />
-        <PreviewSlider title="Grain Intensity" :min="0" :max="0.3" :step="0.01" v-model="grainIntensity" />
-        <PreviewSlider title="Cursor Strength" :min="0" :max="2" :step="0.05" v-model="mouseStrength" />
-        <PreviewSlider title="Cursor Radius" :min="0.05" :max="1" :step="0.05" v-model="mouseRadius" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewSelect
+            title="Preset"
+            :options="PRESET_OPTIONS"
+            :model-value="props.preset"
+            @update:model-value="(value: string | number) => applyPreset(String(value))"
+          />
+          <PreviewColorPickerCustom
+            title="Color 1"
+            :color="settings.color1"
+            @change="(value: string) => updateProp('color1', value)"
+          />
+          <PreviewColorPickerCustom
+            title="Color 2"
+            :color="settings.color2"
+            @change="(value: string) => updateProp('color2', value)"
+          />
+          <PreviewColorPickerCustom
+            title="Color 3"
+            :color="settings.color3"
+            @change="(value: string) => updateProp('color3', value)"
+          />
+          <PreviewSlider
+            title="Ribbons"
+            :min="1"
+            :max="6"
+            :step="1"
+            :model-value="settings.ribbons"
+            @update:model-value="(value: number) => updateProp('ribbons', value)"
+          />
+          <PreviewSlider
+            title="Spacing"
+            :min="8"
+            :max="60"
+            :step="1"
+            value-unit="px"
+            :model-value="settings.spacing"
+            @update:model-value="(value: number) => updateProp('spacing', value)"
+          />
+          <PreviewSlider
+            title="Bar Width"
+            :min="0.15"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.barWidth"
+            @update:model-value="(value: number) => updateProp('barWidth', value)"
+          />
+          <PreviewSlider
+            title="Ribbon Height"
+            :min="0.04"
+            :max="0.5"
+            :step="0.01"
+            :model-value="settings.ribbonHeight"
+            @update:model-value="(value: number) => updateProp('ribbonHeight', value)"
+          />
+          <PreviewSlider
+            title="Spread"
+            :min="0"
+            :max="0.25"
+            :step="0.005"
+            :model-value="settings.spread"
+            @update:model-value="(value: number) => updateProp('spread', value)"
+          />
+          <PreviewSlider
+            title="Amplitude"
+            :min="0"
+            :max="0.25"
+            :step="0.005"
+            :model-value="settings.amplitude"
+            @update:model-value="(value: number) => updateProp('amplitude', value)"
+          />
+          <PreviewSlider
+            title="Frequency"
+            :min="0.2"
+            :max="3"
+            :step="0.05"
+            :model-value="settings.frequency"
+            @update:model-value="(value: number) => updateProp('frequency', value)"
+          />
+          <PreviewSlider
+            title="Speed"
+            :min="-2"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.speed"
+            @update:model-value="(value: number) => updateProp('speed', value)"
+          />
+          <PreviewSlider
+            title="Perspective"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.perspective"
+            @update:model-value="(value: number) => updateProp('perspective', value)"
+          />
+          <PreviewSlider
+            title="Curve"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.curve"
+            @update:model-value="(value: number) => updateProp('curve', value)"
+          />
+          <PreviewSlider
+            title="Blur"
+            :min="0"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.blur"
+            @update:model-value="(value: number) => updateProp('blur', value)"
+          />
+          <PreviewSlider
+            title="Glow"
+            :min="0"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.glow"
+            @update:model-value="(value: number) => updateProp('glow', value)"
+          />
+          <PreviewSlider
+            title="Brightness"
+            :min="0.3"
+            :max="2.5"
+            :step="0.05"
+            :model-value="settings.brightness"
+            @update:model-value="(value: number) => updateProp('brightness', value)"
+          />
+          <PreviewSlider
+            title="Position"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="settings.position"
+            @update:model-value="(value: number) => updateProp('position', value)"
+          />
+          <PreviewSlider
+            title="Rotation"
+            :min="-180"
+            :max="180"
+            :step="1"
+            value-unit="°"
+            :model-value="settings.rotation"
+            @update:model-value="(value: number) => updateProp('rotation', value)"
+          />
+          <PreviewSlider
+            title="Slices"
+            :min="0"
+            :max="14"
+            :step="1"
+            :model-value="settings.slices"
+            @update:model-value="(value: number) => updateProp('slices', value)"
+          />
+          <PreviewSlider
+            title="Grain"
+            :min="0"
+            :max="0.2"
+            :step="0.01"
+            :model-value="settings.grain"
+            @update:model-value="(value: number) => updateProp('grain', value)"
+          />
+          <PreviewSlider
+            title="Fade"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.fade"
+            @update:model-value="(value: number) => updateProp('fade', value)"
+          />
+          <PreviewSlider
+            title="Opacity"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.opacity"
+            @update:model-value="(value: number) => updateProp('opacity', value)"
+          />
+          <PreviewSwitch
+            title="Mouse Interaction"
+            :model-value="settings.mouseInteraction"
+            @update:model-value="(value: boolean) => updateProp('mouseInteraction', value)"
+          />
+          <PreviewSwitch
+            title="Intro"
+            :model-value="settings.intro"
+            @update:model-value="(value: boolean) => updateProp('intro', value)"
+          />
+          <PreviewSwitch
+            title="Light Mode"
+            :model-value="settings.lightMode"
+            @update:model-value="(value: boolean) => updateProp('lightMode', value)"
+          />
+        </Customize>
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+        <PropTable :data="propData" />
+      </template>
 
-    <template #code>
-      <DemoCodeTab slug="sliced-waves" :usage="slicedWaves.usage!" :source="slicedWavesSource" />
-    </template>
-  </TabsLayout>
+      <template #code>
+        <CodeExample :code-object="slicedWaves" component-name="SlicedWaves" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewColorPickerCustom from '@/components/common/PreviewColorPickerCustom.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
 import { useForceRerender } from '@/composables/useForceRerender';
+import { useColorModeValue } from '@/composables/useTheme';
 import { slicedWaves } from '@/constants/code/Backgrounds/slicedWavesCode';
-import SlicedWaves, { type SlicedWavesOrientation } from '@/content/Backgrounds/SlicedWaves/SlicedWaves.vue';
-import slicedWavesSource from '@/content/Backgrounds/SlicedWaves/SlicedWaves.vue?raw';
-import { computed, ref } from 'vue';
+import SlicedWaves from '@/content/Backgrounds/SlicedWaves/SlicedWaves.vue';
+import { DEFAULT_PROPS, PRESET_OPTIONS, presetProps } from './presets/SlicedWaves';
 
-const { rerenderKey: key, forceRerender } = useForceRerender();
-
-const DEFAULTS = {
-  color1: '#27FF64',
-  color2: '#7CFF67',
-  color3: '#A8FFB6',
-  columns: 14,
-  rows: 8,
-  barThickness: 0.1,
-  speed: 0.35,
-  travel: 0.7,
-  waveSpread: 0.9,
-  rowOffset: 1.0,
-  softness: 0.05,
-  glow: 0,
-  brightness: 1.0,
-  contrast: 1.0,
-  opacity: 0.5,
-  orientation: 'horizontal' as SlicedWavesOrientation,
-  alternate: false,
-  mouseInteraction: true,
-  mouseStrength: 1,
-  mouseRadius: 0.3,
-  grain: true,
-  grainIntensity: 0.05
-};
-
-const color1 = ref(DEFAULTS.color1);
-const color2 = ref(DEFAULTS.color2);
-const color3 = ref(DEFAULTS.color3);
-const columns = ref(DEFAULTS.columns);
-const rows = ref(DEFAULTS.rows);
-const barThickness = ref(DEFAULTS.barThickness);
-const speed = ref(DEFAULTS.speed);
-const travel = ref(DEFAULTS.travel);
-const waveSpread = ref(DEFAULTS.waveSpread);
-const rowOffset = ref(DEFAULTS.rowOffset);
-const softness = ref(DEFAULTS.softness);
-const glow = ref(DEFAULTS.glow);
-const brightness = ref(DEFAULTS.brightness);
-const contrast = ref(DEFAULTS.contrast);
-const opacity = ref(DEFAULTS.opacity);
-const orientation = ref(DEFAULTS.orientation);
-const alternate = ref(DEFAULTS.alternate);
-const mouseInteraction = ref(DEFAULTS.mouseInteraction);
-const mouseStrength = ref(DEFAULTS.mouseStrength);
-const mouseRadius = ref(DEFAULTS.mouseRadius);
-const grain = ref(DEFAULTS.grain);
-const grainIntensity = ref(DEFAULTS.grainIntensity);
-
-const slicedWavesProps = computed(() => ({
-  color1: color1.value,
-  color2: color2.value,
-  color3: color3.value,
-  columns: columns.value,
-  rows: rows.value,
-  barThickness: barThickness.value,
-  speed: speed.value,
-  travel: travel.value,
-  waveSpread: waveSpread.value,
-  rowOffset: rowOffset.value,
-  softness: softness.value,
-  glow: glow.value,
-  brightness: brightness.value,
-  contrast: contrast.value,
-  opacity: opacity.value,
-  orientation: orientation.value,
-  alternate: alternate.value,
-  mouseInteraction: mouseInteraction.value,
-  mouseStrength: mouseStrength.value,
-  mouseRadius: mouseRadius.value,
-  grain: grain.value,
-  grainIntensity: grainIntensity.value
-}));
-
-const hasChanges = computed(
-  () =>
-    color1.value !== DEFAULTS.color1 ||
-    color2.value !== DEFAULTS.color2 ||
-    color3.value !== DEFAULTS.color3 ||
-    columns.value !== DEFAULTS.columns ||
-    rows.value !== DEFAULTS.rows ||
-    barThickness.value !== DEFAULTS.barThickness ||
-    speed.value !== DEFAULTS.speed ||
-    travel.value !== DEFAULTS.travel ||
-    waveSpread.value !== DEFAULTS.waveSpread ||
-    rowOffset.value !== DEFAULTS.rowOffset ||
-    softness.value !== DEFAULTS.softness ||
-    glow.value !== DEFAULTS.glow ||
-    brightness.value !== DEFAULTS.brightness ||
-    contrast.value !== DEFAULTS.contrast ||
-    opacity.value !== DEFAULTS.opacity ||
-    orientation.value !== DEFAULTS.orientation ||
-    alternate.value !== DEFAULTS.alternate ||
-    mouseInteraction.value !== DEFAULTS.mouseInteraction ||
-    mouseStrength.value !== DEFAULTS.mouseStrength ||
-    mouseRadius.value !== DEFAULTS.mouseRadius ||
-    grain.value !== DEFAULTS.grain ||
-    grainIntensity.value !== DEFAULTS.grainIntensity
-);
-
-function reset() {
-  color1.value = DEFAULTS.color1;
-  color2.value = DEFAULTS.color2;
-  color3.value = DEFAULTS.color3;
-  columns.value = DEFAULTS.columns;
-  rows.value = DEFAULTS.rows;
-  barThickness.value = DEFAULTS.barThickness;
-  speed.value = DEFAULTS.speed;
-  travel.value = DEFAULTS.travel;
-  waveSpread.value = DEFAULTS.waveSpread;
-  rowOffset.value = DEFAULTS.rowOffset;
-  softness.value = DEFAULTS.softness;
-  glow.value = DEFAULTS.glow;
-  brightness.value = DEFAULTS.brightness;
-  contrast.value = DEFAULTS.contrast;
-  opacity.value = DEFAULTS.opacity;
-  orientation.value = DEFAULTS.orientation;
-  alternate.value = DEFAULTS.alternate;
-  mouseInteraction.value = DEFAULTS.mouseInteraction;
-  mouseStrength.value = DEFAULTS.mouseStrength;
-  mouseRadius.value = DEFAULTS.mouseRadius;
-  grain.value = DEFAULTS.grain;
-  grainIntensity.value = DEFAULTS.grainIntensity;
-  forceRerender();
-}
-
-const props: PropRow[] = [
+const propData: PropRow[] = [
+  { name: 'color1', type: 'string', default: "'#ffd9a8'", description: 'First color of the light.' },
+  { name: 'color2', type: 'string', default: "'#42b883'", description: 'Second color of the light.' },
+  { name: 'color3', type: 'string', default: "'#5b8cff'", description: 'Third color of the light.' },
+  { name: 'ribbons', type: 'number', default: '3', description: 'Number of waves of light, from 1 to 6.' },
   {
-    name: 'color1',
-    type: 'string',
-    default: "'#27FF64'",
-    description: 'Highlight color for bars at the top of their travel.'
-  },
-  {
-    name: 'color2',
-    type: 'string',
-    default: "'#7CFF67'",
-    description: 'Deep color for bars at the bottom of their travel.'
-  },
-  {
-    name: 'color3',
-    type: 'string',
-    default: "'#A8FFB6'",
-    description: 'Accent tint blended across the grid.'
-  },
-  {
-    name: 'columns',
+    name: 'spacing',
     type: 'number',
-    default: '14',
-    description: 'Number of grid columns.'
+    default: '28',
+    description: 'Distance between the bars in the middle of the view, in px.'
   },
+  { name: 'barWidth', type: 'number', default: '0.5', description: 'Width of each bar, as a share of the spacing.' },
   {
-    name: 'rows',
+    name: 'ribbonHeight',
     type: 'number',
-    default: '8',
-    description: 'Number of grid rows.'
+    default: '0.26',
+    description: 'Height of each wave, as a fraction of the view height.'
   },
   {
-    name: 'barThickness',
+    name: 'spread',
     type: 'number',
     default: '0.1',
-    description: 'Thickness of each bar relative to its cell.'
+    description: 'Vertical distance between the waves, as a fraction of the view height.'
   },
   {
-    name: 'speed',
+    name: 'amplitude',
     type: 'number',
-    default: '0.35',
-    description: 'Animation speed of the travelling wave.'
+    default: '0.1',
+    description: 'How far the waves rise and fall, as a fraction of the view height.'
   },
+  { name: 'frequency', type: 'number', default: '1', description: 'How many waves fit across the view.' },
+  { name: 'speed', type: 'number', default: '1', description: 'Animation speed. Negative values reverse the waves.' },
   {
-    name: 'travel',
+    name: 'perspective',
     type: 'number',
-    default: '0.7',
-    description: 'How far each bar moves within its cell.'
+    default: '0.45',
+    description: 'How much the strip of bars turns away from you, from 0 to 1.'
   },
+  { name: 'curve', type: 'number', default: '0.5', description: 'How much the strip bends in depth, from 0 to 1.' },
   {
-    name: 'waveSpread',
+    name: 'blur',
     type: 'number',
-    default: '0.9',
-    description: 'Phase step between columns; controls how tight the wave is.'
+    default: '0.6',
+    description: 'Depth of field. Bars away from the focus soften, and the focus follows the cursor.'
   },
-  {
-    name: 'rowOffset',
-    type: 'number',
-    default: '1.0',
-    description: 'Per-row phase offset that staggers the bars.'
-  },
-  {
-    name: 'softness',
-    type: 'number',
-    default: '0.05',
-    description: 'Edge softness; higher values turn bars into glowing bands.'
-  },
-  {
-    name: 'glow',
-    type: 'number',
-    default: '0',
-    description: 'Soft halo emitted around each bar.'
-  },
+  { name: 'glow', type: 'number', default: '1', description: 'Strength of the soft light around each bar.' },
   {
     name: 'brightness',
     type: 'number',
-    default: '1.0',
-    description: 'Overall brightness of the bars.'
+    default: '1.25',
+    description: 'Overall brightness. Where waves overlap, the light burns to white.'
   },
   {
-    name: 'contrast',
+    name: 'position',
     type: 'number',
-    default: '1.0',
-    description: 'Color contrast applied to the final render.'
+    default: '0.78',
+    description: 'Vertical position of the waves, from 0 at the top to 1 at the bottom.'
   },
+  { name: 'rotation', type: 'number', default: '0', description: 'Rotation of the whole effect, in degrees.' },
   {
-    name: 'opacity',
+    name: 'slices',
     type: 'number',
-    default: '0.5',
-    description: 'Overall opacity of the effect.'
+    default: '0',
+    description: 'Cuts the bars into segments like an LED display. 0 keeps them solid.'
   },
-  {
-    name: 'orientation',
-    type: 'string',
-    default: "'horizontal'",
-    description: "Bar orientation: 'horizontal' slats move vertically, 'vertical' slats move horizontally."
-  },
-  {
-    name: 'alternate',
-    type: 'boolean',
-    default: 'false',
-    description: 'Reverse the travel direction on alternating rows.'
-  },
+  { name: 'grain', type: 'number', default: '0.08', description: 'Strength of the film grain.' },
   {
     name: 'mouseInteraction',
     type: 'boolean',
     default: 'true',
-    description: 'Enable cursor-proximity brightening and thickening.'
+    description: 'Pulls the focus to the bars under the cursor and lights them up.'
   },
+  { name: 'intro', type: 'boolean', default: 'true', description: 'Grows the bars in across the view on mount.' },
+  { name: 'fade', type: 'number', default: '0', description: 'Fades the edges into the page, from 0 to 1.' },
+  { name: 'opacity', type: 'number', default: '1', description: 'Opacity of the whole effect.' },
   {
-    name: 'mouseStrength',
-    type: 'number',
-    default: '1',
-    description: 'Strength of the cursor-proximity response.'
-  },
-  {
-    name: 'mouseRadius',
-    type: 'number',
-    default: '0.3',
-    description: 'Radius of the cursor influence falloff.'
-  },
-  {
-    name: 'grain',
+    name: 'lightMode',
     type: 'boolean',
-    default: 'true',
-    description: 'Adds a subtle animated grain.'
+    default: 'false',
+    description: 'Draws the bars as colored ink for light backgrounds.'
   },
-  {
-    name: 'grainIntensity',
-    type: 'number',
-    default: '0.05',
-    description: 'Amplitude of the grain overlay. 0 disables it entirely.'
-  },
-  {
-    name: 'className',
-    type: 'string',
-    default: "''",
-    description: 'Additional CSS classes applied to the container.'
-  }
+  { name: 'paused', type: 'boolean', default: 'false', description: 'Freezes the animation.' },
+  { name: 'dpr', type: 'number', default: 'auto', description: 'Maximum device pixel ratio, capped at 2.' },
+  { name: 'className', type: 'string', default: "''", description: 'Extra class names for the container.' },
+  { name: 'style', type: 'CSSProperties', default: '-', description: 'Inline styles for the container.' }
 ];
+
+const { rerenderKey, forceRerender } = useForceRerender();
+const { props, defaultProps, updateProp, updateProps, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
+const light = useColorModeValue(true, false);
+
+const settings = computed(() => {
+  const { preset: _preset, ...rest } = props.value;
+  void _preset;
+  return rest;
+});
+
+const applyPreset = (value: string) => {
+  updateProps({ ...presetProps(value, { light: light.value, defaults: defaultProps.value }), preset: value });
+};
 </script>

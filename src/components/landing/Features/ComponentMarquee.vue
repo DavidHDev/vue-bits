@@ -1,18 +1,20 @@
 <script setup lang="ts">
+import { getComponentCatalog } from '@/utils/catalog';
+
 const toSlug = (s: string) => s.toLowerCase().replace(/\s+/g, '-');
 
-type Item = { name: string; cat: 'backgrounds' | 'animations' };
+type Item = { name: string; cat: string };
 
 const ROW_A: Item[] = [
   { name: 'Dot Field', cat: 'backgrounds' },
   { name: 'Line Waves', cat: 'backgrounds' },
   { name: 'Blob Cursor', cat: 'animations' },
   { name: 'Soft Aurora', cat: 'backgrounds' },
-  { name: 'Magnet Lines', cat: 'animations' },
-  { name: 'Antigravity', cat: 'animations' },
+  { name: 'Magnet Lines', cat: 'backgrounds' },
+  { name: 'Antigravity', cat: 'backgrounds' },
   { name: 'Ballpit', cat: 'backgrounds' },
   { name: 'Pixel Trail', cat: 'animations' },
-  { name: 'Magic Rings', cat: 'animations' }
+  { name: 'Magic Rings', cat: 'backgrounds' }
 ];
 
 const ROW_B: Item[] = [
@@ -28,40 +30,24 @@ const ROW_B: Item[] = [
   { name: 'Beams', cat: 'backgrounds' }
 ];
 
-// Note: components don't exist yet, so links go to /get-started/index
-const HREF = '/get-started/index';
-const rowADoubled = [...ROW_A, ...ROW_A];
-const rowBDoubled = [...ROW_B, ...ROW_B];
+const catalog = getComponentCatalog();
+const pathFor = (item: Item) =>
+  catalog.find(entry => entry.name === item.name)?.path ?? `/${item.cat}/${toSlug(item.name)}`;
+
+const rowA = [...ROW_A, ...ROW_A].map(item => ({ ...item, to: pathFor(item) }));
+const rowB = [...ROW_B, ...ROW_B].map(item => ({ ...item, to: pathFor(item) }));
 </script>
 
 <template>
   <div class="ln-feat-marquee">
     <div class="ln-feat-marquee-track">
       <div class="ln-feat-marquee-scroll">
-        <a
-          v-for="(c, i) in rowADoubled"
-          :key="i"
-          :href="HREF"
-          :data-slug="toSlug(c.name)"
-          :data-cat="c.cat"
-          class="ln-feat-pill"
-        >
-          {{ c.name }}
-        </a>
+        <RouterLink v-for="(c, i) in rowA" :key="i" :to="c.to" class="ln-feat-pill">{{ c.name }}</RouterLink>
       </div>
     </div>
     <div class="ln-feat-marquee-track">
-      <div class="ln-feat-marquee-scroll--rev ln-feat-marquee-scroll">
-        <a
-          v-for="(c, i) in rowBDoubled"
-          :key="i"
-          :href="HREF"
-          :data-slug="toSlug(c.name)"
-          :data-cat="c.cat"
-          class="ln-feat-pill"
-        >
-          {{ c.name }}
-        </a>
+      <div class="ln-feat-marquee-scroll ln-feat-marquee-scroll--rev">
+        <RouterLink v-for="(c, i) in rowB" :key="i" :to="c.to" class="ln-feat-pill">{{ c.name }}</RouterLink>
       </div>
     </div>
   </div>

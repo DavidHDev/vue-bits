@@ -1,212 +1,271 @@
 <template>
-  <h1 class="sub-category">Ripple Grid</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="rippleGrid.usage"
-    :source="rippleGridSource"
-    component-name="RippleGrid"
-    :props-table="props"
+    :demo-only-props="['preset']"
   >
-    <template #preview>
-      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
-        <RippleGrid
-          :enable-rainbow="enableRainbow"
-          :grid-color="gridColor"
-          :ripple-intensity="rippleIntensity"
-          :grid-size="gridSize"
-          :grid-thickness="gridThickness"
-          :fade-distance="fadeDistance"
-          :vignette-strength="vignetteStrength"
-          :glow-intensity="glowIntensity"
-          :opacity="opacity"
-          :grid-rotation="gridRotation"
-          :mouse-interaction="mouseInteraction"
-          :mouse-interaction-radius="mouseInteractionRadius"
-        />
-        <BackgroundContent pillText="New Background" headline="Retro yet futuristic, this is Ripple Grid!" />
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 500px; padding: 0">
+          <RippleGrid :key="rerenderKey" v-bind="settings" />
+          <BackgroundContent pill-text="New Background" headline="Every move sends ripples through the grid" />
+          <RefreshButton @click="forceRerender" />
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewColorPicker title="Grid Color" v-model="gridColor" />
-        <PreviewSlider title="Ripple Intensity" :min="0" :max="0.3" :step="0.01" v-model="rippleIntensity" />
-        <PreviewSlider title="Grid Size" :min="5" :max="30" :step="1" v-model="gridSize" />
-        <PreviewSlider title="Grid Thickness" :min="5" :max="30" :step="1" v-model="gridThickness" />
-        <PreviewSlider title="Fade Distance" :min="0.5" :max="3" :step="0.1" v-model="fadeDistance" />
-        <PreviewSlider title="Vignette Strength" :min="0.5" :max="5" :step="0.1" v-model="vignetteStrength" />
-        <PreviewSlider title="Glow Intensity" :min="0" :max="1" :step="0.05" v-model="glowIntensity" />
-        <PreviewSlider title="Opacity" :min="0" :max="1" :step="0.05" v-model="opacity" />
-        <PreviewSlider title="Grid Rotation" :min="0" :max="360" :step="1" v-model="gridRotation" value-unit="°" />
-        <PreviewSlider
-          title="Mouse Interaction Radius"
-          :min="0.2"
-          :max="2"
-          :step="0.1"
-          v-model="mouseInteractionRadius"
-        />
-        <PreviewSwitch title="Mouse Interaction" v-model="mouseInteraction" />
-        <PreviewSwitch title="Enable Rainbow" v-model="enableRainbow" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewSelect
+            title="Preset"
+            :options="PRESET_OPTIONS"
+            :model-value="props.preset"
+            @update:model-value="(value: string | number) => applyPreset(String(value))"
+          />
+          <PreviewColorPickerCustom
+            title="Color"
+            :color="settings.color"
+            @change="(value: string) => updateProp('color', value)"
+          />
+          <PreviewSelect
+            title="Variant"
+            :options="VARIANT_OPTIONS"
+            :model-value="settings.variant"
+            @update:model-value="(value: string | number) => updateProp('variant', value as RippleGridVariant)"
+          />
+          <PreviewSelect
+            title="Auto Ripple"
+            :options="AUTO_OPTIONS"
+            :model-value="settings.autoRipple"
+            @update:model-value="(value: string | number) => updateProp('autoRipple', value as RippleGridAutoRipple)"
+          />
+          <PreviewSlider
+            title="Cell Size"
+            :min="16"
+            :max="120"
+            :step="1"
+            value-unit="px"
+            :model-value="settings.cellSize"
+            @update:model-value="(value: number) => updateProp('cellSize', value)"
+          />
+          <PreviewSlider
+            title="Line Width"
+            :min="0.5"
+            :max="4"
+            :step="0.25"
+            value-unit="px"
+            :model-value="settings.lineWidth"
+            @update:model-value="(value: number) => updateProp('lineWidth', value)"
+          />
+          <PreviewSlider
+            title="Glow"
+            :min="0"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.glow"
+            @update:model-value="(value: number) => updateProp('glow', value)"
+          />
+          <PreviewSlider
+            title="Ripple Strength"
+            :min="0"
+            :max="2.5"
+            :step="0.05"
+            :model-value="settings.rippleStrength"
+            @update:model-value="(value: number) => updateProp('rippleStrength', value)"
+          />
+          <PreviewSlider
+            title="Ripple Speed"
+            :min="0.2"
+            :max="3"
+            :step="0.05"
+            :model-value="settings.rippleSpeed"
+            @update:model-value="(value: number) => updateProp('rippleSpeed', value)"
+          />
+          <PreviewSlider
+            title="Ripple Size"
+            :min="0.4"
+            :max="3"
+            :step="0.05"
+            :model-value="settings.rippleSize"
+            @update:model-value="(value: number) => updateProp('rippleSize', value)"
+          />
+          <PreviewSlider
+            title="Ripple Interval"
+            :min="0.5"
+            :max="8"
+            :step="0.1"
+            value-unit="s"
+            :model-value="settings.rippleInterval"
+            @update:model-value="(value: number) => updateProp('rippleInterval', value)"
+          />
+          <PreviewSlider
+            title="Tilt"
+            :min="0"
+            :max="75"
+            :step="1"
+            value-unit="°"
+            :model-value="settings.tilt"
+            @update:model-value="(value: number) => updateProp('tilt', value)"
+          />
+          <PreviewSlider
+            title="Rotation"
+            :min="0"
+            :max="90"
+            :step="1"
+            value-unit="°"
+            :model-value="settings.rotation"
+            @update:model-value="(value: number) => updateProp('rotation', value)"
+          />
+          <PreviewSlider
+            title="Fade"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.fade"
+            @update:model-value="(value: number) => updateProp('fade', value)"
+          />
+          <PreviewSlider
+            title="Opacity"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.opacity"
+            @update:model-value="(value: number) => updateProp('opacity', value)"
+          />
+          <PreviewSwitch
+            title="Mouse Interaction"
+            :model-value="settings.mouseInteraction"
+            @update:model-value="(value: boolean) => updateProp('mouseInteraction', value)"
+          />
+          <PreviewSwitch
+            title="Click Ripple"
+            :model-value="settings.clickRipple"
+            @update:model-value="(value: boolean) => updateProp('clickRipple', value)"
+          />
+          <PreviewSwitch
+            title="Intro"
+            :model-value="settings.intro"
+            @update:model-value="(value: boolean) => updateProp('intro', value)"
+          />
+          <PreviewSwitch
+            title="Light Mode"
+            :model-value="settings.lightMode"
+            @update:model-value="(value: boolean) => updateProp('lightMode', value)"
+          />
+        </Customize>
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+        <PropTable :data="propData" />
+      </template>
 
-    <template #code>
-      <DemoCodeTab slug="ripple-grid" :usage="rippleGrid.usage!" :source="rippleGridSource" />
-    </template>
-  </TabsLayout>
+      <template #code>
+        <CodeExample :code-object="rippleGrid" component-name="RippleGrid" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewColorPickerCustom from '@/components/common/PreviewColorPickerCustom.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
 import { useForceRerender } from '@/composables/useForceRerender';
 import { rippleGrid } from '@/constants/code/Backgrounds/rippleGridCode';
 import RippleGrid from '@/content/Backgrounds/RippleGrid/RippleGrid.vue';
-import rippleGridSource from '@/content/Backgrounds/RippleGrid/RippleGrid.vue?raw';
-import { computed, ref } from 'vue';
+import { DEFAULT_PROPS, PRESET_OPTIONS, presetProps } from './presets/RippleGrid';
 
-const { forceRerender } = useForceRerender();
+type RippleGridVariant = 'lines' | 'dots' | 'cross';
+type RippleGridAutoRipple = 'center' | 'random' | 'none';
 
-const DEFAULTS = {
-  enableRainbow: false,
-  gridColor: '#27FF64',
-  rippleIntensity: 0.05,
-  gridSize: 10.0,
-  gridThickness: 15.0,
-  fadeDistance: 1.5,
-  vignetteStrength: 2.0,
-  glowIntensity: 0.1,
-  opacity: 1.0,
-  gridRotation: 0,
-  mouseInteraction: true,
-  mouseInteractionRadius: 0.8
-};
+const VARIANT_OPTIONS = [
+  { value: 'lines', label: 'Lines' },
+  { value: 'dots', label: 'Dots' },
+  { value: 'cross', label: 'Cross' }
+];
 
-const enableRainbow = ref(DEFAULTS.enableRainbow);
-const gridColor = ref(DEFAULTS.gridColor);
-const rippleIntensity = ref(DEFAULTS.rippleIntensity);
-const gridSize = ref(DEFAULTS.gridSize);
-const gridThickness = ref(DEFAULTS.gridThickness);
-const fadeDistance = ref(DEFAULTS.fadeDistance);
-const vignetteStrength = ref(DEFAULTS.vignetteStrength);
-const glowIntensity = ref(DEFAULTS.glowIntensity);
-const opacity = ref(DEFAULTS.opacity);
-const gridRotation = ref(DEFAULTS.gridRotation);
-const mouseInteraction = ref(DEFAULTS.mouseInteraction);
-const mouseInteractionRadius = ref(DEFAULTS.mouseInteractionRadius);
+const AUTO_OPTIONS = [
+  { value: 'center', label: 'Center' },
+  { value: 'random', label: 'Random' },
+  { value: 'none', label: 'None' }
+];
 
-const hasChanges = computed(
-  () =>
-    gridColor.value !== DEFAULTS.gridColor ||
-    rippleIntensity.value !== DEFAULTS.rippleIntensity ||
-    gridSize.value !== DEFAULTS.gridSize ||
-    gridThickness.value !== DEFAULTS.gridThickness ||
-    fadeDistance.value !== DEFAULTS.fadeDistance ||
-    vignetteStrength.value !== DEFAULTS.vignetteStrength ||
-    glowIntensity.value !== DEFAULTS.glowIntensity ||
-    opacity.value !== DEFAULTS.opacity ||
-    gridRotation.value !== DEFAULTS.gridRotation ||
-    mouseInteraction.value !== DEFAULTS.mouseInteraction ||
-    mouseInteractionRadius.value !== DEFAULTS.mouseInteractionRadius
-);
-
-function reset() {
-  gridColor.value = DEFAULTS.gridColor;
-  rippleIntensity.value = DEFAULTS.rippleIntensity;
-  gridSize.value = DEFAULTS.gridSize;
-  gridThickness.value = DEFAULTS.gridThickness;
-  fadeDistance.value = DEFAULTS.fadeDistance;
-  vignetteStrength.value = DEFAULTS.vignetteStrength;
-  glowIntensity.value = DEFAULTS.glowIntensity;
-  opacity.value = DEFAULTS.opacity;
-  gridRotation.value = DEFAULTS.gridRotation;
-  mouseInteraction.value = DEFAULTS.mouseInteraction;
-  mouseInteractionRadius.value = DEFAULTS.mouseInteractionRadius;
-  forceRerender();
-}
-
-const props: PropRow[] = [
+const propData: PropRow[] = [
   {
-    name: 'enableRainbow',
-    type: 'boolean',
-    default: 'false',
-    description: 'Enables rainbow color cycling animation for the grid.'
-  },
-  {
-    name: 'gridColor',
+    name: 'color',
     type: 'string',
-    default: "'#27FF64'",
-    description: 'Color of the grid when rainbow mode is disabled.'
+    default: "'#ffffff'",
+    description: 'Color of the grid. Light mode derives its ink from it.'
   },
   {
-    name: 'rippleIntensity',
+    name: 'variant',
+    type: "'lines' | 'dots' | 'cross'",
+    default: "'lines'",
+    description: 'Draws the grid as lines, dots at each crossing, or small crosses.'
+  },
+  { name: 'cellSize', type: 'number', default: '48', description: 'Size of each grid cell, in px.' },
+  { name: 'lineWidth', type: 'number', default: '1', description: 'Width of the lines, in px.' },
+  { name: 'glow', type: 'number', default: '0.6', description: 'Soft glow around the lines.' },
+  {
+    name: 'rippleStrength',
     type: 'number',
-    default: '0.05',
-    description: 'Controls the intensity of the ripple effect from the center.'
+    default: '1',
+    description: 'How far ripples bend the grid and how brightly their crests light it.'
   },
+  { name: 'rippleSpeed', type: 'number', default: '1', description: 'How fast ripples travel outward.' },
+  { name: 'rippleSize', type: 'number', default: '1', description: 'Wavelength of the ripples.' },
   {
-    name: 'gridSize',
-    type: 'number',
-    default: '10.0',
-    description: 'Controls the density/size of the grid pattern.'
+    name: 'autoRipple',
+    type: "'center' | 'random' | 'none'",
+    default: "'center'",
+    description: 'Where idle ripples start: from the center, at random spots, or not at all.'
   },
+  { name: 'rippleInterval', type: 'number', default: '2.6', description: 'Seconds between idle ripples.' },
   {
-    name: 'gridThickness',
-    type: 'number',
-    default: '15.0',
-    description: 'Controls the thickness of the grid lines.'
-  },
-  {
-    name: 'fadeDistance',
-    type: 'number',
-    default: '1.5',
-    description: 'Controls how far the fade effect extends from the center.'
-  },
-  {
-    name: 'vignetteStrength',
-    type: 'number',
-    default: '2.0',
-    description: 'Controls the intensity of the vignette (edge darkening) effect.'
-  },
-  {
-    name: 'glowIntensity',
-    type: 'number',
-    default: '0.1',
-    description: 'Adds a glow effect to the grid lines.'
-  },
-  {
-    name: 'opacity',
-    type: 'number',
-    default: '1.0',
-    description: 'Overall opacity of the entire effect.'
-  },
-  {
-    name: 'gridRotation',
+    name: 'tilt',
     type: 'number',
     default: '0',
-    description: 'Rotate the entire grid pattern by degrees.'
+    description: 'Lays the grid back in perspective, like a floor, in degrees.'
   },
+  { name: 'rotation', type: 'number', default: '0', description: 'Turns the grid, in degrees.' },
   {
     name: 'mouseInteraction',
     type: 'boolean',
-    default: 'false',
-    description: 'Enable mouse/touch interaction to create ripples.'
+    default: 'true',
+    description: 'The cursor leaves a wake of small ripples and lights up the lines nearby.'
   },
+  { name: 'clickRipple', type: 'boolean', default: 'true', description: 'Clicking sends a strong ripple.' },
+  { name: 'intro', type: 'boolean', default: 'true', description: 'Reveals the grid with a ripple from the center.' },
+  { name: 'fade', type: 'number', default: '0.5', description: 'Fades the edges into the page, from 0 to 1.' },
+  { name: 'opacity', type: 'number', default: '1', description: 'Opacity of the whole effect.' },
   {
-    name: 'mouseInteractionRadius',
-    type: 'number',
-    default: '0.8',
-    description: 'Controls the radius of the mouse interaction effect.'
-  }
+    name: 'lightMode',
+    type: 'boolean',
+    default: 'false',
+    description: 'Draws the grid as ink for light backgrounds.'
+  },
+  { name: 'paused', type: 'boolean', default: 'false', description: 'Freezes the animation.' },
+  { name: 'dpr', type: 'number', default: 'auto', description: 'Maximum device pixel ratio, capped at 2.' },
+  { name: 'className', type: 'string', default: "''", description: 'Extra class names for the container.' }
 ];
+
+const { rerenderKey, forceRerender } = useForceRerender();
+const { props, defaultProps, updateProp, updateProps, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
+
+const settings = computed(() => {
+  const { preset: _preset, ...rest } = props.value;
+  void _preset;
+  return rest;
+});
+
+const applyPreset = (value: string) => {
+  updateProps({ ...presetProps(value, { defaults: defaultProps.value, props: settings.value }), preset: value });
+};
 </script>

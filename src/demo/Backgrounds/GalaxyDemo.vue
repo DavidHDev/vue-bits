@@ -1,231 +1,313 @@
 <template>
-  <h1 class="sub-category">Galaxy</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="galaxy.usage"
-    :source="galaxySource"
-    component-name="Galaxy"
-    :props-table="props"
+    :demo-only-props="['preset']"
   >
-    <template #preview>
-      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
-        <Galaxy
-          :density="density"
-          :glow-intensity="glowIntensity"
-          :saturation="saturation"
-          :hue-shift="hueShift"
-          :twinkle-intensity="twinkleIntensity"
-          :rotation-speed="rotationSpeed"
-          :repulsion-strength="repulsionStrength"
-          :auto-center-repulsion="autoCenterRepulsion"
-          :star-speed="starSpeed"
-          :speed="speed"
-          :mouse-repulsion="mouseRepulsion"
-          :mouse-interaction="mouseInteraction"
-        />
-        <BackgroundContent pill-text="New Background" headline="Components you shall have, young padawan." />
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 500px; padding: 0">
+          <Galaxy :key="rerenderKey" v-bind="settings" :star-colors="paletteActive ? settings.starColors : undefined" />
+          <BackgroundContent headline="Components you shall have, young padawan." />
+          <RefreshButton @click="forceRerender" />
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewSwitch title="Mouse Interaction" v-model="mouseInteraction" />
-        <PreviewSwitch title="Mouse Repulsion" v-model="mouseRepulsion" />
-        <PreviewSlider :min="0.1" :max="3" :step="0.1" v-model="density" title="Density" />
-        <PreviewSlider :min="0" :max="1" :step="0.1" v-model="glowIntensity" title="Glow Intensity" />
-        <PreviewSlider :min="0" :max="1" :step="0.1" v-model="saturation" title="Saturation" />
-        <PreviewSlider :min="0" :max="360" :step="10" v-model="hueShift" title="Hue Shift" value-unit="°" />
-        <PreviewSlider :min="0" :max="1" :step="0.1" v-model="twinkleIntensity" title="Twinkle Intensity" />
-        <PreviewSlider :min="0" :max="0.5" :step="0.05" v-model="rotationSpeed" title="Rotation Speed" />
-        <PreviewSlider :min="0" :max="10" :step="0.5" v-model="repulsionStrength" title="Repulsion Strength" />
-        <PreviewSlider :min="0" :max="20" :step="1" v-model="autoCenterRepulsion" title="Auto Center Repulsion" />
-        <PreviewSlider :min="0.1" :max="2" :step="0.1" v-model="starSpeed" title="Star Speed" />
-        <PreviewSlider :min="0.1" :max="3" :step="0.1" v-model="speed" title="Animation Speed" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewSelect
+            title="Preset"
+            :options="PRESET_OPTIONS"
+            :model-value="props.preset"
+            @update:model-value="(value: string | number) => applyPreset(String(value))"
+          />
+          <PreviewSelect
+            title="Star Colors"
+            :options="PALETTE_OPTIONS"
+            :model-value="paletteName(settings.starColors)"
+            @update:model-value="(value: string | number) => updateProp('starColors', PALETTES[String(value)])"
+          />
+          <PreviewSlider
+            title="Hue Shift"
+            :min="0"
+            :max="360"
+            :step="1"
+            value-unit="°"
+            :model-value="settings.hueShift"
+            :is-disabled="paletteActive"
+            @update:model-value="(value: number) => updateProp('hueShift', value)"
+          />
+          <PreviewSlider
+            title="Saturation"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="settings.saturation"
+            :is-disabled="paletteActive"
+            @update:model-value="(value: number) => updateProp('saturation', value)"
+          />
+          <PreviewSlider
+            title="Density"
+            :min="0.3"
+            :max="3"
+            :step="0.05"
+            :model-value="settings.density"
+            @update:model-value="(value: number) => updateProp('density', value)"
+          />
+          <PreviewSlider
+            title="Glow"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="settings.glowIntensity"
+            @update:model-value="(value: number) => updateProp('glowIntensity', value)"
+          />
+          <PreviewSlider
+            title="Star Size"
+            :min="0.3"
+            :max="3"
+            :step="0.05"
+            :model-value="settings.starSize"
+            @update:model-value="(value: number) => updateProp('starSize', value)"
+          />
+          <PreviewSlider
+            title="Flares"
+            :min="0"
+            :max="4"
+            :step="0.05"
+            :model-value="settings.flareIntensity"
+            @update:model-value="(value: number) => updateProp('flareIntensity', value)"
+          />
+          <PreviewSlider
+            title="Twinkle"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="settings.twinkleIntensity"
+            @update:model-value="(value: number) => updateProp('twinkleIntensity', value)"
+          />
+          <PreviewSlider
+            title="Star Speed"
+            :min="0"
+            :max="4"
+            :step="0.05"
+            :model-value="settings.starSpeed"
+            @update:model-value="(value: number) => updateProp('starSpeed', value)"
+          />
+          <PreviewSlider
+            title="Speed"
+            :min="0"
+            :max="3"
+            :step="0.05"
+            :model-value="settings.speed"
+            @update:model-value="(value: number) => updateProp('speed', value)"
+          />
+          <PreviewSlider
+            title="Rotation Speed"
+            :min="0"
+            :max="0.5"
+            :step="0.01"
+            :model-value="settings.rotationSpeed"
+            @update:model-value="(value: number) => updateProp('rotationSpeed', value)"
+          />
+          <PreviewSlider
+            title="Layers"
+            :min="2"
+            :max="8"
+            :step="1"
+            :model-value="settings.layers"
+            @update:model-value="(value: number) => updateProp('layers', value)"
+          />
+          <PreviewSelect
+            title="Direction"
+            :options="DIRECTION_OPTIONS"
+            :model-value="settings.direction"
+            @update:model-value="(value: string | number) => updateProp('direction', value as 'forward' | 'backward')"
+          />
+          <PreviewSlider
+            title="Repulsion Strength"
+            :min="0"
+            :max="5"
+            :step="0.1"
+            :model-value="settings.repulsionStrength"
+            :is-disabled="!settings.mouseInteraction || !settings.mouseRepulsion"
+            @update:model-value="(value: number) => updateProp('repulsionStrength', value)"
+          />
+          <PreviewSwitch
+            title="Mouse Interaction"
+            :model-value="settings.mouseInteraction"
+            @update:model-value="(value: boolean) => updateProp('mouseInteraction', value)"
+          />
+          <PreviewSwitch
+            title="Mouse Repulsion"
+            :model-value="settings.mouseRepulsion"
+            @update:model-value="(value: boolean) => updateProp('mouseRepulsion', value)"
+          />
+          <PreviewSwitch
+            title="Click Warp"
+            :model-value="settings.clickWarp"
+            @update:model-value="(value: boolean) => updateProp('clickWarp', value)"
+          />
+          <PreviewSwitch
+            title="Intro"
+            :model-value="settings.intro"
+            @update:model-value="(value: boolean) => updateProp('intro', value)"
+          />
+          <PreviewSwitch
+            title="Light Mode"
+            :model-value="settings.lightMode"
+            @update:model-value="(value: boolean) => updateProp('lightMode', value)"
+          />
+        </Customize>
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+        <PropTable :data="propData" />
+      </template>
 
-    <template #code>
-      <DemoCodeTab slug="galaxy" :usage="galaxy.usage!" :source="galaxySource" />
-    </template>
-  </TabsLayout>
+      <template #code>
+        <CodeExample :code-object="galaxy" component-name="Galaxy" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
 import { useForceRerender } from '@/composables/useForceRerender';
 import { galaxy } from '@/constants/code/Backgrounds/galaxyCode';
 import Galaxy from '@/content/Backgrounds/Galaxy/Galaxy.vue';
-import galaxySource from '@/content/Backgrounds/Galaxy/Galaxy.vue?raw';
-import { computed, ref } from 'vue';
+import { DEFAULT_PROPS, PALETTES, PRESET_OPTIONS, presetProps } from './presets/Galaxy';
 
-const { forceRerender } = useForceRerender();
+const PALETTE_OPTIONS = [
+  { value: 'none', label: 'Hue Shift' },
+  { value: 'stardust', label: 'Stardust' },
+  { value: 'ice', label: 'Ice' },
+  { value: 'gold', label: 'Gold' },
+  { value: 'rose', label: 'Rose' }
+];
 
-const DEFAULTS = {
-  density: 1,
-  glowIntensity: 0.3,
-  saturation: 0.0,
-  hueShift: 140,
-  twinkleIntensity: 0.3,
-  rotationSpeed: 0.1,
-  repulsionStrength: 2,
-  autoCenterRepulsion: 0,
-  starSpeed: 0.5,
-  speed: 1.0,
-  mouseRepulsion: true,
-  mouseInteraction: true
-};
+const DIRECTION_OPTIONS = [
+  { value: 'forward', label: 'Forward' },
+  { value: 'backward', label: 'Backward' }
+];
 
-const density = ref(DEFAULTS.density);
-const glowIntensity = ref(DEFAULTS.glowIntensity);
-const saturation = ref(DEFAULTS.saturation);
-const hueShift = ref(DEFAULTS.hueShift);
-const twinkleIntensity = ref(DEFAULTS.twinkleIntensity);
-const rotationSpeed = ref(DEFAULTS.rotationSpeed);
-const repulsionStrength = ref(DEFAULTS.repulsionStrength);
-const autoCenterRepulsion = ref(DEFAULTS.autoCenterRepulsion);
-const starSpeed = ref(DEFAULTS.starSpeed);
-const speed = ref(DEFAULTS.speed);
-const mouseRepulsion = ref(DEFAULTS.mouseRepulsion);
-const mouseInteraction = ref(DEFAULTS.mouseInteraction);
-
-const hasChanges = computed(
-  () =>
-    density.value !== DEFAULTS.density ||
-    glowIntensity.value !== DEFAULTS.glowIntensity ||
-    saturation.value !== DEFAULTS.saturation ||
-    hueShift.value !== DEFAULTS.hueShift ||
-    twinkleIntensity.value !== DEFAULTS.twinkleIntensity ||
-    rotationSpeed.value !== DEFAULTS.rotationSpeed ||
-    repulsionStrength.value !== DEFAULTS.repulsionStrength ||
-    autoCenterRepulsion.value !== DEFAULTS.autoCenterRepulsion ||
-    starSpeed.value !== DEFAULTS.starSpeed ||
-    speed.value !== DEFAULTS.speed ||
-    mouseRepulsion.value !== DEFAULTS.mouseRepulsion ||
-    mouseInteraction.value !== DEFAULTS.mouseInteraction
-);
-
-function reset() {
-  density.value = DEFAULTS.density;
-  glowIntensity.value = DEFAULTS.glowIntensity;
-  saturation.value = DEFAULTS.saturation;
-  hueShift.value = DEFAULTS.hueShift;
-  twinkleIntensity.value = DEFAULTS.twinkleIntensity;
-  rotationSpeed.value = DEFAULTS.rotationSpeed;
-  repulsionStrength.value = DEFAULTS.repulsionStrength;
-  autoCenterRepulsion.value = DEFAULTS.autoCenterRepulsion;
-  starSpeed.value = DEFAULTS.starSpeed;
-  speed.value = DEFAULTS.speed;
-  mouseRepulsion.value = DEFAULTS.mouseRepulsion;
-  mouseInteraction.value = DEFAULTS.mouseInteraction;
-  forceRerender();
-}
-
-const props: PropRow[] = [
+const propData: PropRow[] = [
   {
-    name: 'focal',
-    type: '[number, number]',
-    default: '[0.5, 0.5]',
-    description: 'Sets the focal point of the galaxy effect as [x, y] coordinates from 0 to 1'
+    name: 'starColors',
+    type: 'string[]',
+    default: '-',
+    description: 'Up to four colors the stars are picked from. Replaces the hue shift and saturation coloring.'
   },
+  { name: 'hueShift', type: 'number', default: '140', description: 'Shifts the hue of the stars, in degrees.' },
+  { name: 'saturation', type: 'number', default: '0', description: 'Color saturation of the stars, from 0 to 1.' },
+  { name: 'density', type: 'number', default: '1', description: 'How densely the stars are packed.' },
+  { name: 'glowIntensity', type: 'number', default: '0.3', description: 'Brightness of the glow around each star.' },
+  { name: 'starSize', type: 'number', default: '1', description: 'Size of each star glow.' },
   {
-    name: 'rotation',
-    type: '[number, number]',
-    default: '[1.0, 0.0]',
-    description: 'Controls the rotation matrix of the galaxy as [x, y] rotation values'
-  },
-  {
-    name: 'starSpeed',
-    type: 'number',
-    default: '0.5',
-    description: 'Controls the speed of star movement and animation'
-  },
-  {
-    name: 'density',
+    name: 'flareIntensity',
     type: 'number',
     default: '1',
-    description: 'Controls the density of stars in the galaxy'
+    description: 'Strength of the cross flares on the brightest stars.'
   },
+  { name: 'twinkleIntensity', type: 'number', default: '0.3', description: 'How much the stars twinkle, from 0 to 1.' },
+  { name: 'starSpeed', type: 'number', default: '0.5', description: 'How fast you travel through the stars.' },
+  { name: 'speed', type: 'number', default: '1', description: 'Overall speed of the animation.' },
+  { name: 'rotationSpeed', type: 'number', default: '0.1', description: 'How fast the starfield rotates.' },
+  { name: 'layers', type: 'number', default: '4', description: 'Number of star layers, from 2 to 8.' },
   {
-    name: 'hueShift',
-    type: 'number',
-    default: '140',
-    description: 'Shifts the hue of all stars by the specified degrees (0-360)'
-  },
-  {
-    name: 'disableAnimation',
-    type: 'boolean',
-    default: 'false',
-    description: 'When true, stops all time-based animations'
-  },
-  {
-    name: 'speed',
-    type: 'number',
-    default: '1.0',
-    description: 'Global speed multiplier for all animations'
+    name: 'direction',
+    type: "'forward' | 'backward'",
+    default: "'forward'",
+    description: 'Whether you fly into the stars or drift back out of them.'
   },
   {
     name: 'mouseInteraction',
     type: 'boolean',
     default: 'true',
-    description: 'Enables or disables mouse interaction with the galaxy'
-  },
-  {
-    name: 'glowIntensity',
-    type: 'number',
-    default: '0.3',
-    description: 'Controls the intensity of the star glow effect'
-  },
-  {
-    name: 'saturation',
-    type: 'number',
-    default: '0.0',
-    description: 'Controls color saturation of stars (0 = grayscale, 1 = full color)'
+    description: 'Lets the cursor interact with the stars.'
   },
   {
     name: 'mouseRepulsion',
     type: 'boolean',
     default: 'true',
-    description: 'When true, stars are repelled by the mouse cursor'
-  },
-  {
-    name: 'twinkleIntensity',
-    type: 'number',
-    default: '0.3',
-    description: 'Controls how much stars twinkle (0 = no twinkle, 1 = maximum twinkle)'
-  },
-  {
-    name: 'rotationSpeed',
-    type: 'number',
-    default: '0.1',
-    description: 'Speed of automatic galaxy rotation'
+    description: 'Pushes the stars away from the cursor. When off, the field shifts with the cursor instead.'
   },
   {
     name: 'repulsionStrength',
     type: 'number',
     default: '2',
-    description: 'Strength of mouse repulsion effect when mouseRepulsion is enabled'
+    description: 'Strength of the push away from the cursor.'
   },
   {
     name: 'autoCenterRepulsion',
     type: 'number',
     default: '0',
-    description: 'Creates repulsion from center of canvas. Overrides mouse repulsion when > 0'
+    description: 'Pushes the stars away from the center without the cursor. 0 turns it off.'
+  },
+  { name: 'clickWarp', type: 'boolean', default: 'true', description: 'Clicking jumps forward at warp speed.' },
+  { name: 'intro', type: 'boolean', default: 'true', description: 'Drops out of warp speed on mount.' },
+  {
+    name: 'focal',
+    type: '[number, number]',
+    default: '[0.5, 0.5]',
+    description: 'Center of the starfield, from 0 to 1.'
+  },
+  {
+    name: 'rotation',
+    type: '[number, number]',
+    default: '[1, 0]',
+    description: 'Fixed rotation of the starfield as a [cos, sin] pair.'
   },
   {
     name: 'transparent',
     type: 'boolean',
     default: 'true',
-    description: 'Makes the black background transparent, showing only stars'
-  }
+    description: 'Shows the page behind the stars. When off, the stars sit on the background color.'
+  },
+  {
+    name: 'backgroundColor',
+    type: 'string',
+    default: "'#000000'",
+    description: 'Background behind the stars when transparent is off, or the paper color in light mode.'
+  },
+  {
+    name: 'lightMode',
+    type: 'boolean',
+    default: 'false',
+    description: 'Draws the stars as ink for light backgrounds.'
+  },
+  { name: 'opacity', type: 'number', default: '1', description: 'Opacity of the whole effect.' },
+  { name: 'disableAnimation', type: 'boolean', default: 'false', description: 'Freezes the animation.' },
+  { name: 'dpr', type: 'number', default: 'auto', description: 'Maximum device pixel ratio, capped at 2.' },
+  { name: 'className', type: 'string', default: "''", description: 'Extra class names for the container.' },
+  { name: 'style', type: 'CSSProperties', default: '-', description: 'Inline styles for the container.' }
 ];
+
+const paletteName = (colors?: string[]) =>
+  Object.keys(PALETTES).find(name => PALETTES[name].join(',') === (colors ?? []).join(',')) ?? 'none';
+
+const { rerenderKey, forceRerender } = useForceRerender();
+const { props, defaultProps, updateProp, updateProps, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
+
+const settings = computed(() => {
+  const { preset: _preset, ...rest } = props.value;
+  void _preset;
+  return rest;
+});
+
+const paletteActive = computed(() => (settings.value.starColors?.length ?? 0) > 0);
+
+const applyPreset = (value: string) => {
+  updateProps({ ...presetProps(value, { defaults: defaultProps.value }), preset: value });
+};
 </script>

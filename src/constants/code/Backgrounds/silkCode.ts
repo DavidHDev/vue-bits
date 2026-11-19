@@ -2,15 +2,24 @@ import code from '@/content/Backgrounds/Silk/Silk.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const silk = createCodeObject(code, 'Backgrounds/Silk', {
-  installation: `npm install ogl`,
+  dependencies: '',
   usage: `<template>
-  <Silk
-    :speed="5"
-    :scale="1"
-    color="#7B7481"
-    :noise-intensity="1.5"
-    :rotation="0"
-  />
+  <div style="width: 100%; height: 600px; position: relative">
+    <Silk
+      color="#42b883"
+      sheen-color="#ffffff"
+      :speed="5"
+      :scale="1"
+      :rotation="0"
+      :sheen="0.5"
+      :depth="0.5"
+      :glow="0.3"
+      :noise-intensity="1.5"
+      mouse-interaction
+      click-ripple
+      intro
+    />
+  </div>
 </template>
 
 <script setup lang="ts">

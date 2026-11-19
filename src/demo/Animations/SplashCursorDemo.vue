@@ -1,216 +1,298 @@
 <template>
-  <h1 class="sub-category">Splash Cursor</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="splashCursor.usage"
-    :source="splashCursorSource"
-    component-name="SplashCursor"
-    :props-table="props"
+    :demo-only-props="['preset', 'colors']"
+    :computed-props="computedProps"
   >
-    <template #preview>
-      <div class="h-[400px] demo-container">
-        <span class="font-black text-[#333] text-6xl text-center select-none">Move Your Cursor</span>
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 500px; padding: 0; cursor: crosshair">
+          <div class="splash-cursor-demo-hint">
+            <span>Move your cursor</span>
+          </div>
+          <SplashCursor v-if="settings.contained" :key="rerenderKey" :theme="theme" v-bind="settings" :colors="shown" />
+          <RefreshButton @click="forceRerender" />
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewSlider title="Density Dissipation" :min="0.5" :max="10" :step="0.5" v-model="DENSITY_DISSIPATION" />
-        <PreviewSlider title="Velocity Dissipation" :min="0.5" :max="10" :step="0.5" v-model="VELOCITY_DISSIPATION" />
-        <PreviewSlider title="Pressure" :min="0" :max="1" :step="0.05" v-model="PRESSURE" />
-        <PreviewSlider title="Curl" :min="0" :max="50" :step="1" v-model="CURL" />
-        <PreviewSlider title="Splat Radius" :min="0.01" :max="1" :step="0.01" v-model="SPLAT_RADIUS" />
-        <PreviewSlider title="Splat Force" :min="1000" :max="20000" :step="500" v-model="SPLAT_FORCE" />
-        <PreviewSlider title="Color Update Speed" :min="1" :max="30" :step="1" v-model="COLOR_UPDATE_SPEED" />
-        <PreviewSwitch title="Shading" v-model="SHADING" />
-        <PreviewSwitch title="Rainbow Mode" v-model="RAINBOW_MODE" />
-        <PreviewColorPicker v-if="!RAINBOW_MODE" title="Color" v-model="COLOR" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewColorList
+            v-if="!settings.rainbow"
+            title="Colors"
+            :min="1"
+            :max="6"
+            :model-value="shown"
+            @update:model-value="(value: string[]) => updateProp('colors', value)"
+          />
+          <PreviewSelect
+            title="Preset"
+            :options="PRESET_OPTIONS"
+            :model-value="props.preset"
+            @update:model-value="(value: string | number) => applyPreset(String(value))"
+          />
+          <PreviewSelect
+            title="Quality"
+            :options="QUALITY_OPTIONS"
+            :model-value="settings.quality"
+            @update:model-value="(value: string | number) => updateProp('quality', value as Quality)"
+          />
+          <PreviewSlider
+            title="Color Speed"
+            :min="0"
+            :max="4"
+            :step="0.05"
+            :model-value="settings.colorSpeed"
+            @update:model-value="value => updateProp('colorSpeed', value)"
+          />
+          <PreviewSlider
+            title="Intensity"
+            :min="0.2"
+            :max="3"
+            :step="0.05"
+            :model-value="settings.intensity"
+            @update:model-value="value => updateProp('intensity', value)"
+          />
+          <PreviewSlider
+            title="Size"
+            :min="0.2"
+            :max="4"
+            :step="0.05"
+            :model-value="settings.size"
+            @update:model-value="value => updateProp('size', value)"
+          />
+          <PreviewSlider
+            title="Force"
+            :min="0"
+            :max="3"
+            :step="0.05"
+            :model-value="settings.force"
+            @update:model-value="value => updateProp('force', value)"
+          />
+          <PreviewSlider
+            title="Swirl"
+            :min="0"
+            :max="40"
+            :step="0.5"
+            :model-value="settings.swirl"
+            @update:model-value="value => updateProp('swirl', value)"
+          />
+          <PreviewSlider
+            title="Trail"
+            :min="0.2"
+            :max="5"
+            :step="0.05"
+            :model-value="settings.trail"
+            @update:model-value="value => updateProp('trail', value)"
+          />
+          <PreviewSlider
+            title="Momentum"
+            :min="0.2"
+            :max="5"
+            :step="0.05"
+            :model-value="settings.momentum"
+            @update:model-value="value => updateProp('momentum', value)"
+          />
+          <PreviewSlider
+            title="Shading"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="settings.shading"
+            @update:model-value="value => updateProp('shading', value)"
+          />
+          <PreviewSlider
+            title="Glow"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="settings.glow"
+            @update:model-value="value => updateProp('glow', value)"
+          />
+          <PreviewSwitch
+            title="Rainbow"
+            :model-value="settings.rainbow"
+            @update:model-value="value => updateProp('rainbow', value)"
+          />
+          <PreviewSwitch
+            title="Click Splash"
+            :model-value="settings.clickSplash"
+            @update:model-value="value => updateProp('clickSplash', value)"
+          />
+          <PreviewSwitch title="Intro" :model-value="settings.intro" @update:model-value="setIntro" />
+          <PreviewSwitch
+            title="Contained"
+            :model-value="settings.contained"
+            @update:model-value="value => updateProp('contained', value)"
+          />
+        </Customize>
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+        <PropTable :data="propData" />
+      </template>
 
-    <template #code>
-      <DemoCodeTab slug="splash-cursor" :usage="splashCursor.usage!" :source="splashCursorSource" />
-    </template>
-  </TabsLayout>
+      <template #code>
+        <CodeExample :code-object="splashCursor" component-name="SplashCursor" />
+      </template>
+    </TabsLayout>
 
-  <SplashCursor
-    :key="rerenderKey"
-    :DENSITY_DISSIPATION="DENSITY_DISSIPATION"
-    :VELOCITY_DISSIPATION="VELOCITY_DISSIPATION"
-    :PRESSURE="PRESSURE"
-    :CURL="CURL"
-    :SPLAT_RADIUS="SPLAT_RADIUS"
-    :SPLAT_FORCE="SPLAT_FORCE"
-    :COLOR_UPDATE_SPEED="COLOR_UPDATE_SPEED"
-    :SHADING="SHADING"
-    :RAINBOW_MODE="RAINBOW_MODE"
-    :COLOR="COLOR"
-  />
+    <SplashCursor v-if="!settings.contained" :key="rerenderKey" :theme="theme" v-bind="settings" :colors="shown" />
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewColorList from '@/components/common/PreviewColorList.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
 import { useForceRerender } from '@/composables/useForceRerender';
+import { useColorModeValue } from '@/composables/useTheme';
 import { splashCursor } from '@/constants/code/Animations/splashCursorCode';
 import SplashCursor from '@/content/Animations/SplashCursor/SplashCursor.vue';
-import splashCursorSource from '@/content/Animations/SplashCursor/SplashCursor.vue?raw';
-import { computed, ref } from 'vue';
+import { CLASSIC, LOOK, PRESET_OPTIONS, presetProps } from './presets/SplashCursor';
 
-const { rerenderKey, forceRerender } = useForceRerender();
+type Quality = 'low' | 'medium' | 'high';
 
-const DEFAULTS = {
-  DENSITY_DISSIPATION: 3.5,
-  VELOCITY_DISSIPATION: 2,
-  PRESSURE: 0.1,
-  CURL: 3,
-  SPLAT_RADIUS: 0.2,
-  SPLAT_FORCE: 6000,
-  COLOR_UPDATE_SPEED: 10,
-  SHADING: true,
-  RAINBOW_MODE: false,
-  COLOR: '#27FF64'
+const DEFAULT_PROPS = {
+  preset: 'classic',
+  ...LOOK,
+  ...CLASSIC,
+  quality: 'high' as Quality,
+  clickSplash: true,
+  intro: true,
+  contained: false
 };
 
-const DENSITY_DISSIPATION = ref(DEFAULTS.DENSITY_DISSIPATION);
-const VELOCITY_DISSIPATION = ref(DEFAULTS.VELOCITY_DISSIPATION);
-const PRESSURE = ref(DEFAULTS.PRESSURE);
-const CURL = ref(DEFAULTS.CURL);
-const SPLAT_RADIUS = ref(DEFAULTS.SPLAT_RADIUS);
-const SPLAT_FORCE = ref(DEFAULTS.SPLAT_FORCE);
-const COLOR_UPDATE_SPEED = ref(DEFAULTS.COLOR_UPDATE_SPEED);
-const SHADING = ref(DEFAULTS.SHADING);
-const RAINBOW_MODE = ref(DEFAULTS.RAINBOW_MODE);
-const COLOR = ref(DEFAULTS.COLOR);
+const LIGHT_SWAP: Record<string, string> = {
+  '#42b883': '#1f9d45',
+  '#e5e5e5': '#3f3f3f',
+  '#3b82f6': '#1d4ed8'
+};
 
-const hasChanges = computed(
-  () =>
-    DENSITY_DISSIPATION.value !== DEFAULTS.DENSITY_DISSIPATION ||
-    VELOCITY_DISSIPATION.value !== DEFAULTS.VELOCITY_DISSIPATION ||
-    PRESSURE.value !== DEFAULTS.PRESSURE ||
-    CURL.value !== DEFAULTS.CURL ||
-    SPLAT_RADIUS.value !== DEFAULTS.SPLAT_RADIUS ||
-    SPLAT_FORCE.value !== DEFAULTS.SPLAT_FORCE ||
-    COLOR_UPDATE_SPEED.value !== DEFAULTS.COLOR_UPDATE_SPEED ||
-    SHADING.value !== DEFAULTS.SHADING ||
-    RAINBOW_MODE.value !== DEFAULTS.RAINBOW_MODE ||
-    COLOR.value !== DEFAULTS.COLOR
+const DARK_SWAP: Record<string, string> = Object.fromEntries(
+  Object.entries(LIGHT_SWAP).map(([dark, light]) => [light, dark])
 );
 
-function reset() {
-  DENSITY_DISSIPATION.value = DEFAULTS.DENSITY_DISSIPATION;
-  VELOCITY_DISSIPATION.value = DEFAULTS.VELOCITY_DISSIPATION;
-  PRESSURE.value = DEFAULTS.PRESSURE;
-  CURL.value = DEFAULTS.CURL;
-  SPLAT_RADIUS.value = DEFAULTS.SPLAT_RADIUS;
-  SPLAT_FORCE.value = DEFAULTS.SPLAT_FORCE;
-  COLOR_UPDATE_SPEED.value = DEFAULTS.COLOR_UPDATE_SPEED;
-  SHADING.value = DEFAULTS.SHADING;
-  RAINBOW_MODE.value = DEFAULTS.RAINBOW_MODE;
-  COLOR.value = DEFAULTS.COLOR;
+const QUALITY_OPTIONS = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' }
+];
+
+const propData: PropRow[] = [
+  {
+    name: 'colors',
+    type: 'string[]',
+    default: "['#4f8cff', '#2dd4bf', '#ffd166']",
+    description: 'Palette the ink cycles through when rainbow is off.'
+  },
+  {
+    name: 'rainbow',
+    type: 'boolean',
+    default: 'true',
+    description: 'Cycles through the full spectrum instead of the palette.'
+  },
+  {
+    name: 'colorSpeed',
+    type: 'number',
+    default: '1',
+    description: 'How fast the colors shift while you move. 0 keeps one color per stroke.'
+  },
+  { name: 'intensity', type: 'number', default: '1', description: 'How much ink each movement leaves behind.' },
+  { name: 'size', type: 'number', default: '1', description: 'Width of the stroke and the splash.' },
+  { name: 'force', type: 'number', default: '1', description: 'How hard the cursor pushes the fluid.' },
+  { name: 'swirl', type: 'number', default: '3', description: 'Amount of curling eddies in the flow.' },
+  {
+    name: 'trail',
+    type: 'number',
+    default: '1',
+    description: 'How long the ink lingers before it fades. 2 lasts twice as long.'
+  },
+  {
+    name: 'momentum',
+    type: 'number',
+    default: '1',
+    description: 'How long the fluid keeps moving after the cursor stops.'
+  },
+  { name: 'shading', type: 'number', default: '1', description: 'Depth shading on the ripples, from 0 to 1.' },
+  { name: 'glow', type: 'number', default: '0', description: 'Soft bloom around the brightest ink, from 0 to 1.' },
+  {
+    name: 'quality',
+    type: "'low' | 'medium' | 'high'",
+    default: "'high'",
+    description: 'Simulation detail. Lower settings are lighter on older devices.'
+  },
+  { name: 'clickSplash', type: 'boolean', default: 'true', description: 'Bursts a splash where you click or tap.' },
+  { name: 'intro', type: 'boolean', default: 'true', description: 'Plays a short stroke across the screen on mount.' },
+  {
+    name: 'contained',
+    type: 'boolean',
+    default: 'false',
+    description: 'Fills the parent element instead of the whole viewport and only reacts inside it.'
+  },
+  {
+    name: 'theme',
+    type: "'dark' | 'light'",
+    default: "'dark'",
+    description: 'Glowing ink for dark backgrounds or absorbing ink for light ones.'
+  },
+  { name: 'zIndex', type: 'number', default: '50', description: 'Stacking order of the effect over your content.' },
+  { name: 'className', type: 'string', default: "''", description: 'Extra class names for the container.' },
+  { name: 'style', type: 'StyleValue', default: '-', description: 'Inline styles for the container.' }
+];
+
+const { rerenderKey, forceRerender } = useForceRerender();
+const { props, updateProp, updateProps, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
+const theme = useColorModeValue<'light' | 'dark'>('light', 'dark');
+
+const settings = computed(() => {
+  const { preset: _preset, colors: _colors, ...rest } = props.value;
+  return rest;
+});
+
+const shown = computed(() => {
+  const swap = theme.value === 'light' ? LIGHT_SWAP : DARK_SWAP;
+  const colors = props.value.colors?.length ? props.value.colors : LOOK.colors;
+  return colors.map(color => swap[color.toLowerCase()] ?? color);
+});
+
+const computedProps = computed(() => ({
+  colors: shown.value,
+  ...(theme.value === 'light' ? { theme: 'light' } : {})
+}));
+
+const applyPreset = (value: string) => {
+  updateProps({ ...presetProps(value), preset: value });
   forceRerender();
+};
+
+const setIntro = (value: boolean) => {
+  updateProp('intro', value);
+  forceRerender();
+};
+</script>
+
+<style scoped>
+.splash-cursor-demo-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
 }
 
-const props: PropRow[] = [
-  {
-    name: 'SIM_RESOLUTION',
-    type: 'number',
-    default: '128',
-    description: 'Fluid simulation resolution for velocity fields.'
-  },
-  {
-    name: 'DYE_RESOLUTION',
-    type: 'number',
-    default: '1440',
-    description: 'Resolution of the color/dye texture.'
-  },
-  {
-    name: 'CAPTURE_RESOLUTION',
-    type: 'number',
-    default: '512',
-    description: 'Resolution used for certain capture operations (rarely changed).'
-  },
-  {
-    name: 'DENSITY_DISSIPATION',
-    type: 'number',
-    default: '3.5',
-    description: 'Rate at which color/density dissipates over time.'
-  },
-  {
-    name: 'VELOCITY_DISSIPATION',
-    type: 'number',
-    default: '2',
-    description: 'Rate at which velocity dissipates over time.'
-  },
-  {
-    name: 'PRESSURE',
-    type: 'number',
-    default: '0.1',
-    description: 'Base pressure for the fluid simulation.'
-  },
-  {
-    name: 'PRESSURE_ITERATIONS',
-    type: 'number',
-    default: '20',
-    description: 'Number of Jacobi iterations used for the pressure solver.'
-  },
-  {
-    name: 'CURL',
-    type: 'number',
-    default: '3',
-    description: 'Amount of vorticity/curl to apply for swirling effects.'
-  },
-  {
-    name: 'SPLAT_RADIUS',
-    type: 'number',
-    default: '0.2',
-    description: "Radius of the 'splat' effect when user interacts."
-  },
-  {
-    name: 'SPLAT_FORCE',
-    type: 'number',
-    default: '6000',
-    description: "Force of the fluid 'splat' on each interaction."
-  },
-  {
-    name: 'SHADING',
-    type: 'boolean',
-    default: 'true',
-    description: 'Toggles simple lighting/shading on the fluid.'
-  },
-  {
-    name: 'COLOR_UPDATE_SPEED',
-    type: 'number',
-    default: '10',
-    description: 'Frequency at which pointer colors are re-randomized.'
-  },
-  {
-    name: 'RAINBOW_MODE',
-    type: 'boolean',
-    default: 'true',
-    description: 'When true, uses randomly cycling rainbow colors. When false, uses the COLOR prop.'
-  },
-  {
-    name: 'COLOR',
-    type: 'string',
-    default: "'#ff0000'",
-    description: 'Hex color for the cursor effect when RAINBOW_MODE is false.'
-  },
-  {
-    name: 'BACK_COLOR',
-    type: 'object',
-    default: '{ r: 0.5, g: 0, b: 0 }',
-    description: 'Base background color for the fluid. Not always used if TRANSPARENT is true.'
-  }
-];
-</script>
+.splash-cursor-demo-hint span {
+  font-size: 14px;
+  color: var(--text-muted);
+  user-select: none;
+}
+</style>

@@ -1,213 +1,343 @@
+<template>
+  <div class="category-page docs-catalog">
+    <header class="docs-catalog-header page-transition-fade">
+      <div v-if="title" class="docs-catalog-heading">
+        <h1 class="docs-catalog-title">{{ title }}</h1>
+        <div class="docs-catalog-status" aria-live="polite">
+          <button
+            v-if="showNewStatus"
+            type="button"
+            :aria-pressed="newOnly"
+            :title="newOnly ? 'Show all components' : 'Show new components'"
+            @click="newOnly = !newOnly"
+          >
+            {{ newOnly ? filtered.length : newSinceLastVisitCount }} new since your last visit
+          </button>
+          <span v-else-if="hasActiveFilters">
+            {{ filtered.length }} {{ filtered.length === 1 ? 'component' : 'components' }} found
+          </span>
+        </div>
+      </div>
+
+      <div class="docs-catalog-toolbar" :data-disabled="controlsDisabled ? '' : undefined">
+        <label class="docs-search" :data-disabled="controlsDisabled ? '' : undefined">
+          <HugeiconsIcon :icon="Search01Icon" :size="16" :stroke-width="1.6" aria-hidden="true" />
+          <input
+            v-model="search"
+            type="search"
+            placeholder="Search..."
+            aria-label="Search components"
+            :disabled="controlsDisabled"
+            :tabindex="controlsDisabled ? -1 : 0"
+          />
+        </label>
+
+        <ToolbarSelect
+          v-if="showCategoryFilter"
+          v-model="selectedCategory"
+          :options="categoriesList"
+          name="component-list-category-filter"
+          width="180px"
+          :disabled="controlsDisabled"
+        />
+
+        <ToolbarSelect
+          v-if="showSortControl && sortMode"
+          v-model="sortMode"
+          :options="SORT_OPTIONS"
+          name="component-list-sort"
+          width="130px"
+          :disabled="controlsDisabled"
+        />
+
+        <div ref="clearSlotRef" class="docs-clear-slot">
+          <button
+            ref="clearBtnRef"
+            type="button"
+            aria-label="Clear filters"
+            class="docs-tool docs-tool--icon docs-clear"
+            :tabindex="showClear ? 0 : -1"
+            :style="{ pointerEvents: showClear ? 'auto' : 'none' }"
+            @click="clearFilters"
+          >
+            <HugeiconsIcon :icon="Cancel01Icon" :size="16" :stroke-width="1.6" aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div v-if="filtered.length === 0" class="docs-catalog-empty" role="status">
+      <h2>{{ items.length > 0 ? 'No results...' : 'Nothing here yet...' }}</h2>
+      <p>{{ items.length > 0 ? 'Try adjusting your filters' : 'Tap the heart on any component to save it' }}</p>
+      <div class="docs-catalog-empty-actions">
+        <button v-if="items.length > 0" type="button" class="docs-pill-button" @click="clearFilters">
+          Clear Filters
+        </button>
+        <RouterLink v-else to="/get-started/index" class="docs-pill-button">Browse Components</RouterLink>
+      </div>
+    </div>
+
+    <div v-else class="docs-catalog-grid">
+      <RouterLink
+        v-for="item in filtered"
+        :key="item.key"
+        :to="pathFor(item)"
+        :data-item-key="item.key"
+        role="group"
+        class="browse-card"
+        @mouseenter="hoveredKey = item.key"
+        @mouseleave="hoveredKey === item.key && (hoveredKey = null)"
+      >
+        <div class="browse-card-media">
+          <LazyCardMedia
+            :key="item.videoUrl || item.key"
+            :video-url="item.videoUrl"
+            :title="item.title"
+            :playing="previewMediaAllowed && hoveredKey === item.key"
+          />
+
+          <span v-if="item.isNew || item.isNewSinceLastVisit" class="browse-card-badge">
+            {{ item.isNewSinceLastVisit ? 'Since last visit' : 'New' }}
+          </span>
+
+          <button
+            v-if="hasDeleteButton"
+            type="button"
+            aria-label="Remove from favorites"
+            class="browse-card-fav browse-card-fav--delete"
+            :data-visible="hoveredKey === item.key ? '' : undefined"
+            :data-interactive="hoveredKey === item.key ? '' : undefined"
+            @click.prevent.stop="event => removeFavorite(event, item.key)"
+          >
+            <FiTrash2 :size="13" />
+          </button>
+
+          <button
+            v-else-if="hasFavoriteButton"
+            type="button"
+            :aria-label="savedSet.has(item.key) ? 'Remove from favorites' : 'Add to favorites'"
+            class="browse-card-fav"
+            :data-saved="savedSet.has(item.key) ? '' : undefined"
+            :data-visible="savedSet.has(item.key) || hoveredKey === item.key ? '' : undefined"
+            :data-interactive="hoveredKey === item.key ? '' : undefined"
+            @click.prevent.stop="event => toggleFavorite(event, item)"
+          >
+            <RiHeartFill v-if="savedSet.has(item.key)" :size="13" />
+            <RiHeartLine v-else :size="13" />
+          </button>
+        </div>
+        <div class="browse-card-text">
+          <p class="browse-card-title">{{ item.title }}</p>
+          <p class="browse-card-category">{{ item.categoryLabel }}</p>
+        </div>
+      </RouterLink>
+    </div>
+
+    <details v-if="showDirectory && filtered.length > 0" class="docs-directory">
+      <summary>Browse by name</summary>
+      <nav aria-label="Component directory">
+        <ul>
+          <li v-for="item in directory" :key="item.key">
+            <RouterLink :to="pathFor(item)">{{ item.title }}</RouterLink>
+          </li>
+        </ul>
+      </nav>
+    </details>
+  </div>
+</template>
+
 <script setup lang="ts">
-import { NEW } from '@/constants/Categories.ts';
-import { componentMetadata, type ComponentMetadata } from '@/constants/Information';
-import { getSavedComponents, removeSavedComponent, toggleSavedComponent } from '@/utils/favorites';
-import { fuzzyMatch } from '@/utils/fuzzy';
+import { Cancel01Icon, Search01Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/vue';
 import gsap from 'gsap';
 import { useToast } from 'primevue/usetoast';
-import { computed, onBeforeUnmount, onMounted, ref, watch, watchEffect } from 'vue';
-import { useRoute } from 'vue-router';
+import { FiTrash2 } from 'vue-icons-plus/fi';
+import { RiHeartFill, RiHeartLine } from 'vue-icons-plus/ri';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { usePreviewMediaAllowed } from '@/composables/usePreviewMediaAllowed';
+import { NEW_KEYS } from '@/constants/Badges';
+import { CATEGORIES } from '@/constants/Categories';
+import type { ComponentMetadata } from '@/constants/Information';
+import { rankComponentSearch } from '@/utils/componentSearch';
+import { getSavedComponents, removeSavedComponent, toggleSavedComponent } from '@/utils/favorites';
 import LazyCardMedia from './LazyCardMedia.vue';
-import PreviewSelect from './PreviewSelect.vue';
+import ToolbarSelect from './ToolbarSelect.vue';
 
-const CARD_RADIUS = 16;
+const SORT_NAME = 'A to Z';
+const SORT_NEWEST = 'Newest';
+const SORT_OPTIONS = [SORT_NAME, SORT_NEWEST];
+const ALL = 'All Components';
 const CLEAR_APPEAR_DEBOUNCE_MS = 300;
 
-const slug = (str: string) => (str || '').replace(/\s+/g, '-').toLowerCase();
-const fromPascal = (str: string) =>
-  (str || '')
-    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-    .replace(/_/g, ' ')
-    .trim();
-
-interface RawEntry {
-  key?: string;
-  id?: string;
-  category?: string;
-  name?: string;
-  description?: string;
-  videoUrl?: string;
-  tags?: string[];
-}
-
-type ComponentInfoProps = {
-  list: ComponentMetadata;
-  hasDeleteButton?: boolean;
-  sorting?: string;
+type Item = {
+  key: string;
+  categoryKey: string;
+  componentKey: string;
+  categoryLabel: string;
   title: string;
-  emptyTitle?: string;
-  emptyDescription?: string;
+  description: string;
+  videoUrl: string;
+  tags: string[];
+  isNew: boolean;
+  added: string;
+  hidden: boolean;
+  isNewSinceLastVisit: boolean;
 };
 
-const props = withDefaults(defineProps<ComponentInfoProps>(), {
-  hasDeleteButton: false,
-  sorting: 'none'
-});
+const props = withDefaults(
+  defineProps<{
+    list: ComponentMetadata;
+    hasDeleteButton?: boolean;
+    hasFavoriteButton?: boolean;
+    sorting?: 'none' | 'newest' | 'alphabetical';
+    title?: string;
+    newSinceLastVisit?: Set<string>;
+    basePath?: string;
+    showCategoryFilter?: boolean;
+    showSortControl?: boolean;
+    showDirectory?: boolean;
+  }>(),
+  {
+    hasDeleteButton: false,
+    hasFavoriteButton: false,
+    sorting: 'none',
+    title: undefined,
+    newSinceLastVisit: () => new Set<string>(),
+    basePath: '',
+    showCategoryFilter: true,
+    showSortControl: false,
+    showDirectory: false
+  }
+);
 
 const toast = useToast();
-const hoveredKey = ref<string | null>(null);
-const clearSlotRef = ref<HTMLElement | null>(null);
-const clearBtnRef = ref<HTMLElement | null>(null);
 
-// ── items ─────────────────────────────────────────────────────────────────────
-const mapToItem = (entry: RawEntry | string) => {
-  const isObj = typeof entry !== 'string';
-  const key = isObj ? (entry.key ?? entry.id ?? null) : entry;
-  const meta: RawEntry = isObj ? entry : (componentMetadata?.[entry] ?? {});
-  const fullKey = key ?? (typeof entry === 'string' ? entry : '');
-  const [cat, comp] = (fullKey || '').split('/');
-  const title = fromPascal(meta.name ?? comp);
-  return {
-    key: fullKey,
-    categoryKey: cat,
-    componentKey: comp,
-    categoryLabel: fromPascal(meta.category ?? cat),
-    title: fromPascal(meta.name ?? comp),
-    description: meta.description ?? '',
-    videoUrl: meta.videoUrl ?? '',
-    tags: Array.isArray(meta.tags) ? meta.tags : [],
-    isNew: NEW.includes(title)
-  };
+const slug = (value: string) => (value || '').replace(/\s+/g, '-').toLowerCase();
+const fromPascal = (value: string) =>
+  (value || '')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+    .replace(/_/g, ' ')
+    .trim();
+const squash = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '');
+const revealsHidden = (item: Item, term: string) => {
+  const query = squash(term);
+  return query.length >= 4 && squash(item.title).startsWith(query);
 };
 
-const items = computed(() => {
+const pathFor = (item: Item) =>
+  `${props.basePath}/${slug(fromPascal(item.categoryKey))}/${slug(fromPascal(item.componentKey))}`;
+
+const hoveredKey = ref<string | null>(null);
+const sortMode = ref<string | null>(
+  props.sorting === 'newest' ? SORT_NEWEST : props.sorting === 'alphabetical' ? SORT_NAME : null
+);
+const selectedCategory = ref(ALL);
+const search = ref('');
+const newOnly = ref(false);
+const clearSlotRef = ref<HTMLElement | null>(null);
+const clearBtnRef = ref<HTMLElement | null>(null);
+const previewMediaAllowed = usePreviewMediaAllowed();
+
+const items = computed<Item[]>(() => {
   if (!props.list) return [];
-  const entries: (RawEntry | string)[] = Array.isArray(props.list)
-    ? props.list
-    : Object.entries(props.list).map(([key, meta]) => ({ key, ...(meta as RawEntry) }));
+  let arr = Object.entries(props.list)
+    .filter(([key]) => key.includes('/'))
+    .map(([key, meta]) => {
+      const [cat, comp] = key.split('/');
+      const extra = meta as typeof meta & { hidden?: boolean };
+      return {
+        key,
+        categoryKey: cat,
+        componentKey: comp,
+        categoryLabel: fromPascal(meta?.category ?? cat),
+        title: fromPascal(meta?.name ?? comp),
+        description: meta?.description ?? '',
+        videoUrl: meta?.videoUrl ?? '',
+        tags: Array.isArray(meta?.tags) ? meta.tags : [],
+        isNew: NEW_KEYS.has(key),
+        added: meta?.added ?? '',
+        hidden: Boolean(extra?.hidden),
+        isNewSinceLastVisit: props.newSinceLastVisit.has(key)
+      };
+    });
 
-  let arr = entries
-    .filter(e => {
-      const key = (typeof e === 'string' ? e : (e.key ?? ''))?.toString() ?? '';
-      return (
-        key.includes('/') &&
-        (typeof e !== 'string' && e.key ? true : !!componentMetadata[typeof e === 'string' ? e : ''])
-      );
-    })
-    .map(mapToItem);
-
-  if (props.sorting === 'alphabetical') {
+  if (sortMode.value === SORT_NEWEST) {
+    arr = arr.sort((a, b) => b.added.localeCompare(a.added) || a.title.localeCompare(b.title));
+  } else if (sortMode.value === SORT_NAME) {
     arr = arr.sort((a, b) => {
-      const aNew = NEW.indexOf(a.title);
-      const bNew = NEW.indexOf(b.title);
-      // If both are new, sort by their order in the NEW array
-      if (aNew !== -1 && bNew !== -1) return aNew - bNew;
-      // If only one is new, put it first
-      if (aNew !== -1) return -1;
-      if (bNew !== -1) return 1;
-      // Otherwise, sort alphabetically
+      if (a.isNewSinceLastVisit !== b.isNewSinceLastVisit) return a.isNewSinceLastVisit ? -1 : 1;
+      if (a.isNew !== b.isNew) return a.isNew ? -1 : 1;
       return a.title.localeCompare(b.title);
     });
   }
   return arr;
 });
 
-// ── categories ────────────────────────────────────────────────────────────────
-const categoryOptions = computed(() => [
-  'All Components',
-  ...Array.from(new Set(items.value.map(i => i.categoryLabel))).sort((a, b) => a.localeCompare(b))
-]);
+const categoriesList = [
+  ALL,
+  ...CATEGORIES.filter(category => category.name !== 'Get Started')
+    .map(category => category.name)
+    .sort((a, b) => a.localeCompare(b))
+];
 
-const route = useRoute();
-const search = ref('');
-const selectedCategory = ref('All Components');
-
-watch(
-  () => route.query.category,
-  fromQuery => {
-    selectedCategory.value =
-      typeof fromQuery === 'string' && categoryOptions.value.includes(fromQuery) ? fromQuery : 'All Components';
-  },
-  { immediate: true }
-);
-
-watch(categoryOptions, opts => {
-  if (!opts.includes(selectedCategory.value)) selectedCategory.value = 'All Components';
-});
-
-// ── saved set ─────────────────────────────────────────────────────────────────
 const savedSet = ref(new Set(getSavedComponents()));
 const updateSaved = () => {
   savedSet.value = new Set(getSavedComponents());
 };
-const onStorage = (e?: StorageEvent | null) => {
-  if (!e || e.key === 'savedComponents') updateSaved();
+const onStorage = (event: StorageEvent) => {
+  if (!event || event.key === 'savedComponents') updateSaved();
 };
 
-onMounted(() => {
-  window.addEventListener('favorites:updated', updateSaved);
-  window.addEventListener('storage', onStorage);
-});
-onBeforeUnmount(() => {
-  window.removeEventListener('favorites:updated', updateSaved);
-  window.removeEventListener('storage', onStorage);
-});
-
-// ── filtering ─────────────────────────────────────────────────────────────────
 const filtered = computed(() => {
   const term = search.value.trim();
-  const all = selectedCategory.value === 'All Components';
-  return items.value.filter(({ title, categoryLabel }) => {
-    const categoryOk = all || categoryLabel === selectedCategory.value;
-    if (!term) return categoryOk;
-    return categoryOk && fuzzyMatch(title, term);
-  });
+  const all = !props.showCategoryFilter || selectedCategory.value === ALL;
+  return items.value
+    .filter(item => !item.hidden || revealsHidden(item, term))
+    .filter(
+      item => (all || item.categoryLabel === selectedCategory.value) && (!newOnly.value || item.isNewSinceLastVisit)
+    )
+    .map(item => ({ item, match: term ? rankComponentSearch(item, term) : { score: 1 } }))
+    .filter(({ match }) => Boolean(match))
+    .sort((a, b) => (term ? (b.match?.score ?? 0) - (a.match?.score ?? 0) : 0))
+    .map(({ item }) => item);
 });
+
+const directory = computed(() => [...filtered.value].sort((a, b) => a.title.localeCompare(b.title)));
 
 const controlsDisabled = computed(() => items.value.length === 0);
-
-function findMatchingCategory(input: string | undefined): string | null {
-  if (!input) return null;
-  const normalizedInput = slug(input);
-  if (normalizedInput === 'get-started') return null;
-
-  return (
-    categoryOptions.value.find(opt => opt !== 'All Components' && (opt === input || slug(opt) === normalizedInput)) ??
-    null
-  );
-}
-
-const hasCategoryInUrl = computed(() => {
-  const fromQuery = findMatchingCategory(route.query.category as string);
-  const fromParam = findMatchingCategory(route.params.category as string);
-  return Boolean(fromQuery || fromParam);
-});
-
-watch(
-  [() => route.query.category, () => route.params.category, categoryOptions],
-  ([queryCat, paramCat]) => {
-    const matchedCat = findMatchingCategory(queryCat as string) || findMatchingCategory(paramCat as string);
-    selectedCategory.value = matchedCat ?? 'All Components';
-  },
-  { immediate: true }
+const hasCategoryFilter = computed(() => props.showCategoryFilter && selectedCategory.value !== ALL);
+const newSinceLastVisitCount = computed(
+  () => items.value.filter(item => !item.hidden && item.isNewSinceLastVisit).length
 );
+const hasActiveFilters = computed(() => hasCategoryFilter.value || newOnly.value || search.value.trim().length > 0);
+const showNewStatus = computed(() => newSinceLastVisitCount.value > 0 && (!hasActiveFilters.value || newOnly.value));
 
-// ── debounced search for clear button ─────────────────────────────────────────
 const debouncedSearch = ref(search.value);
-
-watchEffect(onCleanup => {
-  const id = setTimeout(() => {
-    debouncedSearch.value = search.value;
+let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+watch(search, value => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    debouncedSearch.value = value;
   }, CLEAR_APPEAR_DEBOUNCE_MS);
-  onCleanup(() => clearTimeout(id));
 });
 
 const showClear = computed(
   () =>
-    !controlsDisabled.value && (selectedCategory.value !== 'All Components' || debouncedSearch.value.trim().length > 0)
+    !controlsDisabled.value &&
+    (hasCategoryFilter.value || newOnly.value || (debouncedSearch.value?.trim()?.length ?? 0) > 0)
 );
 
-// ── GSAP clear button ─────────────────────────────────────────────────────────
-watch(showClear, newVal => {
+watch(showClear, visible => {
   const slot = clearSlotRef.value;
   const btn = clearBtnRef.value;
   if (!slot || !btn) return;
   gsap.killTweensOf([slot, btn]);
 
-  if (newVal) {
+  if (visible) {
     gsap
       .timeline()
-      .to(slot, { width: 40, duration: 0.3, ease: 'power2.out' })
+      .to(slot, { width: 44, duration: 0.3, ease: 'power2.out' })
       .fromTo(
         btn,
         { scale: 0.6, opacity: 0 },
@@ -222,480 +352,50 @@ watch(showClear, newVal => {
   }
 });
 
-// ── actions ───────────────────────────────────────────────────────────────────
 function clearFilters() {
   search.value = '';
-  selectedCategory.value = 'All Components';
+  selectedCategory.value = ALL;
+  newOnly.value = false;
 }
 
-function removeFavorite(key: string) {
+function setHoverToItemAtPoint(x: number, y: number) {
+  let node = document.elementFromPoint(x, y) as HTMLElement | null;
+  while (node && node !== document.body) {
+    if (node.dataset?.itemKey) {
+      hoveredKey.value = node.dataset.itemKey;
+      return;
+    }
+    node = node.parentElement;
+  }
+  hoveredKey.value = null;
+}
+
+function removeFavorite(event: MouseEvent, key: string) {
+  const { clientX, clientY } = event;
   savedSet.value = new Set(removeSavedComponent(key));
+  (event.currentTarget as HTMLElement | null)?.blur();
+  requestAnimationFrame(() => setHoverToItemAtPoint(clientX, clientY));
 }
 
-function toggleFavorite(key: string, componentKey: string) {
-  const { saved, list: next } = toggleSavedComponent(key);
-  savedSet.value = new Set(next);
+function toggleFavorite(event: MouseEvent, item: Item) {
+  const { saved, list } = toggleSavedComponent(item.key);
+  savedSet.value = new Set(list);
   toast.add({
     severity: saved ? 'success' : 'error',
-    summary: saved ? `Added <${componentKey} /> to favorites` : `Removed <${componentKey} /> from favorites`,
+    summary: `${saved ? 'Added' : 'Removed'} <${item.title.replace(/\s+/g, '')} /> ${saved ? 'to favorites' : 'from favorites'}`,
     life: 3000
   });
+  (event.currentTarget as HTMLElement | null)?.blur();
 }
+
+onMounted(() => {
+  window.addEventListener('favorites:updated', updateSaved);
+  window.addEventListener('storage', onStorage);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('favorites:updated', updateSaved);
+  window.removeEventListener('storage', onStorage);
+  clearTimeout(debounceTimer);
+});
 </script>
-
-<template>
-  <div class="component-list-page">
-    <!-- Header -->
-    <div class="page-transition-fade component-list-header">
-      <h1 class="sub-category">{{ title }}</h1>
-
-      <div class="component-list-controls" :class="{ disabled: controlsDisabled }">
-        <!-- Search -->
-        <label class="component-list-search">
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.35-4.35" />
-          </svg>
-          <input v-model="search" placeholder="Search..." :disabled="controlsDisabled" />
-        </label>
-
-        <!-- Category select -->
-        <PreviewSelect
-          v-if="!hasCategoryInUrl"
-          v-model="selectedCategory"
-          title="Category"
-          :options="categoryOptions"
-          :is-disabled="controlsDisabled"
-          class="category-scrubber"
-        />
-
-        <!-- Clear button -->
-        <div v-if="!hasCategoryInUrl" ref="clearSlotRef" class="clear-slot" :class="{ show: showClear }">
-          <button
-            ref="clearBtnRef"
-            type="button"
-            class="clear-button"
-            aria-label="Clear filters"
-            :tabindex="showClear ? 0 : -1"
-            @click="clearFilters"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M18 6 6 18" />
-              <path d="m6 6 12 12" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Empty state -->
-    <div v-if="filtered.length === 0" class="component-list-empty" role="status">
-      <h2>{{ items.length > 0 ? 'No results...' : (emptyTitle ?? 'Nothing here yet...') }}</h2>
-      <p>
-        {{
-          items.length > 0
-            ? 'Try adjusting your filters'
-            : (emptyDescription ?? 'Tap the heart on any component to save it')
-        }}
-      </p>
-      <button v-if="items.length > 0" type="button" class="pill-button" @click="clearFilters">Clear Filters</button>
-      <RouterLink v-else class="pill-button" to="/get-started/index">Browse Components</RouterLink>
-    </div>
-
-    <!-- Grid -->
-    <div v-else class="component-list-grid" :style="{ '--card-radius': `${CARD_RADIUS}px` }">
-      <div v-for="item in filtered" :key="item.key" class="component-list-card-wrap">
-        <RouterLink
-          class="component-list-card"
-          :to="`/${slug(fromPascal(item.categoryKey))}/${slug(fromPascal(item.componentKey))}`"
-          :data-item-key="item.key"
-          @mouseenter="hoveredKey = item.key"
-          @mouseleave="hoveredKey === item.key && (hoveredKey = null)"
-        >
-          <div v-if="item.isNew" class="new-badge">New</div>
-
-          <LazyCardMedia :video-url="item.videoUrl" :playing="hoveredKey === item.key" />
-
-          <div class="component-list-card-copy">
-            <h2>{{ item.title }}</h2>
-            <p>{{ item.categoryLabel }}</p>
-          </div>
-        </RouterLink>
-
-        <!-- Favorite / delete button -->
-        <button
-          type="button"
-          class="favorite-button"
-          :class="{
-            visible: savedSet.has(item.key) || hoveredKey === item.key,
-            saved: savedSet.has(item.key)
-          }"
-          :aria-label="
-            hasDeleteButton
-              ? 'Remove from favorites'
-              : savedSet.has(item.key)
-                ? 'Remove from favorites'
-                : 'Add to favorites'
-          "
-          @click.prevent.stop="hasDeleteButton ? removeFavorite(item.key) : toggleFavorite(item.key, item.componentKey)"
-        >
-          <svg
-            v-if="hasDeleteButton"
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M3 6h18" />
-            <path d="M8 6V4h8v2" />
-            <path d="M19 6l-1 14H6L5 6" />
-            <path d="M10 11v6" />
-            <path d="M14 11v6" />
-          </svg>
-          <svg
-            v-else
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            :fill="savedSet.has(item.key) ? 'currentColor' : 'none'"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path
-              d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z"
-            />
-          </svg>
-        </button>
-      </div>
-    </div>
-  </div>
-</template>
-
-<style scoped>
-.component-list-page {
-  width: 100%;
-}
-.component-list-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 3rem;
-}
-.component-list-header .sub-category {
-  margin: 0;
-}
-.component-list-controls {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-}
-.component-list-controls.disabled {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-.component-list-search,
-.clear-button,
-.pill-button {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(20, 17, 14, 0.45);
-  backdrop-filter: blur(32px) saturate(1.3);
-  -webkit-backdrop-filter: blur(32px) saturate(1.3);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 500;
-  transition:
-    border-color 0.2s ease,
-    background 0.2s ease,
-    transform 0.2s ease,
-    opacity 0.2s ease;
-}
-.component-list-search:hover,
-.clear-button:hover,
-.pill-button:hover {
-  border-color: rgba(255, 255, 255, 0.15);
-  background: rgba(20, 17, 14, 0.55);
-}
-
-.component-list-search {
-  width: 180px;
-  height: 36px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 12px;
-  color: rgba(255, 255, 255, 0.4);
-}
-.component-list-search:focus-within {
-  border-color: rgba(255, 255, 255, 0.15);
-}
-.component-list-search input {
-  min-width: 0;
-  width: 100%;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: #fff;
-  font: inherit;
-}
-.component-list-search input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
-}
-
-.component-list-select {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 180px;
-  height: 36px;
-  border-radius: 10px;
-}
-.component-list-select select {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 100%;
-  height: 100%;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  padding: 0 46px 0 12px;
-  outline: 0;
-  cursor: pointer;
-}
-.component-list-select svg {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #fff;
-  pointer-events: none;
-}
-
-.clear-slot {
-  width: 0;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: width 0.3s ease;
-}
-.clear-slot.show {
-  width: 40px;
-}
-.clear-button {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  color: rgba(255, 255, 255, 0.5);
-  cursor: pointer;
-  opacity: 0;
-  transform: scale(0.6);
-  pointer-events: none;
-}
-.clear-slot.show .clear-button {
-  opacity: 1;
-  transform: scale(1);
-  pointer-events: auto;
-}
-
-.component-list-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-}
-.component-list-card-wrap {
-  position: relative;
-}
-.component-list-card {
-  display: block;
-  position: relative;
-  background: var(--bg-elevated);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  border-radius: var(--card-radius);
-  padding: 6px;
-  text-decoration: none;
-  overflow: hidden;
-  transition: border-color 0.2s ease;
-}
-.component-list-card:hover {
-  border-color: rgba(255, 255, 255, 0.1);
-  text-decoration: none;
-}
-
-.favorite-button {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 2;
-  width: 28px;
-  height: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: rgba(255, 255, 255, 0.85);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  cursor: pointer;
-  opacity: 0;
-  pointer-events: none;
-  transition: all 0.2s ease;
-}
-.component-list-card-wrap:hover .favorite-button,
-.favorite-button.visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-.favorite-button.saved {
-  color: var(--color-primary);
-}
-.favorite-button:hover {
-  background: rgba(0, 0, 0, 0.55);
-  transform: scale(1.1);
-  color: #72ef44;
-}
-
-.component-list-card-copy {
-  padding: 12px 8px 6px;
-}
-.component-list-card-copy h2 {
-  margin: 0;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.3;
-  letter-spacing: -0.2px;
-}
-.component-list-card-copy p {
-  margin: 2px 0 0;
-  color: var(--text-muted);
-  font-size: 12px;
-  font-weight: 400;
-}
-
-.component-list-empty {
-  position: relative;
-  margin-top: 6em;
-  padding: 24px;
-  text-align: center;
-}
-.component-list-empty h2 {
-  margin: 0 0 4px;
-  color: #fff;
-  font-size: 24px;
-  font-weight: 500;
-}
-.component-list-empty p {
-  margin: 0 0 32px;
-  color: var(--text-muted);
-  font-size: 16px;
-}
-
-.pill-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 36px;
-  border-radius: 10px;
-  padding: 0 16px;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.new-badge {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  z-index: 2;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 1;
-  text-transform: uppercase;
-  font-family: 'Geist Mono', monospace;
-  color: #fff;
-  border: 1px solid var(--color-primary);
-  background: rgba(88, 247, 85, 0.4);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  pointer-events: none;
-}
-
-@media (max-width: 700px) {
-  .component-list-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-@media (max-width: 520px) {
-  .component-list-header {
-    align-items: flex-start;
-    flex-direction: column;
-    margin-bottom: 2rem;
-  }
-  .component-list-controls {
-    width: 100%;
-    align-items: stretch;
-    flex-direction: column;
-  }
-  .component-list-search,
-  .component-list-select {
-    width: 100%;
-  }
-  .clear-slot {
-    display: none;
-  }
-  .component-list-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.category-scrubber {
-  width: 220px;
-}
-
-@media (max-width: 520px) {
-  .category-scrubber {
-    width: 100%;
-  }
-}
-</style>

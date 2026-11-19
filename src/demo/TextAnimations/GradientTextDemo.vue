@@ -1,173 +1,218 @@
 <template>
-  <h1 class="sub-category">Gradient Text</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="gradientText.usage"
-    :source="gradientTextSource"
-    component-name="GradientText"
-    :props-table="props"
   >
-    <template #preview>
-      <div class="relative h-[400px] text-5xl demo-container">
-        <GradientText
-          :colors="colors"
-          :animation-speed="animationSpeed"
-          :direction="direction"
-          :pause-on-hover="pauseOnHover"
-          :yoyo="yoyo"
-          :show-border="showBorder"
-        >
-          Gradient Magic
-        </GradientText>
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative" style="min-height: 400px">
+          <div style="font-size: 3rem; font-weight: 600; text-align: center; padding: 0 1rem">
+            <GradientText v-bind="props">Gradient Magic</GradientText>
+          </div>
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewColorPicker
-          v-for="(_, index) in colors"
-          :key="index"
-          :title="`Color ${index + 1}`"
-          v-model="colors[index]"
-        />
-        <PreviewSlider title="Ribbon Count" :min="2" :max="8" :step="1" v-model="colorsCount" />
-        <PreviewSlider title="Animation Speed" v-model="animationSpeed" :min="1" :max="20" :step="0.5" value-unit="s" />
-        <PreviewSelect title="Direction" v-model="direction" :options="['horizontal', 'vertical', 'diagonal']" />
-        <PreviewSwitch title="Yoyo Mode" v-model="yoyo" />
-        <PreviewSwitch title="Pause on Hover" v-model="pauseOnHover" />
-        <PreviewSwitch title="Show Border" v-model="showBorder" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewColorList
+            title="Colors"
+            :model-value="props.colors"
+            @update:model-value="value => updateProp('colors', value)"
+          />
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+          <PreviewSelect
+            title="Variant"
+            :options="VARIANT_OPTIONS"
+            :model-value="props.variant"
+            @update:model-value="value => updateProp('variant', value as Variant)"
+          />
 
-    <template #code>
-      <DemoCodeTab slug="gradient-text" :usage="gradientText.usage!" :source="gradientTextSource" />
-    </template>
-  </TabsLayout>
+          <PreviewSlider
+            title="Animation Speed"
+            :min="1"
+            :max="20"
+            :step="0.5"
+            value-unit="s"
+            :model-value="props.animationSpeed"
+            @update:model-value="value => updateProp('animationSpeed', value)"
+          />
+
+          <PreviewSlider
+            title="Angle"
+            :min="0"
+            :max="360"
+            :step="5"
+            value-unit="°"
+            :model-value="props.angle"
+            @update:model-value="value => updateProp('angle', value)"
+          />
+
+          <PreviewSlider
+            title="Scale"
+            :min="1"
+            :max="6"
+            :step="0.25"
+            :model-value="props.scale"
+            @update:model-value="value => updateProp('scale', value)"
+          />
+
+          <PreviewSlider
+            title="Glow"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="props.glow"
+            @update:model-value="value => updateProp('glow', value)"
+          />
+
+          <PreviewSlider
+            title="Border Width"
+            :min="0.5"
+            :max="4"
+            :step="0.5"
+            value-unit="px"
+            :model-value="props.borderWidth"
+            @update:model-value="value => updateProp('borderWidth', value)"
+          />
+
+          <PreviewSwitch
+            title="Yoyo"
+            :model-value="props.yoyo"
+            @update:model-value="value => updateProp('yoyo', value)"
+          />
+
+          <PreviewSwitch
+            title="Show Border"
+            :model-value="props.showBorder"
+            @update:model-value="value => updateProp('showBorder', value)"
+          />
+
+          <PreviewSwitch
+            title="Pause on Hover"
+            :model-value="props.pauseOnHover"
+            @update:model-value="value => updateProp('pauseOnHover', value)"
+          />
+
+          <PreviewSwitch
+            title="Follow Pointer"
+            :model-value="props.followPointer"
+            @update:model-value="value => updateProp('followPointer', value)"
+          />
+        </Customize>
+
+        <PropTable :data="propData" />
+      </template>
+
+      <template #code>
+        <CodeExample :code-object="gradientText" component-name="GradientText" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewColorList from '@/components/common/PreviewColorList.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
-import { useForceRerender } from '@/composables/useForceRerender';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
 import { gradientText } from '@/constants/code/TextAnimations/gradientTextCode';
 import GradientText from '@/content/TextAnimations/GradientText/GradientText.vue';
-import gradientTextSource from '@/content/TextAnimations/GradientText/GradientText.vue?raw';
-import { computed, ref } from 'vue';
 
-const { forceRerender } = useForceRerender();
+type Variant = 'linear' | 'flow' | 'conic';
 
-const DEFAULTS = {
-  colors: ['#27FF64', '#27FF64', '#A0FFBC'],
+const DEFAULT_PROPS = {
+  colors: ['#42b883', '#7cff67', '#a0ffbc'],
   animationSpeed: 8,
-  direction: 'horizontal' as 'horizontal' | 'vertical' | 'diagonal',
-  pauseOnHover: false,
+  variant: 'linear' as Variant,
+  angle: 90,
+  scale: 3,
   yoyo: true,
-  showBorder: false
+  glow: 0,
+  showBorder: false,
+  borderWidth: 1.5,
+  pauseOnHover: false,
+  followPointer: false
 };
 
-const colors = ref([...DEFAULTS.colors]);
-const animationSpeed = ref(DEFAULTS.animationSpeed);
-const direction = ref(DEFAULTS.direction);
-const pauseOnHover = ref(DEFAULTS.pauseOnHover);
-const yoyo = ref(DEFAULTS.yoyo);
-const showBorder = ref(DEFAULTS.showBorder);
+const VARIANT_OPTIONS = [
+  { value: 'linear', label: 'Linear' },
+  { value: 'flow', label: 'Flow' },
+  { value: 'conic', label: 'Conic' }
+];
 
-const updateColors = (val: number) => {
-  if (val > colors.value.length) {
-    const newColors = [...colors.value];
-    while (newColors.length < val) {
-      newColors.push('#ffffff');
-    }
-    colors.value = newColors;
-  } else if (val < colors.value.length) {
-    colors.value = colors.value.slice(0, val);
-  }
-};
+const { props, updateProp, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
 
-const colorsCount = computed({
-  get: () => colors.value.length,
-  set: updateColors
-});
-
-const hasChanges = computed(
-  () =>
-    JSON.stringify(colors.value) !== JSON.stringify(DEFAULTS.colors) ||
-    animationSpeed.value !== DEFAULTS.animationSpeed ||
-    direction.value !== DEFAULTS.direction ||
-    pauseOnHover.value !== DEFAULTS.pauseOnHover ||
-    yoyo.value !== DEFAULTS.yoyo ||
-    showBorder.value !== DEFAULTS.showBorder
-);
-
-function reset() {
-  colors.value = [...DEFAULTS.colors];
-  animationSpeed.value = DEFAULTS.animationSpeed;
-  direction.value = DEFAULTS.direction;
-  pauseOnHover.value = DEFAULTS.pauseOnHover;
-  yoyo.value = DEFAULTS.yoyo;
-  showBorder.value = DEFAULTS.showBorder;
-  forceRerender();
-}
-
-const props: PropRow[] = [
-  {
-    name: 'slot',
-    type: 'string',
-    default: '-',
-    description: 'The content to be displayed inside the gradient text.'
-  },
-  {
-    name: 'className',
-    type: 'string',
-    default: "''",
-    description: 'Adds custom classes to the root element for additional styling.'
-  },
+const propData: PropRow[] = [
+  { name: 'slot', type: 'string', default: '-', description: 'The text to fill with the gradient.' },
   {
     name: 'colors',
     type: 'string[]',
-    default: `["#5227FF", "#FF9FFC", "#B19EEF"]`,
-    description: 'Array of colors for the gradient effect.'
+    default: `["#42b883", "#7cff67", "#a0ffbc"]`,
+    description: 'Colors of the gradient, in order. The first color is repeated at the end so loops stay seamless.'
   },
   {
     name: 'animationSpeed',
     type: 'number',
     default: '8',
-    description: 'Duration of one animation cycle in seconds.'
+    description: 'Seconds for one full cycle of the animation.'
   },
   {
-    name: 'direction',
-    type: `'horizontal' | 'vertical' | 'diagonal'`,
-    default: `'horizontal'`,
-    description: 'Direction of the gradient animation.'
+    name: 'variant',
+    type: "'linear' | 'flow' | 'conic'",
+    default: "'linear'",
+    description:
+      'How the colors move. Linear slides a gradient through the text, flow drifts soft blobs of color around like a living mesh gradient and conic swings colors around the center.'
   },
   {
-    name: 'pauseOnHover',
-    type: 'boolean',
-    default: 'false',
-    description: 'Pauses the animation when hovering over the text.'
+    name: 'angle',
+    type: 'number',
+    default: '90',
+    description: 'Direction of the gradient in degrees. 90 runs left to right, 180 top to bottom.'
+  },
+  {
+    name: 'scale',
+    type: 'number',
+    default: '3',
+    description: 'How broad the colors are. Higher values show fewer colors at once in longer, calmer bands.'
   },
   {
     name: 'yoyo',
     type: 'boolean',
     default: 'true',
-    description: 'Reverses animation direction at the end instead of looping.'
+    description: 'Eases back and forth instead of scrolling the gradient in one direction forever.'
+  },
+  {
+    name: 'glow',
+    type: 'number',
+    default: '0',
+    description: 'A soft bloom of the gradient colors around the letters, from 0 to 1.'
   },
   {
     name: 'showBorder',
     type: 'boolean',
     default: 'false',
-    description: 'Displays a gradient border around the text.'
-  }
+    description: 'Wraps the text in a pill with an animated gradient outline that works on any background.'
+  },
+  { name: 'borderWidth', type: 'number', default: '1.5', description: 'Thickness of the outline in px.' },
+  {
+    name: 'pauseOnHover',
+    type: 'boolean',
+    default: 'false',
+    description: 'Holds the colors still while the pointer is over the text.'
+  },
+  {
+    name: 'followPointer',
+    type: 'boolean',
+    default: 'false',
+    description: 'While hovered, the colors are drawn toward the pointer.'
+  },
+  { name: 'className', type: 'string', default: "''", description: 'Extra class names for the root element.' },
+  { name: 'style', type: 'CSSProperties', default: '-', description: 'Inline styles for the root element.' }
 ];
 </script>

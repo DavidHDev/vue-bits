@@ -1,87 +1,252 @@
 <template>
-  <h1 class="sub-category">Folder Float</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="folderFloat.usage"
-    :source="folderFloatSource"
-    component-name="FolderFloat"
-    :props-table="props"
   >
-    <template #preview>
-      <div class="relative items-end! p-0 pb-11 h-100 overflow-hidden demo-container">
-        <FolderFloat :key="key" v-bind="folderFloatProps" />
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div
+          class="demo-container relative overflow-hidden"
+          style="height: 400px; align-items: flex-end; padding-bottom: 44px"
+        >
+          <FolderFloat
+            :label="props.label"
+            :sublabel="props.sublabel"
+            :trigger="props.trigger"
+            :close-on-select="props.closeOnSelect"
+            :physics="props.physics"
+            :drift="props.drift"
+            :folder-color="renderedFolder"
+            :front-color="renderedFront"
+            :paper-color="renderedPaper"
+            :item-color="renderedItem"
+            :item-text-color="props.itemTextColor"
+            :label-color="renderedLabel"
+            :width="props.width"
+            :height="props.height"
+            :radius="props.radius"
+            :spread="props.spread"
+            :lift="props.lift"
+            :tilt="props.tilt"
+            :flap-angle="props.flapAngle"
+            :rest-angle="props.restAngle"
+            :open-duration="props.openDuration"
+            :stagger="props.stagger"
+            :bounce="props.bounce"
+          />
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewSelect title="Trigger" :options="TRIGGER_OPTIONS" :width="110" v-model="trigger" />
-        <PreviewInput title="Label" :maxlength="24" v-model="label" />
-        <PreviewInput title="Sublabel" :maxlength="24" v-model="sublabel" />
-        <PreviewColorPicker title="Folder" v-model="folderColor" />
-        <PreviewColorPicker title="Front" v-model="frontColor" />
-        <PreviewColorPicker title="Paper" v-model="paperColor" />
-        <PreviewColorPicker title="Item" v-model="itemColor" />
-        <PreviewColorPicker title="Item Text" v-model="itemTextColor" />
-        <PreviewColorPicker title="Label" v-model="labelColor" />
-        <PreviewSlider title="Width" :min="140" :max="320" :step="4" valueUnit="px" v-model="width" />
-        <PreviewSlider title="Height" :min="100" :max="240" :step="4" valueUnit="px" v-model="height" />
-        <PreviewSlider title="Radius" :min="0" :max="28" :step="1" valueUnit="px" v-model="radius" />
-        <PreviewSlider title="Spread" :min="100" :max="280" :step="5" valueUnit="px" v-model="spread" />
-        <PreviewSlider title="Lift" :min="0" :max="80" :step="2" valueUnit="px" v-model="lift" />
-        <PreviewSlider title="Tilt" :min="0" :max="20" :step="1" valueUnit="°" v-model="tilt" />
-        <PreviewSlider title="Flap Angle" :min="0" :max="50" :step="1" valueUnit="°" v-model="flapAngle" />
-        <PreviewSlider title="Rest Angle" :min="0" :max="30" :step="1" valueUnit="°" v-model="restAngle" />
-        <PreviewSlider title="Open" :min="200" :max="1000" :step="20" valueUnit="ms" v-model="openDuration" />
-        <PreviewSlider title="Stagger" :min="0" :max="120" :step="5" valueUnit="ms" v-model="stagger" />
-        <PreviewSlider title="Bounce" :min="0" :max="0.6" :step="0.05" v-model="bounce" />
-        <PreviewSwitch title="Close On Select" v-model="closeOnSelect" />
-        <PreviewSwitch title="Physics" v-model="physics" />
-        <PreviewSlider title="Drift" :min="0" :max="1" :step="0.05" :isDisabled="!physics" v-model="drift" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewSelect
+            title="Trigger"
+            :options="TRIGGER_OPTIONS"
+            :width="110"
+            :model-value="props.trigger"
+            @update:model-value="(val: string | number) => updateProp('trigger', val as FolderFloatTrigger)"
+          />
+          <PreviewInput
+            title="Label"
+            :max-length="24"
+            :model-value="props.label"
+            @update:model-value="(val: string) => updateProp('label', val)"
+          />
+          <PreviewInput
+            title="Sublabel"
+            :max-length="24"
+            :model-value="props.sublabel"
+            @update:model-value="(val: string) => updateProp('sublabel', val)"
+          />
+          <PreviewColorPickerCustom
+            title="Folder"
+            :color="renderedFolder"
+            @change="(val: string) => updateProp('folderColor', val)"
+          />
+          <PreviewColorPickerCustom
+            title="Front"
+            :color="renderedFront"
+            @change="(val: string) => updateProp('frontColor', val)"
+          />
+          <PreviewColorPickerCustom
+            title="Paper"
+            :color="renderedPaper"
+            @change="(val: string) => updateProp('paperColor', val)"
+          />
+          <PreviewColorPickerCustom
+            title="Item"
+            :color="renderedItem"
+            @change="(val: string) => updateProp('itemColor', val)"
+          />
+          <PreviewColorPickerCustom
+            title="Item Text"
+            :color="props.itemTextColor"
+            @change="(val: string) => updateProp('itemTextColor', val)"
+          />
+          <PreviewColorPickerCustom
+            title="Label"
+            :color="renderedLabel"
+            @change="(val: string) => updateProp('labelColor', val)"
+          />
+          <PreviewSlider
+            title="Width"
+            :min="140"
+            :max="320"
+            :step="4"
+            value-unit="px"
+            :model-value="props.width"
+            @update:model-value="(val: number) => updateProp('width', val)"
+          />
+          <PreviewSlider
+            title="Height"
+            :min="100"
+            :max="240"
+            :step="4"
+            value-unit="px"
+            :model-value="props.height"
+            @update:model-value="(val: number) => updateProp('height', val)"
+          />
+          <PreviewSlider
+            title="Radius"
+            :min="0"
+            :max="28"
+            :step="1"
+            value-unit="px"
+            :model-value="props.radius"
+            @update:model-value="(val: number) => updateProp('radius', val)"
+          />
+          <PreviewSlider
+            title="Spread"
+            :min="100"
+            :max="280"
+            :step="5"
+            value-unit="px"
+            :model-value="props.spread"
+            @update:model-value="(val: number) => updateProp('spread', val)"
+          />
+          <PreviewSlider
+            title="Lift"
+            :min="0"
+            :max="80"
+            :step="2"
+            value-unit="px"
+            :model-value="props.lift"
+            @update:model-value="(val: number) => updateProp('lift', val)"
+          />
+          <PreviewSlider
+            title="Tilt"
+            :min="0"
+            :max="20"
+            :step="1"
+            value-unit="°"
+            :model-value="props.tilt"
+            @update:model-value="(val: number) => updateProp('tilt', val)"
+          />
+          <PreviewSlider
+            title="Flap Angle"
+            :min="0"
+            :max="50"
+            :step="1"
+            value-unit="°"
+            :model-value="props.flapAngle"
+            @update:model-value="(val: number) => updateProp('flapAngle', val)"
+          />
+          <PreviewSlider
+            title="Rest Angle"
+            :min="0"
+            :max="30"
+            :step="1"
+            value-unit="°"
+            :model-value="props.restAngle"
+            @update:model-value="(val: number) => updateProp('restAngle', val)"
+          />
+          <PreviewSlider
+            title="Open"
+            :min="200"
+            :max="1000"
+            :step="20"
+            value-unit="ms"
+            :model-value="props.openDuration"
+            @update:model-value="(val: number) => updateProp('openDuration', val)"
+          />
+          <PreviewSlider
+            title="Stagger"
+            :min="0"
+            :max="120"
+            :step="5"
+            value-unit="ms"
+            :model-value="props.stagger"
+            @update:model-value="(val: number) => updateProp('stagger', val)"
+          />
+          <PreviewSlider
+            title="Bounce"
+            :min="0"
+            :max="0.6"
+            :step="0.05"
+            :model-value="props.bounce"
+            @update:model-value="(val: number) => updateProp('bounce', val)"
+          />
+          <PreviewSwitch
+            title="Close On Select"
+            :model-value="props.closeOnSelect"
+            @update:model-value="(val: boolean) => updateProp('closeOnSelect', val)"
+          />
+          <PreviewSwitch
+            title="Physics"
+            :model-value="props.physics"
+            @update:model-value="(val: boolean) => updateProp('physics', val)"
+          />
+          <PreviewSlider
+            title="Drift"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :is-disabled="!props.physics"
+            :model-value="props.drift"
+            @update:model-value="(val: number) => updateProp('drift', val)"
+          />
+        </Customize>
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+        <PropTable :data="propData" />
+        <Dependencies :dependency-list="['matter-js']" />
+      </template>
 
-    <template #code>
-      <DemoCodeTab slug="folder-float" :usage="folderFloat.usage!" :source="folderFloatSource" />
-    </template>
-  </TabsLayout>
+      <template #code>
+        <CodeExample :code-object="folderFloat" component-name="FolderFloat" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import Dependencies from '@/components/common/Dependencies.vue';
+import PreviewColorPickerCustom from '@/components/common/PreviewColorPickerCustom.vue';
 import PreviewInput from '@/components/common/PreviewInput.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
-import { useForceRerender } from '@/composables/useForceRerender';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
+import { useColorModeValue } from '@/composables/useTheme';
 import { folderFloat } from '@/constants/code/Micro/folderFloatCode';
 import FolderFloat, { type FolderFloatTrigger } from '@/content/Micro/FolderFloat/FolderFloat.vue';
-import folderFloatSource from '@/content/Micro/FolderFloat/FolderFloat.vue?raw';
-import { computed, ref } from 'vue';
 
-const { rerenderKey: key, forceRerender } = useForceRerender();
-
-const DEFAULTS = {
+const DEFAULT_PROPS = {
   label: 'Design feedback',
   sublabel: '',
   trigger: 'hover' as FolderFloatTrigger,
   closeOnSelect: true,
   physics: true,
   drift: 0.5,
-  folderColor: '#3f3f46',
-  frontColor: '#52525b',
+  folderColor: '#3d403d',
+  frontColor: '#4f5550',
   paperColor: '#f5f5f5',
   itemColor: '#f5f5f5',
-  itemTextColor: '#18181b',
+  itemTextColor: '#161816',
   labelColor: '#f5f5f5',
   width: 200,
   height: 148,
@@ -101,111 +266,19 @@ const TRIGGER_OPTIONS = [
   { value: 'click', label: 'Click' }
 ];
 
-const label = ref(DEFAULTS.label);
-const sublabel = ref(DEFAULTS.sublabel);
-const trigger = ref(DEFAULTS.trigger);
-const closeOnSelect = ref(DEFAULTS.closeOnSelect);
-const physics = ref(DEFAULTS.physics);
-const drift = ref(DEFAULTS.drift);
-const folderColor = ref(DEFAULTS.folderColor);
-const frontColor = ref(DEFAULTS.frontColor);
-const paperColor = ref(DEFAULTS.paperColor);
-const itemColor = ref(DEFAULTS.itemColor);
-const itemTextColor = ref(DEFAULTS.itemTextColor);
-const labelColor = ref(DEFAULTS.labelColor);
-const width = ref(DEFAULTS.width);
-const height = ref(DEFAULTS.height);
-const radius = ref(DEFAULTS.radius);
-const spread = ref(DEFAULTS.spread);
-const lift = ref(DEFAULTS.lift);
-const tilt = ref(DEFAULTS.tilt);
-const flapAngle = ref(DEFAULTS.flapAngle);
-const restAngle = ref(DEFAULTS.restAngle);
-const openDuration = ref(DEFAULTS.openDuration);
-const stagger = ref(DEFAULTS.stagger);
-const bounce = ref(DEFAULTS.bounce);
+const { props, updateProp, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
 
-const folderFloatProps = computed(() => ({
-  label: label.value,
-  sublabel: sublabel.value,
-  trigger: trigger.value,
-  closeOnSelect: closeOnSelect.value,
-  physics: physics.value,
-  drift: drift.value,
-  folderColor: folderColor.value,
-  frontColor: frontColor.value,
-  paperColor: paperColor.value,
-  itemColor: itemColor.value,
-  itemTextColor: itemTextColor.value,
-  labelColor: labelColor.value,
-  width: width.value,
-  height: height.value,
-  radius: radius.value,
-  spread: spread.value,
-  lift: lift.value,
-  tilt: tilt.value,
-  flapAngle: flapAngle.value,
-  restAngle: restAngle.value,
-  openDuration: openDuration.value,
-  stagger: stagger.value,
-  bounce: bounce.value
-}));
+type ColorKey = 'folderColor' | 'frontColor' | 'paperColor' | 'itemColor' | 'labelColor';
+const light = (key: ColorKey, value: string) => () =>
+  props.value[key] === DEFAULT_PROPS[key] ? value : props.value[key];
 
-const hasChanges = computed(
-  () =>
-    label.value !== DEFAULTS.label ||
-    sublabel.value !== DEFAULTS.sublabel ||
-    trigger.value !== DEFAULTS.trigger ||
-    closeOnSelect.value !== DEFAULTS.closeOnSelect ||
-    physics.value !== DEFAULTS.physics ||
-    drift.value !== DEFAULTS.drift ||
-    folderColor.value !== DEFAULTS.folderColor ||
-    frontColor.value !== DEFAULTS.frontColor ||
-    paperColor.value !== DEFAULTS.paperColor ||
-    itemColor.value !== DEFAULTS.itemColor ||
-    itemTextColor.value !== DEFAULTS.itemTextColor ||
-    labelColor.value !== DEFAULTS.labelColor ||
-    width.value !== DEFAULTS.width ||
-    height.value !== DEFAULTS.height ||
-    radius.value !== DEFAULTS.radius ||
-    spread.value !== DEFAULTS.spread ||
-    lift.value !== DEFAULTS.lift ||
-    tilt.value !== DEFAULTS.tilt ||
-    flapAngle.value !== DEFAULTS.flapAngle ||
-    restAngle.value !== DEFAULTS.restAngle ||
-    openDuration.value !== DEFAULTS.openDuration ||
-    stagger.value !== DEFAULTS.stagger ||
-    bounce.value !== DEFAULTS.bounce
-);
+const renderedFolder = useColorModeValue(light('folderColor', '#d3d7d3'), () => props.value.folderColor);
+const renderedFront = useColorModeValue(light('frontColor', '#e3e6e3'), () => props.value.frontColor);
+const renderedPaper = useColorModeValue(light('paperColor', '#ffffff'), () => props.value.paperColor);
+const renderedItem = useColorModeValue(light('itemColor', '#ffffff'), () => props.value.itemColor);
+const renderedLabel = useColorModeValue(light('labelColor', '#161816'), () => props.value.labelColor);
 
-function reset() {
-  label.value = DEFAULTS.label;
-  sublabel.value = DEFAULTS.sublabel;
-  trigger.value = DEFAULTS.trigger;
-  closeOnSelect.value = DEFAULTS.closeOnSelect;
-  physics.value = DEFAULTS.physics;
-  drift.value = DEFAULTS.drift;
-  folderColor.value = DEFAULTS.folderColor;
-  frontColor.value = DEFAULTS.frontColor;
-  paperColor.value = DEFAULTS.paperColor;
-  itemColor.value = DEFAULTS.itemColor;
-  itemTextColor.value = DEFAULTS.itemTextColor;
-  labelColor.value = DEFAULTS.labelColor;
-  width.value = DEFAULTS.width;
-  height.value = DEFAULTS.height;
-  radius.value = DEFAULTS.radius;
-  spread.value = DEFAULTS.spread;
-  lift.value = DEFAULTS.lift;
-  tilt.value = DEFAULTS.tilt;
-  flapAngle.value = DEFAULTS.flapAngle;
-  restAngle.value = DEFAULTS.restAngle;
-  openDuration.value = DEFAULTS.openDuration;
-  stagger.value = DEFAULTS.stagger;
-  bounce.value = DEFAULTS.bounce;
-  forceRerender();
-}
-
-const props: PropRow[] = [
+const propData: PropRow[] = [
   {
     name: 'items',
     type: 'Array<string | { label, value }>',
@@ -242,8 +315,8 @@ const props: PropRow[] = [
   },
   { name: '@select', type: '(value, index) => void', default: '-', description: 'A pill was picked.' },
   { name: '@openChange', type: '(open) => void', default: '-', description: 'The folder opened or closed.' },
-  { name: 'folderColor', type: 'string', default: '"#3f3f46"', description: 'The back panel and its tab.' },
-  { name: 'frontColor', type: 'string', default: '"#52525b"', description: 'The flap.' },
+  { name: 'folderColor', type: 'string', default: '"#3d403d"', description: 'The back panel and its tab.' },
+  { name: 'frontColor', type: 'string', default: '"#4f5550"', description: 'The flap.' },
   {
     name: 'paperColor',
     type: 'string',
@@ -251,7 +324,7 @@ const props: PropRow[] = [
     description: 'The paper edge that rises as it opens.'
   },
   { name: 'itemColor', type: 'string', default: '"#f5f5f5"', description: 'The pills.' },
-  { name: 'itemTextColor', type: 'string', default: '"#18181b"', description: 'The pill text.' },
+  { name: 'itemTextColor', type: 'string', default: '"#161816"', description: 'The pill text.' },
   { name: 'labelColor', type: 'string', default: '"#f5f5f5"', description: 'The flap text.' },
   { name: 'width', type: 'number', default: '200', description: 'Folder width in px.' },
   { name: 'height', type: 'number', default: '148', description: 'Folder height in px, below the tab.' },

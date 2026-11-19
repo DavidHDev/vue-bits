@@ -2,27 +2,20 @@ import code from '@/content/Components/ElasticSlider/ElasticSlider.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const elasticSlider = createCodeObject(code, 'Components/ElasticSlider', {
-  usage: `<template>  
-  <ElasticSlider 
-    :default-value="75"
-    :starting-value="0"
-    :max-value="100"
-    :is-stepped="true"
-    :step-size="5"
+  installation: `npm install @hugeicons/vue @hugeicons/core-free-icons`,
+  usage: `<template>
+  <ElasticSlider
+    :default-value="50"
+    :left-icon="h(HugeiconsIcon, { icon: VolumeLowIcon, size: 20 })"
+    :right-icon="h(HugeiconsIcon, { icon: VolumeHighIcon, size: 20 })"
+    @change="value => console.log(value)"
   />
-
-  <!-- With custom icons using slots -->
-  <ElasticSlider>
-    <template #left-icon>
-      <i class="pi pi-minus text-xl"></i>
-    </template>
-    <template #right-icon>
-      <i class="pi pi-plus text-xl"></i>
-    </template>
-  </ElasticSlider>
 </template>
 
 <script setup lang="ts">
-import ElasticSlider from "./ElasticSlider.vue";
+import { h } from 'vue';
+import { HugeiconsIcon } from '@hugeicons/vue';
+import { VolumeHighIcon, VolumeLowIcon } from '@hugeicons/core-free-icons';
+import ElasticSlider from './ElasticSlider.vue';
 </script>`
 });

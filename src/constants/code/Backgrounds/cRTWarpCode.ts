@@ -2,33 +2,20 @@ import code from '@/content/Backgrounds/CRTWarp/CRTWarp.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const cRTWarp = createCodeObject(code, 'Backgrounds/CRTWarp', {
-  usage: `<script setup>
-import CRTWarp from './CRTWarp.vue'
-</script>
+  dependencies: '',
+  usage: `<template>
+  <div style="width: 100%; height: 600px; position: relative">
+    <CRTWarp
+      color="#7cff67"
+      background-color="#111111"
+      mask="aperture"
+      :curvature="0.25"
+      :persistence="0.4"
+    />
+  </div>
+</template>
 
-<template>
-<div :style="{ width: '100%', height: '600px', position: 'relative' }">
-  <CRTWarp
-    color="#c755f7"
-    backgroundColor="#05010a"
-    :speed="0.5"
-    :curvature="0.25"
-    :scanlineStrength="0.25"
-    :scanlineFrequency="200"
-    :waveAmplitude="0.3"
-    :waveFrequency="2.5"
-    :bloom="1.5"
-    :bloomRadius="1"
-    :noise="0.1"
-    :vignette="0"
-    :brightness="1.25"
-    :pixelation="1"
-    :rgbShift="0.015"
-    mouseReact
-    :mouseStrength="0.5"
-    :dpr="1"
-    :fps="30"
-  />
-</div>
-</template>`
+<script setup lang="ts">
+import CRTWarp from './CRTWarp.vue'
+</script>`
 });

@@ -1,236 +1,424 @@
 <template>
-  <h1 class="sub-category">Halftone Reveal</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="halftoneReveal.usage"
-    :source="halftoneRevealSource"
-    component-name="HalftoneReveal"
-    :props-table="props"
+    :demo-only-props="['preset']"
+    :computed-props="computedProps"
   >
-    <template #preview>
-      <div class="relative p-0 h-125 overflow-hidden demo-container">
-        <HalftoneReveal v-bind="halftoneRevealProps" />
-        <RefreshButton @click="forceRerender" />
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 600px; padding: 0">
+          <HalftoneReveal :key="rerenderKey" :src="DEMO_IMAGE" v-bind="{ ...settings, ...computedProps }" />
+          <RefreshButton @click="forceRerender" />
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewColorPicker title="Ink Color" v-model="inkColor" />
-        <PreviewColorPicker title="Paper Color" v-model="paperColor" />
-        <PreviewSelect title="Mode" :options="modeOptions" v-model="mode" />
-        <PreviewSelect title="Dot Shape" :options="shapeOptions" v-model="shape" />
-        <PreviewSlider title="Dot Density" :min="30" :max="180" :step="1" v-model="dotDensity" />
-        <PreviewSlider title="Dot Size" :min="0.4" :max="1.6" :step="0.01" v-model="dotSize" />
-        <PreviewSlider title="Screen Angle" :min="0" :max="90" :step="1" v-model="angle" valueUnit="°" />
-        <PreviewSlider title="Contrast" :min="0.6" :max="2" :step="0.01" v-model="contrast" />
-        <PreviewSwitch title="Invert" v-model="invert" />
-        <PreviewSlider title="Reveal Radius" :min="0.05" :max="0.6" :step="0.01" v-model="revealRadius" />
-        <PreviewSlider title="Loupe Edge" :min="0" :max="1" :step="0.01" v-model="edge" />
-        <PreviewSlider title="Follow" :min="0.02" :max="0.4" :step="0.01" v-model="follow" valueUnit="s" />
-        <PreviewSlider title="Idle Reveal" :min="0" :max="1" :step="0.01" v-model="idleReveal" />
-        <PreviewSelect title="Trigger" :options="triggerOptions" v-model="trigger" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewSelect
+            title="Preset"
+            :options="PRESET_OPTIONS"
+            :model-value="props.preset"
+            @update:model-value="applyPreset"
+          />
+          <PreviewSelect
+            title="Mode"
+            :options="MODE_OPTIONS"
+            :model-value="settings.mode"
+            @update:model-value="value => updateProp('mode', value as Mode)"
+          />
+          <PreviewSelect
+            title="Shape"
+            :options="SHAPE_OPTIONS"
+            :model-value="settings.shape"
+            @update:model-value="value => updateProp('shape', value as Shape)"
+          />
+          <PreviewSelect
+            title="Fit"
+            :options="FIT_OPTIONS"
+            :model-value="settings.fit"
+            @update:model-value="value => updateProp('fit', value as Fit)"
+          />
+          <PreviewColorPickerCustom
+            title="Ink"
+            :color="ink"
+            @change="(value: string) => updateProp('inkColor', value)"
+          />
+          <PreviewColorPickerCustom
+            title="Accent"
+            :color="props.accentColor"
+            @change="(value: string) => updateProp('accentColor', value)"
+          />
+          <PreviewColorPickerCustom
+            title="Paper"
+            :color="paper"
+            @change="(value: string) => updateProp('paperColor', value)"
+          />
+          <PreviewSlider
+            title="Cell Size"
+            :min="3"
+            :max="24"
+            :step="1"
+            value-unit="px"
+            :model-value="settings.cellSize"
+            @update:model-value="value => updateProp('cellSize', value)"
+          />
+          <PreviewSlider
+            title="Angle"
+            :min="0"
+            :max="90"
+            :step="1"
+            value-unit="°"
+            :model-value="settings.angle"
+            @update:model-value="value => updateProp('angle', value)"
+          />
+          <PreviewSlider
+            title="Dot Scale"
+            :min="0.4"
+            :max="1.5"
+            :step="0.05"
+            :model-value="settings.dotScale"
+            @update:model-value="value => updateProp('dotScale', value)"
+          />
+          <PreviewSlider
+            title="Contrast"
+            :min="0.5"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.contrast"
+            @update:model-value="value => updateProp('contrast', value)"
+          />
+          <PreviewSlider
+            title="Brightness"
+            :min="-0.4"
+            :max="0.4"
+            :step="0.02"
+            :model-value="settings.brightness"
+            @update:model-value="value => updateProp('brightness', value)"
+          />
+          <PreviewSlider
+            title="Roughness"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.roughness"
+            @update:model-value="value => updateProp('roughness', value)"
+          />
+          <PreviewSlider
+            title="Misregistration"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.misregistration"
+            @update:model-value="value => updateProp('misregistration', value)"
+          />
+          <PreviewSlider
+            title="Reveal Radius"
+            :min="40"
+            :max="320"
+            :step="5"
+            value-unit="px"
+            :model-value="settings.revealRadius"
+            @update:model-value="value => updateProp('revealRadius', value)"
+          />
+          <PreviewSlider
+            title="Softness"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.softness"
+            @update:model-value="value => updateProp('softness', value)"
+          />
+          <PreviewSlider
+            title="Linger"
+            :min="0"
+            :max="4"
+            :step="0.1"
+            value-unit="s"
+            :model-value="settings.linger"
+            @update:model-value="value => updateProp('linger', value)"
+          />
+          <PreviewSwitch
+            title="Invert"
+            :model-value="settings.invert"
+            @update:model-value="value => updateProp('invert', value)"
+          />
+          <PreviewSwitch
+            title="Reverse"
+            :model-value="settings.reverse"
+            @update:model-value="value => updateProp('reverse', value)"
+          />
+          <PreviewSwitch
+            title="Wander"
+            :model-value="settings.wander"
+            @update:model-value="value => updateProp('wander', value)"
+          />
+          <PreviewSwitch
+            title="Click Burst"
+            :model-value="settings.clickBurst"
+            @update:model-value="value => updateProp('clickBurst', value)"
+          />
+          <PreviewSwitch
+            title="Intro"
+            :model-value="settings.intro"
+            @update:model-value="value => updateProp('intro', value)"
+          />
+        </Customize>
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+        <PropTable :data="propData" />
+      </template>
 
-    <template #code>
-      <DemoCodeTab slug="halftone-reveal" :usage="halftoneReveal.usage!" :source="halftoneRevealSource" />
-    </template>
-  </TabsLayout>
+      <template #code>
+        <CodeExample :code-object="halftoneReveal" component-name="HalftoneReveal" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewColorPickerCustom from '@/components/common/PreviewColorPickerCustom.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
 import RefreshButton from '@/components/common/RefreshButton.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
 import { useForceRerender } from '@/composables/useForceRerender';
+import { useColorModeValue } from '@/composables/useTheme';
 import { halftoneReveal } from '@/constants/code/Animations/halftoneRevealCode';
-import HalftoneReveal, {
-  type Mode,
-  type Shape,
-  type Trigger
-} from '@/content/Animations/HalftoneReveal/HalftoneReveal.vue';
-import halftoneRevealSource from '@/content/Animations/HalftoneReveal/HalftoneReveal.vue?raw';
-import { computed, ref } from 'vue';
+import HalftoneReveal from '@/content/Animations/HalftoneReveal/HalftoneReveal.vue';
 
-const { forceRerender } = useForceRerender();
+type Mode = 'mono' | 'duotone' | 'color';
+type Shape = 'dot' | 'ellipse' | 'square' | 'diamond' | 'line' | 'cross';
+type Fit = 'contain' | 'cover';
 
-const DEFAULTS = {
-  src: 'https://picsum.photos/seed/halftone-reveal/1200/800',
-  inkColor: '#141414',
-  paperColor: '#fff7e6',
+const DEMO_IMAGE =
+  'https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/00f39406-ea15-4816-a71f-48c412d96de6/dhdeuom-b2737a6a-9713-499e-b1b0-3bb0bbde6eea.png/v1/fill/w_1280,h_1409/makoto_yuki_minato_arisato_render_1__by_wtfbooomsh_dhdeuom-fullview.png?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9MTQwOSIsInBhdGgiOiIvZi8wMGYzOTQwNi1lYTE1LTQ4MTYtYTcxZi00OGM0MTJkOTZkZTYvZGhkZXVvbS1iMjczN2E2YS05NzEzLTQ5OWUtYjFiMC0zYmIwYmJkZTZlZWEucG5nIiwid2lkdGgiOiI8PTEyODAifV1dLCJhdWQiOlsidXJuOnNlcnZpY2U6aW1hZ2Uub3BlcmF0aW9ucyJdfQ.MA3SOm4LFqNyOoCRycmn8WY0yhmUtcrUSybJ06sV5nc';
+
+const NEWSPRINT = {
   mode: 'mono' as Mode,
-  dotSize: 1,
-  dotDensity: 71,
+  shape: 'dot' as Shape,
+  cellSize: 6,
   angle: 45,
-  shape: 'circle' as Shape,
-  contrast: 1.15,
+  dotScale: 1,
+  contrast: 1.1,
+  brightness: 0,
   invert: false,
-  revealRadius: 0.4,
-  edge: 0.8,
-  follow: 0.37,
-  idleReveal: 0,
-  trigger: 'hover' as Trigger
+  roughness: 0,
+  misregistration: 0
 };
 
-const modeOptions = [
-  { label: 'Mono', value: 'mono' },
-  { label: 'Duotone', value: 'duotone' },
-  { label: 'Color (CMYK)', value: 'color' }
+const DEFAULT_PROPS = {
+  preset: 'newsprint',
+  ...NEWSPRINT,
+  fit: 'contain' as Fit,
+  inkColor: '#111111',
+  accentColor: '#ff4f2a',
+  paperColor: '#ffffff',
+  revealRadius: 160,
+  softness: 0.6,
+  linger: 1.2,
+  reverse: false,
+  wander: false,
+  clickBurst: true,
+  intro: true
+};
+
+type DemoProps = typeof DEFAULT_PROPS;
+
+const PRESETS: Record<string, Partial<DemoProps>> = {
+  newsprint: NEWSPRINT,
+  riso: { ...NEWSPRINT, mode: 'duotone', cellSize: 7, angle: 22, roughness: 0.35, misregistration: 0.4 },
+  process: { ...NEWSPRINT, mode: 'color', cellSize: 7 },
+  engraving: { ...NEWSPRINT, shape: 'line', cellSize: 5, angle: 30 },
+  pop: { ...NEWSPRINT, mode: 'color', cellSize: 14, dotScale: 1.05, contrast: 1.25 },
+  grit: { ...NEWSPRINT, shape: 'ellipse', cellSize: 7, angle: 60, roughness: 0.7 }
+};
+
+const PRESET_INKS: Record<string, Record<'light' | 'dark', Partial<DemoProps>>> = {
+  riso: {
+    light: { inkColor: '#2442ff', accentColor: '#ff48a5' },
+    dark: { inkColor: '#8b9cff', accentColor: '#ff5fb3' }
+  }
+};
+
+const PRESET_OPTIONS = [
+  { value: 'newsprint', label: 'Newsprint' },
+  { value: 'riso', label: 'Riso' },
+  { value: 'process', label: 'Process' },
+  { value: 'engraving', label: 'Engraving' },
+  { value: 'pop', label: 'Pop' },
+  { value: 'grit', label: 'Grit' }
 ];
 
-const shapeOptions = [
-  { label: 'Circle', value: 'circle' },
-  { label: 'Square', value: 'square' },
-  { label: 'Diamond', value: 'diamond' },
-  { label: 'Line', value: 'line' }
+const MODE_OPTIONS = [
+  { value: 'mono', label: 'Mono' },
+  { value: 'duotone', label: 'Duotone' },
+  { value: 'color', label: 'Color' }
 ];
 
-const triggerOptions = [
-  { label: 'Hover', value: 'hover' },
-  { label: 'Always', value: 'always' },
-  { label: 'Off', value: 'off' }
+const SHAPE_OPTIONS = [
+  { value: 'dot', label: 'Dot' },
+  { value: 'ellipse', label: 'Ellipse' },
+  { value: 'square', label: 'Square' },
+  { value: 'diamond', label: 'Diamond' },
+  { value: 'line', label: 'Line' },
+  { value: 'cross', label: 'Cross' }
 ];
 
-const src = ref(DEFAULTS.src);
-const inkColor = ref(DEFAULTS.inkColor);
-const paperColor = ref(DEFAULTS.paperColor);
-const mode = ref(DEFAULTS.mode);
-const dotSize = ref(DEFAULTS.dotSize);
-const dotDensity = ref(DEFAULTS.dotDensity);
-const angle = ref(DEFAULTS.angle);
-const shape = ref(DEFAULTS.shape);
-const contrast = ref(DEFAULTS.contrast);
-const invert = ref(DEFAULTS.invert);
-const revealRadius = ref(DEFAULTS.revealRadius);
-const edge = ref(DEFAULTS.edge);
-const follow = ref(DEFAULTS.follow);
-const idleReveal = ref(DEFAULTS.idleReveal);
-const trigger = ref(DEFAULTS.trigger);
+const FIT_OPTIONS = [
+  { value: 'contain', label: 'Contain' },
+  { value: 'cover', label: 'Cover' }
+];
 
-const halftoneRevealProps = computed(() => ({
-  src: src.value,
-  inkColor: inkColor.value,
-  paperColor: paperColor.value,
-  mode: mode.value,
-  dotSize: dotSize.value,
-  dotDensity: dotDensity.value,
-  angle: angle.value,
-  shape: shape.value,
-  contrast: contrast.value,
-  invert: invert.value,
-  revealRadius: revealRadius.value,
-  edge: edge.value,
-  follow: follow.value,
-  idleReveal: idleReveal.value,
-  trigger: trigger.value
-}));
-
-const hasChanges = computed(
-  () =>
-    src.value !== DEFAULTS.src ||
-    inkColor.value !== DEFAULTS.inkColor ||
-    paperColor.value !== DEFAULTS.paperColor ||
-    mode.value !== DEFAULTS.mode ||
-    dotSize.value !== DEFAULTS.dotSize ||
-    dotDensity.value !== DEFAULTS.dotDensity ||
-    angle.value !== DEFAULTS.angle ||
-    shape.value !== DEFAULTS.shape ||
-    contrast.value !== DEFAULTS.contrast ||
-    invert.value !== DEFAULTS.invert ||
-    revealRadius.value !== DEFAULTS.revealRadius ||
-    edge.value !== DEFAULTS.edge ||
-    follow.value !== DEFAULTS.follow ||
-    idleReveal.value !== DEFAULTS.idleReveal ||
-    trigger.value !== DEFAULTS.trigger
-);
-
-function reset() {
-  src.value = DEFAULTS.src;
-  inkColor.value = DEFAULTS.inkColor;
-  paperColor.value = DEFAULTS.paperColor;
-  mode.value = DEFAULTS.mode;
-  dotSize.value = DEFAULTS.dotSize;
-  dotDensity.value = DEFAULTS.dotDensity;
-  angle.value = DEFAULTS.angle;
-  shape.value = DEFAULTS.shape;
-  contrast.value = DEFAULTS.contrast;
-  invert.value = DEFAULTS.invert;
-  revealRadius.value = DEFAULTS.revealRadius;
-  edge.value = DEFAULTS.edge;
-  follow.value = DEFAULTS.follow;
-  idleReveal.value = DEFAULTS.idleReveal;
-  trigger.value = DEFAULTS.trigger;
-  forceRerender();
-}
-
-const props: PropRow[] = [
-  { name: 'src', type: 'string', default: 'picsum photo', description: 'Image URL rendered as a halftone print.' },
-  { name: 'inkColor', type: 'string', default: '#141414', description: 'Colour of the printed dots (hex).' },
+const propData: PropRow[] = [
   {
-    name: 'paperColor',
+    name: 'src',
     type: 'string',
-    default: '#fff7e6',
-    description: 'Colour of the paper behind the ink (hex).'
+    default: "'https://images.unsplash.com/...'",
+    description:
+      'Image to print. Transparent or plain backgrounds are left unprinted. Must be served with CORS headers.'
+  },
+  {
+    name: 'fit',
+    type: "'contain' | 'cover'",
+    default: "'cover'",
+    description: 'Show the whole image, or crop it to fill the container.'
   },
   {
     name: 'mode',
-    type: '"mono" | "duotone" | "color"',
-    default: 'mono',
-    description: 'Screen model: single ink, two-ink riso, or a CMYK rosette.'
+    type: "'mono' | 'duotone' | 'color'",
+    default: "'mono'",
+    description:
+      'One ink, two inks at different screen angles, or full color: CMYK on light paper and RGB light on dark paper.'
   },
-  { name: 'dotSize', type: 'number', default: '1', description: 'Overall scale of each ink dot.' },
-  { name: 'dotDensity', type: 'number', default: '71', description: 'Number of dot cells across the frame.' },
-  { name: 'angle', type: 'number', default: '45', description: 'Rotation of the halftone screen, in degrees.' },
   {
     name: 'shape',
-    type: '"circle" | "square" | "diamond" | "line"',
-    default: 'circle',
-    description: 'Shape of each printed dot.'
+    type: "'dot' | 'ellipse' | 'square' | 'diamond' | 'line' | 'cross'",
+    default: "'dot'",
+    description: 'Shape of the halftone marks.'
   },
-  { name: 'contrast', type: 'number', default: '1.15', description: 'Tonal contrast applied before screening.' },
-  { name: 'invert', type: 'boolean', default: 'false', description: 'Invert the tones (negative print).' },
+  { name: 'cellSize', type: 'number', default: '6', description: 'Spacing of the halftone screen, in px.' },
+  { name: 'angle', type: 'number', default: '45', description: 'Rotation of the screen, in degrees.' },
+  {
+    name: 'dotScale',
+    type: 'number',
+    default: '1',
+    description: 'Scales every mark. Below 1 keeps them apart, above 1 lets them merge sooner.'
+  },
+  { name: 'inkColor', type: 'string', default: "'#111111'", description: 'Color of the printed marks.' },
+  {
+    name: 'accentColor',
+    type: 'string',
+    default: "'#ff4f2a'",
+    description: 'Second ink used in duotone mode.'
+  },
+  {
+    name: 'paperColor',
+    type: 'string',
+    default: "'#ffffff'",
+    description: 'Background the image is printed on. Match it to your page.'
+  },
+  { name: 'contrast', type: 'number', default: '1.1', description: 'Tonal contrast applied before printing.' },
+  {
+    name: 'brightness',
+    type: 'number',
+    default: '0',
+    description: 'Shifts the image lighter or darker before printing.'
+  },
+  { name: 'invert', type: 'boolean', default: 'false', description: 'Prints a negative of the image.' },
+  {
+    name: 'roughness',
+    type: 'number',
+    default: '0',
+    description: 'Gives the marks ragged, ink-spread edges, from 0 to 1.'
+  },
+  {
+    name: 'misregistration',
+    type: 'number',
+    default: '0',
+    description: 'Offsets the ink layers like a slightly misaligned press, from 0 to 1.'
+  },
   {
     name: 'revealRadius',
     type: 'number',
-    default: '0.4',
-    description: 'Radius of the sharp loupe around the cursor.'
+    default: '160',
+    description: 'Radius of the area around the cursor where the dots swell into the real photo, in px.'
   },
   {
-    name: 'edge',
+    name: 'softness',
     type: 'number',
-    default: '0.8',
-    description: 'Hardness of the loupe boundary (0 soft, 1 hard).'
+    default: '0.6',
+    description: 'Width of the band where the dots grow into the photo. 0 is a hard edge.'
   },
   {
-    name: 'follow',
+    name: 'linger',
     type: 'number',
-    default: '0.37',
-    description: 'Loupe follow time in seconds (lower = snappier).'
+    default: '1.2',
+    description: 'Seconds the revealed trail takes to shrink back into print. 0 turns the trail off.'
   },
   {
-    name: 'idleReveal',
-    type: 'number',
-    default: '0',
-    description: 'Baseline sharpness applied everywhere with no cursor.'
+    name: 'reverse',
+    type: 'boolean',
+    default: 'false',
+    description: 'Start as the photo and print wherever the cursor goes.'
   },
   {
-    name: 'trigger',
-    type: '"hover" | "always" | "off"',
-    default: 'hover',
-    description: 'When the loupe is active.'
+    name: 'wander',
+    type: 'boolean',
+    default: 'false',
+    description: 'Lets the reveal drift around on its own while the pointer is away.'
   },
-  { name: 'borderRadius', type: 'string', default: '16px', description: 'Corner radius of the frame.' }
+  {
+    name: 'clickBurst',
+    type: 'boolean',
+    default: 'true',
+    description: 'Clicking sends a ring of color rippling out through the print.'
+  },
+  { name: 'intro', type: 'boolean', default: 'true', description: 'Grows the dots in from the center on load.' },
+  { name: 'className', type: 'string', default: "''", description: 'Extra class names for the container.' },
+  { name: 'style', type: 'StyleValue', default: '-', description: 'Inline styles for the container.' }
 ];
+
+const { rerenderKey, forceRerender } = useForceRerender();
+const { props, defaultProps, updateProp, updateProps, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
+const theme = useColorModeValue<'light' | 'dark'>('light', 'dark');
+
+const settings = computed(() => {
+  const {
+    preset: _preset,
+    inkColor: _inkColor,
+    paperColor: _paperColor,
+    accentColor: _accentColor,
+    ...rest
+  } = props.value;
+  return rest;
+});
+
+const ink = computed(() =>
+  theme.value === 'dark' && props.value.inkColor === DEFAULT_PROPS.inkColor ? '#f4f1ea' : props.value.inkColor
+);
+const paper = computed(() =>
+  theme.value === 'dark' && props.value.paperColor === DEFAULT_PROPS.paperColor ? '#111111' : props.value.paperColor
+);
+
+const computedProps = computed(() => ({
+  inkColor: ink.value,
+  paperColor: paper.value,
+  accentColor: props.value.accentColor
+}));
+
+const applyPreset = (value: string | number) => {
+  const key = String(value);
+  const base = Object.fromEntries(
+    Object.keys(DEFAULT_PROPS).map(name => [name, defaultProps.value[name as keyof DemoProps]])
+  ) as Partial<DemoProps>;
+  const inks = PRESET_INKS[key]?.[theme.value] ?? {};
+  updateProps({ ...base, ...PRESETS[key], ...inks, preset: key });
+};
 </script>

@@ -2,43 +2,38 @@ import code from '@/content/Animations/PixelTransition/PixelTransition.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const pixelTransition = createCodeObject(code, 'Animations/PixelTransition', {
-  installation: `npm install gsap`,
+  dependencies: '',
   usage: `<template>
   <PixelTransition
-    :grid-size="12"
     pixel-color="#ffffff"
-    :once="false"
+    :mosaic="0"
+    :grid-size="10"
+    pixel-shape="square"
+    :gap="0"
+    pattern="random"
+    pixel-animation="pop"
+    :randomness="0.3"
     :animation-step-duration="0.4"
-    class-name="custom-pixel-card"
+    :fps="0"
+    trigger="hover"
+    :once="false"
+    aspect-ratio="125%"
+    :style="{ width: '300px' }"
   >
     <template #firstContent>
       <img
-        src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/1200px-Cat03.jpg"
-        alt="default pixel transition content, a cat!"
-        style="width: 100%; height: 100%; object-fit: cover;"
+        src="/assets/demo/day-portrait.webp"
+        alt=""
+        style="width: 100%; height: 100%; object-fit: cover"
       />
     </template>
 
     <template #secondContent>
-      <div
-        style="
-          width: 100%;
-          height: 100%;
-          display: grid;
-          place-items: center;
-          background-color: #111;
-        "
-      >
-        <p
-          style="
-            font-weight: 900;
-            font-size: 3rem;
-            color: #ffffff;
-          "
-        >
-          Meow!
-        </p>
-      </div>
+      <img
+        src="/assets/demo/night-portrait.webp"
+        alt=""
+        style="width: 100%; height: 100%; object-fit: cover"
+      />
     </template>
   </PixelTransition>
 </template>

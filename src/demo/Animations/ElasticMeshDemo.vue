@@ -1,245 +1,291 @@
 <template>
-  <h1 class="sub-category">Elastic Mesh</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="elasticMesh.usage"
-    :source="elasticMeshSource"
-    component-name="ElasticMesh"
-    :props-table="props"
+    :demo-only-props="['preset', 'content', 'text']"
+    :computed-props="computedProps"
   >
-    <template #preview>
-      <div class="relative p-0 h-125 overflow-hidden demo-container">
-        <ElasticMesh v-bind="elasticMeshProps" />
-        <p class="right-0 bottom-3 left-0 absolute text-sm text-center" style="color: #a6a6a6">
-          {{ interaction === 'drag' ? 'Click and drag across the sheet.' : 'Move your cursor across the sheet.' }}
-        </p>
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 500px; padding: 0">
+          <RefreshButton @click="forceRerender" />
+          <ElasticMesh :key="rerenderKey" v-bind="{ ...settings, ...computedProps }" :theme="theme" />
+          <p
+            class="pointer-events-none absolute bottom-5 left-1/2 m-0 -translate-x-1/2 text-sm whitespace-nowrap select-none"
+            style="color: var(--text-dimmed)"
+          >
+            Press, poke and pull
+          </p>
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewSwitch title="Use Image" v-model="showImage" />
-        <PreviewColorPicker title="Color 1" v-model="color1" />
-        <PreviewColorPicker title="Color 2" v-model="color2" />
-        <PreviewColorPicker title="Grid Color" v-model="gridColor" />
-        <PreviewSwitch title="Show Grid" v-model="showGrid" />
-        <PreviewSlider title="Grid Density" :min="4" :max="40" :step="1" v-model="gridDensity" />
-        <PreviewSlider title="Grid Opacity" :min="0" :max="1" :step="0.01" v-model="gridOpacity" />
-        <PreviewColorPicker title="Highlight" v-model="highlight" />
-        <PreviewSlider title="Stiffness" :min="0.02" :max="0.15" :step="0.005" v-model="stiffness" />
-        <PreviewSlider title="Damping" :min="0.03" :max="0.25" :step="0.01" v-model="damping" />
-        <PreviewSlider title="Grab Radius" :min="0.15" :max="0.8" :step="0.01" v-model="grabRadius" />
-        <PreviewSlider title="Pull" :min="0" :max="1" :step="0.02" v-model="pull" />
-        <PreviewSlider title="Wobble" :min="0" :max="8" :step="1" v-model="wobble" />
-        <PreviewSlider title="Tilt" :min="0" :max="32" :step="1" v-model="tilt" valueUnit="°" />
-        <PreviewSlider title="Shading" :min="0" :max="1.5" :step="0.05" v-model="shading" />
-        <PreviewSlider title="Border Radius" :min="0" :max="80" :step="1" v-model="borderRadius" valueUnit="px" />
-        <PreviewSlider title="Resolution" :min="10" :max="36" :step="1" v-model="resolution" />
-        <PreviewSelect title="Interaction" :options="['hover', 'drag']" v-model="interaction" />
-        <PreviewSwitch title="Enabled" v-model="enabled" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewSelect
+            title="Preset"
+            :options="PRESET_OPTIONS"
+            :model-value="props.preset"
+            @update:model-value="applyPreset"
+          />
+          <PreviewSelect
+            title="Content"
+            :options="CONTENT_OPTIONS"
+            :model-value="props.content"
+            @update:model-value="value => updateProp('content', String(value))"
+          />
+          <PreviewInput
+            title="Text"
+            :model-value="props.text"
+            :max-length="24"
+            :is-disabled="props.content !== 'text'"
+            @update:model-value="value => updateProp('text', value)"
+          />
+          <PreviewSelect
+            title="Material"
+            :options="MATERIAL_OPTIONS"
+            :model-value="props.material"
+            @update:model-value="value => updateProp('material', value as ElasticMeshMaterial)"
+          />
+          <PreviewColorPickerCustom
+            title="Color"
+            :color="props.color"
+            @change="(value: string) => updateProp('color', value)"
+          />
+          <PreviewSlider
+            title="Inflate"
+            :min="0.4"
+            :max="1.6"
+            :step="0.05"
+            :model-value="props.inflate"
+            @update:model-value="value => updateProp('inflate', value)"
+          />
+          <PreviewSlider
+            title="Stiffness"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="props.stiffness"
+            @update:model-value="value => updateProp('stiffness', value)"
+          />
+          <PreviewSlider
+            title="Wobble"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="props.wobble"
+            @update:model-value="value => updateProp('wobble', value)"
+          />
+          <PreviewSlider
+            title="Grab Radius"
+            :min="30"
+            :max="160"
+            :step="5"
+            value-unit="px"
+            :model-value="props.grabRadius"
+            @update:model-value="value => updateProp('grabRadius', value)"
+          />
+          <PreviewSlider
+            title="Stretch"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="props.stretch"
+            @update:model-value="value => updateProp('stretch', value)"
+          />
+          <PreviewSlider
+            title="Press"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="props.press"
+            @update:model-value="value => updateProp('press', value)"
+          />
+          <PreviewSlider
+            title="Shadow"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="props.shadow"
+            @update:model-value="value => updateProp('shadow', value)"
+          />
+          <PreviewSwitch
+            title="Intro"
+            :model-value="props.intro"
+            @update:model-value="value => updateProp('intro', value)"
+          />
+        </Customize>
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+        <PropTable :data="propData" />
+      </template>
 
-    <template #code>
-      <DemoCodeTab slug="elastic-mesh" :usage="elasticMesh.usage!" :source="elasticMeshSource" />
-    </template>
-  </TabsLayout>
+      <template #code>
+        <CodeExample :code-object="elasticMesh" component-name="ElasticMesh" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import logo from '@/assets/logos/vue-bits-logo-small.svg';
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewColorPickerCustom from '@/components/common/PreviewColorPickerCustom.vue';
+import PreviewInput from '@/components/common/PreviewInput.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
 import { useForceRerender } from '@/composables/useForceRerender';
+import { useColorModeValue } from '@/composables/useTheme';
 import { elasticMesh } from '@/constants/code/Animations/elasticMeshCode';
-import ElasticMesh from '@/content/Animations/ElasticMesh/ElasticMesh.vue';
-import elasticMeshSource from '@/content/Animations/ElasticMesh/ElasticMesh.vue?raw';
-import { computed, ref } from 'vue';
+import ElasticMesh, { type ElasticMeshMaterial } from '@/content/Animations/ElasticMesh/ElasticMesh.vue';
 
-const { forceRerender } = useForceRerender();
-
-const DEFAULTS = {
-  showImage: true,
-  color1: '#10B981',
-  color2: '#c6d0b4',
-  showGrid: true,
-  gridDensity: 20,
-  gridOpacity: 0.28,
-  gridColor: '#ffffff',
-  highlight: '#ffffff',
-  borderRadius: 25,
-  stiffness: 0.05,
-  damping: 0.2,
-  grabRadius: 0.6,
-  pull: 0.4,
-  wobble: 5,
-  tilt: 14,
-  shading: 0.5,
-  resolution: 25,
-  interaction: 'hover' as 'hover' | 'drag',
-  enabled: true
+const BALLOON = {
+  material: 'balloon' as ElasticMeshMaterial,
+  color: '#3b5bff',
+  inflate: 1,
+  stiffness: 0.5,
+  wobble: 0.6
 };
 
-const showImage = ref(DEFAULTS.showImage);
-const color1 = ref(DEFAULTS.color1);
-const color2 = ref(DEFAULTS.color2);
-const showGrid = ref(DEFAULTS.showGrid);
-const gridDensity = ref(DEFAULTS.gridDensity);
-const gridOpacity = ref(DEFAULTS.gridOpacity);
-const gridColor = ref(DEFAULTS.gridColor);
-const highlight = ref(DEFAULTS.highlight);
-const borderRadius = ref(DEFAULTS.borderRadius);
-const stiffness = ref(DEFAULTS.stiffness);
-const damping = ref(DEFAULTS.damping);
-const grabRadius = ref(DEFAULTS.grabRadius);
-const pull = ref(DEFAULTS.pull);
-const wobble = ref(DEFAULTS.wobble);
-const tilt = ref(DEFAULTS.tilt);
-const shading = ref(DEFAULTS.shading);
-const resolution = ref(DEFAULTS.resolution);
-const interaction = ref(DEFAULTS.interaction);
-const enabled = ref(DEFAULTS.enabled);
+const DEFAULT_PROPS = {
+  preset: 'balloon',
+  content: 'text',
+  text: 'Squish',
+  ...BALLOON,
+  grabRadius: 70,
+  stretch: 0.5,
+  press: 0.5,
+  shadow: 0.5,
+  intro: true
+};
 
-const elasticMeshProps = computed(() => ({
-  showImage: showImage.value,
-  image: showImage.value ? 'https://picsum.photos/seed/elastic/900/600' : '',
-  color1: color1.value,
-  color2: color2.value,
-  showGrid: showGrid.value,
-  gridDensity: gridDensity.value,
-  gridOpacity: gridOpacity.value,
-  gridColor: gridColor.value,
-  highlight: highlight.value,
-  borderRadius: borderRadius.value,
-  stiffness: stiffness.value,
-  damping: damping.value,
-  grabRadius: grabRadius.value,
-  pull: pull.value,
-  wobble: wobble.value,
-  tilt: tilt.value,
-  shading: shading.value,
-  resolution: resolution.value,
-  interaction: interaction.value,
-  enabled: enabled.value
-}));
+type DemoProps = typeof DEFAULT_PROPS;
 
-const hasChanges = computed(
-  () =>
-    showImage.value !== DEFAULTS.showImage ||
-    color1.value !== DEFAULTS.color1 ||
-    color2.value !== DEFAULTS.color2 ||
-    showGrid.value !== DEFAULTS.showGrid ||
-    gridDensity.value !== DEFAULTS.gridDensity ||
-    gridOpacity.value !== DEFAULTS.gridOpacity ||
-    gridColor.value !== DEFAULTS.gridColor ||
-    highlight.value !== DEFAULTS.highlight ||
-    borderRadius.value !== DEFAULTS.borderRadius ||
-    stiffness.value !== DEFAULTS.stiffness ||
-    damping.value !== DEFAULTS.damping ||
-    grabRadius.value !== DEFAULTS.grabRadius ||
-    pull.value !== DEFAULTS.pull ||
-    wobble.value !== DEFAULTS.wobble ||
-    tilt.value !== DEFAULTS.tilt ||
-    shading.value !== DEFAULTS.shading ||
-    resolution.value !== DEFAULTS.resolution ||
-    interaction.value !== DEFAULTS.interaction ||
-    enabled.value !== DEFAULTS.enabled
-);
+const PRESETS: Record<string, Partial<DemoProps>> = {
+  balloon: BALLOON,
+  chrome: { ...BALLOON, material: 'chrome', color: '#ffffff', stiffness: 0.65, wobble: 0.5 },
+  jelly: { ...BALLOON, material: 'jelly', color: '#ff5a1f', stiffness: 0.35, wobble: 0.85 },
+  clay: { ...BALLOON, material: 'clay', color: '#ece6dc', inflate: 0.85, stiffness: 0.6, wobble: 0.35 }
+};
 
-function reset() {
-  showImage.value = DEFAULTS.showImage;
-  color1.value = DEFAULTS.color1;
-  color2.value = DEFAULTS.color2;
-  showGrid.value = DEFAULTS.showGrid;
-  gridDensity.value = DEFAULTS.gridDensity;
-  gridOpacity.value = DEFAULTS.gridOpacity;
-  gridColor.value = DEFAULTS.gridColor;
-  highlight.value = DEFAULTS.highlight;
-  borderRadius.value = DEFAULTS.borderRadius;
-  stiffness.value = DEFAULTS.stiffness;
-  damping.value = DEFAULTS.damping;
-  grabRadius.value = DEFAULTS.grabRadius;
-  pull.value = DEFAULTS.pull;
-  wobble.value = DEFAULTS.wobble;
-  tilt.value = DEFAULTS.tilt;
-  shading.value = DEFAULTS.shading;
-  resolution.value = DEFAULTS.resolution;
-  interaction.value = DEFAULTS.interaction;
-  enabled.value = DEFAULTS.enabled;
-  forceRerender();
-}
+const PRESET_OPTIONS = [
+  { value: 'balloon', label: 'Balloon' },
+  { value: 'chrome', label: 'Chrome' },
+  { value: 'jelly', label: 'Jelly' },
+  { value: 'clay', label: 'Clay' }
+];
 
-const props: PropRow[] = [
+const CONTENT_OPTIONS = [
+  { value: 'text', label: 'Text' },
+  { value: 'logo', label: 'Logo' }
+];
+
+const MATERIAL_OPTIONS = [
+  { value: 'balloon', label: 'Balloon' },
+  { value: 'chrome', label: 'Chrome' },
+  { value: 'jelly', label: 'Jelly' },
+  { value: 'clay', label: 'Clay' }
+];
+
+const propData: PropRow[] = [
+  { name: 'text', type: 'string', default: "'Squish'", description: 'Text to inflate. Use \\n for more lines.' },
   {
-    name: 'image',
+    name: 'src',
     type: 'string',
     default: "''",
-    description: 'Optional image URL to warp. When empty, a color gradient surface is rendered instead.'
+    description: 'URL of an SVG or PNG to inflate instead of text. Its transparent pixels define the shape.'
   },
-  { name: 'color1', type: 'string', default: '#10B981', description: 'Top color of the gradient surface.' },
-  { name: 'color2', type: 'string', default: '#c6d0b4', description: 'Bottom color of the gradient surface.' },
-  { name: 'showGrid', type: 'boolean', default: 'true', description: 'Draw the mesh lattice over the surface.' },
-  { name: 'gridDensity', type: 'number', default: '20', description: 'Number of lattice cells across the sheet.' },
-  { name: 'gridOpacity', type: 'number', default: '0.28', description: 'Opacity of the lattice lines.' },
-  { name: 'gridColor', type: 'string', default: '#ffffff', description: 'Color of the lattice lines.' },
   {
-    name: 'highlight',
+    name: 'fontFamily',
     type: 'string',
-    default: '#ffffff',
-    description: 'Specular highlight color used by the shading.'
+    default: "'system-ui, sans-serif'",
+    description: 'Font used for the text. Heavy, rounded faces inflate best.'
   },
-  { name: 'borderRadius', type: 'number', default: '25', description: 'Corner radius of the sheet in pixels.' },
+  { name: 'fontWeight', type: 'number', default: '900', description: 'Weight of the text.' },
+  { name: 'color', type: 'string', default: "'#3b5bff'", description: 'Base color of the material.' },
+  {
+    name: 'imageColors',
+    type: 'boolean',
+    default: 'true',
+    description: 'Keeps the colors of the image passed to src instead of using color.'
+  },
+  {
+    name: 'material',
+    type: "'balloon' | 'chrome' | 'jelly' | 'clay'",
+    default: "'balloon'",
+    description: 'Surface finish: glossy balloon, mirror chrome, glowing jelly or soft matte clay.'
+  },
+  { name: 'inflate', type: 'number', default: '1', description: 'How puffy the shape is. 1 gives round tubes.' },
   {
     name: 'stiffness',
     type: 'number',
-    default: '0.05',
-    description: 'How hard the mesh springs back to flat. Higher settles faster.'
+    default: '0.5',
+    description: 'How firm the material feels, from 0 for soft and stretchy to 1 for firm and quick.'
   },
   {
-    name: 'damping',
+    name: 'wobble',
     type: 'number',
-    default: '0.2',
-    description: 'How quickly wobbles die out. Higher damping settles faster with fewer oscillations.'
+    default: '0.6',
+    description: 'How long it jiggles after a poke or a pull, from 0 to 1.'
   },
   {
     name: 'grabRadius',
     type: 'number',
-    default: '0.6',
-    description: 'How much of the sheet the pointer grabs (fraction of the surface).'
+    default: '70',
+    description: 'Size of the area the cursor grabs and presses, in pixels.'
   },
-  { name: 'pull', type: 'number', default: '0.4', description: 'How far the surface stretches toward the pointer.' },
+  { name: 'stretch', type: 'number', default: '0.5', description: 'How far the material can be pulled, from 0 to 1.' },
+  { name: 'press', type: 'number', default: '0.5', description: 'Depth of the dent under the cursor and of a poke.' },
+  { name: 'shadow', type: 'number', default: '0.5', description: 'Strength of the soft drop shadow.' },
+  { name: 'intro', type: 'boolean', default: 'true', description: 'Inflates the shape letter by letter on mount.' },
   {
-    name: 'wobble',
-    type: 'number',
-    default: '5',
-    description: 'Neighbor coupling — higher spreads the deformation into more visible ripples.'
+    name: 'theme',
+    type: "'dark' | 'light'",
+    default: "'dark'",
+    description: 'Lighting setup for dark or light pages.'
   },
-  { name: 'tilt', type: 'number', default: '14', description: 'Perspective tilt of the sheet in degrees.' },
-  {
-    name: 'shading',
-    type: 'number',
-    default: '0.5',
-    description: 'Fake lighting strength that gives the warp depth. Keep above 0 to read the deformation.'
-  },
-  { name: 'resolution', type: 'number', default: '25', description: 'Mesh grid density (nodes per side).' },
-  {
-    name: 'interaction',
-    type: '"hover" | "drag"',
-    default: '"hover"',
-    description: 'Whether the mesh reacts to hover or only while dragging.'
-  },
-  { name: 'enabled', type: 'boolean', default: 'true', description: 'Enables or disables the pointer interaction.' },
-  { name: 'className', type: 'string', default: "''", description: 'Additional class names for the container.' },
-  { name: 'style', type: 'object', default: '—', description: 'Inline styles for the container.' }
+  { name: 'dpr', type: 'number', default: 'auto', description: 'Maximum device pixel ratio, capped at 2.' },
+  { name: 'className', type: 'string', default: "''", description: 'Extra class names for the container.' },
+  { name: 'style', type: 'CSSProperties', default: '-', description: 'Inline styles for the container.' }
 ];
+
+const { rerenderKey, forceRerender } = useForceRerender();
+const { props, defaultProps, updateProp, updateProps, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
+const theme = useColorModeValue<'light' | 'dark'>('light', 'dark');
+
+const settings = computed(() => {
+  const { preset: _preset, content: _content, text: _text, ...rest } = props.value;
+  return rest;
+});
+
+const typed = ref(props.value.text);
+let typedTimer = 0;
+watch(
+  () => props.value.text,
+  text => {
+    window.clearTimeout(typedTimer);
+    typedTimer = window.setTimeout(() => {
+      typed.value = text;
+    }, 350);
+  }
+);
+onBeforeUnmount(() => window.clearTimeout(typedTimer));
+
+const computedProps = computed<Record<string, unknown>>(() =>
+  props.value.content === 'logo' ? { src: logo, imageColors: false } : { text: typed.value }
+);
+
+const applyPreset = (input: string | number) => {
+  const value = String(input);
+  const base = Object.fromEntries(
+    Object.keys(DEFAULT_PROPS).map(name => [name, defaultProps.value[name as keyof DemoProps]])
+  ) as Partial<DemoProps>;
+  updateProps({ ...base, ...PRESETS[value], content: props.value.content, text: props.value.text, preset: value });
+};
 </script>

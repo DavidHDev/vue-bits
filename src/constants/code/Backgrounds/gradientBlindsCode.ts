@@ -2,33 +2,27 @@ import code from '@/content/Backgrounds/GradientBlinds/GradientBlinds.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const gradientBlinds = createCodeObject(code, 'Backgrounds/GradientBlinds', {
-  installation: `npm install ogl`,
+  dependencies: '',
   usage: `<template>
-  <div
-    style="
-      width: 100%;
-      height: 600px;
-      position: relative;
-    "
-  >
+  <div style="width: 100%; height: 600px; position: relative">
     <GradientBlinds
-      :gradient-colors="['#FF9FFC', '#5227FF']"
-      :angle="0"
-      :noise="0.3"
-      :blind-count="12"
-      :blind-min-width="50"
+      :gradient-colors="['#a0ffbc', '#42b883']"
+      :angle="20"
+      :blind-count="16"
+      :blind-min-width="60"
       :spotlight-radius="0.5"
-      :spotlight-softness="1"
-      :spotlight-opacity="1"
-      :mouse-dampening="0.15"
-      :distort-amount="0"
-      shine-direction="left"
-      mix-blend-mode="lighten"
+      :shine="0.4"
+      :relief="0.5"
+      :glow="0.4"
+      :sway="0.35"
+      :hover-tilt="0.6"
+      click-effect="ripple"
+      :noise="0.3"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import GradientBlinds from './GradientBlinds.vue'
+import GradientBlinds from './GradientBlinds.vue';
 </script>`
 });

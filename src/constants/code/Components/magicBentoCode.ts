@@ -2,23 +2,21 @@ import code from '@/content/Components/MagicBento/MagicBento.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const magicBento = createCodeObject(code, 'Components/MagicBento', {
-  installation: `npm install gsap`,
+  installation: `npm install @hugeicons/vue @hugeicons/core-free-icons`,
   usage: `<template>
-  <MagicBento 
-    :text-auto-hide="true"
-    :enable-stars="true"
-    :enable-spotlight="true"
+  <MagicBento
+    :columns="4"
+    :row-height="200"
+    :gap="12"
+    :radius="20"
     :enable-border-glow="true"
-    :enable-tilt="true"
-    :enable-magnetism="true"
-    :click-effect="true"
+    :enable-spotlight="true"
     :spotlight-radius="300"
-    :particle-count="12"
-    glow-color="132, 0, 255"
+    :click-effect="true"
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import MagicBento from './MagicBento.vue'
 </script>`
 });

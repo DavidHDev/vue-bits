@@ -1,294 +1,281 @@
 <template>
-  <h1 class="sub-category">Glow Cursor</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="glowCursor.usage"
-    :source="glowCursorSource"
-    component-name="GlowCursor"
-    :props-table="props"
+    :demo-only-props="['preset', 'secondaryColor']"
+    :computed-props="computedProps"
   >
-    <template #preview>
-      <div class="relative p-0 h-125 overflow-hidden demo-container">
-        <GlowCursor :key="key" v-bind="glowCursorProps">
-          <p
-            class="top-1/2 left-1/2 absolute font-black text-[#293a2f] text-[clamp(2rem,6vw,3rem)] text-center -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none"
-          >
-            Move Your Cursor
-          </p>
-        </GlowCursor>
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 500px; padding: 0">
+          <p class="glow-cursor-demo-hint">Move and click</p>
+          <GlowCursor v-bind="{ ...settings, ...computedProps }" :theme="theme" />
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewColorPicker title="Head Color" v-model="color" />
-        <PreviewColorPicker title="Tail Color" v-model="secondaryColor" />
-        <PreviewSelect title="Blend Mode" :options="BLEND_OPTIONS" v-model="blendMode" />
-        <PreviewSlider title="Trail Length" :min="8" :max="64" :step="1" v-model="trailLength" />
-        <PreviewSlider title="Trail Width" :min="2" :max="24" :step="1" v-model="trailWidth" valueUnit="px" />
-        <PreviewSlider title="Trail Taper" :min="0" :max="1" :step="0.01" v-model="trailTaper" />
-        <PreviewSlider title="Follow Speed" :min="0.03" :max="0.5" :step="0.01" v-model="followSpeed" />
-        <PreviewSlider title="Glow Intensity" :min="0" :max="4" :step="0.05" v-model="glowIntensity" />
-        <PreviewSlider title="Glow Spread" :min="0.1" :max="3" :step="0.05" v-model="glowSpread" />
-        <PreviewSlider title="Hotspot" :min="0" :max="1" :step="0.01" v-model="hotspot" />
-        <PreviewSlider title="Brightness" :min="0.25" :max="2.5" :step="0.05" v-model="brightness" />
-        <PreviewSlider title="Opacity" :min="0.1" :max="1" :step="0.01" v-model="opacity" />
-        <PreviewSlider title="Pulse Speed" :min="0" :max="4" :step="0.1" v-model="pulseSpeed" />
-        <PreviewSlider title="Noise" :min="0" :max="0.25" :step="0.005" v-model="noiseStrength" />
-        <PreviewSlider title="Idle Timeout" :min="0" :max="2000" :step="50" v-model="idleTimeout" valueUnit="ms" />
-        <PreviewSlider title="Fade Duration" :min="100" :max="2500" :step="50" v-model="fadeDuration" valueUnit="ms" />
-        <PreviewSlider title="Max DPR" :min="0.5" :max="2" :step="0.25" v-model="maxDevicePixelRatio" />
-        <PreviewSwitch title="Idle Fade" v-model="idleFade" />
-        <PreviewSwitch title="Enabled" v-model="enabled" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewSelect
+            title="Preset"
+            :options="PRESET_OPTIONS"
+            :model-value="props.preset"
+            @update:model-value="applyPreset"
+          />
+          <PreviewColorPickerCustom
+            title="Color"
+            :color="props.color"
+            @change="(value: string) => updateProp('color', value)"
+          />
+          <PreviewColorPickerCustom
+            title="Cooling Color"
+            :color="props.secondaryColor || props.color"
+            @change="(value: string) => updateProp('secondaryColor', value)"
+          />
+          <PreviewSlider
+            title="Intensity"
+            :min="0.3"
+            :max="3"
+            :step="0.05"
+            :model-value="props.intensity"
+            @update:model-value="value => updateProp('intensity', value)"
+          />
+          <PreviewSlider
+            title="Trail Width"
+            :min="1"
+            :max="64"
+            :step="0.5"
+            value-unit="px"
+            :model-value="props.trailWidth"
+            @update:model-value="value => updateProp('trailWidth', value)"
+          />
+          <PreviewSlider
+            title="Linger"
+            :min="0.3"
+            :max="5"
+            :step="0.1"
+            value-unit="s"
+            :model-value="props.linger"
+            @update:model-value="value => updateProp('linger', value)"
+          />
+          <PreviewSlider
+            title="Glow"
+            :min="0"
+            :max="3"
+            :step="0.05"
+            :model-value="props.glow"
+            @update:model-value="value => updateProp('glow', value)"
+          />
+          <PreviewSlider
+            title="Hotspot"
+            :min="0"
+            :max="2"
+            :step="0.05"
+            :model-value="props.hotspot"
+            @update:model-value="value => updateProp('hotspot', value)"
+          />
+          <PreviewSlider
+            title="Follow Speed"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="props.followSpeed"
+            @update:model-value="value => updateProp('followSpeed', value)"
+          />
+          <PreviewSlider
+            title="Grain"
+            :min="0"
+            :max="0.3"
+            :step="0.01"
+            :model-value="props.grain"
+            @update:model-value="value => updateProp('grain', value)"
+          />
+          <PreviewSelect
+            title="Quality"
+            :options="QUALITY_OPTIONS"
+            :model-value="props.quality"
+            @update:model-value="value => updateProp('quality', value as Quality)"
+          />
+          <PreviewSwitch
+            title="Click Burst"
+            :model-value="props.clickBurst"
+            @update:model-value="value => updateProp('clickBurst', value)"
+          />
+          <PreviewSwitch
+            title="Enabled"
+            :model-value="props.enabled"
+            @update:model-value="value => updateProp('enabled', value)"
+          />
+        </Customize>
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+        <PropTable :data="propData" />
+      </template>
 
-    <template #code>
-      <DemoCodeTab slug="glow-cursor" :usage="glowCursor.usage!" :source="glowCursorSource" />
-    </template>
-  </TabsLayout>
+      <template #code>
+        <CodeExample :code-object="glowCursor" component-name="GlowCursor" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewColorPickerCustom from '@/components/common/PreviewColorPickerCustom.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
-import { useForceRerender } from '@/composables/useForceRerender';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
+import { useColorModeValue } from '@/composables/useTheme';
 import { glowCursor } from '@/constants/code/Animations/glowCursorCode';
-import GlowCursor, { type BlendMode } from '@/content/Animations/GlowCursor/GlowCursor.vue';
-import glowCursorSource from '@/content/Animations/GlowCursor/GlowCursor.vue?raw';
-import { computed, ref } from 'vue';
+import GlowCursor from '@/content/Animations/GlowCursor/GlowCursor.vue';
 
-const { rerenderKey: key, forceRerender } = useForceRerender();
+type Quality = 'low' | 'medium' | 'high';
 
-const DEFAULTS = {
-  color: '#67E8F9',
-  secondaryColor: '#84CC16',
-  trailLength: 40,
-  trailWidth: 8,
-  trailTaper: 0.8,
-  followSpeed: 0.16,
-  glowIntensity: 1.9,
-  glowSpread: 1.2,
-  hotspot: 0.65,
-  brightness: 1.25,
-  opacity: 1,
-  pulseSpeed: 1.1,
-  noiseStrength: 0.035,
-  idleFade: true,
-  idleTimeout: 700,
-  fadeDuration: 900,
-  blendMode: 'screen' as BlendMode,
-  maxDevicePixelRatio: 1.5,
+const COMET = {
+  color: '#5f8bff',
+  secondaryColor: '',
+  intensity: 1.3,
+  trailWidth: 3,
+  linger: 1.4,
+  glow: 1.2,
+  hotspot: 0.8,
+  followSpeed: 0.6,
+  grain: 0
+};
+
+const DEFAULT_PROPS = {
+  preset: 'comet',
+  ...COMET,
+  clickBurst: true,
+  quality: 'high' as Quality,
   enabled: true
 };
 
-const BLEND_OPTIONS = [
-  { value: 'screen', label: 'Screen' },
-  { value: 'plus-lighter', label: 'Plus Lighter' },
-  { value: 'normal', label: 'Normal' }
+type DemoProps = typeof DEFAULT_PROPS;
+
+const PRESETS: Record<string, Partial<DemoProps>> = {
+  comet: COMET,
+  ember: { ...COMET, color: '#ffb347', secondaryColor: '#ff3b1a', linger: 1.1 },
+  aurora: { ...COMET, color: '#5effc4', secondaryColor: '#2a8cff', linger: 2.4, glow: 1.5 },
+  smoke: {
+    ...COMET,
+    color: '#ffffff',
+    secondaryColor: '#9b9b9b',
+    linger: 2.6,
+    intensity: 0.9,
+    hotspot: 0.4,
+    glow: 0.6
+  },
+  ion: { ...COMET, color: '#7ff3ff', secondaryColor: '#3a5bff', trailWidth: 2, linger: 1, intensity: 1.6 },
+  silk: { ...COMET, trailWidth: 7, linger: 2, glow: 1.6, hotspot: 0.4 }
+};
+
+const PRESET_OPTIONS = [
+  { value: 'comet', label: 'Comet' },
+  { value: 'ember', label: 'Ember' },
+  { value: 'aurora', label: 'Aurora' },
+  { value: 'smoke', label: 'Smoke' },
+  { value: 'ion', label: 'Ion' },
+  { value: 'silk', label: 'Silk' }
 ];
 
-const color = ref(DEFAULTS.color);
-const secondaryColor = ref(DEFAULTS.secondaryColor);
-const trailLength = ref(DEFAULTS.trailLength);
-const trailWidth = ref(DEFAULTS.trailWidth);
-const trailTaper = ref(DEFAULTS.trailTaper);
-const followSpeed = ref(DEFAULTS.followSpeed);
-const glowIntensity = ref(DEFAULTS.glowIntensity);
-const glowSpread = ref(DEFAULTS.glowSpread);
-const hotspot = ref(DEFAULTS.hotspot);
-const brightness = ref(DEFAULTS.brightness);
-const opacity = ref(DEFAULTS.opacity);
-const pulseSpeed = ref(DEFAULTS.pulseSpeed);
-const noiseStrength = ref(DEFAULTS.noiseStrength);
-const idleFade = ref(DEFAULTS.idleFade);
-const idleTimeout = ref(DEFAULTS.idleTimeout);
-const fadeDuration = ref(DEFAULTS.fadeDuration);
-const blendMode = ref(DEFAULTS.blendMode);
-const maxDevicePixelRatio = ref(DEFAULTS.maxDevicePixelRatio);
-const enabled = ref(DEFAULTS.enabled);
+const QUALITY_OPTIONS = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' }
+];
 
-const glowCursorProps = computed(() => ({
-  color: color.value,
-  secondaryColor: secondaryColor.value,
-  trailLength: trailLength.value,
-  trailWidth: trailWidth.value,
-  trailTaper: trailTaper.value,
-  followSpeed: followSpeed.value,
-  glowIntensity: glowIntensity.value,
-  glowSpread: glowSpread.value,
-  hotspot: hotspot.value,
-  brightness: brightness.value,
-  opacity: opacity.value,
-  pulseSpeed: pulseSpeed.value,
-  noiseStrength: noiseStrength.value,
-  idleFade: idleFade.value,
-  idleTimeout: idleTimeout.value,
-  fadeDuration: fadeDuration.value,
-  blendMode: blendMode.value,
-  maxDevicePixelRatio: maxDevicePixelRatio.value,
-  enabled: enabled.value
-}));
-
-const hasChanges = computed(
-  () =>
-    color.value !== DEFAULTS.color ||
-    secondaryColor.value !== DEFAULTS.secondaryColor ||
-    trailLength.value !== DEFAULTS.trailLength ||
-    trailWidth.value !== DEFAULTS.trailWidth ||
-    trailTaper.value !== DEFAULTS.trailTaper ||
-    followSpeed.value !== DEFAULTS.followSpeed ||
-    glowIntensity.value !== DEFAULTS.glowIntensity ||
-    glowSpread.value !== DEFAULTS.glowSpread ||
-    hotspot.value !== DEFAULTS.hotspot ||
-    brightness.value !== DEFAULTS.brightness ||
-    opacity.value !== DEFAULTS.opacity ||
-    pulseSpeed.value !== DEFAULTS.pulseSpeed ||
-    noiseStrength.value !== DEFAULTS.noiseStrength ||
-    idleFade.value !== DEFAULTS.idleFade ||
-    idleTimeout.value !== DEFAULTS.idleTimeout ||
-    fadeDuration.value !== DEFAULTS.fadeDuration ||
-    blendMode.value !== DEFAULTS.blendMode ||
-    maxDevicePixelRatio.value !== DEFAULTS.maxDevicePixelRatio ||
-    enabled.value !== DEFAULTS.enabled
-);
-
-function reset() {
-  color.value = DEFAULTS.color;
-  secondaryColor.value = DEFAULTS.secondaryColor;
-  trailLength.value = DEFAULTS.trailLength;
-  trailWidth.value = DEFAULTS.trailWidth;
-  trailTaper.value = DEFAULTS.trailTaper;
-  followSpeed.value = DEFAULTS.followSpeed;
-  glowIntensity.value = DEFAULTS.glowIntensity;
-  glowSpread.value = DEFAULTS.glowSpread;
-  hotspot.value = DEFAULTS.hotspot;
-  brightness.value = DEFAULTS.brightness;
-  opacity.value = DEFAULTS.opacity;
-  pulseSpeed.value = DEFAULTS.pulseSpeed;
-  noiseStrength.value = DEFAULTS.noiseStrength;
-  idleFade.value = DEFAULTS.idleFade;
-  idleTimeout.value = DEFAULTS.idleTimeout;
-  fadeDuration.value = DEFAULTS.fadeDuration;
-  blendMode.value = DEFAULTS.blendMode;
-  maxDevicePixelRatio.value = DEFAULTS.maxDevicePixelRatio;
-  enabled.value = DEFAULTS.enabled;
-  forceRerender();
-}
-
-const props: PropRow[] = [
-  { name: 'color', type: 'string', default: "'#67E8F9'", description: 'Color at the bright head of the trail.' },
+const propData: PropRow[] = [
+  { name: 'color', type: 'string', default: "'#5f8bff'", description: 'Color of the light where it is freshly drawn.' },
   {
     name: 'secondaryColor',
     type: 'string',
-    default: "'#84CC16'",
-    description: 'Color blended into the end of the trail.'
+    default: '-',
+    description: 'Color the light cools to as it drifts. Leave it out for a deeper shade of the main color.'
   },
+  { name: 'intensity', type: 'number', default: '1.3', description: 'Brightness of the light.' },
   {
-    name: 'trailLength',
+    name: 'trailWidth',
     type: 'number',
-    default: '40',
-    description: 'Number of smoothed points used to build the trail, from 2 to 64.'
+    default: '3',
+    description: 'Thickness of the light where it is drawn, in pixels.'
   },
-  { name: 'trailWidth', type: 'number', default: '8', description: 'Width of the luminous trail core in pixels.' },
-  {
-    name: 'trailTaper',
-    type: 'number',
-    default: '0.8',
-    description: 'How strongly the trail narrows and dims toward its tail.'
-  },
+  { name: 'linger', type: 'number', default: '1.4', description: 'Seconds the light stays visible before it fades.' },
+  { name: 'glow', type: 'number', default: '1.2', description: 'Strength of the soft glow around the light.' },
+  { name: 'hotspot', type: 'number', default: '0.8', description: 'Strength of the white-hot core near the cursor.' },
   {
     name: 'followSpeed',
     type: 'number',
-    default: '0.16',
-    description: 'How quickly the glowing head catches the pointer.'
+    default: '0.6',
+    description: 'How tightly the light follows the cursor, from 0 to 1.'
+  },
+  { name: 'grain', type: 'number', default: '0', description: 'Amount of film grain in the light.' },
+  { name: 'clickBurst', type: 'boolean', default: 'true', description: 'Releases a burst of light when you click.' },
+  {
+    name: 'quality',
+    type: "'low' | 'medium' | 'high'",
+    default: "'high'",
+    description: 'Resolution of the simulation. Lower it for weaker devices.'
   },
   {
-    name: 'glowIntensity',
-    type: 'number',
-    default: '1.9',
-    description: 'Strength of the soft inverse-square halo around the trail.'
-  },
-  {
-    name: 'glowSpread',
-    type: 'number',
-    default: '1.2',
-    description: 'Distance the outer glow spreads from the trail core.'
-  },
-  {
-    name: 'hotspot',
-    type: 'number',
-    default: '0.65',
-    description: 'Amount of white-hot color added to the brightest part of the trail.'
-  },
-  {
-    name: 'brightness',
-    type: 'number',
-    default: '1.25',
-    description: 'Final luminance multiplier for the shader.'
-  },
-  { name: 'opacity', type: 'number', default: '1', description: 'Overall trail opacity.' },
-  {
-    name: 'pulseSpeed',
-    type: 'number',
-    default: '1.1',
-    description: 'Speed of the energy pulse travelling through the trail. Set to 0 to stop it.'
-  },
-  {
-    name: 'noiseStrength',
-    type: 'number',
-    default: '0.035',
-    description: 'Amount of fine animated texture in the glow.'
-  },
-  {
-    name: 'idleFade',
-    type: 'boolean',
-    default: 'true',
-    description: 'Fade the effect when the pointer stops or leaves the container.'
-  },
-  {
-    name: 'idleTimeout',
-    type: 'number',
-    default: '700',
-    description: 'Idle time in milliseconds before fading begins.'
-  },
-  {
-    name: 'fadeDuration',
-    type: 'number',
-    default: '900',
-    description: 'Approximate duration of the idle fade in milliseconds.'
+    name: 'theme',
+    type: "'dark' | 'light'",
+    default: "'dark'",
+    description: 'Use light on light backgrounds for an ink-like look.'
   },
   {
     name: 'blendMode',
-    type: "'normal' | 'screen' | 'plus-lighter'",
-    default: "'screen'",
-    description: 'CSS blend mode used to composite the canvas over its content.'
+    type: 'string',
+    default: 'auto',
+    description: 'CSS blend mode of the canvas. Defaults to screen in dark and normal in light.'
   },
+  { name: 'maxDevicePixelRatio', type: 'number', default: '2', description: 'Maximum pixel density of the canvas.' },
   {
-    name: 'maxDevicePixelRatio',
-    type: 'number',
-    default: '1.5',
-    description: 'Render-resolution cap for balancing sharpness and GPU cost.'
+    name: 'enabled',
+    type: 'boolean',
+    default: 'true',
+    description: 'Stops drawing new light while keeping what is already there.'
   },
-  { name: 'enabled', type: 'boolean', default: 'true', description: 'Enable or fade out the cursor effect.' },
-  {
-    name: 'children',
-    type: 'React.ReactNode',
-    default: '—',
-    description: 'Optional content rendered beneath the interactive trail.'
-  },
-  { name: 'className', type: 'string', default: "''", description: 'Additional classes for the container.' },
-  { name: 'style', type: 'React.CSSProperties', default: '{}', description: 'Inline styles for the container.' }
+  { name: 'default slot', type: 'slot', default: '-', description: 'Content rendered above the light.' },
+  { name: 'className', type: 'string', default: "''", description: 'Extra class names for the container.' },
+  { name: 'style', type: 'StyleValue', default: '-', description: 'Inline styles for the container.' }
 ];
+
+const { props, defaultProps, updateProp, updateProps, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
+const theme = useColorModeValue<'light' | 'dark'>('light', 'dark');
+
+const settings = computed(() => {
+  const { preset: _preset, secondaryColor: _secondaryColor, ...rest } = props.value;
+  return rest;
+});
+
+const computedProps = computed((): { secondaryColor?: string } =>
+  props.value.secondaryColor ? { secondaryColor: props.value.secondaryColor } : {}
+);
+
+const applyPreset = (value: string | number) => {
+  const key = String(value);
+  const base = Object.fromEntries(
+    Object.keys(DEFAULT_PROPS).map(key => [key, defaultProps.value[key as keyof DemoProps]])
+  ) as Partial<DemoProps>;
+  updateProps({ ...base, ...PRESETS[key], preset: key });
+};
 </script>
+
+<style scoped>
+.glow-cursor-demo-hint {
+  position: absolute;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-dimmed);
+  user-select: none;
+  pointer-events: none;
+}
+</style>

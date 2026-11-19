@@ -44,7 +44,7 @@ const props = withDefaults(defineProps<LineSidebarProps>(), {
     'Documentation',
     'Support'
   ],
-  accentColor: '#A855F7',
+  accentColor: '#27FF64',
   textColor: '#c4c4c4',
   markerColor: '#6c6c6c',
   showIndex: true,

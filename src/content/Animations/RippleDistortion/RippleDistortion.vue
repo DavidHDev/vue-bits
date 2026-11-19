@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Geometry, Mesh, Program, Renderer, RenderTarget, Texture, Triangle } from 'ogl';
-import { onMounted, onUnmounted, ref, watch, type CSSProperties } from 'vue';
+import { onBeforeUnmount, onMounted, ref, watch, type CSSProperties } from 'vue';
 
 const MAX_WAVES = 100;
 const QUALITY_SCALE: Record<string, number> = { low: 0.4, medium: 0.7, high: 1 };
@@ -130,8 +130,8 @@ void main() {
 }
 `;
 
-export type RippleTrigger = 'hover' | 'click' | 'both';
-export type RippleQuality = 'low' | 'medium' | 'high';
+type RippleTrigger = 'hover' | 'click' | 'both';
+type RippleQuality = 'low' | 'medium' | 'high';
 
 interface RippleDistortionProps {
   src?: string;
@@ -217,7 +217,7 @@ const props = withDefaults(defineProps<RippleDistortionProps>(), {
   spacing: 15,
   dispersion: 0,
   glint: 0,
-  tint: '#10B981',
+  tint: '#7cff67',
   tintAmount: 0.1,
   grayscale: true,
   highlightColor: '#ffffff',
@@ -234,8 +234,8 @@ let uniforms: RippleUniforms | null = null;
 let teardown: (() => void) | null = null;
 
 const syncUniforms = () => {
-  if (!uniforms) return;
   const u = uniforms;
+  if (!u) return;
   u.wave.uRings.value = props.rings;
   u.composite.uStrength.value = props.strength;
   u.composite.uSwirl.value = props.swirl;
@@ -246,21 +246,6 @@ const syncUniforms = () => {
   u.composite.uHighlight.value = hexToRGB(props.highlightColor);
   u.composite.uTint.value = hexToRGB(props.tint);
 };
-
-watch(
-  () => [
-    props.rings,
-    props.strength,
-    props.swirl,
-    props.dispersion,
-    props.glint,
-    props.tintAmount,
-    props.grayscale,
-    props.highlightColor,
-    props.tint
-  ],
-  () => syncUniforms()
-);
 
 const setup = () => {
   const mount = mountRef.value;
@@ -380,6 +365,7 @@ const setup = () => {
   let width = 1;
   let height = 1;
 
+  let resizePending = false;
   const resize = () => {
     width = Math.max(1, mount.clientWidth);
     height = Math.max(1, mount.clientHeight);
@@ -393,7 +379,9 @@ const setup = () => {
     compositeUniforms.uTexel.value = [1 / fieldW, 1 / fieldH];
   };
 
-  const ro = new ResizeObserver(resize);
+  const ro = new ResizeObserver(() => {
+    resizePending = true;
+  });
   ro.observe(mount);
   resize();
 
@@ -446,6 +434,10 @@ const setup = () => {
   let previousTime = 0;
 
   const loop = (now: number) => {
+    if (resizePending) {
+      resizePending = false;
+      resize();
+    }
     raf = requestAnimationFrame(loop);
     const delta = previousTime ? Math.min(0.05, (now - previousTime) / 1000) : 0;
     previousTime = now;
@@ -486,8 +478,6 @@ const setup = () => {
   };
   raf = requestAnimationFrame(loop);
 
-  syncUniforms();
-
   teardown = () => {
     disposed = true;
     cancelAnimationFrame(raf);
@@ -501,11 +491,9 @@ const setup = () => {
   };
 };
 
-onMounted(() => {
-  setup();
-});
+onMounted(setup);
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
   teardown?.();
   teardown = null;
 });
@@ -518,13 +506,39 @@ watch(
     setup();
   }
 );
+
+watch(
+  () => [
+    props.rings,
+    props.strength,
+    props.swirl,
+    props.dispersion,
+    props.glint,
+    props.tintAmount,
+    props.grayscale,
+    props.highlightColor,
+    props.tint
+  ],
+  syncUniforms
+);
 </script>
 
 <template>
-  <div
-    ref="mountRef"
-    class="[&>canvas]:block relative bg-black w-full [&>canvas]:w-full h-full [&>canvas]:h-full overflow-hidden"
-    :class="className"
-    :style="style"
-  />
+  <div ref="mountRef" :class="`ripple-distortion ${className}`.trim()" :style="style" />
 </template>
+
+<style>
+.ripple-distortion {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+}
+
+.ripple-distortion canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+</style>

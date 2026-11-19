@@ -1,179 +1,273 @@
 <template>
-  <h1 class="sub-category">Balatro</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="balatro.usage"
-    :source="balatroSource"
-    component-name="Balatro"
-    :props-table="props"
+    :demo-only-props="['preset']"
   >
-    <template #preview>
-      <div class="relative h-[500px] overflow-hidden demo-container">
-        <Balatro
-          :is-rotate="isRotate"
-          :mouse-interaction="mouseInteractionEnabled"
-          :pixel-filter="pixelFilter"
-          :color1="color1"
-          :color2="color2"
-          :color3="color3"
-        />
-        <BackgroundContent pillText="New Background" headline="Spin the world however you like" />
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 500px; padding: 0">
+          <Balatro :key="rerenderKey" v-bind="settings" />
+          <BackgroundContent headline="Swirling psychedelic colors, dealt straight from the deck." />
+          <RefreshButton @click="forceRerender" />
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewColorPicker title="Color 1" v-model="color1" />
-        <PreviewColorPicker title="Color 2" v-model="color2" />
-        <PreviewColorPicker title="Color 3" v-model="color3" />
-        <PreviewSlider title="Pixelation" v-model="pixelFilter" :min="0" :max="2000" :step="10" />
-        <PreviewSwitch title="Enable Mouse Interaction" v-model="mouseInteractionEnabled" />
-        <PreviewSwitch title="Rotate" v-model="isRotate" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewSelect
+            title="Preset"
+            :options="PRESET_OPTIONS"
+            :model-value="props.preset"
+            @update:model-value="(value: string | number) => applyPreset(String(value))"
+          />
+          <PreviewColorPickerCustom
+            title="Color 1"
+            :color="settings.color1"
+            @change="(value: string) => updateProp('color1', value)"
+          />
+          <PreviewColorPickerCustom
+            title="Color 2"
+            :color="settings.color2"
+            @change="(value: string) => updateProp('color2', value)"
+          />
+          <PreviewColorPickerCustom
+            title="Color 3"
+            :color="settings.color3"
+            @change="(value: string) => updateProp('color3', value)"
+          />
+          <PreviewSlider
+            title="Contrast"
+            :min="1"
+            :max="8"
+            :step="0.1"
+            :model-value="settings.contrast"
+            @update:model-value="(value: number) => updateProp('contrast', value)"
+          />
+          <PreviewSlider
+            title="Lighting"
+            :min="0"
+            :max="1.2"
+            :step="0.05"
+            :model-value="settings.lighting"
+            @update:model-value="(value: number) => updateProp('lighting', value)"
+          />
+          <PreviewSlider
+            title="Swirl"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="settings.swirl"
+            @update:model-value="(value: number) => updateProp('swirl', value)"
+          />
+          <PreviewSlider
+            title="Speed"
+            :min="0"
+            :max="3"
+            :step="0.05"
+            :model-value="settings.speed"
+            @update:model-value="(value: number) => updateProp('speed', value)"
+          />
+          <PreviewSlider
+            title="Rotation Speed"
+            :min="-5"
+            :max="5"
+            :step="0.1"
+            :model-value="settings.rotationSpeed"
+            @update:model-value="(value: number) => updateProp('rotationSpeed', value)"
+          />
+          <PreviewSlider
+            title="Scale"
+            :min="0.4"
+            :max="3"
+            :step="0.05"
+            :model-value="settings.scale"
+            @update:model-value="(value: number) => updateProp('scale', value)"
+          />
+          <PreviewSlider
+            title="Detail"
+            :min="1"
+            :max="8"
+            :step="1"
+            :model-value="settings.detail"
+            @update:model-value="(value: number) => updateProp('detail', value)"
+          />
+          <PreviewSlider
+            title="Pixel Size"
+            :min="0"
+            :max="12"
+            :step="0.5"
+            :model-value="settings.pixelSize"
+            @update:model-value="(value: number) => updateProp('pixelSize', value)"
+          />
+          <PreviewSlider
+            title="CRT"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.crt"
+            @update:model-value="(value: number) => updateProp('crt', value)"
+          />
+          <PreviewSlider
+            title="Mouse Strength"
+            :min="0"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.mouseStrength"
+            @update:model-value="(value: number) => updateProp('mouseStrength', value)"
+          />
+          <PreviewSwitch
+            title="Mouse Interaction"
+            :model-value="settings.mouseInteraction"
+            @update:model-value="(value: boolean) => updateProp('mouseInteraction', value)"
+          />
+          <PreviewSwitch
+            title="Click Swirl"
+            :model-value="settings.clickSwirl"
+            @update:model-value="(value: boolean) => updateProp('clickSwirl', value)"
+          />
+          <PreviewSwitch title="Intro" :model-value="settings.intro" @update:model-value="setIntro" />
+          <PreviewSwitch
+            title="Light Mode"
+            :model-value="settings.lightMode"
+            @update:model-value="(value: boolean) => updateProp('lightMode', value)"
+          />
+        </Customize>
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+        <PropTable :data="propData" />
+      </template>
 
-    <template #code>
-      <DemoCodeTab slug="balatro" :usage="balatro.usage!" :source="balatroSource" />
-    </template>
-  </TabsLayout>
+      <template #code>
+        <CodeExample :code-object="balatro" component-name="Balatro" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewColorPickerCustom from '@/components/common/PreviewColorPickerCustom.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
 import { useForceRerender } from '@/composables/useForceRerender';
+import { useColorMode } from '@/composables/useTheme';
 import { balatro } from '@/constants/code/Backgrounds/balatroCode';
 import Balatro from '@/content/Backgrounds/Balatro/Balatro.vue';
-import balatroSource from '@/content/Backgrounds/Balatro/Balatro.vue?raw';
-import { computed, ref } from 'vue';
+import { DEFAULT_PROPS, PRESET_OPTIONS, presetProps } from './presets/Balatro';
 
-const { forceRerender } = useForceRerender();
-
-const DEFAULTS = {
-  color1: '#DE443B',
-  color2: '#006BB4',
-  color3: '#162325',
-  isRotate: false,
-  mouseInteraction: true,
-  pixelFilter: 745.0
-};
-
-const color1 = ref(DEFAULTS.color1);
-const color2 = ref(DEFAULTS.color2);
-const color3 = ref(DEFAULTS.color3);
-const isRotate = ref(DEFAULTS.isRotate);
-const mouseInteractionEnabled = ref(DEFAULTS.mouseInteraction);
-const pixelFilter = ref(DEFAULTS.pixelFilter);
-
-const hasChanges = computed(
-  () =>
-    color1.value !== DEFAULTS.color1 ||
-    color2.value !== DEFAULTS.color2 ||
-    color3.value !== DEFAULTS.color3 ||
-    isRotate.value !== DEFAULTS.isRotate ||
-    mouseInteractionEnabled.value !== DEFAULTS.mouseInteraction ||
-    pixelFilter.value !== DEFAULTS.pixelFilter
-);
-
-function reset() {
-  color1.value = DEFAULTS.color1;
-  color2.value = DEFAULTS.color2;
-  color3.value = DEFAULTS.color3;
-  isRotate.value = DEFAULTS.isRotate;
-  mouseInteractionEnabled.value = DEFAULTS.mouseInteraction;
-  pixelFilter.value = DEFAULTS.pixelFilter;
-  forceRerender();
-}
-
-const props: PropRow[] = [
-  {
-    name: 'spinRotation',
-    type: 'number',
-    default: '-2.0',
-    description: 'Base rotation amount affecting the shader effect.'
-  },
-  {
-    name: 'spinSpeed',
-    type: 'number',
-    default: '7.0',
-    description: 'Speed of the spin animation.'
-  },
-  {
-    name: 'offset',
-    type: '[number, number]',
-    default: '[0.0, 0.0]',
-    description: 'Offset for the shader effect.'
-  },
-  {
-    name: 'color1',
-    type: 'string',
-    default: '"#DE443B"',
-    description: 'Primary color in HEX format.'
-  },
-  {
-    name: 'color2',
-    type: 'string',
-    default: '"#006BB4"',
-    description: 'Secondary color in HEX format.'
-  },
-  {
-    name: 'color3',
-    type: 'string',
-    default: '"#162325"',
-    description: 'Tertiary color in HEX format.'
-  },
+const propData: PropRow[] = [
+  { name: 'color1', type: 'string', default: "'#DE443B'", description: 'Main paint color.' },
+  { name: 'color2', type: 'string', default: "'#006BB4'", description: 'Second paint color, swirled into the first.' },
+  { name: 'color3', type: 'string', default: "'#162325'", description: 'Color of the gaps between the two paints.' },
   {
     name: 'contrast',
     type: 'number',
     default: '3.5',
-    description: 'Contrast value affecting color blending.'
+    description: 'How sharply the paints separate. Lower values blend them into soft washes.'
   },
+  { name: 'lighting', type: 'number', default: '0.4', description: 'Strength of the glossy highlights on the paint.' },
   {
-    name: 'lighting',
-    type: 'number',
-    default: '0.4',
-    description: 'Lighting factor affecting brightness.'
-  },
-  {
-    name: 'spinAmount',
+    name: 'swirl',
     type: 'number',
     default: '0.25',
-    description: 'Amount of spin influence based on UV length.'
+    description: 'How tightly the paint spirals around the center, from 0 to 1.'
   },
+  { name: 'speed', type: 'number', default: '1', description: 'How fast the paint flows. 0 freezes it.' },
   {
-    name: 'pixelFilter',
+    name: 'rotationSpeed',
     type: 'number',
-    default: '745.0',
-    description: 'Pixel filter factor determining pixelation.'
+    default: '0',
+    description: 'Turns the whole swirl continuously. Negative values turn it the other way.'
   },
+  { name: 'scale', type: 'number', default: '1', description: 'Size of the paint shapes. Higher values zoom in.' },
   {
-    name: 'spinEase',
+    name: 'detail',
     type: 'number',
-    default: '1.0',
-    description: 'Ease factor for spin.'
+    default: '5',
+    description: 'How many times the paint folds over itself, from 1 to 8. Higher values add finer streaks.'
   },
   {
-    name: 'isRotate',
-    type: 'boolean',
-    default: 'false',
-    description: 'Determines if the shader rotates continuously.'
+    name: 'offset',
+    type: '[number, number]',
+    default: '[0, 0]',
+    description: 'Moves the center of the swirl, as a fraction of the container diagonal.'
+  },
+  {
+    name: 'pixelSize',
+    type: 'number',
+    default: '1.5',
+    description: 'Size of the pixels in CSS pixels. 0 renders it smooth.'
+  },
+  {
+    name: 'crt',
+    type: 'number',
+    default: '0',
+    description: 'Adds the scanlines and soft edge falloff of an old CRT screen, from 0 to 1.'
   },
   {
     name: 'mouseInteraction',
     type: 'boolean',
     default: 'true',
-    description: 'Enables or disables mouse interaction for rotation.'
-  }
+    description: 'The cursor stirs the paint and steers the swirl.'
+  },
+  {
+    name: 'mouseStrength',
+    type: 'number',
+    default: '1',
+    description: 'How strongly the cursor drags the paint along.'
+  },
+  {
+    name: 'clickSwirl',
+    type: 'boolean',
+    default: 'true',
+    description: 'Clicking spins the paint into a whirlpool that slowly unwinds.'
+  },
+  { name: 'intro', type: 'boolean', default: 'true', description: 'The swirl spins into place on mount.' },
+  {
+    name: 'lightMode',
+    type: 'boolean',
+    default: 'false',
+    description: 'Lightens the gaps between the paints so it sits on light pages.'
+  },
+  { name: 'opacity', type: 'number', default: '1', description: 'Overall opacity, from 0 to 1.' },
+  {
+    name: 'maxDevicePixelRatio',
+    type: 'number',
+    default: '2',
+    description: 'Highest pixel ratio the canvas renders at.'
+  },
+  { name: 'className', type: 'string', default: "''", description: 'Extra class names for the container.' },
+  { name: 'style', type: 'CSSProperties', default: '-', description: 'Inline styles for the container.' }
 ];
+
+const { rerenderKey, forceRerender } = useForceRerender();
+const { colorMode } = useColorMode();
+const { props, defaultProps, updateProp, updateProps, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
+
+const settings = computed(() => {
+  const { preset: _preset, ...rest } = props.value;
+  void _preset;
+  return rest;
+});
+
+const applyPreset = (value: string) => {
+  updateProps({
+    ...presetProps(value, { light: colorMode.value === 'light', defaults: defaultProps.value }),
+    preset: value
+  });
+};
+
+const setIntro = (value: boolean) => {
+  updateProp('intro', value);
+  forceRerender();
+};
 </script>

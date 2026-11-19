@@ -1,29 +1,61 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
+import {
+  Fragment,
+  computed,
+  h,
+  isVNode,
+  nextTick,
+  onBeforeUnmount,
+  provide,
+  ref,
+  useSlots,
+  watch,
+  type Component,
+  type FunctionalComponent,
+  type VNode
+} from 'vue';
 import { useRoute } from 'vue-router';
-
-import { Check, ChevronDown, FileCode2, FileText, MoreHorizontal, Sparkles, Terminal } from 'lucide-vue-next';
-import { FiCode, FiEye } from 'vue-icons-plus/fi';
-import { PiShareFat } from 'vue-icons-plus/pi';
-import { RiHeartFill, RiHeartLine } from 'vue-icons-plus/ri';
-import { SiAnthropic, SiOpenai, SiVercel } from 'vue-icons-plus/si';
-
-import { registryUrl, shadcnAddSnippet } from '@/constants/cli';
-import { colors } from '@/constants/colors.ts';
-import { dependenciesForSlug } from '@/constants/componentDependencies';
-import { buildCompactPrompt, copyText, openInAI } from '@/utils/aiExport';
-import { isComponentSaved, toggleSavedComponent } from '@/utils/favorites';
 import { useToast } from 'primevue/usetoast';
-import { CUSTOMIZE_ACTIONS } from './customizeActions';
+import { HugeiconsIcon } from '@hugeicons/vue';
+import {
+  ComputerIcon,
+  FavouriteIcon,
+  FullScreenIcon,
+  MoreHorizontalIcon,
+  Share08Icon,
+  SmartPhone01Icon,
+  SourceCodeIcon,
+  Tablet01Icon,
+  ViewIcon
+} from '@hugeicons/core-free-icons';
+import { dependenciesForSlug } from '@/constants/componentDependencies';
+import { useAIExportActions } from '@/composables/useAIExportActions';
+import { usePreviewFrame } from '@/composables/usePreviewFrame';
+import { hasComponentPropsContext, useComponentPropsContext } from '@/components/context/componentProps';
+import type { CodeObject } from '@/types/code';
+import { buildPrompt, stripSourceHeader } from '@/utils/aiPrompt';
+import { copyText } from '@/utils/aiExport';
+import { getComponentOverviewByPath } from '@/utils/catalog';
+import { injectPropsIntoVueUsage } from '@/utils/codeGeneration';
+import { isComponentSaved, toggleSavedComponent } from '@/utils/favorites';
+import AIMenuSections from './AIMenuSections.vue';
+import CodeExample from './CodeExample.vue';
 import ComponentPager from './ComponentPager.vue';
+import CopyForAIMenu from './CopyForAIMenu.vue';
+import Customize from './Customize.vue';
 import Dependencies from './Dependencies.vue';
-
-type PropRow = {
-  name: string;
-  type: string;
-  default?: string;
-  description: string;
-};
+import DocsMenu from './DocsMenu.vue';
+import DocsMenuGroup from './DocsMenuGroup.vue';
+import DocsMenuItem from './DocsMenuItem.vue';
+import DocsTooltip from './DocsTooltip.vue';
+import CategoryProFooter from './Pro/CategoryProFooter.vue';
+import PreviewResizer from './PreviewResizer.vue';
+import PropTable, { type PropRow } from './PropTable.vue';
+import RelatedComponents from './RelatedComponents.vue';
+import TabsFooter from './TabsFooter.vue';
+import { CUSTOMIZE_ACTIONS } from './customizeActions';
+import { demoModesFor, demoView } from './demoModes';
+import { PREVIEW_STAGE, type DemoMode } from './previewStage';
 
 const props = withDefaults(
   defineProps<{
@@ -36,599 +68,602 @@ const props = withDefaults(
     onreset?: () => void;
   }>(),
   {
+    className: undefined,
+    componentName: undefined,
     usage: '',
     source: '',
     propsTable: () => [],
-    hasChanges: false
+    hasChanges: false,
+    onreset: undefined
   }
 );
 
-const toast = useToast();
+const TABLET_WIDTH = 768;
+const MOBILE_WIDTH = 375;
 
-provide(CUSTOMIZE_ACTIONS, {
-  reset: () => props.onreset?.(),
-  canReset: computed(() => Boolean(props.onreset) && props.hasChanges)
-});
+const WIDTH_PRESETS = [
+  { label: 'Desktop', icon: ComputerIcon, width: null as number | null },
+  { label: `Tablet · ${TABLET_WIDTH}px`, icon: Tablet01Icon, width: TABLET_WIDTH as number | null },
+  { label: `Mobile · ${MOBILE_WIDTH}px`, icon: SmartPhone01Icon, width: MOBILE_WIDTH as number | null }
+];
+
+const slots = useSlots();
 const route = useRoute();
-
-const activeTab = ref<'preview' | 'code'>('preview');
-
-const TAB_STYLE_PROPS = {
-  border: '1px solid transparent',
-  borderRadius: '10px',
-  fontSize: '14px',
-  color: '#ffffff',
-  background: 'var(--surface-ghost-track)'
-};
+const toast = useToast();
+const usesContext = hasComponentPropsContext();
+const context = useComponentPropsContext();
 
 const category = computed(() => (route.params.category as string) ?? '');
 const subcategory = computed(() => (route.params.subcategory as string) ?? '');
+const overview = computed(() => getComponentOverviewByPath(`/${category.value}/${subcategory.value}`));
 
-function toPascal(str: string) {
-  return (str || '')
+const toPascal = (str: string) =>
+  (str || '')
     .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join('');
-}
 
-const promptComponentName = computed(() => {
-  if (props.componentName) return props.componentName;
+const resetProps = () => {
+  if (usesContext) context.resetProps();
+  else props.onreset?.();
+};
 
-  return toPascal(subcategory.value);
+provide(CUSTOMIZE_ACTIONS, {
+  reset: resetProps,
+  canReset: computed(() => (usesContext ? context.hasChanges.value : Boolean(props.onreset) && props.hasChanges))
 });
 
-const hasPrompt = computed(() => {
-  return Boolean(promptComponentName.value && props.source);
+const isComponent = (vnode: VNode, target: Component) => vnode.type === target;
+
+const findVNodeProps = (nodes: unknown, target: Component): Record<string, unknown> | null => {
+  if (!nodes) return null;
+  const list = Array.isArray(nodes) ? nodes : [nodes];
+  for (const node of list) {
+    if (!node || typeof node !== 'object') continue;
+    const vnode = node as VNode;
+    if (isComponent(vnode, target)) return (vnode.props as Record<string, unknown>) ?? {};
+    const children = vnode.children as unknown;
+    if (Array.isArray(children)) {
+      const found = findVNodeProps(children, target);
+      if (found) return found;
+    } else if (
+      children &&
+      typeof children === 'object' &&
+      typeof (children as { default?: unknown }).default === 'function'
+    ) {
+      const found = findVNodeProps((children as { default: () => unknown }).default(), target);
+      if (found) return found;
+    }
+  }
+  return null;
+};
+
+const insertCategoryPro = (nodes: VNode[], category: string) => {
+  const hasTarget = (list: VNode[], target: Component): boolean =>
+    list.some(
+      node =>
+        isVNode(node) &&
+        (node.type === target ||
+          (node.type === Fragment && Array.isArray(node.children) && hasTarget(node.children as VNode[], target)))
+    );
+  const target = hasTarget(nodes, Customize) ? Customize : hasTarget(nodes, PropTable) ? PropTable : null;
+  if (!target) return nodes;
+  let inserted = false;
+  const visit = (list: VNode[]): VNode[] =>
+    list.flatMap(node => {
+      if (inserted || !isVNode(node)) return [node];
+      if (node.type === target) {
+        inserted = true;
+        const strip = h(CategoryProFooter, { key: 'related-pro', category });
+        return target === Customize ? [node, strip] : [strip, node];
+      }
+      if (node.type === Fragment && Array.isArray(node.children)) {
+        const children = visit(node.children as VNode[]);
+        return inserted ? [h(Fragment, { key: node.key ?? undefined }, children)] : [node];
+      }
+      return [node];
+    });
+  return visit(nodes);
+};
+
+const readProp = (record: Record<string, unknown> | null, camel: string) => {
+  if (!record) return undefined;
+  const kebab = camel.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+  return record[camel] ?? record[kebab];
+};
+
+const codeExampleProps = computed(() => {
+  const found = findVNodeProps(slots.code?.(), CodeExample);
+  if (!found) return null;
+  const codeObject = readProp(found, 'codeObject') as CodeObject | undefined;
+  if (!codeObject) return null;
+  return { codeObject, componentName: (readProp(found, 'componentName') as string | undefined) ?? '' };
 });
 
-const previewTabId = computed(() => `${subcategory.value || 'component'}-preview-tab`);
+const namedProSlot = Boolean(slots.customize || slots.propTable);
 
-const codeTabId = computed(() => `${subcategory.value || 'component'}-code-tab`);
+const PreviewContent: FunctionalComponent = () => {
+  const nodes = slots.preview?.() ?? [];
+  return namedProSlot ? nodes : insertCategoryPro(nodes, category.value);
+};
 
-const previewPanelId = computed(() => `${subcategory.value || 'component'}-preview-panel`);
-
-const codePanelId = computed(() => `${subcategory.value || 'component'}-code-panel`);
-
-function stripHeader(source: string) {
-  return source.replace(/^['"][^'"]+['"];\s*/gm, '').trim();
-}
-
-const dependencyList = computed(() => dependenciesForSlug(route.params.subcategory as string));
-
-// ── Favorites ──────────────────────────────────────────────────────────────
-const favoriteKey = computed(() => {
-  if (!category.value || !subcategory.value) return null;
-  return `${toPascal(category.value)}/${toPascal(subcategory.value)}`;
+const propData = computed<PropRow[]>(() => {
+  if (props.propsTable.length) return props.propsTable;
+  const found = findVNodeProps(slots.preview?.(), PropTable) ?? findVNodeProps(slots.propTable?.(), PropTable);
+  return (readProp(found, 'data') as PropRow[] | undefined) ?? [];
 });
 
-const showFavorite = computed(() => Boolean(favoriteKey.value) && category.value !== 'get-started');
+const isLegacy = computed(() => Boolean(props.source) && !codeExampleProps.value);
 
-const hasOverflowActions = computed(() => showFavorite.value || hasPrompt.value);
+const legacyDependencies = computed(() => (isLegacy.value ? dependenciesForSlug(subcategory.value) : []));
 
+const promptComponentName = computed(
+  () => codeExampleProps.value?.componentName || props.componentName || toPascal(subcategory.value)
+);
+
+const aiExport = computed(() => {
+  const name = promptComponentName.value;
+  const codeObject: CodeObject | null = codeExampleProps.value
+    ? codeExampleProps.value.codeObject
+    : props.source
+      ? {
+          usage: props.usage,
+          code: props.source,
+          dependencies: dependenciesForSlug(subcategory.value).join(' ')
+        }
+      : null;
+  if (!codeObject || !name) return null;
+
+  const mergedProps = { ...context.props.value, ...context.computedProps.value };
+  const configuredUsage =
+    codeObject.usage && usesContext
+      ? injectPropsIntoVueUsage(
+          codeObject.usage,
+          mergedProps,
+          context.defaultProps.value,
+          name,
+          context.demoOnlyProps.value
+        )
+      : codeObject.usage || '';
+
+  return {
+    componentName: name,
+    category: category.value,
+    subcategory: subcategory.value,
+    fullPrompt: buildPrompt(name, { ...codeObject, usage: configuredUsage }, propData.value),
+    configuredUsage,
+    componentSource: stripSourceHeader(codeObject.code || '')
+  };
+});
+
+const aiActions = useAIExportActions(aiExport);
+
+const favoriteKey = computed(() =>
+  category.value && subcategory.value ? `${toPascal(category.value)}/${toPascal(subcategory.value)}` : null
+);
 const isSaved = ref(false);
 
-function refreshSaved() {
-  isSaved.value = favoriteKey.value ? isComponentSaved(favoriteKey.value) : false;
-}
-
-watch(favoriteKey, refreshSaved, { immediate: true });
+watch(
+  favoriteKey,
+  key => {
+    isSaved.value = key ? isComponentSaved(key) : false;
+  },
+  { immediate: true }
+);
 
 function toggleFavorite() {
   if (!favoriteKey.value) return;
-
   const { saved } = toggleSavedComponent(favoriteKey.value);
   isSaved.value = saved;
-
   const name = promptComponentName.value;
-
   toast.add({
     severity: saved ? 'success' : 'error',
     summary: saved ? `Added <${name} /> to favorites` : `Removed <${name} /> from favorites`,
     life: 3000
   });
-
-  overflowOpen.value = false;
 }
 
-// ── Share ──────────────────────────────────────────────────────────────────
 async function copyShareLink() {
   if (await copyText(window.location.href)) {
     toast.add({ severity: 'success', summary: 'Share link copied', life: 2500 });
   } else {
     toast.add({ severity: 'error', summary: 'Could not copy the link', life: 2500 });
   }
-
-  overflowOpen.value = false;
 }
 
-// ── Copy for AI ────────────────────────────────────────────────────────────
-const menuOpen = ref(false);
-const done = ref<string | null>(null);
-const aiMenuRootRef = ref<HTMLElement | null>(null);
-
-// ── Mobile overflow menu ─────────────────────────────────────────────────────
-const overflowOpen = ref(false);
-const overflowMenuRootRef = ref<HTMLElement | null>(null);
-
-function toggleOverflowMenu() {
-  overflowOpen.value = !overflowOpen.value;
-}
-
-const installCommand = computed(() => {
-  if (!subcategory.value) return '';
-  return shadcnAddSnippet(subcategory.value, 'npm');
+const activeTab = ref<'preview' | 'code'>('preview');
+const codeMounted = ref(false);
+watch(activeTab, tab => {
+  if (tab === 'code') codeMounted.value = true;
 });
 
-function buildFullPrompt() {
-  const sourceShown = stripHeader(props.source);
-  const deps = dependencyList.value.join(', ');
+const previewWidth = ref<number | null>(null);
+const resizing = ref(false);
+const previewRef = ref<HTMLElement | null>(null);
+const controlsSlot = ref<HTMLElement | null>(null);
+const isPreview = computed(() => activeTab.value === 'preview');
+const canResize = computed(() => category.value !== 'get-started' && isPreview.value);
+const frame = usePreviewFrame(previewRef, canResize);
+const isBackgrounds = computed(() => category.value === 'backgrounds');
+const hasStageControls = computed(() => isBackgrounds.value && canResize.value);
+const demoMode = ref<DemoMode>(rememberedDemoMode);
+const demoNarrow = ref(false);
+const demoPresent = ref(false);
 
-  let prompt = `## Integrate the <${promptComponentName.value} /> component from Vue Bits
+const setDemoMode = (value: DemoMode) => {
+  rememberedDemoMode = value;
+  demoMode.value = value;
+};
 
-You are helping integrate an open-source Vue component into an existing application.
-
-### Component: ${promptComponentName.value}
-### Variant: TypeScript + Tailwind
-${deps ? `### Dependencies: ${deps}` : ''}
-
----
-
-### Usage Example
-\`\`\`vue
-${props.usage}
-\`\`\`
-`;
-
-  if (props.propsTable.length > 0) {
-    prompt += `
-### Props
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-${props.propsTable.map(p => `| ${p.name} | ${p.type} | ${p.default || '—'} | ${p.description} |`).join('\n')}
-`;
+provide(PREVIEW_STAGE, {
+  controls: computed(() => (hasStageControls.value ? controlsSlot.value : null)),
+  hasControls: hasStageControls,
+  demo: {
+    mode: demoMode,
+    setMode: setDemoMode,
+    setNarrow: (value: boolean) => (demoNarrow.value = value),
+    setPresent: (value: boolean) => (demoPresent.value = value)
   }
+});
 
-  prompt += `
-### Full Component Source
-\`\`\`vue
-${sourceShown}
-\`\`\`
+watch([frame, previewWidth], ([currentFrame, width]) => {
+  if (currentFrame && width !== null && width >= currentFrame.fullWidth) previewWidth.value = null;
+});
 
-### Integration Instructions
-1. Copy the component source into the appropriate directory in the project.
-2. Import and render the component using the usage example above as a starting point.
-3. Adjust props as needed for the specific use case.
-`;
+const canFullscreen = () =>
+  typeof document !== 'undefined' &&
+  Boolean(
+    document.fullscreenEnabled || (document as unknown as { webkitFullscreenEnabled?: boolean }).webkitFullscreenEnabled
+  );
 
-  return prompt;
+function openFullscreen() {
+  const demo = previewRef.value?.querySelector('.demo-container') as
+    | (HTMLElement & { webkitRequestFullscreen?: () => Promise<void> | void })
+    | null;
+  const request = demo?.requestFullscreen || demo?.webkitRequestFullscreen;
+  if (!demo || !request) return;
+  Promise.resolve(request.call(demo)).catch(() =>
+    toast.add({ severity: 'error', summary: 'Fullscreen is not available here', life: 2500 })
+  );
 }
 
-async function runCopy(key: string, text: string, message: string) {
-  if (!text) {
-    toast.add({ severity: 'error', summary: 'Nothing to copy for this component', life: 2500 });
-    menuOpen.value = false;
-    overflowOpen.value = false;
+const showFavorite = computed(() => Boolean(favoriteKey.value) && category.value !== 'get-started');
+const showFullscreen = computed(() => isBackgrounds.value && isPreview.value && canFullscreen());
+const hasOverflowActions = computed(() => showFavorite.value || Boolean(aiExport.value) || showFullscreen.value);
+const widthPresets = computed(() =>
+  canResize.value && frame.value
+    ? WIDTH_PRESETS.filter(preset => preset.width === null || preset.width < (frame.value?.fullWidth ?? 0))
+    : []
+);
+const showDemoModes = computed(() => isBackgrounds.value && isPreview.value && demoPresent.value);
+const demoOptions = computed(() => demoModesFor(demoNarrow.value));
+const demoSelected = computed(() => demoView(demoMode.value, demoNarrow.value));
+const showWidthPresets = computed(() => !showDemoModes.value && widthPresets.value.length > 1);
+const favoriteLabel = computed(() => (isSaved.value ? 'Remove from favorites' : 'Add to favorites'));
+
+type Pill = { x: number; width: number; hidden: boolean; ready: boolean } | null;
+
+const tabsTrackRef = ref<HTMLElement | null>(null);
+const sizeTrackRef = ref<HTMLElement | null>(null);
+const tabsPill = ref<Pill>(null);
+const sizePill = ref<Pill>(null);
+
+const measurePill = (track: HTMLElement | null, pill: typeof tabsPill) => {
+  if (!track) return;
+  const active = track.querySelector<HTMLElement>('[aria-selected="true"], [aria-pressed="true"]');
+  const previous = pill.value;
+  if (!active) {
+    pill.value = previous ? { ...previous, hidden: true } : null;
     return;
   }
+  const next = { x: active.offsetLeft, width: active.offsetWidth, hidden: false, ready: Boolean(previous) };
+  if (previous && previous.x === next.x && previous.width === next.width && !previous.hidden) return;
+  pill.value = next;
+};
 
-  if (await copyText(text)) {
-    done.value = key;
-    toast.add({ severity: 'success', summary: message, life: 2500 });
-    setTimeout(() => {
-      if (done.value === key) done.value = null;
-    }, 2000);
-  } else {
-    toast.add({ severity: 'error', summary: 'Could not copy to clipboard', life: 2500 });
-  }
+const pillStyle = (pill: Pill) =>
+  pill
+    ? { width: `${pill.width}px`, transform: `translateX(${pill.x}px)`, opacity: pill.hidden ? 0 : 1 }
+    : { opacity: 0 };
 
-  menuOpen.value = false;
-  overflowOpen.value = false;
-}
+let tabsObserver: ResizeObserver | null = null;
+let sizeObserver: ResizeObserver | null = null;
 
-const copyItems = computed(() => [
-  {
-    key: 'prompt',
-    label: 'Copy prompt',
-    icon: Sparkles,
-    run: () => runCopy('prompt', buildFullPrompt(), 'Prompt copied — paste into any AI assistant')
+watch(
+  tabsTrackRef,
+  track => {
+    tabsObserver?.disconnect();
+    if (!track) return;
+    tabsObserver = new ResizeObserver(() => measurePill(track, tabsPill));
+    tabsObserver.observe(track);
+    measurePill(track, tabsPill);
   },
-  {
-    key: 'usage',
-    label: 'Copy usage example',
-    icon: FileText,
-    run: () => runCopy('usage', props.usage, 'Usage example copied')
+  { flush: 'post' }
+);
+
+watch(
+  sizeTrackRef,
+  track => {
+    sizeObserver?.disconnect();
+    sizePill.value = null;
+    if (!track) return;
+    sizeObserver = new ResizeObserver(() => measurePill(track, sizePill));
+    sizeObserver.observe(track);
+    measurePill(track, sizePill);
   },
-  {
-    key: 'source',
-    label: 'Copy component source',
-    icon: FileCode2,
-    run: () => runCopy('source', stripHeader(props.source), 'Component source copied')
-  },
-  {
-    key: 'install',
-    label: 'Copy install command',
-    icon: Terminal,
-    run: () => runCopy('install', installCommand.value, 'Install command copied')
-  }
-]);
+  { flush: 'post' }
+);
 
-function openAIProvider(providerKey: 'chatgpt' | 'claude' | 'v0') {
-  const compactPrompt = buildCompactPrompt({
-    componentName: promptComponentName.value,
-    category: category.value,
-    subcategory: subcategory.value,
-    installCommand: installCommand.value,
-    usage: props.usage
-  });
+watch(activeTab, () => nextTick(() => measurePill(tabsTrackRef.value, tabsPill)), { flush: 'post' });
 
-  menuOpen.value = false;
-  overflowOpen.value = false;
-  openInAI(providerKey, { prompt: compactPrompt, registryUrl: registryUrl(subcategory.value) });
-}
-
-function toggleAiMenu() {
-  menuOpen.value = !menuOpen.value;
-}
-
-function handleOutsideClick(event: MouseEvent) {
-  if (!aiMenuRootRef.value?.contains(event.target as Node)) menuOpen.value = false;
-  if (!overflowMenuRootRef.value?.contains(event.target as Node)) overflowOpen.value = false;
-}
-
-function handleEscape(event: KeyboardEvent) {
-  if (event.key === 'Escape') {
-    menuOpen.value = false;
-    overflowOpen.value = false;
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleOutsideClick);
-  document.addEventListener('keydown', handleEscape);
-});
+watch(
+  () =>
+    `${previewWidth.value}-${widthPresets.value.length}-${showFullscreen.value}-${
+      showDemoModes.value ? `${demoSelected.value}-${demoOptions.value.length}` : ''
+    }`,
+  () => nextTick(() => measurePill(sizeTrackRef.value, sizePill)),
+  { flush: 'post' }
+);
 
 onBeforeUnmount(() => {
-  document.removeEventListener('click', handleOutsideClick);
-  document.removeEventListener('keydown', handleEscape);
+  tabsObserver?.disconnect();
+  sizeObserver?.disconnect();
 });
 
 function selectTab(tab: 'preview' | 'code') {
   activeTab.value = tab;
-
-  requestAnimationFrame(() => {
-    const targetId = tab === 'preview' ? previewTabId.value : codeTabId.value;
-
-    document.getElementById(targetId)?.focus();
-  });
 }
 
-function handleTabKey(event: KeyboardEvent) {
-  if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+function onTabKey(event: KeyboardEvent) {
+  if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
     event.preventDefault();
-
-    selectTab(activeTab.value === 'preview' ? 'code' : 'preview');
-  } else if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+    const next = activeTab.value === 'preview' ? 'code' : 'preview';
+    selectTab(next);
+    nextTick(() => tabsTrackRef.value?.querySelector<HTMLElement>(`[data-value="${next}"]`)?.focus());
+  } else if (event.key === 'Home' || event.key === 'End') {
     event.preventDefault();
-
-    selectTab(activeTab.value === 'preview' ? 'code' : 'preview');
-  } else if (event.key === 'Home') {
-    event.preventDefault();
-
-    selectTab('preview');
-  } else if (event.key === 'End') {
-    event.preventDefault();
-
-    selectTab('code');
+    selectTab(event.key === 'Home' ? 'preview' : 'code');
   }
 }
+
+const panelId = computed(() => `${subcategory.value || 'component'}`);
+</script>
+
+<script lang="ts">
+import type { DemoMode as RememberedDemoMode } from './previewStage';
+
+let rememberedDemoMode: RememberedDemoMode = 'none';
 </script>
 
 <template>
-  <div class="w-full" :class="className">
-    <!-- Tabs -->
-    <div
-      class="flex flex-wrap justify-between items-center gap-2 mb-4 w-full"
-      role="tablist"
-      aria-label="Component example sections"
-      tabindex="-1"
-      @keydown="handleTabKey"
-    >
-      <div class="flex flex-1 md:flex-none gap-2 min-w-0">
-        <!-- Preview -->
+  <div class="docs-tabs-root" :class="className" style="width: 100%">
+    <div class="docs-toolbar">
+      <div
+        ref="tabsTrackRef"
+        class="docs-track docs-tabs"
+        role="tablist"
+        aria-orientation="horizontal"
+        data-pill=""
+        @keydown="onTabKey"
+      >
+        <span
+          class="docs-pill"
+          aria-hidden="true"
+          :data-ready="tabsPill?.ready ? '' : undefined"
+          :style="pillStyle(tabsPill)"
+        />
         <button
-          :id="previewTabId"
+          :id="`${panelId}-tab-preview`"
           type="button"
           role="tab"
+          class="docs-segment"
+          data-value="preview"
           :aria-selected="activeTab === 'preview'"
-          :aria-controls="previewPanelId"
+          :aria-controls="`${panelId}-panel-preview`"
           :tabindex="activeTab === 'preview' ? 0 : -1"
+          :data-selected="activeTab === 'preview' ? '' : undefined"
           @click="selectTab('preview')"
-          class="flex flex-1 md:flex-none justify-center items-center gap-2 px-4 border rounded-[10px] h-10 transition-all"
-          :style="{
-            ...TAB_STYLE_PROPS,
-            background: activeTab === 'preview' ? 'var(--surface-ghost)' : TAB_STYLE_PROPS.background,
-            color: activeTab === 'preview' ? colors.accent : 'var(--text-muted)',
-            boxShadow: activeTab === 'preview' ? 'var(--surface-ghost-highlight)' : 'none'
-          }"
         >
-          <FiEye :size="16" />
+          <HugeiconsIcon :icon="ViewIcon" :size="16" :stroke-width="1.6" aria-hidden="true" />
           Preview
         </button>
-
-        <!-- Code -->
         <button
-          :id="codeTabId"
+          :id="`${panelId}-tab-code`"
           type="button"
           role="tab"
+          class="docs-segment"
+          data-value="code"
           :aria-selected="activeTab === 'code'"
-          :aria-controls="codePanelId"
+          :aria-controls="`${panelId}-panel-code`"
           :tabindex="activeTab === 'code' ? 0 : -1"
+          :data-selected="activeTab === 'code' ? '' : undefined"
           @click="selectTab('code')"
-          class="flex flex-1 md:flex-none justify-center items-center gap-2 px-4 border rounded-[10px] h-10 transition-all"
-          :style="{
-            ...TAB_STYLE_PROPS,
-            background: activeTab === 'code' ? 'var(--surface-ghost)' : TAB_STYLE_PROPS.background,
-            color: activeTab === 'code' ? colors.accent : 'var(--text-muted)',
-            boxShadow: activeTab === 'code' ? 'var(--surface-ghost-highlight)' : 'none'
-          }"
         >
-          <FiCode :size="16" />
+          <HugeiconsIcon :icon="SourceCodeIcon" :size="16" :stroke-width="1.6" aria-hidden="true" />
           Code
         </button>
       </div>
 
-      <!-- Actions -->
-      <div class="flex flex-wrap items-center gap-2">
-        <!-- Desktop: full action buttons -->
-        <div class="hidden md:flex items-center gap-2">
-          <div v-if="showFavorite" class="group relative">
+      <div class="docs-toolbar-actions">
+        <div
+          v-if="showDemoModes || showWidthPresets || showFullscreen"
+          ref="sizeTrackRef"
+          class="docs-track"
+          role="group"
+          :aria-label="showDemoModes ? 'Demo content' : 'Preview size'"
+          data-pill=""
+        >
+          <span
+            class="docs-pill"
+            aria-hidden="true"
+            :data-ready="sizePill?.ready ? '' : undefined"
+            :style="pillStyle(sizePill)"
+          />
+          <template v-if="showDemoModes">
+            <DocsTooltip v-for="item in demoOptions" :key="item.value" :label="item.label">
+              <button
+                type="button"
+                class="docs-segment docs-segment--icon"
+                :aria-label="item.label"
+                :aria-pressed="demoSelected === item.value"
+                @click="setDemoMode(item.value)"
+              >
+                <HugeiconsIcon :icon="item.icon" :size="16" :stroke-width="1.6" aria-hidden="true" />
+              </button>
+            </DocsTooltip>
+          </template>
+          <template v-if="showWidthPresets">
+            <DocsTooltip v-for="preset in widthPresets" :key="preset.label" :label="preset.label">
+              <button
+                type="button"
+                class="docs-segment docs-segment--icon"
+                :aria-label="preset.label"
+                :aria-pressed="previewWidth === preset.width"
+                @click="previewWidth = preset.width"
+              >
+                <HugeiconsIcon :icon="preset.icon" :size="16" :stroke-width="1.6" aria-hidden="true" />
+              </button>
+            </DocsTooltip>
+          </template>
+          <DocsTooltip v-if="showFullscreen" label="Fullscreen">
             <button
               type="button"
-              :aria-pressed="isSaved"
-              :aria-label="isSaved ? 'Remove from Favorites' : 'Add to Favorites'"
-              @click="toggleFavorite"
-              class="flex justify-center items-center border rounded-[10px] w-10 h-10 transition-colors duration-200"
-              :class="isSaved ? 'hover:bg-[rgba(160,255,188,0.26)]' : 'hover:bg-(--bg-hover)'"
-              :style="{
-                ...TAB_STYLE_PROPS,
-                background: isSaved ? 'rgba(160,255,188,0.18)' : TAB_STYLE_PROPS.background
-              }"
+              class="docs-segment docs-segment--icon"
+              aria-label="Fullscreen"
+              @click="openFullscreen"
             >
-              <RiHeartFill v-if="isSaved" :size="16" :color="colors.accent" />
-              <RiHeartLine v-else :size="16" color="#fff" />
+              <HugeiconsIcon :icon="FullScreenIcon" :size="16" :stroke-width="1.6" aria-hidden="true" />
             </button>
+          </DocsTooltip>
+        </div>
 
-            <span
-              class="top-1/2 right-full z-10 absolute flex items-center opacity-0 group-hover:opacity-100 mr-2 px-4 rounded-[10px] h-10 font-medium text-xs whitespace-nowrap transition-opacity -translate-y-1/2 duration-150 pointer-events-none"
-              :style="{ background: colors.bgBody, border: `1px solid ${colors.borderPrimary}`, color: colors.accent }"
-            >
-              {{ isSaved ? 'Remove from Favorites' : 'Add to Favorites' }}
-            </span>
-          </div>
-
-          <div v-if="showFavorite" class="group relative">
+        <div v-if="showFavorite" class="docs-track" role="group" aria-label="Page actions">
+          <DocsTooltip :label="favoriteLabel">
             <button
               type="button"
+              class="docs-segment docs-segment--icon docs-favorite"
+              :aria-label="favoriteLabel"
+              :aria-pressed="isSaved"
+              :data-saved="isSaved ? '' : undefined"
+              @click="toggleFavorite"
+            >
+              <HugeiconsIcon :icon="FavouriteIcon" :size="16" :stroke-width="1.6" aria-hidden="true" />
+            </button>
+          </DocsTooltip>
+          <DocsTooltip label="Copy share link">
+            <button
+              type="button"
+              class="docs-segment docs-segment--icon"
               aria-label="Copy share link"
               @click="copyShareLink"
-              class="flex justify-center items-center w-10 h-10 border rounded-[10px] transition-colors duration-200 hover:bg-(--bg-hover)"
-              :style="TAB_STYLE_PROPS"
             >
-              <PiShareFat :size="16" color="#fff" />
+              <HugeiconsIcon :icon="Share08Icon" :size="16" :stroke-width="1.6" aria-hidden="true" />
             </button>
-
-            <span
-              class="top-1/2 right-full z-10 absolute flex items-center opacity-0 group-hover:opacity-100 mr-2 px-4 rounded-[10px] h-10 font-medium text-xs whitespace-nowrap transition-opacity -translate-y-1/2 duration-150 pointer-events-none"
-              :style="{ background: colors.bgBody, border: `1px solid ${colors.borderPrimary}`, color: colors.accent }"
-            >
-              Copy share link
-            </span>
-          </div>
-
-          <div v-if="hasPrompt" ref="aiMenuRootRef" class="relative">
-            <button
-              type="button"
-              aria-haspopup="menu"
-              :aria-expanded="menuOpen"
-              aria-label="Copy for AI"
-              @click="toggleAiMenu"
-              class="flex items-center gap-1.5 px-4 border rounded-[10px] h-10 transition-colors duration-200 hover:bg-(--bg-hover)"
-              :style="TAB_STYLE_PROPS"
-            >
-              <Check v-if="done" :size="14" :color="colors.accent" />
-              {{ done ? 'Copied!' : 'Copy for AI' }}
-              <ChevronDown :size="14" color="#fff" />
-            </button>
-
-            <div
-              v-if="menuOpen"
-              role="menu"
-              class="top-[calc(100%+8px)] right-0 z-1500 absolute p-1 rounded-[10px] min-w-58.75"
-              :style="{
-                background: colors.bgBody,
-                border: `1px solid ${colors.borderPrimary}`,
-                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)'
-              }"
-            >
-              <button
-                v-for="item in copyItems"
-                :key="item.key"
-                type="button"
-                role="menuitem"
-                class="w-full flex items-center gap-3 px-3 py-2 text-sm text-left whitespace-nowrap rounded-sm cursor-pointer bg-transparent border-0 transition-colors duration-150 hover:bg-(--bg-hover)"
-                style="color: #fff"
-                @click="item.run"
-              >
-                <Check v-if="done === item.key" :size="16" :color="colors.accent" />
-                <component :is="item.icon" v-else :size="16" :color="colors.textMuted" />
-                {{ item.label }}
-              </button>
-
-              <div class="my-1 h-px" :style="{ background: colors.borderPrimary }" />
-
-              <button
-                type="button"
-                role="menuitem"
-                class="w-full flex items-center gap-3 px-3 py-2 text-sm text-left whitespace-nowrap rounded-sm cursor-pointer bg-transparent border-0 transition-colors duration-150 hover:bg-(--bg-hover)"
-                style="color: #fff"
-                @click="openAIProvider('chatgpt')"
-              >
-                <SiOpenai :size="16" :color="colors.textMuted" />
-                Open in ChatGPT
-              </button>
-
-              <button
-                type="button"
-                role="menuitem"
-                class="w-full flex items-center gap-3 px-3 py-2 text-sm text-left whitespace-nowrap rounded-sm cursor-pointer bg-transparent border-0 transition-colors duration-150 hover:bg-(--bg-hover)"
-                style="color: #fff"
-                @click="openAIProvider('claude')"
-              >
-                <SiAnthropic :size="16" :color="colors.textMuted" />
-                Open in Claude
-              </button>
-
-              <button
-                type="button"
-                role="menuitem"
-                class="w-full flex items-center gap-3 px-3 py-2 text-sm text-left whitespace-nowrap rounded-sm cursor-pointer bg-transparent border-0 transition-colors duration-150 hover:bg-(--bg-hover)"
-                style="color: #fff"
-                @click="openAIProvider('v0')"
-              >
-                <SiVercel :size="16" :color="colors.textMuted" />
-                Open in v0
-              </button>
-            </div>
-          </div>
+          </DocsTooltip>
         </div>
 
-        <!-- Mobile: overflow menu -->
-        <div v-if="hasOverflowActions" ref="overflowMenuRootRef" class="relative flex md:hidden">
-          <button
-            type="button"
-            aria-label="More actions"
-            aria-haspopup="menu"
-            :aria-expanded="overflowOpen"
-            @click="toggleOverflowMenu"
-            class="flex justify-center items-center relative border rounded-[10px] w-10 h-10 transition-colors duration-200 hover:bg-(--bg-hover)"
-            :style="TAB_STYLE_PROPS"
-          >
-            <MoreHorizontal :size="18" />
-            <span
-              v-if="isSaved"
-              class="top-1.5 right-1.5 absolute w-1.5 h-1.5 rounded-full"
-              :style="{ background: colors.accent }"
-            />
-          </button>
-
-          <div
-            v-if="overflowOpen"
-            role="menu"
-            class="top-[calc(100%+8px)] right-0 z-1500 absolute p-1 rounded-[10px] min-w-58.75"
-            :style="{
-              background: colors.bgBody,
-              border: `1px solid ${colors.borderPrimary}`,
-              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)'
-            }"
-          >
-            <button
-              v-if="showFavorite"
-              type="button"
-              role="menuitem"
-              class="w-full flex items-center gap-3 px-3 py-2 text-sm text-left whitespace-nowrap rounded-sm cursor-pointer bg-transparent border-0 transition-colors duration-150 hover:bg-(--bg-hover)"
-              style="color: #fff"
-              @click="toggleFavorite"
-            >
-              <RiHeartFill v-if="isSaved" :size="16" :color="colors.accent" />
-              <RiHeartLine v-else :size="16" color="#fff" />
-              {{ isSaved ? 'Remove from favorites' : 'Add to favorites' }}
-            </button>
-
-            <button
-              v-if="showFavorite"
-              type="button"
-              role="menuitem"
-              class="w-full flex items-center gap-3 px-3 py-2 text-sm text-left whitespace-nowrap rounded-sm cursor-pointer bg-transparent border-0 transition-colors duration-150 hover:bg-(--bg-hover)"
-              style="color: #fff"
-              @click="copyShareLink"
-            >
-              <PiShareFat :size="16" color="#fff" />
-              Copy share link
-            </button>
-
-            <div v-if="showFavorite && hasPrompt" class="my-1 h-px" :style="{ background: colors.borderPrimary }" />
-
-            <template v-if="hasPrompt">
-              <button
-                v-for="item in copyItems"
-                :key="item.key"
-                type="button"
-                role="menuitem"
-                class="w-full flex items-center gap-3 px-3 py-2 text-sm text-left whitespace-nowrap rounded-sm cursor-pointer bg-transparent border-0 transition-colors duration-150 hover:bg-(--bg-hover)"
-                style="color: #fff"
-                @click="item.run"
-              >
-                <Check v-if="done === item.key" :size="16" :color="colors.accent" />
-                <component :is="item.icon" v-else :size="16" :color="colors.textMuted" />
-                {{ item.label }}
-              </button>
-
-              <div class="my-1 h-px" :style="{ background: colors.borderPrimary }" />
-
-              <button
-                type="button"
-                role="menuitem"
-                class="w-full flex items-center gap-3 px-3 py-2 text-sm text-left whitespace-nowrap rounded-sm cursor-pointer bg-transparent border-0 transition-colors duration-150 hover:bg-(--bg-hover)"
-                style="color: #fff"
-                @click="openAIProvider('chatgpt')"
-              >
-                <SiOpenai :size="16" :color="colors.textMuted" />
-                Open in ChatGPT
-              </button>
-
-              <button
-                type="button"
-                role="menuitem"
-                class="w-full flex items-center gap-3 px-3 py-2 text-sm text-left whitespace-nowrap rounded-sm cursor-pointer bg-transparent border-0 transition-colors duration-150 hover:bg-(--bg-hover)"
-                style="color: #fff"
-                @click="openAIProvider('claude')"
-              >
-                <SiAnthropic :size="16" :color="colors.textMuted" />
-                Open in Claude
-              </button>
-
-              <button
-                type="button"
-                role="menuitem"
-                class="w-full flex items-center gap-3 px-3 py-2 text-sm text-left whitespace-nowrap rounded-sm cursor-pointer bg-transparent border-0 transition-colors duration-150 hover:bg-(--bg-hover)"
-                style="color: #fff"
-                @click="openAIProvider('v0')"
-              >
-                <SiVercel :size="16" :color="colors.textMuted" />
-                Open in v0
-              </button>
-            </template>
-          </div>
-        </div>
+        <CopyForAIMenu
+          v-if="aiExport"
+          :copy-items="aiActions.copyItems.value"
+          :open-items="aiActions.openItems.value"
+          :done="aiActions.done.value"
+        />
       </div>
+
+      <DocsMenu v-if="hasOverflowActions" placement="bottom-end" :gutter="12" :offset="6" min-width="220px">
+        <template #trigger>
+          <button type="button" class="docs-tool docs-tool--icon docs-toolbar-more" aria-label="More actions">
+            <HugeiconsIcon :icon="MoreHorizontalIcon" :size="16" :stroke-width="1.6" aria-hidden="true" />
+            <span v-if="isSaved" class="docs-tool-dot" />
+          </button>
+        </template>
+        <DocsMenuGroup v-if="showFavorite" label="Page">
+          <DocsMenuItem @select="toggleFavorite">
+            <span class="docs-menu-icon" :data-saved="isSaved ? '' : undefined">
+              <HugeiconsIcon :icon="FavouriteIcon" :size="16" :stroke-width="1.6" aria-hidden="true" />
+            </span>
+            {{ favoriteLabel }}
+          </DocsMenuItem>
+          <DocsMenuItem @select="copyShareLink">
+            <span class="docs-menu-icon">
+              <HugeiconsIcon :icon="Share08Icon" :size="16" :stroke-width="1.6" aria-hidden="true" />
+            </span>
+            Copy share link
+          </DocsMenuItem>
+        </DocsMenuGroup>
+        <AIMenuSections
+          v-if="aiExport"
+          :copy-items="aiActions.copyItems.value"
+          :open-items="aiActions.openItems.value"
+          :done="aiActions.done.value"
+        />
+        <DocsMenuGroup v-if="showFullscreen" label="View">
+          <DocsMenuItem @select="openFullscreen">
+            <span class="docs-menu-icon">
+              <HugeiconsIcon :icon="FullScreenIcon" :size="16" :stroke-width="1.6" aria-hidden="true" />
+            </span>
+            Fullscreen
+          </DocsMenuItem>
+        </DocsMenuGroup>
+      </DocsMenu>
     </div>
 
-    <!-- Preview Panel -->
-    <div v-if="activeTab === 'preview'" :id="previewPanelId" role="tabpanel" :aria-labelledby="previewTabId">
-      <slot name="preview" />
-
+    <div
+      v-show="activeTab === 'preview'"
+      :id="`${panelId}-panel-preview`"
+      ref="previewRef"
+      role="tabpanel"
+      :aria-labelledby="`${panelId}-tab-preview`"
+      class="preview-panel"
+      :data-legacy="isLegacy ? '' : undefined"
+      :data-resizing="resizing ? '' : undefined"
+      :style="previewWidth === null ? undefined : { '--preview-width': `${previewWidth}px` }"
+    >
+      <div
+        v-if="canResize && frame"
+        class="preview-stage"
+        aria-hidden="true"
+        :data-visible="previewWidth !== null || resizing ? '' : undefined"
+        :style="{
+          top: `${frame.top}px`,
+          left: `${frame.left}px`,
+          width: `${frame.fullWidth}px`,
+          height: `${frame.height}px`
+        }"
+      />
+      <PreviewContent />
       <slot name="customize" />
-
+      <CategoryProFooter v-if="namedProSlot" :category="category" />
       <slot name="propTable" />
-
-      <Dependencies :dependency-list="dependencyList" />
+      <Dependencies v-if="isLegacy" :dependency-list="legacyDependencies" />
+      <div
+        v-if="hasStageControls && frame"
+        ref="controlsSlot"
+        class="preview-controls"
+        :style="{ top: `${frame.top}px`, left: `${frame.left}px`, width: `${frame.fullWidth}px` }"
+      />
+      <PreviewResizer
+        v-if="canResize"
+        :frame="frame"
+        :width="previewWidth"
+        @width-change="previewWidth = $event"
+        @resizing-change="resizing = $event"
+      />
     </div>
 
-    <!-- Code Panel -->
-    <div v-else :id="codePanelId" role="tabpanel" :aria-labelledby="codeTabId">
+    <div
+      v-if="codeMounted"
+      v-show="activeTab === 'code'"
+      :id="`${panelId}-panel-code`"
+      role="tabpanel"
+      :aria-labelledby="`${panelId}-tab-code`"
+    >
       <slot name="code" />
     </div>
 
+    <RelatedComponents v-if="overview && overview.related.length" :overview="overview" />
     <ComponentPager v-if="category !== 'get-started'" :category="category" :subcategory="subcategory" />
+
+    <TabsFooter />
   </div>
 </template>

@@ -4,13 +4,7 @@ import { createCodeObject } from '@/types/code';
 export const imageTrail = createCodeObject(code, 'Animations/ImageTrail', {
   installation: `npm install gsap`,
   usage: `<template>
-  <div
-    style="
-      height: 500px;
-      position: relative;
-      overflow: hidden;
-    "
-  >
+  <div style="height: 500px; position: relative; overflow: hidden">
     <ImageTrail
       :items="[
         'https://picsum.photos/id/287/300/300',
@@ -22,7 +16,11 @@ export const imageTrail = createCodeObject(code, 'Animations/ImageTrail', {
         'https://picsum.photos/id/1029/300/300',
         'https://picsum.photos/id/1030/300/300'
       ]"
-      :variant="1"
+      :size="190"
+      :threshold="80"
+      :appear-scale="0"
+      :zoom="2.4"
+      :flash="0.6"
     />
   </div>
 </template>

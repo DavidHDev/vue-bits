@@ -1,79 +1,69 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue';
-import vueBitsLogo from '../../../assets/logos/vue-bits-logo.svg';
+import vueBitsLogo from '@/assets/logos/vue-bits-logo.svg';
+import { proLinkProps, toolsLinkProps } from '@/utils/pro';
+import FooterWaves from './FooterWaves.vue';
 import './Footer.css';
 
-const GITHUB_URL = 'https://github.com/DavidHDev/vue-bits';
+const { wide = false } = defineProps<{ wide?: boolean }>();
 const year = new Date().getFullYear();
-
-const innerEl = ref<HTMLDivElement | null>(null);
-const visible = ref(false);
-
-let io: IntersectionObserver | null = null;
-
-onMounted(() => {
-  if (!innerEl.value) return;
-  io = new IntersectionObserver(
-    entries => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) {
-          visible.value = true;
-          io?.disconnect();
-        }
-      }
-    },
-    { threshold: 0.1, rootMargin: '-60px' }
-  );
-  io.observe(innerEl.value);
-});
-
-onBeforeUnmount(() => io?.disconnect());
+const proLink = proLinkProps('/', 'footer');
+const toolsLink = toolsLinkProps('/tools', 'footer');
 </script>
 
 <template>
-  <footer class="ln-footer">
-    <div class="ln-footer-glow" />
-    <div class="ln-footer-separator" />
+  <footer :class="['ln-footer', { 'ln-footer--wide': wide, 'ln-footer--lead': $slots.lead }]">
+    <div class="ln-footer-inner">
+      <div class="ln-footer-card">
+        <slot name="lead" />
+        <div class="ln-footer-top">
+          <div class="ln-footer-brand">
+            <RouterLink to="/" aria-label="Vue Bits home">
+              <img class="ln-footer-logo" :src="vueBitsLogo" alt="Vue Bits" width="180" height="38" />
+            </RouterLink>
+            <p>
+              Animated Vue components.
+              <br />
+              Open source. Fully customizable.
+            </p>
+          </div>
 
-    <div ref="innerEl" class="ln-footer-inner" :class="{ 'is-visible': visible }">
-      <div class="ln-footer-top">
-        <div class="ln-footer-brand">
-          <img :src="vueBitsLogo" alt="Vue Bits" class="ln-footer-logo" />
-          <p class="ln-footer-tagline">Animated UI components for Vue.</p>
+          <nav class="ln-footer-nav" aria-label="Footer">
+            <div class="ln-footer-col">
+              <span class="ln-footer-col-title">Community</span>
+              <a href="https://github.com/DavidHDev/vue-bits" target="_blank" rel="noopener noreferrer">GitHub</a>
+              <a href="https://reactbits.dev/" target="_blank" rel="noopener noreferrer">React Bits</a>
+              <a href="https://sveltebits.xyz/" target="_blank" rel="noopener noreferrer">Svelte Bits</a>
+            </div>
+            <div class="ln-footer-col">
+              <span class="ln-footer-col-title">Product</span>
+              <RouterLink to="/get-started/introduction">Docs</RouterLink>
+              <RouterLink to="/get-started/index">Components</RouterLink>
+              <RouterLink to="/favorites">Favorites</RouterLink>
+            </div>
+            <div class="ln-footer-col">
+              <span class="ln-footer-col-title">React Bits</span>
+              <a v-bind="proLink">React Bits Pro</a>
+              <a v-bind="toolsLink">Tools</a>
+            </div>
+          </nav>
+
+          <div class="ln-footer-legal">
+            <span>© {{ year }} Vue Bits</span>
+            <span>
+              Built with love by
+              <a href="https://x.com/davidhaz" target="_blank" rel="noopener noreferrer">@davidhaz</a>
+            </span>
+            <a
+              href="https://github.com/DavidHDev/vue-bits/blob/main/LICENSE.md"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              License
+            </a>
+          </div>
         </div>
 
-        <nav class="ln-footer-nav">
-          <div class="ln-footer-col">
-            <span class="ln-footer-col-title">Product</span>
-            <RouterLink to="/get-started/introduction" class="ln-footer-link">Docs</RouterLink>
-            <a href="https://www.jsrepo.com/" target="_blank" rel="noopener noreferrer" class="ln-footer-link">CLI</a>
-          </div>
-
-          <div class="ln-footer-col">
-            <span class="ln-footer-col-title">Community</span>
-            <a :href="GITHUB_URL" target="_blank" rel="noopener noreferrer" class="ln-footer-link">GitHub</a>
-            <a href="https://reactbits.dev/" target="_blank" rel="noopener noreferrer" class="ln-footer-link">
-              React Bits
-            </a>
-            <a href="https://sveltebits.xyz/" target="_blank" rel="noopener noreferrer" class="ln-footer-link">
-              Svelte Bits
-            </a>
-          </div>
-        </nav>
-      </div>
-
-      <div class="ln-footer-bottom">
-        <p class="ln-footer-attribution">
-          A Vue port of
-          <a href="https://reactbits.dev/" target="_blank" rel="noopener noreferrer" class="ln-footer-creator">
-            React Bits
-          </a>
-          by
-          <a href="https://x.com/davidhaz" target="_blank" rel="noopener noreferrer" class="ln-footer-creator">
-            davidhaz
-          </a>
-        </p>
-        <p class="ln-footer-copy">© {{ year }} Vue Bits</p>
+        <FooterWaves />
       </div>
     </div>
   </footer>

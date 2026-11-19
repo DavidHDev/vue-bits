@@ -2,6 +2,7 @@ import code from '@/content/Animations/OrbitImages/OrbitImages.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const orbitImages = createCodeObject(code, 'Animations/OrbitImages', {
+  dependencies: '',
   usage: `<template>
   <OrbitImages
     :images="images"
@@ -10,9 +11,14 @@ export const orbitImages = createCodeObject(code, 'Animations/OrbitImages', {
     :radius-y="80"
     :rotation="-8"
     :duration="30"
-    :item-size="80"
-    :responsive="true"
-  />
+    :item-size="90"
+    :depth="0.6"
+    show-path
+  >
+    <template #centerContent>
+      <h2>Moments</h2>
+    </template>
+  </OrbitImages>
 </template>
 
 <script setup lang="ts">

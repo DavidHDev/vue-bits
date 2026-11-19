@@ -2,21 +2,21 @@ import code from '@/content/Animations/Noise/Noise.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const noise = createCodeObject(code, 'Animations/Noise', {
+  dependencies: '',
   usage: `<template>
-  <div
-    style="
-      width: 600px;
-      height: 400px;
-      position: relative;
-      overflow: hidden;
-    "
-  >
+  <div style="position: relative; width: 100%; height: 500px">
+    <img src="/photo.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover" />
     <Noise
-      :pattern-size="250"
-      :pattern-scale-x="1"
-      :pattern-scale-y="1"
-      :pattern-refresh-interval="2"
-      :pattern-alpha="15"
+      :opacity="0.2"
+      :size="1"
+      :fps="24"
+      blend-mode="overlay"
+      :contrast="0.6"
+      :colored="false"
+      :dust="0"
+      :scratches="0"
+      :scanlines="0"
+      :flicker="0"
     />
   </div>
 </template>

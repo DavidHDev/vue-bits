@@ -1,6 +1,7 @@
-/* ══════════════════════════════════════════════
-   Landing Loader (svelte-bits — fade-only variant)
-   ══════════════════════════════════════════════ */
+html[data-vb-landing-loading],
+html[data-vb-landing-loading] body {
+  overflow: hidden;
+}
 
 .ln-loader {
   position: fixed;
@@ -9,10 +10,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-body);
+  background: #111111;
   transition:
-    opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-    visibility 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity 0.6s var(--ease-out),
+    visibility 0.6s var(--ease-out);
 }
 
 .ln-loader--hide {
@@ -21,33 +22,28 @@
   pointer-events: none;
 }
 
-/* svelte-bits wordmark logo with a subtle pulse */
 .ln-loader-logo {
-  display: block;
-  animation: ln-loader-fade 1.8s ease-in-out infinite;
+  display: flex;
+  animation: ln-loader-pulse 1.8s ease-in-out infinite;
   opacity: 0.6;
 }
 
-.ln-loader-logo img {
+.ln-loader-logo svg {
   display: block;
-  height: 36px;
-  width: auto;
+  width: 40px;
+  height: auto;
 }
 
-@keyframes ln-loader-fade {
+@keyframes ln-loader-pulse {
   0%,
   100% {
-    opacity: 0.2;
+    opacity: 0.3;
+    transform: scale(1);
   }
   50% {
-    opacity: 0.6;
+    opacity: 0.7;
+    transform: scale(1.08);
   }
-}
-
-/* ─── Page reveal ─── */
-.landing-wrapper.ln-loading,
-.landing-wrapper.ln-loaded {
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .landing-wrapper.ln-loading {
@@ -58,20 +54,18 @@
   opacity: 1;
 }
 
-/* navbar fades in */
 .landing-wrapper > header {
   opacity: 0;
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.7s var(--ease-out);
 }
 
 .landing-wrapper.ln-loaded > header {
   opacity: 1;
 }
 
-/* hero fades in */
 .landing-wrapper > .ln-hero {
   opacity: 0;
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s;
+  transition: opacity 0.8s var(--ease-out) 0.1s;
 }
 
 .landing-wrapper.ln-loaded > .ln-hero {
@@ -85,4 +79,25 @@
   to {
     opacity: 1;
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ln-loader,
+  .landing-wrapper > header,
+  .landing-wrapper > .ln-hero {
+    transition: none;
+  }
+
+  .ln-loader-logo {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+:root[data-theme='light'] .ln-loader {
+  background: #fff;
+}
+
+:root[data-theme='light'] .ln-loader-logo path {
+  fill: #252825;
 }

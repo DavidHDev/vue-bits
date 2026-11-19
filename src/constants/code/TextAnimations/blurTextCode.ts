@@ -6,15 +6,21 @@ export const blurText = createCodeObject(code, 'TextAnimations/BlurText', {
   usage: `<template>
   <BlurText
     text="Isn't this so cool?!"
-    :delay="150"
+    effect="blur"
     animate-by="words"
     direction="top"
-    class="text-2xl mb-8"
-    @animation-complete="handleAnimationComplete"
+    stagger-from="start"
+    trigger="view"
+    :delay="200"
+    :step-duration="0.35"
+    :blur="10"
+    :distance="50"
+    :on-animation-complete="handleAnimationComplete"
+    class-name="text-2xl mb-8"
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import BlurText from './BlurText.vue'
 
 const handleAnimationComplete = () => {

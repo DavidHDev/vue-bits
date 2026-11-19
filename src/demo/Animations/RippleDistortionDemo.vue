@@ -1,74 +1,181 @@
 <template>
-  <h1 class="sub-category">Ripple Distortion</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="rippleDistortion.usage"
-    :source="rippleDistortionSource"
-    component-name="RippleDistortion"
-    :props-table="props"
   >
-    <template #preview>
-      <div class="relative p-0 h-125 overflow-hidden demo-container">
-        <RippleDistortion v-bind="rippleDistortionProps" />
-        <RefreshButton @click="forceRerender" />
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 500px; padding: 0">
+          <div class="relative w-full h-full">
+            <RippleDistortion :key="`${rerenderKey}-${props.quality}`" v-bind="props" />
+          </div>
+          <RefreshButton @click="forceRerender" />
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewSlider title="Brush Size" :min="40" :max="260" :step="5" v-model="brushSize" valueUnit="px" />
-        <PreviewSlider title="Strength" :min="0.01" :max="0.3" :step="0.005" v-model="strength" />
-        <PreviewSlider title="Swirl" :min="0" :max="3" :step="0.05" v-model="swirl" />
-        <PreviewSlider title="Rings" :min="0" :max="5" :step="0.25" v-model="rings" />
-        <PreviewSlider title="Spread" :min="1" :max="10" :step="0.25" v-model="spread" />
-        <PreviewSlider title="Fade" :min="0.5" :max="5" :step="0.1" v-model="fade" valueUnit="s" />
-        <PreviewSlider title="Spacing" :min="1" :max="40" :step="1" v-model="spacing" valueUnit="px" />
-        <PreviewSlider title="Click Strength" :min="1" :max="4" :step="0.1" v-model="clickStrength" />
-        <PreviewSlider title="Dispersion" :min="0" :max="1" :step="0.05" v-model="dispersion" />
-        <PreviewSlider title="Glint" :min="0" :max="1.5" :step="0.05" v-model="glint" />
-        <PreviewSlider title="Tint Amount" :min="0" :max="0.6" :step="0.02" v-model="tintAmount" />
-        <PreviewColorPicker title="Tint" v-model="tint" />
-        <PreviewColorPicker title="Highlight" v-model="highlightColor" />
-        <PreviewSelect title="Trigger" :options="triggerOptions" v-model="trigger" />
-        <PreviewSelect title="Quality" :options="qualityOptions" v-model="quality" />
-        <PreviewSwitch title="Grayscale" v-model="grayscale" />
-        <PreviewSwitch title="Enabled" v-model="enabled" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewSlider
+            title="Brush Size"
+            :min="40"
+            :max="260"
+            :step="5"
+            value-unit="px"
+            :model-value="props.brushSize"
+            @update:model-value="v => updateProp('brushSize', v)"
+          />
+          <PreviewSlider
+            title="Strength"
+            :min="0.01"
+            :max="0.3"
+            :step="0.005"
+            :model-value="props.strength"
+            @update:model-value="v => updateProp('strength', v)"
+          />
+          <PreviewSlider
+            title="Swirl"
+            :min="0"
+            :max="3"
+            :step="0.05"
+            :model-value="props.swirl"
+            @update:model-value="v => updateProp('swirl', v)"
+          />
+          <PreviewSlider
+            title="Rings"
+            :min="0"
+            :max="5"
+            :step="0.25"
+            :model-value="props.rings"
+            @update:model-value="v => updateProp('rings', v)"
+          />
+          <PreviewSlider
+            title="Spread"
+            :min="1"
+            :max="10"
+            :step="0.25"
+            :model-value="props.spread"
+            @update:model-value="v => updateProp('spread', v)"
+          />
+          <PreviewSlider
+            title="Fade"
+            :min="0.5"
+            :max="5"
+            :step="0.1"
+            value-unit="s"
+            :model-value="props.fade"
+            @update:model-value="v => updateProp('fade', v)"
+          />
+          <PreviewSlider
+            title="Spacing"
+            :min="1"
+            :max="40"
+            :step="1"
+            value-unit="px"
+            :model-value="props.spacing"
+            @update:model-value="v => updateProp('spacing', v)"
+          />
+          <PreviewSlider
+            title="Click Strength"
+            :min="1"
+            :max="4"
+            :step="0.1"
+            :model-value="props.clickStrength"
+            @update:model-value="v => updateProp('clickStrength', v)"
+          />
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+          <PreviewSlider
+            title="Dispersion"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="props.dispersion"
+            @update:model-value="v => updateProp('dispersion', v)"
+          />
+          <PreviewSlider
+            title="Glint"
+            :min="0"
+            :max="1.5"
+            :step="0.05"
+            :model-value="props.glint"
+            @update:model-value="v => updateProp('glint', v)"
+          />
+          <PreviewSlider
+            title="Tint Amount"
+            :min="0"
+            :max="0.6"
+            :step="0.02"
+            :model-value="props.tintAmount"
+            @update:model-value="v => updateProp('tintAmount', v)"
+          />
+          <PreviewColorPickerCustom
+            title="Tint"
+            :color="props.tint"
+            @change="(value: string) => updateProp('tint', value)"
+          />
+          <PreviewColorPickerCustom
+            title="Highlight"
+            :color="props.highlightColor"
+            @change="(value: string) => updateProp('highlightColor', value)"
+          />
 
-    <template #code>
-      <DemoCodeTab slug="ripple-distortion" :usage="rippleDistortion.usage!" :source="rippleDistortionSource" />
-    </template>
-  </TabsLayout>
+          <PreviewSelect
+            title="Trigger"
+            :options="triggerOptions"
+            :width="110"
+            :model-value="props.trigger"
+            @update:model-value="v => updateProp('trigger', v as RippleTrigger)"
+          />
+          <PreviewSelect
+            title="Quality"
+            :options="qualityOptions"
+            :width="110"
+            :model-value="props.quality"
+            @update:model-value="v => updateProp('quality', v as RippleQuality)"
+          />
+          <PreviewSwitch
+            title="Grayscale"
+            :model-value="props.grayscale"
+            @update:model-value="v => updateProp('grayscale', v)"
+          />
+          <PreviewSwitch
+            title="Enabled"
+            :model-value="props.enabled"
+            @update:model-value="v => updateProp('enabled', v)"
+          />
+        </Customize>
+
+        <PropTable :data="propData" />
+        <Dependencies :dependency-list="['ogl']" />
+      </template>
+
+      <template #code>
+        <CodeExample :code-object="rippleDistortion" component-name="RippleDistortion" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import Dependencies from '@/components/common/Dependencies.vue';
+import PreviewColorPickerCustom from '@/components/common/PreviewColorPickerCustom.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
 import RefreshButton from '@/components/common/RefreshButton.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
 import { useForceRerender } from '@/composables/useForceRerender';
 import { rippleDistortion } from '@/constants/code/Animations/rippleDistortionCode';
-import RippleDistortion, {
-  type RippleQuality,
-  type RippleTrigger
-} from '@/content/Animations/RippleDistortion/RippleDistortion.vue';
-import rippleDistortionSource from '@/content/Animations/RippleDistortion/RippleDistortion.vue?raw';
-import { computed, ref } from 'vue';
+import RippleDistortion from '@/content/Animations/RippleDistortion/RippleDistortion.vue';
 
-const { forceRerender } = useForceRerender();
+type RippleTrigger = 'hover' | 'click' | 'both';
+type RippleQuality = 'low' | 'medium' | 'high';
 
-const DEFAULTS = {
+const DEFAULT_PROPS = {
   brushSize: 150,
   strength: 0.2,
   swirl: 1,
@@ -78,7 +185,7 @@ const DEFAULTS = {
   spacing: 15,
   dispersion: 0,
   glint: 0,
-  tint: '#10B981',
+  tint: '#7cff67',
   tintAmount: 0.1,
   grayscale: true,
   highlightColor: '#ffffff',
@@ -87,6 +194,9 @@ const DEFAULTS = {
   quality: 'low' as RippleQuality,
   enabled: true
 };
+
+const { rerenderKey, forceRerender } = useForceRerender();
+const { props, updateProp, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
 
 const triggerOptions = [
   { label: 'Hover', value: 'hover' },
@@ -100,87 +210,7 @@ const qualityOptions = [
   { label: 'High', value: 'high' }
 ];
 
-const brushSize = ref(DEFAULTS.brushSize);
-const strength = ref(DEFAULTS.strength);
-const swirl = ref(DEFAULTS.swirl);
-const rings = ref(DEFAULTS.rings);
-const spread = ref(DEFAULTS.spread);
-const fade = ref(DEFAULTS.fade);
-const spacing = ref(DEFAULTS.spacing);
-const dispersion = ref(DEFAULTS.dispersion);
-const glint = ref(DEFAULTS.glint);
-const tint = ref(DEFAULTS.tint);
-const tintAmount = ref(DEFAULTS.tintAmount);
-const grayscale = ref(DEFAULTS.grayscale);
-const highlightColor = ref(DEFAULTS.highlightColor);
-const trigger = ref(DEFAULTS.trigger);
-const clickStrength = ref(DEFAULTS.clickStrength);
-const quality = ref(DEFAULTS.quality);
-const enabled = ref(DEFAULTS.enabled);
-
-const rippleDistortionProps = computed(() => ({
-  brushSize: brushSize.value,
-  strength: strength.value,
-  swirl: swirl.value,
-  rings: rings.value,
-  spread: spread.value,
-  fade: fade.value,
-  spacing: spacing.value,
-  dispersion: dispersion.value,
-  glint: glint.value,
-  tint: tint.value,
-  tintAmount: tintAmount.value,
-  grayscale: grayscale.value,
-  highlightColor: highlightColor.value,
-  trigger: trigger.value,
-  clickStrength: clickStrength.value,
-  quality: quality.value,
-  enabled: enabled.value
-}));
-
-const hasChanges = computed(
-  () =>
-    brushSize.value !== DEFAULTS.brushSize ||
-    strength.value !== DEFAULTS.strength ||
-    swirl.value !== DEFAULTS.swirl ||
-    rings.value !== DEFAULTS.rings ||
-    spread.value !== DEFAULTS.spread ||
-    fade.value !== DEFAULTS.fade ||
-    spacing.value !== DEFAULTS.spacing ||
-    dispersion.value !== DEFAULTS.dispersion ||
-    glint.value !== DEFAULTS.glint ||
-    tint.value !== DEFAULTS.tint ||
-    tintAmount.value !== DEFAULTS.tintAmount ||
-    grayscale.value !== DEFAULTS.grayscale ||
-    highlightColor.value !== DEFAULTS.highlightColor ||
-    trigger.value !== DEFAULTS.trigger ||
-    clickStrength.value !== DEFAULTS.clickStrength ||
-    quality.value !== DEFAULTS.quality ||
-    enabled.value !== DEFAULTS.enabled
-);
-
-function reset() {
-  brushSize.value = DEFAULTS.brushSize;
-  strength.value = DEFAULTS.strength;
-  swirl.value = DEFAULTS.swirl;
-  rings.value = DEFAULTS.rings;
-  spread.value = DEFAULTS.spread;
-  fade.value = DEFAULTS.fade;
-  spacing.value = DEFAULTS.spacing;
-  dispersion.value = DEFAULTS.dispersion;
-  glint.value = DEFAULTS.glint;
-  tint.value = DEFAULTS.tint;
-  tintAmount.value = DEFAULTS.tintAmount;
-  grayscale.value = DEFAULTS.grayscale;
-  highlightColor.value = DEFAULTS.highlightColor;
-  trigger.value = DEFAULTS.trigger;
-  clickStrength.value = DEFAULTS.clickStrength;
-  quality.value = DEFAULTS.quality;
-  enabled.value = DEFAULTS.enabled;
-  forceRerender();
-}
-
-const props: PropRow[] = [
+const propData: PropRow[] = [
   {
     name: 'src',
     type: 'string',
@@ -232,7 +262,7 @@ const props: PropRow[] = [
     description: 'Chromatic split between the red and blue channels as they refract.'
   },
   { name: 'glint', type: 'number', default: '0', description: 'Sheen riding the shoulders of each ripple.' },
-  { name: 'tint', type: 'string', default: '#10B981', description: 'Colour the disturbed water takes on.' },
+  { name: 'tint', type: 'string', default: '#7cff67', description: 'Colour the disturbed water takes on.' },
   {
     name: 'tintAmount',
     type: 'number',

@@ -2,30 +2,23 @@ import code from '@/content/Animations/ShapeBlur/ShapeBlur.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const shapeBlur = createCodeObject(code, 'Animations/ShapeBlur', {
-  installation: `npm install three @types/three`,
+  dependencies: '',
   usage: `<template>
-  <div
-    style="
-      position: relative;
-      height: 500px;
-      overflow: hidden;
-    "
-  >
+  <div style="position: relative; height: 500px">
     <ShapeBlur
-      :variation="0"
-      :pixel-ratio-prop="pixelRatio"
-      :shape-size="0.5"
-      :roundness="0.5"
-      :border-size="0.05"
-      :circle-size="0.5"
-      :circle-edge="1"
+      :size="0.6"
+      :fill="true"
+      color="#ffffff"
+      :blur="16"
+      :lens-size="0.3"
+      :lens-softness="0.7"
+      :chroma="0.3"
+      :idle="true"
     />
   </div>
 </template>
 
 <script setup lang="ts">
 import ShapeBlur from './ShapeBlur.vue'
-
-const pixelRatio = window.devicePixelRatio || 1
 </script>`
 });

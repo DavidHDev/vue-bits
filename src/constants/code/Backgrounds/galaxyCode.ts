@@ -2,39 +2,21 @@ import code from '@/content/Backgrounds/Galaxy/Galaxy.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const galaxy = createCodeObject(code, 'Backgrounds/Galaxy', {
-  installation: `npm install ogl`,
+  dependencies: '',
   usage: `<template>
-  <!-- Basic usage -->
-  <div
-    style="
-      width: 100%;
-      height: 600px;
-      position: relative;
-    "
-  >
-    <Galaxy />
-  </div>
-
-  <!-- With custom prop values -->
-  <div
-    style="
-      width: 100%;
-      height: 600px;
-      position: relative;
-    "
-  >
+  <div style="width: 100%; height: 600px; position: relative">
     <Galaxy
-      :mouse-repulsion="true"
-      :mouse-interaction="true"
-      :density="1.5"
-      :glow-intensity="0.5"
-      :saturation="0.8"
-      :hue-shift="240"
+      :density="1"
+      :glow-intensity="0.3"
+      :flare-intensity="1"
+      :star-speed="0.5"
+      mouse-repulsion
+      click-warp
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import Galaxy from './Galaxy.vue'
+import Galaxy from './Galaxy.vue';
 </script>`
 });

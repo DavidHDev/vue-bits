@@ -1,27 +1,25 @@
 <script setup lang="ts">
-import CliInstall from './CliInstall.vue';
-import CodeBlock from './CodeBlock.vue';
-import CodeSection from './CodeSection.vue';
+import { computed } from 'vue';
+import { dependenciesForSlug } from '@/constants/componentDependencies';
+import CodeExample from './CodeExample.vue';
 
-type Props = {
+const props = defineProps<{
   slug: string;
   usage: string;
   source: string;
   utility?: string;
-};
+  componentName?: string;
+  dependencies?: string;
+}>();
 
-defineProps<Props>();
+const codeObject = computed(() => ({
+  usage: props.usage,
+  code: props.source,
+  ...(props.utility ? { utility: props.utility } : {}),
+  dependencies: props.dependencies ?? dependenciesForSlug(props.slug).join(' ')
+}));
 </script>
 
 <template>
-  <CliInstall :slug="slug" />
-  <CodeSection title="Usage" :copy="usage">
-    <CodeBlock :code="usage" language="html" :show-copy="false" :max-lines="25" />
-  </CodeSection>
-  <CodeSection title="Code" :copy="source">
-    <CodeBlock :code="source" language="html" :show-copy="false" :max-lines="25" />
-  </CodeSection>
-  <CodeSection v-if="utility" title="Utility source" :copy="utility">
-    <CodeBlock :code="utility" language="ts" :show-copy="false" :max-lines="25" />
-  </CodeSection>
+  <CodeExample :code-object="codeObject" :component-name="componentName" />
 </template>

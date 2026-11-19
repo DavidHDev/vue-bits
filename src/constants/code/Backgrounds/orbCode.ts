@@ -2,25 +2,20 @@ import code from '@/content/Backgrounds/Orb/Orb.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const orb = createCodeObject(code, 'Backgrounds/Orb', {
-  installation: `npm install ogl`,
+  dependencies: '',
   usage: `<template>
-  <div
-    style="
-      width: 100%;
-      height: 600px;
-      position: relative;
-    "
-  >
+  <div style="width: 100%; height: 600px; position: relative">
     <Orb
-      :hover-intensity="0.5"
+      :colors="['#7cff67', '#4cc2e9', '#0c4a3a']"
+      :hover-intensity="1"
+      :trail="1"
       :rotate-on-hover="true"
-      :hue="0"
-      :force-hover-state="false"
+      :follow-cursor="true"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import Orb from './Orb.vue'
+import Orb from './Orb.vue';
 </script>`
 });

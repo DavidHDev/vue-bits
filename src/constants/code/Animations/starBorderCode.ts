@@ -2,14 +2,24 @@ import code from '@/content/Animations/StarBorder/StarBorder.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const starBorder = createCodeObject(code, 'Animations/StarBorder', {
+  dependencies: '',
   usage: `<template>
   <StarBorder
-    as="button"
-    class-name="custom-class"
-    color="cyan"
-    speed="5s"
+    color="#ffffff"
+    trail-color="#ffffff"
+    :duration="4"
+    direction="clockwise"
+    :stars="1"
+    :trail-length="0.3"
+    :thickness="1"
+    :radius="12"
+    :glow="0.6"
+    hover="lap"
+    :sparkle="false"
+    click-pulse
+    theme="dark"
   >
-    <!-- content -->
+    Get started
   </StarBorder>
 </template>
 

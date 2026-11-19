@@ -1,168 +1,241 @@
 <template>
-  <h1 class="sub-category">Plasma</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="plasma.usage"
-    :source="plasmaSource"
-    component-name="Plasma"
-    :props-table="props"
+    :demo-only-props="['preset']"
   >
-    <template #preview>
-      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
-        <Plasma
-          :color="color"
-          :speed="speed"
-          :direction="direction"
-          :scale="scale"
-          :opacity="opacity"
-          :mouseInteractive="mouseInteractive"
-        />
-        <BackgroundContent pill-text="New Background" headline="Minimal plasma waves that soothe the eyes" />
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 500px; padding: 0">
+          <Plasma :key="rerenderKey" v-bind="settings" />
+          <BackgroundContent headline="Minimal plasma waves that soothe the eyes" />
+          <RefreshButton @click="forceRerender" />
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewColorPicker title="Color" v-model="color" />
-        <PreviewSelect title="Direction" v-model="direction" :options="directionOptions" />
-        <PreviewSlider :min="0.1" :max="3.0" :step="0.1" v-model="speed" title="Speed" />
-        <PreviewSlider :min="0.5" :max="3.0" :step="0.1" v-model="scale" title="Scale" />
-        <PreviewSlider :min="0.1" :max="1.0" :step="0.1" v-model="opacity" title="Opacity" />
-        <PreviewSwitch title="Mouse Interactive" v-model="mouseInteractive" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewSelect
+            title="Preset"
+            :options="PRESET_OPTIONS"
+            :model-value="props.preset"
+            @update:model-value="(value: string | number) => applyPreset(String(value))"
+          />
+          <PreviewColorPickerCustom
+            title="Color"
+            :color="settings.color"
+            @change="(value: string) => updateProp('color', value)"
+          />
+          <PreviewSelect
+            title="Direction"
+            :options="DIRECTION_OPTIONS"
+            :model-value="settings.direction"
+            @update:model-value="(value: string | number) => updateProp('direction', value as PlasmaDirection)"
+          />
+          <PreviewSlider
+            title="Speed"
+            :min="0"
+            :max="3"
+            :step="0.05"
+            :model-value="settings.speed"
+            @update:model-value="(value: number) => updateProp('speed', value)"
+          />
+          <PreviewSlider
+            title="Scale"
+            :min="0.5"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.scale"
+            @update:model-value="(value: number) => updateProp('scale', value)"
+          />
+          <PreviewSlider
+            title="Twist"
+            :min="0"
+            :max="2.5"
+            :step="0.05"
+            :model-value="settings.twist"
+            @update:model-value="(value: number) => updateProp('twist', value)"
+          />
+          <PreviewSlider
+            title="Wave"
+            :min="0"
+            :max="2.5"
+            :step="0.05"
+            :model-value="settings.wave"
+            @update:model-value="(value: number) => updateProp('wave', value)"
+          />
+          <PreviewSlider
+            title="Softness"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.softness"
+            @update:model-value="(value: number) => updateProp('softness', value)"
+          />
+          <PreviewSlider
+            title="Shine"
+            :min="0"
+            :max="3"
+            :step="0.05"
+            :model-value="settings.shine"
+            @update:model-value="(value: number) => updateProp('shine', value)"
+          />
+          <PreviewSlider
+            title="Brightness"
+            :min="0.3"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.brightness"
+            @update:model-value="(value: number) => updateProp('brightness', value)"
+          />
+          <PreviewSlider
+            title="Grain"
+            :min="0"
+            :max="0.15"
+            :step="0.01"
+            :model-value="settings.grain"
+            @update:model-value="(value: number) => updateProp('grain', value)"
+          />
+          <PreviewSlider
+            title="Quality"
+            :min="0.25"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.quality"
+            @update:model-value="(value: number) => updateProp('quality', value)"
+          />
+          <PreviewSlider
+            title="Fade"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.fade"
+            @update:model-value="(value: number) => updateProp('fade', value)"
+          />
+          <PreviewSlider
+            title="Opacity"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.opacity"
+            @update:model-value="(value: number) => updateProp('opacity', value)"
+          />
+          <PreviewSwitch
+            title="Mouse Interactive"
+            :model-value="settings.mouseInteractive"
+            @update:model-value="(value: boolean) => updateProp('mouseInteractive', value)"
+          />
+          <PreviewSwitch
+            title="Intro"
+            :model-value="settings.intro"
+            @update:model-value="(value: boolean) => updateProp('intro', value)"
+          />
+          <PreviewSwitch
+            title="Light Mode"
+            :model-value="settings.lightMode"
+            @update:model-value="(value: boolean) => updateProp('lightMode', value)"
+          />
+        </Customize>
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+        <PropTable :data="propData" />
+      </template>
 
-    <template #code>
-      <DemoCodeTab slug="plasma" :usage="plasma.usage!" :source="plasmaSource" />
-    </template>
-  </TabsLayout>
+      <template #code>
+        <CodeExample :code-object="plasma" component-name="Plasma" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewColorPickerCustom from '@/components/common/PreviewColorPickerCustom.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
 import { useForceRerender } from '@/composables/useForceRerender';
 import { plasma } from '@/constants/code/Backgrounds/plasmaCode';
 import Plasma from '@/content/Backgrounds/Plasma/Plasma.vue';
-import plasmaSource from '@/content/Backgrounds/Plasma/Plasma.vue?raw';
-import { computed, ref } from 'vue';
+import { DEFAULT_PROPS, PRESET_OPTIONS, presetProps } from './presets/Plasma';
 
-const { forceRerender } = useForceRerender();
+type PlasmaDirection = 'forward' | 'reverse' | 'pingpong';
 
-const DEFAULTS = {
-  color: '#9EF2BE',
-  speed: 1.0,
-  direction: 'forward' as 'forward' | 'reverse' | 'pingpong',
-  scale: 1.0,
-  opacity: 1.0,
-  mouseInteractive: false
-};
-
-const color = ref(DEFAULTS.color);
-const speed = ref(DEFAULTS.speed);
-const direction = ref(DEFAULTS.direction);
-const scale = ref(DEFAULTS.scale);
-const opacity = ref(DEFAULTS.opacity);
-const mouseInteractive = ref(DEFAULTS.mouseInteractive);
-
-const directionOptions = [
+const DIRECTION_OPTIONS = [
   { value: 'forward', label: 'Forward' },
   { value: 'reverse', label: 'Reverse' },
   { value: 'pingpong', label: 'Ping Pong' }
 ];
 
-const hasChanges = computed(
-  () =>
-    color.value !== DEFAULTS.color ||
-    speed.value !== DEFAULTS.speed ||
-    direction.value !== DEFAULTS.direction ||
-    scale.value !== DEFAULTS.scale ||
-    opacity.value !== DEFAULTS.opacity ||
-    mouseInteractive.value !== DEFAULTS.mouseInteractive
-);
-
-function reset() {
-  color.value = DEFAULTS.color;
-  speed.value = DEFAULTS.speed;
-  direction.value = DEFAULTS.direction;
-  scale.value = DEFAULTS.scale;
-  opacity.value = DEFAULTS.opacity;
-  mouseInteractive.value = DEFAULTS.mouseInteractive;
-  forceRerender();
-}
-
-const props: PropRow[] = [
+const propData: PropRow[] = [
   {
     name: 'color',
     type: 'string',
-    default: 'undefined',
-    description: 'Optional hex color to tint the plasma effect. If not provided, uses original colors.'
+    default: "'#a3b8aa'",
+    description: 'Color of the plasma. Highlights are derived from it.'
   },
-  {
-    name: 'speed',
-    type: 'number',
-    default: '1.0',
-    description: 'Animation speed multiplier. Higher values = faster animation.'
-  },
+  { name: 'speed', type: 'number', default: '1', description: 'Animation speed.' },
   {
     name: 'direction',
     type: "'forward' | 'reverse' | 'pingpong'",
     default: "'forward'",
-    description: "Animation direction. 'pingpong' oscillates back and forth."
+    description: 'Which way the plasma flows. Ping pong eases back and forth.'
   },
+  { name: 'scale', type: 'number', default: '1', description: 'Zoom of the plasma. Higher values zoom in.' },
+  { name: 'twist', type: 'number', default: '1', description: 'How tightly the plasma spirals.' },
+  { name: 'wave', type: 'number', default: '1', description: 'How much the plasma ripples as it flows.' },
   {
-    name: 'scale',
+    name: 'softness',
     type: 'number',
-    default: '1.0',
-    description: 'Zoom level of the plasma pattern. Higher values zoom in.'
+    default: '0.5',
+    description: 'How soft the folds of light are, from 0 for crisp to 1 for misty.'
   },
+  { name: 'shine', type: 'number', default: '1', description: 'Strength of the bright highlights along the folds.' },
+  { name: 'brightness', type: 'number', default: '1', description: 'Overall brightness.' },
+  { name: 'grain', type: 'number', default: '0.04', description: 'Strength of the film grain.' },
   {
-    name: 'opacity',
+    name: 'quality',
     type: 'number',
-    default: '1.0',
-    description: 'Overall opacity of the effect (0-1).'
+    default: '0.75',
+    description: 'Render resolution, from 0.25 to 1. Lower values run faster on slow devices.'
   },
   {
     name: 'mouseInteractive',
     type: 'boolean',
+    default: 'true',
+    description: 'Turns the plasma in 3D to follow the cursor and brightens it nearby.'
+  },
+  { name: 'intro', type: 'boolean', default: 'true', description: 'Fades the plasma in as it twists into place.' },
+  { name: 'fade', type: 'number', default: '0', description: 'Fades the edges into the page, from 0 to 1.' },
+  { name: 'opacity', type: 'number', default: '1', description: 'Opacity of the whole effect.' },
+  {
+    name: 'lightMode',
+    type: 'boolean',
     default: 'false',
-    description: 'Whether the plasma responds to mouse movement.'
+    description: 'Draws the plasma as tinted satin for light backgrounds.'
   },
-  {
-    name: 'renderScale',
-    type: 'number',
-    default: '0.55',
-    description: 'Resolution multiplier for the WebGL buffer (0.1-1). Lower values render fewer pixels.'
-  },
-  {
-    name: 'maxDpr',
-    type: 'number',
-    default: '1.5',
-    description: 'Upper limit for the device pixel ratio used by the renderer.'
-  },
-  {
-    name: 'targetFps',
-    type: 'number',
-    default: '60',
-    description: 'Frame rate cap for the animation. Lower values reduce GPU usage.'
-  },
-  {
-    name: 'iterations',
-    type: 'number',
-    default: '60',
-    description: 'Number of raymarching steps per pixel (1-60). Lower values are cheaper but less detailed.'
-  }
+  { name: 'paused', type: 'boolean', default: 'false', description: 'Freezes the animation.' },
+  { name: 'dpr', type: 'number', default: 'auto', description: 'Maximum device pixel ratio, capped at 2.' },
+  { name: 'className', type: 'string', default: "''", description: 'Extra class names for the container.' }
 ];
+
+const { rerenderKey, forceRerender } = useForceRerender();
+const { props, defaultProps, updateProp, updateProps, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
+
+const settings = computed(() => {
+  const { preset: _preset, ...rest } = props.value;
+  void _preset;
+  return rest;
+});
+
+const applyPreset = (value: string) => {
+  updateProps({ ...presetProps(value, { defaults: defaultProps.value }), preset: value });
+};
 </script>

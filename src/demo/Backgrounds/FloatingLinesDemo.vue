@@ -1,231 +1,364 @@
 <template>
-  <h1 class="sub-category">Floating Lines</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="floatingLines.usage"
-    :source="floatingLinesSource"
-    component-name="FloatingLines"
-    :props-table="props"
+    :demo-only-props="['preset']"
   >
-    <template #preview>
-      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
-        <FloatingLines
-          :enabled-waves="enabledWaves"
-          :line-count="lineCount"
-          :line-distance="lineDistance"
-          :animation-speed="animationSpeed"
-          :interactive="interactive"
-          :bend-radius="bendRadius"
-          :bend-strength="bendStrength"
-          :lines-gradient="[gradientStart, gradientMid, gradientEnd]"
-        />
-        <BackgroundContent pill-text="New Background" headline="Waves are cool! Even cooler with lines!" />
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 500px; padding: 0">
+          <FloatingLines :key="rerenderKey" v-bind="settings" :enabled-waves="waves" />
+          <BackgroundContent headline="Waves are cool! Even cooler with lines!" />
+          <RefreshButton @click="forceRerender" />
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewSwitch title="Top Wave" v-model="enableTop" />
-        <PreviewSwitch title="Middle Wave" v-model="enableMiddle" />
-        <PreviewSwitch title="Bottom Wave" v-model="enableBottom" />
-        <PreviewSlider :min="1" :max="20" :step="1" v-model="lineCount" title="Line Count" />
-        <PreviewSlider :min="1" :max="100" :step="0.5" v-model="lineDistance" title="Line Distance" />
-        <PreviewSlider :min="0.1" :max="5" :step="0.1" v-model="animationSpeed" title="Animation Speed" />
-        <PreviewSwitch v-model="interactive" title="Interactive" />
-        <PreviewSlider :min="1" :max="30" :step="0.5" v-model="bendRadius" title="Bend Radius" />
-        <PreviewSlider :min="-15" :max="15" :step="0.5" v-model="bendStrength" title="Bend Strength" />
-        <PreviewColorPicker title="Gradient Start" v-model="gradientStart" />
-        <PreviewColorPicker title="Gradient Mid" v-model="gradientMid" />
-        <PreviewColorPicker title="Gradient End" v-model="gradientEnd" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewColorList
+            title="Colors"
+            :min="1"
+            :max="8"
+            :model-value="settings.linesGradient"
+            @update:model-value="(value: string[]) => updateProp('linesGradient', value)"
+          />
+          <PreviewSelect
+            title="Preset"
+            :options="PRESET_OPTIONS"
+            :model-value="props.preset"
+            @update:model-value="value => applyPreset(String(value))"
+          />
+          <PreviewSelect
+            title="Line Style"
+            :options="STYLE_OPTIONS"
+            :model-value="settings.lineStyle"
+            @update:model-value="value => updateProp('lineStyle', value as LineStyle)"
+          />
+          <PreviewSlider
+            title="Line Count"
+            :min="1"
+            :max="24"
+            :step="1"
+            :model-value="settings.lineCount"
+            @update:model-value="value => updateProp('lineCount', value)"
+          />
+          <PreviewSlider
+            title="Line Distance"
+            :min="1"
+            :max="30"
+            :step="0.5"
+            :model-value="settings.lineDistance"
+            @update:model-value="value => updateProp('lineDistance', value)"
+          />
+          <PreviewSlider
+            title="Line Width"
+            :min="0.5"
+            :max="4"
+            :step="0.1"
+            value-unit="px"
+            :model-value="settings.lineWidth"
+            @update:model-value="value => updateProp('lineWidth', value)"
+          />
+          <PreviewSlider
+            title="Glow"
+            :min="0"
+            :max="3"
+            :step="0.05"
+            :model-value="settings.glow"
+            @update:model-value="value => updateProp('glow', value)"
+          />
+          <PreviewSlider
+            title="Brightness"
+            :min="0.2"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.brightness"
+            @update:model-value="value => updateProp('brightness', value)"
+          />
+          <PreviewSlider
+            title="Speed"
+            :min="0"
+            :max="3"
+            :step="0.05"
+            :model-value="settings.animationSpeed"
+            @update:model-value="value => updateProp('animationSpeed', value)"
+          />
+          <PreviewSlider
+            title="Amplitude"
+            :min="0"
+            :max="2.5"
+            :step="0.05"
+            :model-value="settings.amplitude"
+            @update:model-value="value => updateProp('amplitude', value)"
+          />
+          <PreviewSlider
+            title="Depth Of Field"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="settings.depthOfField"
+            @update:model-value="value => updateProp('depthOfField', value)"
+          />
+          <PreviewSlider
+            title="Edge Fade"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="settings.edgeFade"
+            @update:model-value="value => updateProp('edgeFade', value)"
+          />
+          <PreviewSlider
+            title="Bend Radius"
+            :min="1"
+            :max="15"
+            :step="0.5"
+            :is-disabled="!settings.interactive"
+            :model-value="settings.bendRadius"
+            @update:model-value="value => updateProp('bendRadius', value)"
+          />
+          <PreviewSlider
+            title="Bend Strength"
+            :min="-2"
+            :max="2"
+            :step="0.05"
+            :is-disabled="!settings.interactive"
+            :model-value="settings.bendStrength"
+            @update:model-value="value => updateProp('bendStrength', value)"
+          />
+          <PreviewSlider
+            title="Parallax Strength"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :is-disabled="!settings.parallax"
+            :model-value="settings.parallaxStrength"
+            @update:model-value="value => updateProp('parallaxStrength', value)"
+          />
+          <PreviewSwitch
+            v-for="wave in WAVES"
+            :key="wave"
+            :title="`${wave[0].toUpperCase()}${wave.slice(1)} Wave`"
+            :model-value="waves.includes(wave)"
+            @update:model-value="() => toggleWave(wave)"
+          />
+          <PreviewSwitch
+            title="Interactive"
+            :model-value="settings.interactive"
+            @update:model-value="value => updateProp('interactive', value)"
+          />
+          <PreviewSwitch
+            title="Parallax"
+            :model-value="settings.parallax"
+            @update:model-value="value => updateProp('parallax', value)"
+          />
+          <PreviewSwitch
+            title="Click Swirl"
+            :model-value="settings.clickSwirl"
+            @update:model-value="value => updateProp('clickSwirl', value)"
+          />
+          <PreviewSwitch
+            title="Intro"
+            :model-value="settings.intro"
+            @update:model-value="value => updateProp('intro', value)"
+          />
+          <PreviewSwitch
+            title="Light Mode"
+            :model-value="settings.lightMode"
+            @update:model-value="value => updateProp('lightMode', value)"
+          />
+        </Customize>
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+        <PropTable :data="propData" />
+      </template>
 
-    <template #code>
-      <DemoCodeTab slug="floating-lines" :usage="floatingLines.usage!" :source="floatingLinesSource" />
-    </template>
-  </TabsLayout>
+      <template #code>
+        <CodeExample :code-object="floatingLines" component-name="FloatingLines" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewColorList from '@/components/common/PreviewColorList.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
 import { useForceRerender } from '@/composables/useForceRerender';
 import { floatingLines } from '@/constants/code/Backgrounds/floatingLinesCode';
 import FloatingLines from '@/content/Backgrounds/FloatingLines/FloatingLines.vue';
-import floatingLinesSource from '@/content/Backgrounds/FloatingLines/FloatingLines.vue?raw';
-import { computed, ref } from 'vue';
+import {
+  DEFAULT_PROPS,
+  PRESET_OPTIONS,
+  WAVES,
+  presetProps,
+  type LineStyle,
+  type WaveName
+} from './presets/FloatingLines';
 
-const { forceRerender } = useForceRerender();
+const STYLE_OPTIONS = [
+  { value: 'solid', label: 'Solid' },
+  { value: 'dotted', label: 'Dotted' },
+  { value: 'dashed', label: 'Dashed' }
+];
 
-const DEFAULTS = {
-  enableTop: true,
-  enableMiddle: true,
-  enableBottom: true,
-  lineCount: 8,
-  lineDistance: 8,
-  animationSpeed: 1,
-  interactive: true,
-  bendRadius: 8,
-  bendStrength: -2,
-  gradientStart: '#A7EF9E',
-  gradientMid: '#747d67',
-  gradientEnd: '#6a6a6a'
+const { rerenderKey, forceRerender } = useForceRerender();
+const { props, defaultProps, updateProp, updateProps, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
+
+const settings = computed(() => {
+  const { preset: _preset, ...rest } = props.value;
+  void _preset;
+  return { ...rest, lineStyle: rest.lineStyle as LineStyle };
+});
+
+const waves = computed<WaveName[]>(() =>
+  Array.isArray(settings.value.enabledWaves) ? (settings.value.enabledWaves as WaveName[]) : WAVES
+);
+
+const applyPreset = (value: string) => {
+  updateProps({ ...presetProps(value, { defaults: defaultProps.value }), preset: value });
 };
 
-const animationSpeed = ref(DEFAULTS.animationSpeed);
-const interactive = ref(DEFAULTS.interactive);
-const bendRadius = ref(DEFAULTS.bendRadius);
-const bendStrength = ref(DEFAULTS.bendStrength);
-const lineCount = ref(DEFAULTS.lineCount);
-const lineDistance = ref(DEFAULTS.lineDistance);
-const enableTop = ref(DEFAULTS.enableTop);
-const enableMiddle = ref(DEFAULTS.enableMiddle);
-const enableBottom = ref(DEFAULTS.enableBottom);
-const gradientStart = ref(DEFAULTS.gradientStart);
-const gradientMid = ref(DEFAULTS.gradientMid);
-const gradientEnd = ref(DEFAULTS.gradientEnd);
+const toggleWave = (wave: WaveName) => {
+  const current = waves.value;
+  const next = current.includes(wave) ? current.filter(item => item !== wave) : [...current, wave];
+  if (next.length === 0) return;
+  updateProp(
+    'enabledWaves',
+    WAVES.filter(item => next.includes(item))
+  );
+};
 
-const enabledWaves = computed(() =>
-  [
-    enableTop.value ? ('top' as const) : null,
-    enableMiddle.value ? ('middle' as const) : null,
-    enableBottom.value ? ('bottom' as const) : null
-  ].filter((v): v is 'top' | 'middle' | 'bottom' => v !== null)
-);
-
-const hasChanges = computed(
-  () =>
-    animationSpeed.value !== DEFAULTS.animationSpeed ||
-    interactive.value !== DEFAULTS.interactive ||
-    bendRadius.value !== DEFAULTS.bendRadius ||
-    bendStrength.value !== DEFAULTS.bendStrength ||
-    lineCount.value !== DEFAULTS.lineCount ||
-    lineDistance.value !== DEFAULTS.lineDistance ||
-    enableTop.value !== DEFAULTS.enableTop ||
-    enableMiddle.value !== DEFAULTS.enableMiddle ||
-    enableBottom.value !== DEFAULTS.enableBottom ||
-    gradientStart.value !== DEFAULTS.gradientStart ||
-    gradientMid.value !== DEFAULTS.gradientMid ||
-    gradientEnd.value !== DEFAULTS.gradientEnd
-);
-
-function reset() {
-  animationSpeed.value = DEFAULTS.animationSpeed;
-  interactive.value = DEFAULTS.interactive;
-  bendRadius.value = DEFAULTS.bendRadius;
-  bendStrength.value = DEFAULTS.bendStrength;
-  lineCount.value = DEFAULTS.lineCount;
-  lineDistance.value = DEFAULTS.lineDistance;
-  enableTop.value = DEFAULTS.enableTop;
-  enableMiddle.value = DEFAULTS.enableMiddle;
-  enableBottom.value = DEFAULTS.enableBottom;
-  gradientStart.value = DEFAULTS.gradientStart;
-  gradientMid.value = DEFAULTS.gradientMid;
-  gradientEnd.value = DEFAULTS.gradientEnd;
-  forceRerender();
-}
-
-const props: PropRow[] = [
+const propData: PropRow[] = [
   {
     name: 'linesGradient',
     type: 'string[]',
-    default: 'undefined',
-    description: 'Array of hex color strings for gradient coloring of lines (max 8 colors).'
+    default: "['#7cff67', '#ffffff']",
+    description: 'Up to 8 colors blended across the lines of each wave.'
   },
   {
     name: 'enabledWaves',
     type: "Array<'top' | 'middle' | 'bottom'>",
     default: "['top', 'middle', 'bottom']",
-    description: 'Which wave layers to display. Can toggle individual waves on/off.'
+    description: 'Which waves to show.'
   },
   {
     name: 'lineCount',
     type: 'number | number[]',
-    default: '[6]',
-    description: 'Number of lines per wave. Single number applies to all waves, or array for per-wave control.'
+    default: '10',
+    description: 'Lines per wave, from 1 to 24. Pass an array to set each enabled wave separately.'
   },
   {
     name: 'lineDistance',
     type: 'number | number[]',
-    default: '[5]',
-    description: 'Spacing between lines. Single number applies to all waves, or array for per-wave control.'
+    default: '6',
+    description: 'Spacing between the lines of a wave. Pass an array to set each enabled wave separately.'
+  },
+  {
+    name: 'lineStyle',
+    type: "'solid' | 'dotted' | 'dashed'",
+    default: "'solid'",
+    description: 'Draws the lines as solid strands, rows of dots or dashes.'
+  },
+  { name: 'lineWidth', type: 'number', default: '1', description: 'Width of each line in pixels.' },
+  { name: 'glow', type: 'number', default: '1', description: 'Strength of the glow around the lines.' },
+  { name: 'brightness', type: 'number', default: '1', description: 'Overall brightness of the lines.' },
+  { name: 'animationSpeed', type: 'number', default: '1', description: 'Speed of the wave motion.' },
+  { name: 'amplitude', type: 'number', default: '1', description: 'Height of the waves.' },
+  {
+    name: 'depthOfField',
+    type: 'number',
+    default: '0.5',
+    description: 'How much the waves in the back soften out of focus, from 0 to 1.'
+  },
+  {
+    name: 'edgeFade',
+    type: 'number',
+    default: '0',
+    description: 'Fades the lines out toward the left and right edges, from 0 to 1.'
   },
   {
     name: 'topWavePosition',
     type: '{ x: number; y: number; rotate: number }',
-    default: 'undefined',
-    description: 'Position and rotation settings for the top wave layer.'
+    default: '{ x: 10, y: 0.5, rotate: -0.4 }',
+    description: 'Offset, height and curl of the top wave.'
   },
   {
     name: 'middleWavePosition',
     type: '{ x: number; y: number; rotate: number }',
-    default: 'undefined',
-    description: 'Position and rotation settings for the middle wave layer.'
+    default: '{ x: 5, y: 0, rotate: 0.2 }',
+    description: 'Offset, height and curl of the middle wave.'
   },
   {
     name: 'bottomWavePosition',
     type: '{ x: number; y: number; rotate: number }',
-    default: '{ x: 2.0, y: -0.7, rotate: -1 }',
-    description: 'Position and rotation settings for the bottom wave layer.'
-  },
-  {
-    name: 'animationSpeed',
-    type: 'number',
-    default: '1',
-    description: 'Speed multiplier for the wave animation.'
+    default: '{ x: 2, y: -0.7, rotate: -1 }',
+    description: 'Offset, height and curl of the bottom wave.'
   },
   {
     name: 'interactive',
     type: 'boolean',
     default: 'true',
-    description: 'Whether the lines react to mouse/pointer movement.'
+    description: 'Bends the lines around the cursor.'
   },
   {
     name: 'bendRadius',
     type: 'number',
-    default: '10.0',
-    description: 'Radius of the area affected by mouse interaction.'
+    default: '5',
+    description: 'Size of the area around the cursor that bends the lines.'
   },
   {
     name: 'bendStrength',
     type: 'number',
-    default: '-5.0',
-    description: 'Intensity of the bend effect when interacting with mouse.'
+    default: '-0.5',
+    description:
+      'How strongly the lines bend. Negative values part them around the cursor, positive values pull them in.'
   },
   {
     name: 'mouseDamping',
     type: 'number',
     default: '0.05',
-    description: 'Smoothing factor for mouse movement tracking (0-1).'
+    description: 'How smoothly the bend follows the cursor, from 0 (frozen) to 1 (instant).'
   },
+  { name: 'parallax', type: 'boolean', default: 'true', description: 'Shifts the waves in depth as the cursor moves.' },
+  { name: 'parallaxStrength', type: 'number', default: '0.2', description: 'Strength of the parallax shift.' },
   {
-    name: 'parallax',
+    name: 'clickSwirl',
     type: 'boolean',
     default: 'true',
-    description: 'Enable parallax effect with mouse movement.'
+    description:
+      'Clicking stirs the lines into a curl that slowly unwinds, turning in the direction the cursor was moving.'
   },
-  {
-    name: 'parallaxStrength',
-    type: 'number',
-    default: '0.2',
-    description: 'Strength of the parallax effect.'
-  },
+  { name: 'intro', type: 'boolean', default: 'true', description: 'Swells the waves in from flat lines on mount.' },
   {
     name: 'mixBlendMode',
     type: "CSSProperties['mixBlendMode']",
     default: "'screen'",
-    description: 'CSS mix-blend-mode applied to the canvas element.'
-  }
+    description: 'CSS mix-blend-mode of the container in dark mode.'
+  },
+  {
+    name: 'backgroundColor',
+    type: 'string',
+    default: '-',
+    description: 'Paints an opaque background behind the lines. Leave it unset for a transparent canvas.'
+  },
+  {
+    name: 'lightMode',
+    type: 'boolean',
+    default: 'false',
+    description: 'Draws the lines as ink for light backgrounds.'
+  },
+  { name: 'opacity', type: 'number', default: '1', description: 'Opacity of the whole effect.' },
+  { name: 'dpr', type: 'number', default: 'auto', description: 'Maximum device pixel ratio, capped at 2.' },
+  { name: 'className', type: 'string', default: "''", description: 'Extra class names for the container.' },
+  { name: 'style', type: 'CSSProperties', default: '-', description: 'Inline styles for the container.' }
 ];
 </script>

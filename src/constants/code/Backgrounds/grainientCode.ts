@@ -2,43 +2,20 @@ import code from '@/content/Backgrounds/Grainient/Grainient.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const grainient = createCodeObject(code, 'Backgrounds/Grainient', {
-  installation: `npm install ogl`,
+  dependencies: '',
   usage: `<template>
-  <div
-    style="
-      width: 100%;
-      height: 600px;
-      position: relative;
-    "
-  >
+  <div style="width: 100%; height: 600px; position: relative">
     <Grainient
-      color1="#FF9FFC"
-      color2="#5227FF"
-      color3="#B497CF"
-      :time-speed="0.25"
-      :color-balance="0.0"
-      :warp-strength="1.0"
-      :warp-frequency="5.0"
-      :warp-speed="2.0"
-      :warp-amplitude="50.0"
-      :blend-angle="0.0"
-      :blend-softness="0.05"
-      :rotation-amount="500.0"
-      :noise-scale="2.0"
-      :grain-amount="0.1"
-      :grain-scale="2.0"
-      :grain-animated="false"
-      :contrast="1.5"
-      :gamma="1.0"
-      :saturation="1.0"
-      :center-x="0.0"
-      :center-y="0.0"
-      :zoom="0.9"
+      :colors="['#111111', '#2a0f0a', '#9a3412', '#f97316', '#fed7aa']"
+      :angle="55"
+      :flow="0.8"
+      :silk="0.35"
+      :grain-amount="0.08"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import Grainient from './Grainient.vue'
+import Grainient from './Grainient.vue';
 </script>`
 });

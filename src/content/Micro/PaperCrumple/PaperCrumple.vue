@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { onBeforeUnmount, onMounted, ref, watch, type CSSProperties } from 'vue';
 import * as THREE from 'three';
 
 export type PaperCrumpleState = 'flat' | 'holding' | 'crumpled' | 'creased';
 export type PaperCrumpleRelease = 'stay' | 'restore' | 'creased';
 
-interface PaperCrumpleProps {
+export interface PaperCrumpleProps {
   src: string;
   alt?: string;
   backSrc?: string;
@@ -38,6 +38,7 @@ interface PaperCrumpleProps {
   disabled?: boolean;
   resetKey?: number | string;
   className?: string;
+  style?: CSSProperties;
 }
 
 type Spring = { value: number; target: number; velocity: number };
@@ -332,8 +333,6 @@ const hitRef = ref<HTMLButtonElement | null>(null);
 const resetRef: { current: (() => void) | null } = { current: null };
 const cancelRef: { current: (() => void) | null } = { current: null };
 const status = ref<'loading' | 'ready' | 'error'>('loading');
-
-// the live options are read through a getter, like the React ref, so the render loop always sees fresh props
 const options = {
   get current() {
     return {
@@ -353,7 +352,6 @@ const options = {
   }
 };
 
-// the whole three.js scene is built here and rebuilt whenever a geometry or material prop changes
 const mountPaper = (): (() => void) | undefined => {
   const {
     src,
@@ -378,7 +376,7 @@ const mountPaper = (): (() => void) | undefined => {
   const root = rootRef.value,
     canvas = canvasRef.value,
     hit = hitRef.value;
-  if (!root || !canvas || !hit) return undefined;
+  if (!root || !canvas || !hit) return;
   status.value = 'loading';
   hit.disabled = true;
   hit.dataset.held = 'false';
@@ -399,7 +397,7 @@ const mountPaper = (): (() => void) | undefined => {
   } catch (error) {
     status.value = 'error';
     options.current.onError?.(error instanceof Error ? error : new Error('WebGL is unavailable.'));
-    return undefined;
+    return;
   }
 
   const paperWidth = Math.max(1, finite(width, 320));
@@ -496,19 +494,19 @@ const mountPaper = (): (() => void) | undefined => {
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <map_fragment>',
         `
-          #include <map_fragment>
-          #ifdef USE_MAP
-            if (vMapUv.x < 0.0 || vMapUv.x > 1.0 || vMapUv.y < 0.0 || vMapUv.y > 1.0) discard;
-            ${material === backMaterial && !backSrc ? 'diffuseColor.rgb = diffuse;' : ''}
-          #endif
-        `
+        #include <map_fragment>
+        #ifdef USE_MAP
+          if (vMapUv.x < 0.0 || vMapUv.x > 1.0 || vMapUv.y < 0.0 || vMapUv.y > 1.0) discard;
+          ${material === backMaterial && !backSrc ? 'diffuseColor.rgb = diffuse;' : ''}
+        #endif
+      `
       );
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <opaque_fragment>',
         `
-          outgoingLight = mix(diffuseColor.rgb, outgoingLight, paperLighting);
-          #include <opaque_fragment>
-        `
+        outgoingLight = mix(diffuseColor.rgb, outgoingLight, paperLighting);
+        #include <opaque_fragment>
+      `
       );
     };
     material.customProgramCacheKey = () => `paper-${material === backMaterial && !backSrc ? 'stock' : 'print'}`;
@@ -522,11 +520,11 @@ const mountPaper = (): (() => void) | undefined => {
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <map_fragment>',
       `
-        #include <map_fragment>
-        #ifdef USE_MAP
-          if (vMapUv.x < 0.0 || vMapUv.x > 1.0 || vMapUv.y < 0.0 || vMapUv.y > 1.0) discard;
-        #endif
-      `
+      #include <map_fragment>
+      #ifdef USE_MAP
+        if (vMapUv.x < 0.0 || vMapUv.x > 1.0 || vMapUv.y < 0.0 || vMapUv.y > 1.0) discard;
+      #endif
+    `
     );
   };
   const sheet = new THREE.Group();
@@ -798,6 +796,7 @@ const mountPaper = (): (() => void) | undefined => {
       posY.value = posY.target = clamp(posY.value, -limitY, limitY);
     }
     wake();
+    renderer.render(scene, camera);
   }
 
   function finish(instant = false) {
@@ -1121,12 +1120,15 @@ const mountPaper = (): (() => void) | undefined => {
   };
 };
 
-// runs once the refs exist (an immediate watcher would run before mount)
-const mounted = ref(false);
-onMounted(() => (mounted.value = true));
+let dispose: (() => void) | undefined;
+const mount = () => {
+  dispose?.();
+  dispose = mountPaper();
+};
+
+onMounted(mount);
 watch(
   [
-    mounted,
     () => props.src,
     () => props.backSrc,
     () => props.width,
@@ -1146,10 +1148,7 @@ watch(
     () => props.seed,
     () => props.detail
   ],
-  (_v, _o, onCleanup) => {
-    const dispose = mountPaper();
-    if (dispose) onCleanup(dispose);
-  },
+  mount,
   { flush: 'post' }
 );
 watch(
@@ -1158,12 +1157,13 @@ watch(
 );
 watch(
   () => props.disabled,
-  d => {
-    if (d) cancelRef.current?.();
+  value => {
+    if (value) cancelRef.current?.();
   }
 );
 onBeforeUnmount(() => {
-  resetRef.current = cancelRef.current = null;
+  dispose?.();
+  dispose = undefined;
 });
 
 const shadowFilter = () =>
@@ -1173,23 +1173,22 @@ const shadowFilter = () =>
 <template>
   <div
     ref="rootRef"
-    class="isolate relative w-full overflow-hidden"
-    :class="className"
-    :style="{ height: `${sceneHeight}px` }"
+    :class="`paper-crumple ${className}`"
+    :style="[{ height: `${sceneHeight}px` }, style]"
     :data-status="status"
   >
     <canvas
       ref="canvasRef"
-      class="block absolute inset-0 w-full h-full pointer-events-none"
+      class="paper-crumple-canvas"
       aria-hidden="true"
       :style="{ visibility: status === 'ready' ? 'visible' : 'hidden', filter: shadowFilter() }"
     />
     <img
       v-if="status !== 'ready'"
-      class="top-1/2 left-1/2 absolute w-[var(--pc-image-width,60%)] h-[var(--pc-image-height,72%)] pointer-events-none select-none"
+      class="paper-crumple-fallback"
       :src="src || undefined"
       :alt="alt"
-      draggable="false"
+      :draggable="false"
       :style="{
         objectFit: imageFit,
         transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
@@ -1199,17 +1198,14 @@ const shadowFilter = () =>
     <button
       ref="hitRef"
       type="button"
-      class="peer top-0 left-0 absolute bg-transparent shadow-none! m-0 p-0 border-0 rounded-[2px] outline-none! focus-visible:outline-none! focus:outline-none! appearance-none touch-none cursor-grab data-[held=true]:cursor-grabbing disabled:cursor-default select-none [-webkit-tap-highlight-color:transparent]"
+      class="paper-crumple-hit"
       :disabled="disabled || status !== 'ready'"
       :aria-label="`${alt}. Hold to crumple and drag. Keyboard: hold Space or Enter, arrow keys to move, Escape to reset.`"
       aria-pressed="false"
       :style="{ visibility: status === 'ready' ? 'visible' : 'hidden' }"
     />
-    <span
-      class="bottom-6 left-[calc(50%-2px)] absolute bg-current opacity-0 peer-data-[pointer=true]:opacity-0! peer-focus-visible:opacity-55 rounded-full w-1 h-1 pointer-events-none"
-      aria-hidden="true"
-    />
-    <span class="sr-only" role="status">
+    <span class="paper-crumple-focus" aria-hidden="true" />
+    <span class="paper-crumple-sr" role="status">
       {{
         status === 'loading'
           ? 'Loading interactive paper.'
@@ -1220,3 +1216,92 @@ const shadowFilter = () =>
     </span>
   </div>
 </template>
+
+<style>
+.paper-crumple {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.paper-crumple-canvas {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.paper-crumple-fallback {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--pc-image-width, 60%);
+  height: var(--pc-image-height, 72%);
+  user-select: none;
+  pointer-events: none;
+}
+
+.paper-crumple-hit {
+  appearance: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 2px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: grab;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.paper-crumple-hit[data-held='true'] {
+  cursor: grabbing;
+}
+
+.paper-crumple-hit:focus,
+.paper-crumple-hit:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.paper-crumple-focus {
+  position: absolute;
+  bottom: 24px;
+  left: calc(50% - 2px);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.paper-crumple-hit:not([data-pointer='true']):focus-visible + .paper-crumple-focus {
+  opacity: 0.55;
+}
+
+.paper-crumple-hit:disabled {
+  cursor: default;
+}
+
+.paper-crumple-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+</style>

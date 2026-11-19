@@ -2,22 +2,21 @@ import code from '@/content/TextAnimations/FallingText/FallingText.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const fallingText = createCodeObject(code, 'TextAnimations/FallingText', {
-  installation: `npm install matter-js @types/matter-js`,
+  installation: `npm install matter-js`,
   usage: `<template>
-  <FallingText
-    text="Vue Bits is a library of animated and interactive Vue components designed to streamline UI development and simplify your workflow."
-    :highlight-words="['Vue', 'Bits', 'animated', 'components', 'simplify']"
-    highlight-class="highlighted"
-    trigger="hover"
-    background-color="transparent"
-    :wireframes="false"
-    :gravity="0.56"
-    font-size="2rem"
-    :mouse-constraint-stiffness="0.9"
-  />
+  <div :style="{ height: '400px', position: 'relative' }">
+    <FallingText
+      text="Some sentences are built to last. This one falls apart on contact."
+      :highlight-words="['falls', 'apart']"
+      trigger="hover"
+      font-size="2rem"
+      :gravity="1"
+      :restore-delay="2"
+    />
+  </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import FallingText from './FallingText.vue'
 </script>`
 });

@@ -2,21 +2,24 @@ import code from '@/content/TextAnimations/MaskedHeading/MaskedHeading.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const maskedHeading = createCodeObject(code, 'TextAnimations/MaskedHeading', {
-  usage: `<script setup>
-import MaskedHeading from './MaskedHeading.vue'
-</script>
-
-<template>
-  <MaskedHeading text="Designed in the details" src="/hero.jpg" />
+  installation: `npm install gsap`,
+  usage: `<template>
   <MaskedHeading
     text="Shot on location"
-    mediaType="video"
+    media-type="video"
     src="/reel.mp4"
     poster="/reel-poster.jpg"
-    :fillScale="1.3"
+    :fill-scale="1.3"
     :parallax="34"
-    reveal="wipe"
+    reveal="scale"
     trigger="view"
+    :spotlight="true"
+    :spotlight-radius="180"
+    :outline="true"
   />
-</template>`
+</template>
+
+<script setup lang="ts">
+import MaskedHeading from './MaskedHeading.vue'
+</script>`
 });

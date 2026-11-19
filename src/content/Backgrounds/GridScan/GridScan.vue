@@ -1,925 +1,1192 @@
 <template>
-  <div ref="containerRef" :class="['relative w-full h-full overflow-hidden', className]" :style="style">
-    <div
-      v-if="showPreview"
-      class="right-3 bottom-3 absolute bg-black shadow-[0_4px_16px_rgba(0,0,0,0.4)] border border-white/25 rounded-lg w-[220px] h-[132px] overflow-hidden font-sans text-[12px] text-white leading-[1.2] pointer-events-none"
-    >
-      <video ref="videoRef" muted playsinline autoplay class="w-full h-full object-cover -scale-x-100" />
-      <div class="top-2 left-2 absolute bg-black/50 backdrop-blur-[4px] px-[6px] py-[2px] rounded-[6px]">
-        {{
-          enableWebcam
-            ? modelsReady
-              ? uiFaceActive
-                ? 'Face: tracking'
-                : 'Face: searching'
-              : 'Loading models'
-            : 'Webcam disabled'
-        }}
-      </div>
+  <div ref="containerRef" :class="['grid-scan', className].filter(Boolean).join(' ')" :style="style">
+    <canvas ref="canvasRef" class="grid-scan-canvas" aria-hidden="true" />
+    <div v-if="enableWebcam" :class="showPreview ? 'grid-scan-preview' : 'grid-scan-hidden'">
+      <video ref="videoRef" class="grid-scan-video" muted playsinline />
+      <span v-if="showPreview" class="grid-scan-status">{{ STATUS_LABELS[status] }}</span>
     </div>
   </div>
 </template>
 
+<script lang="ts">
+export type GridScanLineStyle = 'solid' | 'dashed' | 'dotted';
+
+export type GridScanDirection = 'forward' | 'backward' | 'pingpong';
+
+export type GridScanClickEffect = 'ping' | 'scan' | 'none';
+
+type Settings = {
+  linesColor: string;
+  scanColor: string;
+  cells: number;
+  thickness: number;
+  style: number;
+  depth: number;
+  depthFade: number;
+  parallax: number;
+  points: boolean;
+  reflection: number;
+  shading: number;
+  direction: GridScanDirection;
+  duration: number;
+  delay: number;
+  scanWidth: number;
+  trail: number;
+  glow: number;
+  autoScan: boolean;
+  interactive: boolean;
+  clickEffect: GridScanClickEffect;
+  enableGyro: boolean;
+  intro: boolean;
+  lightMode: boolean;
+  dpr?: number;
+};
+
+type Program = { program: WebGLProgram; uniforms: Record<string, WebGLUniformLocation | null> };
+
+type Target = { texture: WebGLTexture | null; width: number; height: number };
+
+type Ping = { x: number; y: number; z: number; age: number };
+
+type Head = { active: boolean; move: (nx: number, ny: number, near: number) => void; release: () => void };
+
+type Status = 'loading' | 'searching' | 'tracking' | 'blocked';
+
+type FaceApi = {
+  nets: { tinyFaceDetector: { loadFromUri: (url: string) => Promise<void> } };
+  TinyFaceDetectorOptions: new (options: { inputSize: number; scoreThreshold: number }) => unknown;
+  detectSingleFace: (
+    input: HTMLVideoElement,
+    options: unknown
+  ) => PromiseLike<{ box: { x: number; y: number; width: number; height: number } } | undefined>;
+};
+
+type FaceScope = { faceapi?: FaceApi };
+
+const MAX_PINGS = 4;
+const PING_LIFE = 2.4;
+const INTRO_SECONDS = 2.2;
+const EYE_DISTANCE = 1.25;
+const FACE_API_URL = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js';
+const MODELS_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights';
+const STYLES: Record<string, number> = { solid: 0, dashed: 1, dotted: 2 };
+
+const VERTEX = `#version 300 es
+out vec2 vUv;
+void main() {
+  vec2 p = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2));
+  vUv = p;
+  gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0);
+}`;
+
+const ROOM = `#version 300 es
+precision highp float;
+precision highp int;
+uniform float uAspect;
+uniform float uPixel;
+uniform vec3 uEye;
+uniform float uDepth;
+uniform vec3 uCell;
+uniform float uThick;
+uniform float uDot;
+uniform int uStyle;
+uniform vec3 uLineColor;
+uniform vec3 uScanColor;
+uniform vec3 uCoreColor;
+uniform float uFade;
+uniform float uScanZ;
+uniform float uScanDir;
+uniform float uScanAlpha;
+uniform float uScanWidth;
+uniform float uTrail;
+uniform float uReveal;
+uniform float uPoints;
+uniform float uReflect;
+uniform float uHaze;
+uniform float uShade;
+uniform float uLight;
+uniform vec4 uPing[4];
+uniform float uPingAlpha[4];
+uniform vec4 uHover;
+uniform float uTime;
+in vec2 vUv;
+layout(location = 0) out vec4 outColor;
+layout(location = 1) out vec4 outGlow;
+
+struct Light {
+  float grid;
+  float fade;
+  float core;
+  float trail;
+  float spill;
+  float ping;
+  float wake;
+  float reveal;
+};
+
+float hash(vec2 p) {
+  vec3 q = fract(vec3(p.xyx) * 0.1031);
+  q += dot(q, q.yzx + 33.33);
+  return fract((q.x + q.y) * q.z);
+}
+
+vec2 hash2(vec2 p) {
+  vec3 q = fract(vec3(p.xyx) * vec3(0.1031, 0.103, 0.0973));
+  q += dot(q, q.yzx + 33.33);
+  return fract((q.xx + q.yz) * q.zy);
+}
+
+float lines(float across, float along, float period, float dash, float fa, float fb) {
+  float u = across / period;
+  float du = fa / period;
+  float d = abs(fract(u + 0.5) - 0.5) / max(du, 1e-5);
+  float dense = smoothstep(0.1, 0.4, du);
+  if (uStyle == 2) {
+    float c = along / dash * 5.0;
+    float dc = fb / dash * 5.0;
+    float e = abs(fract(c + 0.5) - 0.5) / max(dc, 1e-5);
+    float cov = clamp(uThick + 1.0 - length(vec2(d, e)), 0.0, 1.0);
+    float mean = min(1.0, 3.1416 * (uThick + 0.5) * (uThick + 0.5) * du * dc);
+    return mix(cov, mean, max(dense, smoothstep(0.1, 0.4, dc)));
+  }
+  float cov = clamp(uThick + 0.5 - d, 0.0, 1.0);
+  float mean = min(1.0, 2.0 * uThick * du);
+  if (uStyle == 1) {
+    float c = along / dash * 4.0;
+    float dc = fb / dash * 4.0;
+    float e = abs(fract(c + 0.5) - 0.5);
+    float m = clamp((0.25 - e) / max(dc, 1e-5) + 0.5, 0.0, 1.0);
+    cov *= mix(m, 0.5, smoothstep(0.1, 0.4, dc));
+    mean *= 0.5;
+  }
+  return mix(cov, mean, dense);
+}
+
+float depthFade(float z) {
+  float n = clamp(z / uDepth, 0.0, 1.0);
+  return mix(1.0, (exp(-3.0 * n) - 0.0497871) / 0.9502129, uFade);
+}
+
+vec3 project(vec3 eye, vec3 o, int face, float plane) {
+  vec3 d = o - eye;
+  float t = face == 0 ? (plane - o.x) / d.x : (face == 1 ? (plane - o.y) / d.y : (plane - o.z) / d.z);
+  return o + d * t;
+}
+
+void trace(vec3 o, vec3 d, out int face, out float plane, out vec3 h) {
+  float sx = d.x > 0.0 ? 0.5 * uAspect : -0.5 * uAspect;
+  float sy = d.y > 0.0 ? 0.5 : -0.5;
+  float tx = abs(d.x) > 1e-6 ? (sx - o.x) / d.x : 1e9;
+  float ty = abs(d.y) > 1e-6 ? (sy - o.y) / d.y : 1e9;
+  float t = (uDepth - o.z) / d.z;
+  face = 2;
+  plane = uDepth;
+  if (tx < t) {
+    face = 0;
+    plane = sx;
+    t = tx;
+  }
+  if (ty < t) {
+    face = 1;
+    plane = sy;
+    t = ty;
+  }
+  h = o + d * t;
+}
+
+vec2 faceUv(vec3 h, int face) {
+  if (face == 0) return vec2(h.z, h.y + 0.5);
+  if (face == 1) return vec2(h.x + 0.5 * uAspect, h.z);
+  return vec2(h.x + 0.5 * uAspect, h.y + 0.5);
+}
+
+Light illuminate(vec3 h, int face, vec2 uv, vec2 foot, float blur) {
+  Light l;
+  vec2 cell = face == 0 ? uCell.zy : (face == 1 ? uCell.xz : uCell.xy);
+  vec2 f = foot * blur;
+  float minor = max(lines(uv.x, uv.y, cell.x, cell.y, f.x, f.y), lines(uv.y, uv.x, cell.y, cell.x, f.y, f.x));
+  float major = max(
+    lines(uv.x, uv.y, cell.x * 4.0, cell.y, f.x, f.y),
+    lines(uv.y, uv.x, cell.y * 4.0, cell.x, f.y, f.x)
+  );
+  l.grid = max(minor * 0.75, major) / blur;
+  float z = h.z;
+  l.fade = depthFade(z);
+  l.reveal = smoothstep(uReveal, uReveal - 0.2, z);
+  float zFoot = face == 0 ? f.x : (face == 1 ? f.y : 0.0);
+  float width = max(uScanWidth, zFoot * 1.1);
+  float dz = z - uScanZ;
+  l.core = exp(-dz * dz / (width * width)) * (face == 2 ? 0.45 : 1.0) * uScanAlpha;
+  float behind = -dz * uScanDir;
+  l.trail = exp(-max(behind, 0.0) / uTrail) * smoothstep(-width, width * 0.5, behind) * uScanAlpha;
+  l.spill = exp(-dz * dz / 0.05) * uScanAlpha;
+  l.ping = 0.0;
+  l.wake = 0.0;
+  for (int i = 0; i < 4; i++) {
+    float alpha = uPingAlpha[i];
+    if (alpha <= 0.0) continue;
+    float dist = length(h - uPing[i].xyz) - uPing[i].w;
+    l.ping += exp(-dist * dist / 0.0012) * alpha;
+    l.wake += exp(min(dist, 0.0) / 0.22) * smoothstep(0.03, -0.03, dist) * alpha;
+  }
+  return l;
+}
+
+void over(inout vec4 acc, vec3 color, float alpha) {
+  alpha = clamp(alpha, 0.0, 1.0);
+  acc = vec4(color * alpha, alpha) + acc * (1.0 - alpha);
+}
+
+void paint(inout vec4 color, inout float energy, Light l, float gain, float lift, float hover) {
+  float base = l.grid * l.fade * l.reveal * lift;
+  float far = l.fade * l.reveal * gain;
+  float lit = l.grid * (l.core * 1.2 + l.trail * 0.75 + l.ping * 1.4 + l.wake * 0.5 + hover * 0.5) * far;
+  float sheen = (l.core * 0.14 + l.spill * 0.05 + l.trail * 0.03 + l.ping * 0.2 + l.wake * 0.04) * far;
+  float laser = (l.core + l.ping * 0.35) * far;
+  over(color, uLineColor, base);
+  over(color, uScanColor, sheen);
+  over(color, uScanColor, lit);
+  over(color, uCoreColor, laser * 0.9);
+  energy += laser * 0.9 + lit * 0.5;
+}
+
+void main() {
+  vec3 p = vec3((vUv.x - 0.5) * uAspect, vUv.y - 0.5, 0.0);
+  vec3 d = p - uEye;
+  int face;
+  float plane;
+  vec3 h;
+  trace(p, d, face, plane, h);
+  vec3 hx = project(uEye, p + vec3(uPixel, 0.0, 0.0), face, plane);
+  vec3 hy = project(uEye, p + vec3(0.0, uPixel, 0.0), face, plane);
+  vec2 uv = faceUv(h, face);
+  vec2 ux = faceUv(hx, face) - uv;
+  vec2 uy = faceUv(hy, face) - uv;
+  vec2 foot = vec2(length(vec2(ux.x, uy.x)), length(vec2(ux.y, uy.y)));
+  Light l = illuminate(h, face, uv, foot, 1.0);
+
+  vec4 color = vec4(0.0);
+  float energy = 0.0;
+
+  if (uShade > 0.0) {
+    vec2 gaps = face == 0
+      ? vec2(0.5 - abs(h.y), uDepth - h.z)
+      : (face == 1 ? vec2(0.5 * uAspect - abs(h.x), uDepth - h.z) : vec2(0.5 * uAspect - abs(h.x), 0.5 - abs(h.y)));
+    vec2 crease = 1.0 - exp(-max(gaps, 0.0) / 0.16);
+    float occlusion = crease.x * crease.y;
+    float lamp = 1.0 / (1.0 + h.z * h.z * 0.9);
+    float tilt = face == 1 ? (plane < 0.0 ? 1.1 : 0.85) : (face == 2 ? 0.8 : 1.0);
+    float glowSpill = (l.spill * 0.5 + l.trail * 0.12) * l.reveal * l.fade;
+    if (uLight > 0.5) {
+      float shadow = (1.0 - lamp * tilt) * 0.09 + (1.0 - occlusion) * 0.2;
+      over(color, vec3(0.0), shadow * uShade * l.reveal * l.fade);
+    } else {
+      over(color, vec3(1.0), lamp * tilt * occlusion * 0.11 * uShade * l.reveal * l.fade);
+    }
+    over(color, uScanColor, glowSpill * uShade * occlusion * 0.35);
+  }
+
+  if (face == 1 && plane < 0.0 && uReflect > 0.0) {
+    vec3 mirror = vec3(uEye.x, -1.0 - uEye.y, uEye.z);
+    vec3 r = h - mirror;
+    int face2;
+    float plane2;
+    vec3 h2;
+    trace(h, r, face2, plane2, h2);
+    vec2 uv2 = faceUv(h2, face2);
+    vec2 ux2 = faceUv(project(mirror, hx, face2, plane2), face2) - uv2;
+    vec2 uy2 = faceUv(project(mirror, hy, face2, plane2), face2) - uv2;
+    vec2 foot2 = vec2(length(vec2(ux2.x, uy2.x)), length(vec2(ux2.y, uy2.y)));
+    float travel = length(h2 - h);
+    Light m = illuminate(h2, face2, uv2, foot2, 1.0 + travel * 4.0);
+    m.reveal *= l.reveal;
+    float grazing = 1.0 - normalize(r).y;
+    float gain = (0.3 + 0.7 * grazing * grazing * grazing * grazing) * uReflect * exp(-travel * 1.1) * (uLight > 0.5 ? 0.6 : 1.0);
+    float reflected = 0.0;
+    paint(color, reflected, m, gain, 0.0, 0.0);
+    energy += reflected * 0.6;
+  }
+
+  vec3 near = h - uHover.xyz;
+  float hover = exp(-dot(near, near) / 0.08) * uHover.w;
+  paint(color, energy, l, 1.0, 1.0, hover);
+
+  if (uPoints > 0.5) {
+    vec2 cell = face == 0 ? uCell.zy : (face == 1 ? uCell.xz : uCell.xy);
+    vec2 spacing = cell / 2.5;
+    vec2 q = uv / spacing;
+    vec2 id = floor(q);
+    vec2 seed = id + vec2(float(face) * 13.7 + plane * 5.3, float(face) * 3.1);
+    vec2 delta = (q - id - (0.2 + 0.6 * hash2(seed))) * spacing;
+    float det = ux.x * uy.y - ux.y * uy.x;
+    vec2 s = vec2(delta.x * uy.y - delta.y * uy.x, ux.x * delta.y - ux.y * delta.x) / det;
+    float radius = uDot * mix(1.0, 0.55, clamp(h.z / uDepth, 0.0, 1.0));
+    float spot = clamp(radius + 0.5 - length(s), 0.0, 1.0);
+    float gap = min(spacing.x / foot.x, spacing.y / foot.y);
+    float r = hash(seed + 7.7);
+    float flicker = 0.75 + 0.25 * sin(uTime * (3.0 + r * 5.0) + r * 40.0);
+    float dots = spot * smoothstep(5.0, 10.0, gap) * smoothstep(0.25, 0.6, r) * (0.3 + 0.7 * r * r) * flicker;
+    float hot = l.core * 2.5 + l.ping * 1.6;
+    float warm = l.trail * l.trail * 1.3 + l.wake * 0.6 + hover * 1.3;
+    float spark = dots * (hot + warm) * l.fade * l.reveal;
+    over(color, mix(uScanColor, uCoreColor, clamp(hot / max(hot + warm, 1e-4), 0.0, 1.0)), spark);
+    energy += spark * 0.9;
+  }
+
+  if (uHaze > 0.0 && uScanAlpha > 0.0 && uScanZ > 0.0 && h.z > uScanZ) {
+    vec3 c = p + d * (uScanZ / d.z);
+    float grain = hash(floor(c.xy * 180.0) + floor(uTime * 24.0) * 7.0);
+    float edge = min(0.5 * uAspect - abs(c.x), 0.5 - abs(c.y));
+    float rim = exp(-edge / 0.06);
+    float veil = uHaze * uScanAlpha * (0.45 + 0.9 * grain) * (0.55 + rim * 1.6);
+    over(color, uScanColor, veil * depthFade(uScanZ) * l.reveal);
+  }
+
+  energy = clamp(energy, 0.0, 1.0);
+  outColor = color;
+  outGlow = vec4(uScanColor * energy, energy);
+}`;
+
+const DOWN = `#version 300 es
+precision highp float;
+uniform sampler2D uSource;
+uniform vec2 uTexel;
+in vec2 vUv;
+out vec4 outColor;
+void main() {
+  vec2 o = uTexel;
+  outColor = 0.25 * (
+    texture(uSource, vUv + vec2(-o.x, -o.y)) +
+    texture(uSource, vUv + vec2(o.x, -o.y)) +
+    texture(uSource, vUv + vec2(-o.x, o.y)) +
+    texture(uSource, vUv + vec2(o.x, o.y))
+  );
+}`;
+
+const BLUR = `#version 300 es
+precision highp float;
+uniform sampler2D uSource;
+uniform vec2 uStep;
+in vec2 vUv;
+out vec4 outColor;
+void main() {
+  vec4 sum = texture(uSource, vUv) * 0.1964825501511404;
+  sum += (texture(uSource, vUv + uStep * 1.411764705882353) + texture(uSource, vUv - uStep * 1.411764705882353)) * 0.2969069646728344;
+  sum += (texture(uSource, vUv + uStep * 3.2941176470588234) + texture(uSource, vUv - uStep * 3.2941176470588234)) * 0.09447039785044732;
+  sum += (texture(uSource, vUv + uStep * 5.176470588235294) + texture(uSource, vUv - uStep * 5.176470588235294)) * 0.010381362401148057;
+  outColor = sum;
+}`;
+
+const COMPOSITE = `#version 300 es
+precision highp float;
+uniform sampler2D uScene;
+uniform sampler2D uBloom;
+uniform float uGlow;
+in vec2 vUv;
+out vec4 outColor;
+float hash(vec2 p) {
+  vec3 q = fract(vec3(p.xyx) * 0.1031);
+  q += dot(q, q.yzx + 33.33);
+  return fract((q.x + q.y) * q.z);
+}
+void main() {
+  vec4 scene = texture(uScene, vUv);
+  vec4 bloom = texture(uBloom, vUv) * uGlow;
+  bloom.a = min(bloom.a, 1.0);
+  bloom.rgb = min(bloom.rgb, vec3(bloom.a));
+  vec4 color = scene + bloom * (1.0 - scene.a);
+  float noise = (hash(gl_FragCoord.xy) - 0.5) / 255.0;
+  color.a = clamp(color.a + noise, 0.0, 1.0);
+  color.rgb = clamp(color.rgb + noise, vec3(0.0), vec3(color.a));
+  outColor = color;
+}`;
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+const compile = (gl: WebGL2RenderingContext, type: number, source: string) => {
+  const shader = gl.createShader(type);
+  if (!shader) return null;
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  if (gl.getShaderParameter(shader, gl.COMPILE_STATUS)) return shader;
+  gl.deleteShader(shader);
+  return null;
+};
+
+const link = (gl: WebGL2RenderingContext, fragmentSource: string): Program | null => {
+  const vertex = compile(gl, gl.VERTEX_SHADER, VERTEX);
+  const fragment = compile(gl, gl.FRAGMENT_SHADER, fragmentSource);
+  const program = gl.createProgram();
+  if (!vertex || !fragment || !program) return null;
+  gl.attachShader(program, vertex);
+  gl.attachShader(program, fragment);
+  gl.linkProgram(program);
+  gl.deleteShader(vertex);
+  gl.deleteShader(fragment);
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    gl.deleteProgram(program);
+    return null;
+  }
+  const uniforms: Record<string, WebGLUniformLocation | null> = {};
+  const count = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+  for (let i = 0; i < count; i++) {
+    const info = gl.getActiveUniform(program, i);
+    if (!info) continue;
+    const name = info.name.replace(/\[0\]$/, '');
+    uniforms[name] = gl.getUniformLocation(program, name);
+  }
+  return { program, uniforms };
+};
+
+const createTarget = (gl: WebGL2RenderingContext): Target => {
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  return { texture, width: 0, height: 0 };
+};
+
+const sizeTarget = (gl: WebGL2RenderingContext, target: Target, width: number, height: number) => {
+  if (target.width === width && target.height === height) return;
+  target.width = width;
+  target.height = height;
+  gl.bindTexture(gl.TEXTURE_2D, target.texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+};
+
+let faceApiLoader: Promise<FaceApi> | null = null;
+
+const loadFaceApi = () => {
+  const scope = window as unknown as FaceScope;
+  if (scope.faceapi) return Promise.resolve(scope.faceapi);
+  if (!faceApiLoader) {
+    faceApiLoader = new Promise<FaceApi>((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = FACE_API_URL;
+      script.async = true;
+      script.onload = () => (scope.faceapi ? resolve(scope.faceapi) : reject(new Error('face-api.js')));
+      script.onerror = () => {
+        faceApiLoader = null;
+        reject(new Error('face-api.js'));
+      };
+      document.head.appendChild(script);
+    });
+  }
+  return faceApiLoader;
+};
+
+const STATUS_LABELS: Record<Status, string> = {
+  loading: 'Loading face tracking',
+  searching: 'Looking for a face',
+  tracking: 'Tracking',
+  blocked: 'Camera unavailable'
+};
+</script>
+
 <script setup lang="ts">
-import * as faceapi from 'face-api.js';
-import { BloomEffect, ChromaticAberrationEffect, EffectComposer, EffectPass, RenderPass } from 'postprocessing';
-import * as THREE from 'three';
-import { onMounted, onUnmounted, ref, useTemplateRef, watch, type CSSProperties } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch, type CSSProperties } from 'vue';
 
-export type LineStyle = 'solid' | 'dashed' | 'dotted';
-export type ScanDirection = 'forward' | 'backward' | 'pingpong';
-
-interface GridScanProps {
+export interface GridScanProps {
+  linesColor?: string;
+  scanColor?: string;
+  cells?: number;
+  lineThickness?: number;
+  lineStyle?: GridScanLineStyle;
+  depth?: number;
+  depthFade?: number;
+  parallax?: number;
+  points?: boolean;
+  reflection?: number;
+  shading?: number;
+  scanDirection?: GridScanDirection;
+  scanDuration?: number;
+  scanDelay?: number;
+  scanWidth?: number;
+  trail?: number;
+  glow?: number;
+  autoScan?: boolean;
+  interactive?: boolean;
+  clickEffect?: GridScanClickEffect;
   enableWebcam?: boolean;
   showPreview?: boolean;
   modelsPath?: string;
-  sensitivity?: number;
-  lineThickness?: number;
-  linesColor?: string;
-  gridScale?: number;
-  lineStyle?: LineStyle;
-  lineJitter?: number;
-  enablePost?: boolean;
-  bloomIntensity?: number;
-  bloomThreshold?: number;
-  bloomSmoothing?: number;
-  chromaticAberration?: number;
-  noiseIntensity?: number;
-  scanColor?: string;
-  scanOpacity?: number;
-  scanDirection?: ScanDirection;
-  scanSoftness?: number;
-  scanGlow?: number;
-  scanPhaseTaper?: number;
-  scanDuration?: number;
-  scanDelay?: number;
   enableGyro?: boolean;
-  scanOnClick?: boolean;
-  snapBackDelay?: number;
+  intro?: boolean;
+  lightMode?: boolean;
+  dpr?: number;
   className?: string;
   style?: CSSProperties;
 }
 
-interface DeviceOrientationEventWithPermission {
-  requestPermission?: () => Promise<'granted' | 'denied'>;
-}
-
-const props = withDefaults(defineProps<GridScanProps>(), {
+const P = withDefaults(defineProps<GridScanProps>(), {
+  linesColor: undefined,
+  scanColor: undefined,
+  cells: 8,
+  lineThickness: 1,
+  lineStyle: 'solid',
+  depth: 3,
+  depthFade: 0.6,
+  parallax: 1,
+  points: true,
+  reflection: 0.35,
+  shading: 0.7,
+  scanDirection: 'forward',
+  scanDuration: 2.4,
+  scanDelay: 1.6,
+  scanWidth: 1,
+  trail: 0.5,
+  glow: 0.6,
+  autoScan: true,
+  interactive: true,
+  clickEffect: 'ping',
   enableWebcam: false,
   showPreview: false,
-  modelsPath: 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights',
-  sensitivity: 0.55,
-  lineThickness: 1,
-  linesColor: '#2c3d32',
-  scanColor: '#48FF28',
-  scanOpacity: 0.4,
-  gridScale: 0.1,
-  lineStyle: 'solid',
-  lineJitter: 0.1,
-  scanDirection: 'pingpong',
-  enablePost: true,
-  bloomIntensity: 0,
-  bloomThreshold: 0,
-  bloomSmoothing: 0,
-  chromaticAberration: 0.002,
-  noiseIntensity: 0.01,
-  scanGlow: 0.5,
-  scanSoftness: 2,
-  scanPhaseTaper: 0.9,
-  scanDuration: 2.0,
-  scanDelay: 2.0,
+  modelsPath: MODELS_URL,
   enableGyro: false,
-  scanOnClick: false,
-  snapBackDelay: 250,
-  className: ''
+  intro: true,
+  lightMode: false,
+  dpr: undefined,
+  className: '',
+  style: undefined
 });
 
-const vert = `
-varying vec2 vUv;
-void main(){
-  vUv = uv;
-  gl_Position = vec4(position.xy, 0.0, 1.0);
-}
-`;
-
-const frag = `
-precision highp float;
-uniform vec3 iResolution;
-uniform float iTime;
-uniform vec2 uSkew;
-uniform float uTilt;
-uniform float uYaw;
-uniform float uLineThickness;
-uniform vec3 uLinesColor;
-uniform vec3 uScanColor;
-uniform float uGridScale;
-uniform float uLineStyle;
-uniform float uLineJitter;
-uniform float uScanOpacity;
-uniform float uScanDirection;
-uniform float uNoise;
-uniform float uBloomOpacity;
-uniform float uScanGlow;
-uniform float uScanSoftness;
-uniform float uPhaseTaper;
-uniform float uScanDuration;
-uniform float uScanDelay;
-varying vec2 vUv;
-
-uniform float uScanStarts[8];
-uniform float uScanCount;
-
-const int MAX_SCANS = 8;
-
-float smoother01(float a, float b, float x){
-  float t = clamp((x - a) / max(1e-5, (b - a)), 0.0, 1.0);
-  return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
-}
-
-void mainImage(out vec4 fragColor, in vec2 fragCoord)
-{
-    vec2 p = (2.0 * fragCoord - iResolution.xy) / iResolution.y;
-
-    vec3 ro = vec3(0.0);
-    vec3 rd = normalize(vec3(p, 2.0));
-
-    float cR = cos(uTilt), sR = sin(uTilt);
-    rd.xy = mat2(cR, -sR, sR, cR) * rd.xy;
-
-    float cY = cos(uYaw), sY = sin(uYaw);
-    rd.xz = mat2(cY, -sY, sY, cY) * rd.xz;
-
-    vec2 skew = clamp(uSkew, vec2(-0.7), vec2(0.7));
-    rd.xy += skew * rd.z;
-
-    vec3 color = vec3(0.0);
-  float minT = 1e20;
-  float gridScale = max(1e-5, uGridScale);
-    float fadeStrength = 2.0;
-    vec2 gridUV = vec2(0.0);
-
-  float hitIsY = 1.0;
-    for (int i = 0; i < 4; i++)
-    {
-        float isY = float(i < 2);
-        float pos = mix(-0.2, 0.2, float(i)) * isY + mix(-0.5, 0.5, float(i - 2)) * (1.0 - isY);
-        float num = pos - (isY * ro.y + (1.0 - isY) * ro.x);
-        float den = isY * rd.y + (1.0 - isY) * rd.x;
-        float t = num / den;
-        vec3 h = ro + rd * t;
-
-        float depthBoost = smoothstep(0.0, 3.0, h.z);
-        h.xy += skew * 0.15 * depthBoost;
-
-    bool use = t > 0.0 && t < minT;
-    gridUV = use ? mix(h.zy, h.xz, isY) / gridScale : gridUV;
-    minT = use ? t : minT;
-    hitIsY = use ? isY : hitIsY;
-    }
-
-    vec3 hit = ro + rd * minT;
-    float dist = length(hit - ro);
-
-  float jitterAmt = clamp(uLineJitter, 0.0, 1.0);
-  if (jitterAmt > 0.0) {
-    vec2 j = vec2(
-      sin(gridUV.y * 2.7 + iTime * 1.8),
-      cos(gridUV.x * 2.3 - iTime * 1.6)
-    ) * (0.15 * jitterAmt);
-    gridUV += j;
-  }
-  float fx = fract(gridUV.x);
-  float fy = fract(gridUV.y);
-  float ax = min(fx, 1.0 - fx);
-  float ay = min(fy, 1.0 - fy);
-  float wx = fwidth(gridUV.x);
-  float wy = fwidth(gridUV.y);
-  float halfPx = max(0.0, uLineThickness) * 0.5;
-
-  float tx = halfPx * wx;
-  float ty = halfPx * wy;
-
-  float aax = wx;
-  float aay = wy;
-
-  float lineX = 1.0 - smoothstep(tx, tx + aax, ax);
-  float lineY = 1.0 - smoothstep(ty, ty + aay, ay);
-  if (uLineStyle > 0.5) {
-    float dashRepeat = 4.0;
-    float dashDuty = 0.5;
-    float vy = fract(gridUV.y * dashRepeat);
-    float vx = fract(gridUV.x * dashRepeat);
-    float dashMaskY = step(vy, dashDuty);
-    float dashMaskX = step(vx, dashDuty);
-    if (uLineStyle < 1.5) {
-      lineX *= dashMaskY;
-      lineY *= dashMaskX;
-    } else {
-      float dotRepeat = 6.0;
-      float dotWidth = 0.18;
-      float cy = abs(fract(gridUV.y * dotRepeat) - 0.5);
-      float cx = abs(fract(gridUV.x * dotRepeat) - 0.5);
-      float dotMaskY = 1.0 - smoothstep(dotWidth, dotWidth + fwidth(gridUV.y * dotRepeat), cy);
-      float dotMaskX = 1.0 - smoothstep(dotWidth, dotWidth + fwidth(gridUV.x * dotRepeat), cx);
-      lineX *= dotMaskY;
-      lineY *= dotMaskX;
-    }
-  }
-  float primaryMask = max(lineX, lineY);
-
-  vec2 gridUV2 = (hitIsY > 0.5 ? hit.xz : hit.zy) / gridScale;
-  if (jitterAmt > 0.0) {
-    vec2 j2 = vec2(
-      cos(gridUV2.y * 2.1 - iTime * 1.4),
-      sin(gridUV2.x * 2.5 + iTime * 1.7)
-    ) * (0.15 * jitterAmt);
-    gridUV2 += j2;
-  }
-  float fx2 = fract(gridUV2.x);
-  float fy2 = fract(gridUV2.y);
-  float ax2 = min(fx2, 1.0 - fx2);
-  float ay2 = min(fy2, 1.0 - fy2);
-  float wx2 = fwidth(gridUV2.x);
-  float wy2 = fwidth(gridUV2.y);
-  float tx2 = halfPx * wx2;
-  float ty2 = halfPx * wy2;
-  float aax2 = wx2;
-  float aay2 = wy2;
-  float lineX2 = 1.0 - smoothstep(tx2, tx2 + aax2, ax2);
-  float lineY2 = 1.0 - smoothstep(ty2, ty2 + aay2, ay2);
-  if (uLineStyle > 0.5) {
-    float dashRepeat2 = 4.0;
-    float dashDuty2 = 0.5;
-    float vy2m = fract(gridUV2.y * dashRepeat2);
-    float vx2m = fract(gridUV2.x * dashRepeat2);
-    float dashMaskY2 = step(vy2m, dashDuty2);
-    float dashMaskX2 = step(vx2m, dashDuty2);
-    if (uLineStyle < 1.5) {
-      lineX2 *= dashMaskY2;
-      lineY2 *= dashMaskX2;
-    } else {
-      float dotRepeat2 = 6.0;
-      float dotWidth2 = 0.18;
-      float cy2 = abs(fract(gridUV2.y * dotRepeat2) - 0.5);
-      float cx2 = abs(fract(gridUV2.x * dotRepeat2) - 0.5);
-      float dotMaskY2 = 1.0 - smoothstep(dotWidth2, dotWidth2 + fwidth(gridUV2.y * dotRepeat2), cy2);
-      float dotMaskX2 = 1.0 - smoothstep(dotWidth2, dotWidth2 + fwidth(gridUV2.x * dotRepeat2), cx2);
-      lineX2 *= dotMaskY2;
-      lineY2 *= dotMaskX2;
-    }
-  }
-    float altMask = max(lineX2, lineY2);
-
-    float edgeDistX = min(abs(hit.x - (-0.5)), abs(hit.x - 0.5));
-    float edgeDistY = min(abs(hit.y - (-0.2)), abs(hit.y - 0.2));
-    float edgeDist = mix(edgeDistY, edgeDistX, hitIsY);
-    float edgeGate = 1.0 - smoothstep(gridScale * 0.5, gridScale * 2.0, edgeDist);
-    altMask *= edgeGate;
-
-  float lineMask = max(primaryMask, altMask);
-
-    float fade = exp(-dist * fadeStrength);
-
-    float dur = max(0.05, uScanDuration);
-    float del = max(0.0, uScanDelay);
-    float scanZMax = 2.0;
-    float widthScale = max(0.1, uScanGlow);
-    float sigma = max(0.001, 0.18 * widthScale * uScanSoftness);
-    float sigmaA = sigma * 2.0;
-
-    float combinedPulse = 0.0;
-    float combinedAura = 0.0;
-
-    float cycle = dur + del;
-    float tCycle = mod(iTime, cycle);
-    float scanPhase = clamp((tCycle - del) / dur, 0.0, 1.0);
-    float phase = scanPhase;
-    if (uScanDirection > 0.5 && uScanDirection < 1.5) {
-      phase = 1.0 - phase;
-    } else if (uScanDirection > 1.5) {
-      float t2 = mod(max(0.0, iTime - del), 2.0 * dur);
-      phase = (t2 < dur) ? (t2 / dur) : (1.0 - (t2 - dur) / dur);
-    }
-    float scanZ = phase * scanZMax;
-    float dz = abs(hit.z - scanZ);
-    float lineBand = exp(-0.5 * (dz * dz) / (sigma * sigma));
-    float taper = clamp(uPhaseTaper, 0.0, 0.49);
-    float headW = taper;
-    float tailW = taper;
-    float headFade = smoother01(0.0, headW, phase);
-    float tailFade = 1.0 - smoother01(1.0 - tailW, 1.0, phase);
-    float phaseWindow = headFade * tailFade;
-    float pulseBase = lineBand * phaseWindow;
-    combinedPulse += pulseBase * clamp(uScanOpacity, 0.0, 1.0);
-    float auraBand = exp(-0.5 * (dz * dz) / (sigmaA * sigmaA));
-    combinedAura += (auraBand * 0.25) * phaseWindow * clamp(uScanOpacity, 0.0, 1.0);
-
-    for (int i = 0; i < MAX_SCANS; i++) {
-      if (float(i) >= uScanCount) break;
-      float tActiveI = iTime - uScanStarts[i];
-      float phaseI = clamp(tActiveI / dur, 0.0, 1.0);
-      if (uScanDirection > 0.5 && uScanDirection < 1.5) {
-        phaseI = 1.0 - phaseI;
-      } else if (uScanDirection > 1.5) {
-        phaseI = (phaseI < 0.5) ? (phaseI * 2.0) : (1.0 - (phaseI - 0.5) * 2.0);
-      }
-      float scanZI = phaseI * scanZMax;
-      float dzI = abs(hit.z - scanZI);
-      float lineBandI = exp(-0.5 * (dzI * dzI) / (sigma * sigma));
-      float headFadeI = smoother01(0.0, headW, phaseI);
-      float tailFadeI = 1.0 - smoother01(1.0 - tailW, 1.0, phaseI);
-      float phaseWindowI = headFadeI * tailFadeI;
-      combinedPulse += lineBandI * phaseWindowI * clamp(uScanOpacity, 0.0, 1.0);
-      float auraBandI = exp(-0.5 * (dzI * dzI) / (sigmaA * sigmaA));
-      combinedAura += (auraBandI * 0.25) * phaseWindowI * clamp(uScanOpacity, 0.0, 1.0);
-    }
-
-  float lineVis = lineMask;
-  vec3 gridCol = uLinesColor * lineVis * fade;
-  vec3 scanCol = uScanColor * combinedPulse;
-  vec3 scanAura = uScanColor * combinedAura;
-
-    color = gridCol + scanCol + scanAura;
-
-  float n = fract(sin(dot(gl_FragCoord.xy + vec2(iTime * 123.4), vec2(12.9898,78.233))) * 43758.5453123);
-  color += (n - 0.5) * uNoise;
-  color = clamp(color, 0.0, 1.0);
-  float alpha = clamp(max(lineVis, combinedPulse), 0.0, 1.0);
-  float gx = 1.0 - smoothstep(tx * 2.0, tx * 2.0 + aax * 2.0, ax);
-  float gy = 1.0 - smoothstep(ty * 2.0, ty * 2.0 + aay * 2.0, ay);
-  float halo = max(gx, gy) * fade;
-  alpha = max(alpha, halo * clamp(uBloomOpacity, 0.0, 1.0));
-  fragColor = vec4(color, alpha);
-}
-
-void main(){
-  vec4 c;
-  mainImage(c, vUv * iResolution.xy);
-  gl_FragColor = c;
-}
-`;
-
-const containerRef = useTemplateRef<HTMLDivElement>('containerRef');
-const videoRef = useTemplateRef<HTMLVideoElement>('videoRef');
-
-const modelsReady = ref(false);
-const uiFaceActive = ref(false);
-
-const MAX_SCANS = 8;
-
-let cleanupAnimation: () => void = () => {};
-
-const srgbColor = (hex: string): THREE.Color => {
-  const c = new THREE.Color(hex);
-  return c.convertSRGBToLinear();
-};
-
-const smoothDampVec2 = (
-  current: THREE.Vector2,
-  target: THREE.Vector2,
-  currentVelocity: THREE.Vector2,
-  smoothTimeVal: number,
-  maxSpeedVal: number,
-  deltaTime: number
-): THREE.Vector2 => {
-  const out = current.clone();
-  smoothTimeVal = Math.max(0.0001, smoothTimeVal);
-  const omega = 2 / smoothTimeVal;
-  const x = omega * deltaTime;
-  const exp = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
-
-  const change = current.clone().sub(target);
-  const originalTo = target.clone();
-
-  const maxChange = maxSpeedVal * smoothTimeVal;
-  if (change.length() > maxChange) change.setLength(maxChange);
-
-  target = current.clone().sub(change);
-  const temp = currentVelocity.clone().addScaledVector(change, omega).multiplyScalar(deltaTime);
-  currentVelocity.sub(temp.clone().multiplyScalar(omega));
-  currentVelocity.multiplyScalar(exp);
-
-  out.copy(target.clone().add(change.add(temp).multiplyScalar(exp)));
-
-  const origMinusCurrent = originalTo.clone().sub(current);
-  const outMinusOrig = out.clone().sub(originalTo);
-  if (origMinusCurrent.dot(outMinusOrig) > 0) {
-    out.copy(originalTo);
-    currentVelocity.set(0, 0);
-  }
-  return out;
-};
-
-const smoothDampFloat = (
-  current: number,
-  target: number,
-  velRef: { v: number },
-  smoothTimeVal: number,
-  maxSpeedVal: number,
-  deltaTime: number
-): { value: number; v: number } => {
-  smoothTimeVal = Math.max(0.0001, smoothTimeVal);
-  const omega = 2 / smoothTimeVal;
-  const x = omega * deltaTime;
-  const exp = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
-
-  let change = current - target;
-  const originalTo = target;
-
-  const maxChange = maxSpeedVal * smoothTimeVal;
-  change = Math.sign(change) * Math.min(Math.abs(change), maxChange);
-
-  target = current - change;
-  const temp = (velRef.v + omega * change) * deltaTime;
-  velRef.v = (velRef.v - omega * temp) * exp;
-
-  let out = target + (change + temp) * exp;
-
-  const origMinusCurrent = originalTo - current;
-  const outMinusOrig = out - originalTo;
-  if (origMinusCurrent * outMinusOrig > 0) {
-    out = originalTo;
-    velRef.v = 0;
-  }
-  return { value: out, v: velRef.v };
-};
-
-const medianPush = (buf: number[], v: number, maxLen: number): void => {
-  buf.push(v);
-  if (buf.length > maxLen) buf.shift();
-};
-
-const median = (buf: number[]): number => {
-  if (buf.length === 0) return 0;
-  const a = [...buf].sort((x, y) => x - y);
-  const mid = Math.floor(a.length / 2);
-  return a.length % 2 ? a[mid] : (a[mid - 1] + a[mid]) * 0.5;
-};
-
-const centroid = (points: { x: number; y: number }[]): { x: number; y: number } => {
-  let x = 0,
-    y = 0;
-  const n = points.length || 1;
-  for (const p of points) {
-    x += p.x;
-    y += p.y;
-  }
-  return { x: x / n, y: y / n };
-};
-
-const dist2 = (a: { x: number; y: number }, b: { x: number; y: number }): number => {
-  return Math.hypot(a.x - b.x, a.y - b.y);
-};
-
-const setupAnimation = () => {
-  const container = containerRef.value;
-  if (!container) return;
-
-  // Non-reactive Three.js objects - stored as plain variables
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  renderer.setSize(container.clientWidth, container.clientHeight);
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.NoToneMapping;
-  renderer.autoClear = false;
-  renderer.setClearColor(0x000000, 0);
-  container.appendChild(renderer.domElement);
-
-  const scene = new THREE.Scene();
-  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-
-  // Animation state - plain objects, not reactive
-  const lookTarget = new THREE.Vector2(0, 0);
-  const lookCurrent = new THREE.Vector2(0, 0);
-  const lookVel = new THREE.Vector2(0, 0);
-  let tiltTarget = 0;
-  let tiltCurrent = 0;
-  let tiltVel = 0;
-  let yawTarget = 0;
-  let yawCurrent = 0;
-  let yawVel = 0;
-  const scanStarts: number[] = [];
-  const bufX: number[] = [];
-  const bufY: number[] = [];
-  const bufT: number[] = [];
-  const bufYaw: number[] = [];
-  let leaveTimer: number | null = null;
-
-  const uniforms = {
-    iResolution: {
-      value: new THREE.Vector3(container.clientWidth, container.clientHeight, renderer.getPixelRatio())
-    },
-    iTime: { value: 0 },
-    uSkew: { value: new THREE.Vector2(0, 0) },
-    uTilt: { value: 0 },
-    uYaw: { value: 0 },
-    uLineThickness: { value: props.lineThickness },
-    uLinesColor: { value: srgbColor(props.linesColor) },
-    uScanColor: { value: srgbColor(props.scanColor) },
-    uGridScale: { value: props.gridScale },
-    uLineStyle: { value: props.lineStyle === 'dashed' ? 1 : props.lineStyle === 'dotted' ? 2 : 0 },
-    uLineJitter: { value: Math.max(0, Math.min(1, props.lineJitter || 0)) },
-    uScanOpacity: { value: props.scanOpacity },
-    uNoise: { value: props.noiseIntensity },
-    uBloomOpacity: { value: props.bloomIntensity },
-    uScanGlow: { value: props.scanGlow },
-    uScanSoftness: { value: props.scanSoftness },
-    uPhaseTaper: { value: props.scanPhaseTaper },
-    uScanDuration: { value: props.scanDuration },
-    uScanDelay: { value: props.scanDelay },
-    uScanDirection: { value: props.scanDirection === 'backward' ? 1 : props.scanDirection === 'pingpong' ? 2 : 0 },
-    uScanStarts: { value: new Array(MAX_SCANS).fill(0) },
-    uScanCount: { value: 0 }
-  };
-
-  const material = new THREE.ShaderMaterial({
-    uniforms,
-    vertexShader: vert,
-    fragmentShader: frag,
-    transparent: true,
-    depthWrite: false,
-    depthTest: false
-  });
-
-  const geometry = new THREE.PlaneGeometry(2, 2);
-  const quad = new THREE.Mesh(geometry, material);
-  scene.add(quad);
-
-  let composer: EffectComposer | null = null;
-  let bloom: BloomEffect | null = null;
-  let chroma: ChromaticAberrationEffect | null = null;
-
-  if (props.enablePost) {
-    composer = new EffectComposer(renderer);
-    const renderPass = new RenderPass(scene, camera);
-    composer.addPass(renderPass);
-
-    bloom = new BloomEffect({
-      intensity: 1.0,
-      luminanceThreshold: props.bloomThreshold,
-      luminanceSmoothing: props.bloomSmoothing
-    });
-    bloom.blendMode.opacity.value = Math.max(0, props.bloomIntensity);
-
-    chroma = new ChromaticAberrationEffect({
-      offset: new THREE.Vector2(props.chromaticAberration, props.chromaticAberration),
-      radialModulation: true,
-      modulationOffset: 0.0
-    });
-
-    const effectPass = new EffectPass(camera, bloom, chroma);
-    effectPass.renderToScreen = true;
-    composer.addPass(effectPass);
-  }
-
-  const pushScan = (t: number): void => {
-    if (scanStarts.length >= MAX_SCANS) scanStarts.shift();
-    scanStarts.push(t);
-    const buf = new Array(MAX_SCANS).fill(0);
-    for (let i = 0; i < scanStarts.length && i < MAX_SCANS; i++) buf[i] = scanStarts[i];
-    uniforms.uScanStarts.value = buf;
-    uniforms.uScanCount.value = scanStarts.length;
-  };
-
-  const onMouseMove = (e: MouseEvent): void => {
-    if (uiFaceActive.value) return;
-    if (leaveTimer) {
-      clearTimeout(leaveTimer);
-      leaveTimer = null;
-    }
-    const rect = container.getBoundingClientRect();
-    const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-    const ny = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
-    lookTarget.set(nx, ny);
-  };
-
-  const onClick = async (): Promise<void> => {
-    const nowSec = performance.now() / 1000;
-    if (props.scanOnClick) pushScan(nowSec);
-
-    const DeviceOrientation = DeviceOrientationEvent as typeof DeviceOrientationEvent &
-      DeviceOrientationEventWithPermission;
-
-    if (
-      props.enableGyro &&
-      typeof window !== 'undefined' &&
-      window.DeviceOrientationEvent &&
-      DeviceOrientation.requestPermission
-    ) {
-      try {
-        const permission = await DeviceOrientation.requestPermission();
-        if (permission !== 'granted') {
-          return;
-        }
-      } catch {}
-    }
-  };
-
-  const onMouseEnter = (): void => {
-    if (leaveTimer) {
-      clearTimeout(leaveTimer);
-      leaveTimer = null;
-    }
-  };
-
-  const onMouseLeave = (): void => {
-    if (uiFaceActive.value) return;
-    if (leaveTimer) clearTimeout(leaveTimer);
-    leaveTimer = window.setTimeout(
-      () => {
-        lookTarget.set(0, 0);
-        tiltTarget = 0;
-        yawTarget = 0;
-      },
-      Math.max(0, props.snapBackDelay || 0)
-    );
-  };
-
-  const onDeviceOrientation = (e: DeviceOrientationEvent): void => {
-    if (uiFaceActive.value) return;
-    const gamma = e.gamma ?? 0;
-    const beta = e.beta ?? 0;
-    const nx = THREE.MathUtils.clamp(gamma / 45, -1, 1);
-    const ny = THREE.MathUtils.clamp(-beta / 30, -1, 1);
-    lookTarget.set(nx, ny);
-    tiltTarget = THREE.MathUtils.degToRad(gamma) * 0.4;
-  };
-
-  const onResize = (): void => {
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    uniforms.iResolution.value.set(container.clientWidth, container.clientHeight, renderer.getPixelRatio());
-    if (composer) composer.setSize(container.clientWidth, container.clientHeight);
-  };
-
-  container.addEventListener('mousemove', onMouseMove);
-  container.addEventListener('mouseenter', onMouseEnter);
-  container.addEventListener('mouseleave', onMouseLeave);
-  if (props.scanOnClick) container.addEventListener('click', onClick);
-  if (props.enableGyro) window.addEventListener('deviceorientation', onDeviceOrientation);
-  window.addEventListener('resize', onResize);
-
-  // Face detection
-  let stopFaceDetection = false;
-  let lastDetect = 0;
-
-  const startFaceDetection = async (): Promise<void> => {
-    if (!props.enableWebcam || !modelsReady.value) return;
-    const video = videoRef.value;
-    if (!video) return;
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false
-      });
-      video.srcObject = stream;
-      await video.play();
-    } catch {
-      return;
-    }
-
-    const opts = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
-
-    const s = THREE.MathUtils.clamp(props.sensitivity, 0, 1);
-    const depthResponse = THREE.MathUtils.lerp(0.25, 0.45, s);
-
-    const detect = async (ts: number): Promise<void> => {
-      if (stopFaceDetection) return;
-
-      if (ts - lastDetect >= 33) {
-        lastDetect = ts;
-        try {
-          const res = await faceapi.detectSingleFace(video, opts).withFaceLandmarks(true);
-          if (res && res.detection) {
-            const det = res.detection;
-            const box = det.box;
-            const vw = video.videoWidth || 1;
-            const vh = video.videoHeight || 1;
-
-            const cx = box.x + box.width * 0.5;
-            const cy = box.y + box.height * 0.5;
-            const nx = (cx / vw) * 2 - 1;
-            const ny = (cy / vh) * 2 - 1;
-            medianPush(bufX, nx, 5);
-            medianPush(bufY, ny, 5);
-            const nxm = median(bufX);
-            const nym = median(bufY);
-
-            const look = new THREE.Vector2(Math.tanh(nxm), Math.tanh(nym));
-
-            const faceSize = Math.min(1, Math.hypot(box.width / vw, box.height / vh));
-            const depthScaleVal = 1 + depthResponse * (faceSize - 0.25);
-            lookTarget.copy(look.multiplyScalar(depthScaleVal));
-
-            const leftEye = res.landmarks.getLeftEye();
-            const rightEye = res.landmarks.getRightEye();
-            const lc = centroid(leftEye);
-            const rc = centroid(rightEye);
-            const tilt = Math.atan2(rc.y - lc.y, rc.x - lc.x);
-            medianPush(bufT, tilt, 5);
-            tiltTarget = median(bufT);
-
-            const nose = res.landmarks.getNose();
-            const tip = nose[nose.length - 1] || nose[Math.floor(nose.length / 2)];
-            const jaw = res.landmarks.getJawOutline();
-            const leftCheek = jaw[3] || jaw[2];
-            const rightCheek = jaw[13] || jaw[14];
-            const dL = dist2(tip, leftCheek);
-            const dR = dist2(tip, rightCheek);
-            const eyeDist = Math.hypot(rc.x - lc.x, rc.y - lc.y) + 1e-6;
-            let yawSignal = THREE.MathUtils.clamp((dR - dL) / (eyeDist * 1.6), -1, 1);
-            yawSignal = Math.tanh(yawSignal);
-            medianPush(bufYaw, yawSignal, 5);
-            yawTarget = median(bufYaw);
-
-            uiFaceActive.value = true;
-          } else {
-            uiFaceActive.value = false;
-          }
-        } catch {
-          uiFaceActive.value = false;
-        }
-      }
-
-      if ('requestVideoFrameCallback' in HTMLVideoElement.prototype) {
-        video.requestVideoFrameCallback(() => detect(performance.now()));
-      } else {
-        requestAnimationFrame(detect);
-      }
-    };
-
-    requestAnimationFrame(detect);
-  };
-
-  const stopWebcam = (): void => {
-    stopFaceDetection = true;
-    const video = videoRef.value;
-    if (video) {
-      const stream = video.srcObject as MediaStream | null;
-      if (stream) stream.getTracks().forEach(t => t.stop());
-      video.pause();
-      video.srcObject = null;
-    }
-  };
-
-  // Watch for webcam changes
-  const unwatchWebcam = watch(
-    () => props.enableWebcam,
-    newVal => {
-      if (newVal && modelsReady.value) {
-        stopFaceDetection = false;
-        startFaceDetection();
-      } else {
-        stopWebcam();
-      }
-    }
-  );
-
-  const unwatchModels = watch(modelsReady, ready => {
-    if (ready && props.enableWebcam) {
-      stopFaceDetection = false;
-      startFaceDetection();
-    }
-  });
-
-  // Watch for prop changes
-  const unwatchProps = watch(
-    [
-      () => props.lineThickness,
-      () => props.linesColor,
-      () => props.scanColor,
-      () => props.gridScale,
-      () => props.lineStyle,
-      () => props.lineJitter,
-      () => props.bloomIntensity,
-      () => props.bloomThreshold,
-      () => props.bloomSmoothing,
-      () => props.chromaticAberration,
-      () => props.noiseIntensity,
-      () => props.scanGlow,
-      () => props.scanOpacity,
-      () => props.scanDirection,
-      () => props.scanSoftness,
-      () => props.scanPhaseTaper,
-      () => props.scanDuration,
-      () => props.scanDelay
-    ],
-    () => {
-      uniforms.uLineThickness.value = props.lineThickness;
-      (uniforms.uLinesColor.value as THREE.Color).copy(srgbColor(props.linesColor));
-      (uniforms.uScanColor.value as THREE.Color).copy(srgbColor(props.scanColor));
-      uniforms.uGridScale.value = props.gridScale;
-      uniforms.uLineStyle.value = props.lineStyle === 'dashed' ? 1 : props.lineStyle === 'dotted' ? 2 : 0;
-      uniforms.uLineJitter.value = Math.max(0, Math.min(1, props.lineJitter || 0));
-      uniforms.uBloomOpacity.value = Math.max(0, props.bloomIntensity);
-      uniforms.uNoise.value = Math.max(0, props.noiseIntensity);
-      uniforms.uScanGlow.value = props.scanGlow;
-      uniforms.uScanOpacity.value = Math.max(0, Math.min(1, props.scanOpacity));
-      uniforms.uScanDirection.value =
-        props.scanDirection === 'backward' ? 1 : props.scanDirection === 'pingpong' ? 2 : 0;
-      uniforms.uScanSoftness.value = props.scanSoftness;
-      uniforms.uPhaseTaper.value = props.scanPhaseTaper;
-      uniforms.uScanDuration.value = Math.max(0.05, props.scanDuration);
-      uniforms.uScanDelay.value = Math.max(0.0, props.scanDelay);
-
-      if (bloom) {
-        bloom.blendMode.opacity.value = Math.max(0, props.bloomIntensity);
-        bloom.luminanceMaterial.threshold = props.bloomThreshold;
-        bloom.luminanceMaterial.smoothing = props.bloomSmoothing;
-      }
-      if (chroma) {
-        chroma.offset.set(props.chromaticAberration, props.chromaticAberration);
-      }
-    }
-  );
-
-  // Animation loop
-  let rafId: number | null = null;
-  let last = performance.now();
-
-  const tick = (): void => {
-    const now = performance.now();
-    const dt = Math.max(0, Math.min(0.1, (now - last) / 1000));
-    last = now;
-
-    const s = THREE.MathUtils.clamp(props.sensitivity, 0, 1);
-    const skewScale = THREE.MathUtils.lerp(0.06, 0.2, s);
-    const tiltScale = THREE.MathUtils.lerp(0.12, 0.3, s);
-    const yawScale = THREE.MathUtils.lerp(0.1, 0.28, s);
-    const smoothTime = THREE.MathUtils.lerp(0.45, 0.12, s);
-    const yBoost = THREE.MathUtils.lerp(1.2, 1.6, s);
-    const maxSpeed = Infinity;
-
-    lookCurrent.copy(smoothDampVec2(lookCurrent, lookTarget, lookVel, smoothTime, maxSpeed, dt));
-
-    const tiltSm = smoothDampFloat(tiltCurrent, tiltTarget, { v: tiltVel }, smoothTime, maxSpeed, dt);
-    tiltCurrent = tiltSm.value;
-    tiltVel = tiltSm.v;
-
-    const yawSm = smoothDampFloat(yawCurrent, yawTarget, { v: yawVel }, smoothTime, maxSpeed, dt);
-    yawCurrent = yawSm.value;
-    yawVel = yawSm.v;
-
-    uniforms.uSkew.value.set(lookCurrent.x * skewScale, -lookCurrent.y * yBoost * skewScale);
-    uniforms.uTilt.value = tiltCurrent * tiltScale;
-    uniforms.uYaw.value = THREE.MathUtils.clamp(yawCurrent * yawScale, -0.6, 0.6);
-
-    uniforms.iTime.value = now / 1000;
-    renderer.clear(true, true, true);
-    if (composer) {
-      composer.render(dt);
-    } else {
-      renderer.render(scene, camera);
-    }
-    rafId = requestAnimationFrame(tick);
-  };
-  rafId = requestAnimationFrame(tick);
-
-  cleanupAnimation = () => {
-    if (rafId) cancelAnimationFrame(rafId);
-    if (leaveTimer) clearTimeout(leaveTimer);
-
-    container.removeEventListener('mousemove', onMouseMove);
-    container.removeEventListener('mouseenter', onMouseEnter);
-    container.removeEventListener('mouseleave', onMouseLeave);
-    container.removeEventListener('click', onClick);
-    window.removeEventListener('deviceorientation', onDeviceOrientation);
-    window.removeEventListener('resize', onResize);
-
-    unwatchWebcam();
-    unwatchModels();
-    unwatchProps();
-
-    stopWebcam();
-
-    material.dispose();
-    geometry.dispose();
-    if (composer) composer.dispose();
-    renderer.dispose();
-    if (container.contains(renderer.domElement)) {
-      container.removeChild(renderer.domElement);
-    }
-  };
-};
-
-const loadFaceModels = async (): Promise<void> => {
-  try {
-    await Promise.all([
-      faceapi.nets.tinyFaceDetector.loadFromUri(props.modelsPath),
-      faceapi.nets.faceLandmark68TinyNet.loadFromUri(props.modelsPath)
-    ]);
-    modelsReady.value = true;
-  } catch {
-    modelsReady.value = false;
-  }
-};
+const containerRef = ref<HTMLDivElement | null>(null);
+const canvasRef = ref<HTMLCanvasElement | null>(null);
+const videoRef = ref<HTMLVideoElement | null>(null);
+const status = ref<Status>('loading');
+let wakeHandler: (() => void) | null = null;
+let teardown: (() => void) | null = null;
+let head: Head | null = null;
+
+const settings = computed<Settings>(() => ({
+  linesColor: P.linesColor ?? (P.lightMode ? '#d3d7d3' : '#4a4f4b'),
+  scanColor: P.scanColor ?? (P.lightMode ? '#0284c7' : '#7dd3fc'),
+  cells: clamp(P.cells, 2, 40),
+  thickness: clamp(P.lineThickness, 0.5, 4),
+  style: STYLES[P.lineStyle] ?? 0,
+  depth: clamp(P.depth, 0.5, 12),
+  depthFade: clamp(P.depthFade, 0, 1),
+  parallax: clamp(P.parallax, 0, 3),
+  points: P.points,
+  reflection: clamp(P.reflection, 0, 1),
+  shading: clamp(P.shading, 0, 1),
+  direction: P.scanDirection,
+  duration: clamp(P.scanDuration, 0.3, 20),
+  delay: clamp(P.scanDelay, 0, 30),
+  scanWidth: clamp(P.scanWidth, 0.2, 5),
+  trail: clamp(P.trail, 0, 1),
+  glow: clamp(P.glow, 0, 1.5),
+  autoScan: P.autoScan,
+  interactive: P.interactive,
+  clickEffect: P.clickEffect,
+  enableGyro: P.enableGyro,
+  intro: P.intro,
+  lightMode: P.lightMode,
+  dpr: P.dpr
+}));
+
+watch(settings, () => {
+  wakeHandler?.();
+});
 
 onMounted(() => {
-  setupAnimation();
-  loadFaceModels();
+  const container = containerRef.value;
+  const canvas = canvasRef.value;
+  const gl = canvas?.getContext('webgl2', {
+    alpha: true,
+    premultipliedAlpha: true,
+    antialias: false,
+    depth: false,
+    stencil: false
+  });
+  if (!container || !canvas || !gl) return;
+
+  const room = link(gl, ROOM);
+  const down = link(gl, DOWN);
+  const blur = link(gl, BLUR);
+  const composite = link(gl, COMPOSITE);
+  if (!room || !down || !blur || !composite) return;
+  const vao = gl.createVertexArray();
+  const scene = createTarget(gl);
+  const light = createTarget(gl);
+  const bloomA = createTarget(gl);
+  const bloomB = createTarget(gl);
+  const sceneBuffer = gl.createFramebuffer();
+  const bloomBufferA = gl.createFramebuffer();
+  const bloomBufferB = gl.createFramebuffer();
+
+  const probe = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+  const colorCache = new Map<string, number[]>();
+  const parse = (value: string): number[] => {
+    const key = String(value);
+    const cached = colorCache.get(key);
+    if (cached) return cached;
+    let rgb = [1, 1, 1];
+    if (probe) {
+      probe.clearRect(0, 0, 1, 1);
+      probe.fillStyle = '#000000';
+      probe.fillStyle = key;
+      probe.fillRect(0, 0, 1, 1);
+      const [r, g, b] = probe.getImageData(0, 0, 1, 1).data;
+      rgb = [r / 255, g / 255, b / 255];
+    }
+    colorCache.set(key, rgb);
+    return rgb;
+  };
+
+  const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  const view = { width: 1, height: 1, ratio: 1 };
+  const eye = { x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0, f: EYE_DISTANCE, vf: 0, tf: EYE_DISTANCE };
+  const pointer = { x: 0, y: 0, inside: false };
+  const look = { x: 0, y: 0, held: false };
+  const tilt = { gamma: 0, beta: 0, ready: false, asked: false };
+  const hover = { x: 0, y: 0, z: 0, strength: 0, ready: false };
+  const scan = { z: 0, dir: 1, alpha: 0, start: 0, sweeps: 0, waiting: false };
+  const pings: Ping[] = [];
+  const pingData = new Float32Array(MAX_PINGS * 4);
+  const pingAlpha = new Float32Array(MAX_PINGS);
+  let time = 0;
+  let introClock = settings.value.intro && !reduce ? 0 : 1;
+  let raf = 0;
+  let last = 0;
+  let visible = true;
+  let leaveTimer = 0;
+
+  const roomSize = () => {
+    const s = settings.value;
+    const aspect = view.width / view.height;
+    const cy = 1 / Math.round(s.cells);
+    const cx = aspect / Math.max(1, Math.round(aspect / cy));
+    const roomDepth = Math.max(cy, Math.round(s.depth / cy) * cy);
+    return { aspect, cx, cy, roomDepth };
+  };
+
+  const castRay = (u: number, v: number) => {
+    const { aspect, roomDepth } = roomSize();
+    const px = (u - 0.5) * aspect;
+    const py = v - 0.5;
+    const dx = px - eye.x;
+    const dy = py - eye.y;
+    const dz = eye.f;
+    const sx = dx > 0 ? 0.5 * aspect : -0.5 * aspect;
+    const sy = dy > 0 ? 0.5 : -0.5;
+    let t = roomDepth / dz;
+    if (Math.abs(dx) > 1e-6) t = Math.min(t, (sx - px) / dx);
+    if (Math.abs(dy) > 1e-6) t = Math.min(t, (sy - py) / dy);
+    return { x: px + dx * t, y: py + dy * t, z: dz * t };
+  };
+
+  const startSweep = (s: Settings) => {
+    scan.dir = s.direction === 'backward' || (s.direction === 'pingpong' && scan.sweeps % 2 === 1) ? -1 : 1;
+    scan.start = time;
+    scan.waiting = false;
+    scan.sweeps += 1;
+  };
+
+  const updateScan = (s: Settings, roomDepth: number) => {
+    if (introClock < 1) {
+      const k = introClock;
+      scan.dir = 1;
+      scan.z = k * (roomDepth + 0.4) - 0.2;
+      scan.alpha = Math.min(1, k * 6) * (1 - Math.max(0, k - 0.85) / 0.15);
+      return;
+    }
+    if (scan.sweeps === 0 && !scan.waiting) {
+      scan.waiting = true;
+      scan.start = time;
+      scan.alpha = 0;
+    }
+    if (scan.waiting) {
+      scan.alpha = 0;
+      if (s.autoScan && !reduce && time - scan.start >= s.delay) startSweep(s);
+      return;
+    }
+    const k = (time - scan.start) / s.duration;
+    if (k >= 1) {
+      scan.waiting = true;
+      scan.start = time;
+      scan.alpha = 0;
+      return;
+    }
+    const travel = k * (roomDepth + 0.3) - 0.15;
+    scan.z = scan.dir > 0 ? travel : roomDepth - travel;
+    scan.alpha = Math.min(1, k / 0.12) * Math.min(1, (1 - k) / 0.12);
+  };
+
+  const updateEye = (dt: number) => {
+    const steps = Math.max(1, Math.ceil(dt / (1 / 120)));
+    const h = dt / steps;
+    for (let i = 0; i < steps; i++) {
+      eye.vx += ((eye.tx - eye.x) * 42 - eye.vx * 11) * h;
+      eye.vy += ((eye.ty - eye.y) * 42 - eye.vy * 11) * h;
+      eye.vf += ((eye.tf - eye.f) * 42 - eye.vf * 11) * h;
+      eye.x += eye.vx * h;
+      eye.y += eye.vy * h;
+      eye.f += eye.vf * h;
+    }
+  };
+
+  const setLook = (nx: number, ny: number, held: boolean) => {
+    look.x = clamp(nx, -1, 1);
+    look.y = clamp(ny, -1, 1);
+    look.held = held;
+  };
+
+  const aimEye = (s: Settings) => {
+    const aspect = view.width / view.height;
+    const drift = reduce ? 0 : 1;
+    const nx = look.held ? look.x : (Math.sin(time * 0.21) * 0.2 + Math.sin(time * 0.083 + 1.3) * 0.12) * drift;
+    const ny = look.held ? look.y : Math.sin(time * 0.17 + 2.1) * 0.16 * drift;
+    eye.tx = nx * s.parallax * 0.22 * aspect;
+    eye.ty = ny * s.parallax * 0.22;
+  };
+
+  const resize = () => {
+    const s = settings.value;
+    view.width = Math.max(1, container.clientWidth);
+    view.height = Math.max(1, container.clientHeight);
+    view.ratio = Math.min(s.dpr || window.devicePixelRatio || 1, 2);
+    canvas.width = Math.max(1, Math.round(view.width * view.ratio));
+    canvas.height = Math.max(1, Math.round(view.height * view.ratio));
+    sizeTarget(gl, scene, canvas.width, canvas.height);
+    sizeTarget(gl, light, canvas.width, canvas.height);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, sceneBuffer);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, scene.texture, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, light.texture, 0);
+    const bw = Math.max(1, Math.round(canvas.width / 4));
+    const bh = Math.max(1, Math.round(canvas.height / 4));
+    sizeTarget(gl, bloomA, bw, bh);
+    sizeTarget(gl, bloomB, bw, bh);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, bloomBufferA);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, bloomA.texture, 0);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, bloomBufferB);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, bloomB.texture, 0);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    draw();
+    wake();
+  };
+
+  const draw = () => {
+    const s = settings.value;
+    const { aspect, cx, cy, roomDepth } = roomSize();
+    const lineRgb = parse(s.linesColor);
+    const scanRgb = parse(s.scanColor);
+    const coreRgb = s.lightMode ? scanRgb : scanRgb.map(c => c + (1 - c) * 0.65);
+    const ru = room.uniforms;
+    gl.bindVertexArray(vao);
+    gl.disable(gl.BLEND);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, sceneBuffer);
+    gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.useProgram(room.program);
+    gl.uniform1f(ru.uAspect, aspect);
+    gl.uniform1f(ru.uPixel, 1 / canvas.height);
+    gl.uniform3f(ru.uEye, eye.x, eye.y, -eye.f);
+    gl.uniform1f(ru.uDepth, roomDepth);
+    gl.uniform3f(ru.uCell, cx, cy, cy);
+    gl.uniform1f(ru.uThick, s.thickness * view.ratio * 0.5);
+    gl.uniform1f(ru.uDot, 1.8 * view.ratio);
+    gl.uniform1i(ru.uStyle, s.style);
+    gl.uniform3fv(ru.uLineColor, lineRgb);
+    gl.uniform3fv(ru.uScanColor, scanRgb);
+    gl.uniform3fv(ru.uCoreColor, coreRgb);
+    gl.uniform1f(ru.uFade, s.depthFade);
+    gl.uniform1f(ru.uScanZ, scan.z);
+    gl.uniform1f(ru.uScanDir, scan.dir);
+    gl.uniform1f(ru.uScanAlpha, scan.alpha);
+    gl.uniform1f(ru.uScanWidth, 0.006 * s.scanWidth);
+    gl.uniform1f(ru.uTrail, 0.04 + s.trail * 1.1);
+    gl.uniform1f(ru.uReveal, introClock < 1 ? scan.z + 0.05 : 1e4);
+    gl.uniform1f(ru.uPoints, s.points ? 1 : 0);
+    gl.uniform1f(ru.uReflect, s.reflection);
+    gl.uniform1f(ru.uHaze, s.lightMode ? 0.03 : 0.05);
+    gl.uniform1f(ru.uShade, s.shading);
+    gl.uniform1f(ru.uLight, s.lightMode ? 1 : 0);
+    gl.uniform4fv(ru.uPing, pingData);
+    gl.uniform1fv(ru.uPingAlpha, pingAlpha);
+    gl.uniform4f(ru.uHover, hover.x, hover.y, hover.z, hover.strength);
+    gl.uniform1f(ru.uTime, time);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+    const glowing = s.glow > 0;
+    if (glowing) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, bloomBufferA);
+      gl.viewport(0, 0, bloomA.width, bloomA.height);
+      gl.useProgram(down.program);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, light.texture);
+      gl.uniform1i(down.uniforms.uSource, 0);
+      gl.uniform2f(down.uniforms.uTexel, 1 / light.width, 1 / light.height);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      const spread = (2.2 * view.ratio) / 2;
+      gl.useProgram(blur.program);
+      gl.uniform1i(blur.uniforms.uSource, 0);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, bloomBufferB);
+      gl.bindTexture(gl.TEXTURE_2D, bloomA.texture);
+      gl.uniform2f(blur.uniforms.uStep, spread / bloomA.width, 0);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, bloomBufferA);
+      gl.bindTexture(gl.TEXTURE_2D, bloomB.texture);
+      gl.uniform2f(blur.uniforms.uStep, 0, spread / bloomA.height);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    }
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.useProgram(composite.program);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, scene.texture);
+    gl.uniform1i(composite.uniforms.uScene, 0);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, bloomA.texture);
+    gl.uniform1i(composite.uniforms.uBloom, 1);
+    gl.uniform1f(composite.uniforms.uGlow, glowing ? s.glow * (s.lightMode ? 0.8 : 1.6) : 0);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.activeTexture(gl.TEXTURE0);
+  };
+
+  const frame = (now: number) => {
+    raf = 0;
+    if (!visible || document.hidden) return;
+    const s = settings.value;
+    const dt = last ? clamp((now - last) / 1000, 0.001, 0.05) : 1 / 60;
+    last = now;
+    time += dt;
+    if (introClock < 1) introClock = Math.min(1, introClock + dt / INTRO_SECONDS);
+    const { roomDepth } = roomSize();
+    updateScan(s, roomDepth);
+    aimEye(s);
+    updateEye(dt);
+
+    const aim = s.interactive && pointer.inside && !reduce ? 1 : 0;
+    if (aim) {
+      const target = castRay(pointer.x, pointer.y);
+      if (!hover.ready) Object.assign(hover, target, { ready: true });
+      const follow = 1 - Math.exp(-dt / 0.08);
+      hover.x += (target.x - hover.x) * follow;
+      hover.y += (target.y - hover.y) * follow;
+      hover.z += (target.z - hover.z) * follow;
+    }
+    hover.strength += (aim - hover.strength) * (1 - Math.exp(-dt / 0.25));
+    if (!aim && hover.strength < 0.01) hover.ready = false;
+
+    for (let i = pings.length - 1; i >= 0; i--) {
+      pings[i].age += dt;
+      if (pings[i].age > PING_LIFE) pings.splice(i, 1);
+    }
+    for (let i = 0; i < MAX_PINGS; i++) {
+      const ping = pings[i];
+      if (!ping) {
+        pingAlpha[i] = 0;
+        continue;
+      }
+      const k = ping.age / PING_LIFE;
+      pingData.set([ping.x, ping.y, ping.z, ping.age * 1.15], i * 4);
+      pingAlpha[i] = Math.min(1, ping.age / 0.05) * (1 - k) * (1 - k);
+    }
+
+    draw();
+
+    const settling =
+      Math.abs(eye.tx - eye.x) + Math.abs(eye.ty - eye.y) + Math.abs(eye.tf - eye.f) > 1e-4 ||
+      Math.abs(eye.vx) + Math.abs(eye.vy) + Math.abs(eye.vf) > 1e-4;
+    const busy =
+      introClock < 1 ||
+      (!reduce && s.autoScan) ||
+      !scan.waiting ||
+      pings.length > 0 ||
+      settling ||
+      hover.strength > 0.002 ||
+      (!reduce && s.parallax > 0 && !look.held) ||
+      (s.points && !reduce && scan.alpha > 0);
+    if (busy) raf = requestAnimationFrame(frame);
+    else last = 0;
+  };
+
+  function wake() {
+    if (!raf && visible && !document.hidden) raf = requestAnimationFrame(frame);
+  }
+
+  const locate = (event: PointerEvent) => {
+    const rect = container.getBoundingClientRect();
+    const u = (event.clientX - rect.left) / Math.max(1, rect.width);
+    const v = 1 - (event.clientY - rect.top) / Math.max(1, rect.height);
+    return { u, v, inside: u >= 0 && u <= 1 && v >= 0 && v <= 1 };
+  };
+
+  const onPointerMove = (event: PointerEvent) => {
+    const s = settings.value;
+    const { u, v, inside } = locate(event);
+    pointer.x = u;
+    pointer.y = v;
+    const was = pointer.inside;
+    pointer.inside = inside;
+    if (inside) {
+      window.clearTimeout(leaveTimer);
+      leaveTimer = 0;
+      if (!head?.active && s.interactive && !reduce) setLook(u * 2 - 1, v * 2 - 1, true);
+      wake();
+    } else if (was && !leaveTimer) {
+      leaveTimer = window.setTimeout(() => {
+        leaveTimer = 0;
+        if (!head?.active) look.held = false;
+        wake();
+      }, 220);
+      wake();
+    }
+  };
+
+  const onPointerDown = (event: PointerEvent) => {
+    const s = settings.value;
+    const { u, v, inside } = locate(event);
+    if (!inside || reduce || s.clickEffect === 'none') return;
+    if (s.clickEffect === 'scan') {
+      if (introClock >= 1) startSweep(s);
+    } else {
+      const hit = castRay(u, v);
+      pings.unshift({ ...hit, age: 0 });
+      if (pings.length > MAX_PINGS) pings.pop();
+    }
+    wake();
+  };
+
+  const onPointerLeave = () => {
+    pointer.inside = false;
+    if (!head?.active) look.held = false;
+    wake();
+  };
+
+  const onOrientation = (event: DeviceOrientationEvent) => {
+    const s = settings.value;
+    if (!s.enableGyro || head?.active || reduce || event.gamma === null || event.beta === null) return;
+    if (!tilt.ready) Object.assign(tilt, { gamma: event.gamma, beta: event.beta, ready: true });
+    setLook((event.gamma - tilt.gamma) / 25, (event.beta - tilt.beta) / -25, true);
+    wake();
+  };
+
+  const onClick = () => {
+    const s = settings.value;
+    const request = (
+      window.DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> } | undefined
+    )?.requestPermission;
+    if (!s.enableGyro || tilt.asked || typeof request !== 'function') return;
+    tilt.asked = true;
+    request.call(window.DeviceOrientationEvent).catch(() => {});
+  };
+
+  const onVisibility = () => {
+    last = 0;
+    wake();
+  };
+
+  const resizeObserver = new ResizeObserver(resize);
+  resizeObserver.observe(container);
+  const intersection = new IntersectionObserver(entries => {
+    visible = entries.some(entry => entry.isIntersecting);
+    if (visible) {
+      last = 0;
+      wake();
+    }
+  });
+  intersection.observe(container);
+  window.addEventListener('pointermove', onPointerMove, { passive: true });
+  window.addEventListener('pointerdown', onPointerDown, { passive: true });
+  window.addEventListener('deviceorientation', onOrientation);
+  window.addEventListener('click', onClick);
+  document.documentElement.addEventListener('pointerleave', onPointerLeave);
+  document.addEventListener('visibilitychange', onVisibility);
+  head = {
+    active: false,
+    move: (nx, ny, near) => {
+      if (reduce) return;
+      setLook(nx * 1.3, ny * 1.3, true);
+      eye.tf = EYE_DISTANCE * clamp(near, 0.6, 1.6);
+      wake();
+    },
+    release: () => {
+      eye.tf = EYE_DISTANCE;
+      look.held = false;
+      wake();
+    }
+  };
+  resize();
+  wakeHandler = wake;
+
+  teardown = () => {
+    cancelAnimationFrame(raf);
+    window.clearTimeout(leaveTimer);
+    wakeHandler = null;
+    head = null;
+    resizeObserver.disconnect();
+    intersection.disconnect();
+    window.removeEventListener('pointermove', onPointerMove);
+    window.removeEventListener('pointerdown', onPointerDown);
+    window.removeEventListener('deviceorientation', onOrientation);
+    window.removeEventListener('click', onClick);
+    document.documentElement.removeEventListener('pointerleave', onPointerLeave);
+    document.removeEventListener('visibilitychange', onVisibility);
+    [scene, light, bloomA, bloomB].forEach(target => gl.deleteTexture(target.texture));
+    [sceneBuffer, bloomBufferA, bloomBufferB].forEach(buffer => gl.deleteFramebuffer(buffer));
+    gl.deleteVertexArray(vao);
+    [room, down, blur, composite].forEach(item => gl.deleteProgram(item.program));
+    if (!canvas.isConnected) gl.getExtension('WEBGL_lose_context')?.loseContext();
+  };
 });
 
 onUnmounted(() => {
-  cleanupAnimation();
+  teardown?.();
+  teardown = null;
 });
+
+watch(
+  () => [P.enableWebcam, P.modelsPath] as const,
+  ([enabled, path], _previous, onCleanup) => {
+    if (!enabled) return;
+    const video = videoRef.value;
+    if (!video) return;
+    let stopped = false;
+    let stream: MediaStream | null = null;
+    let timer = 0;
+    let lost = 0;
+    const smooth = { x: 0, y: 0, near: 1, ready: false };
+    status.value = 'loading';
+
+    const run = async () => {
+      try {
+        const faceapi = await loadFaceApi();
+        await faceapi.nets.tinyFaceDetector.loadFromUri(path);
+        if (stopped) return;
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+          audio: false
+        });
+        if (stopped) {
+          stream.getTracks().forEach(track => track.stop());
+          return;
+        }
+        video.srcObject = stream;
+        await video.play();
+        status.value = 'searching';
+        const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.45 });
+        const detect = async () => {
+          if (stopped) return;
+          let result: { box: { x: number; y: number; width: number; height: number } } | null | undefined = null;
+          try {
+            result = await faceapi.detectSingleFace(video, options);
+          } catch {
+            result = null;
+          }
+          if (stopped) return;
+          const tracker = head;
+          if (result && tracker) {
+            const box = result.box;
+            const vw = video.videoWidth || 1;
+            const vh = video.videoHeight || 1;
+            const x = -((box.x + box.width / 2) / vw - 0.5) * 2;
+            const y = -((box.y + box.height / 2) / vh - 0.5) * 2;
+            const near = 0.32 / Math.max(0.08, box.width / vw);
+            const k = smooth.ready ? 0.45 : 1;
+            smooth.x += (x - smooth.x) * k;
+            smooth.y += (y - smooth.y) * k;
+            smooth.near += (near - smooth.near) * k;
+            smooth.ready = true;
+            lost = 0;
+            tracker.active = true;
+            tracker.move(smooth.x, smooth.y, smooth.near);
+            status.value = 'tracking';
+          } else if (tracker && ++lost > 12 && tracker.active) {
+            tracker.active = false;
+            smooth.ready = false;
+            tracker.release();
+            status.value = 'searching';
+          }
+          timer = window.setTimeout(detect, 40);
+        };
+        detect();
+      } catch {
+        if (!stopped) status.value = 'blocked';
+      }
+    };
+    run();
+
+    onCleanup(() => {
+      stopped = true;
+      window.clearTimeout(timer);
+      stream?.getTracks().forEach(track => track.stop());
+      video.srcObject = null;
+      const tracker = head;
+      if (tracker?.active) {
+        tracker.active = false;
+        tracker.release();
+      }
+    });
+  },
+  { immediate: true, flush: 'post' }
+);
 </script>
+
+<style>
+.grid-scan {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.grid-scan-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.grid-scan-preview {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 168px;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #0b0d0b;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 8px 24px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.grid-scan-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.grid-scan-status {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: rgba(10, 12, 10, 0.6);
+  color: #ffffff;
+  font:
+    500 11px/1.4 system-ui,
+    -apple-system,
+    sans-serif;
+  backdrop-filter: blur(8px);
+}
+
+.grid-scan-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+</style>

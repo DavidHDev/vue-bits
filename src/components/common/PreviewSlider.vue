@@ -1,7 +1,7 @@
 <template>
   <div class="scrubber">
     <div
-      ref="trackEl"
+      ref="trackRef"
       class="scrubber-track"
       role="slider"
       :aria-label="title"
@@ -16,8 +16,7 @@
       @pointerdown="onPointerDown"
       @pointermove="onPointerMove"
       @pointerup="onPointerUp"
-      @pointercancel="onPointerUp"
-      @lostpointercapture="onPointerUp"
+      @pointercancel="onPointerCancel"
       @mouseenter="isHovering = true"
       @mouseleave="isHovering = false"
       @keydown="onKeyDown"
@@ -25,26 +24,22 @@
       <div class="scrubber-fill" :style="{ width: `${percentage}%` }" />
 
       <div class="scrubber-ticks">
-        <div v-for="(pos, i) in tickPositions" :key="i" class="scrubber-tick" :style="{ left: `${pos}%` }" />
+        <div v-for="(pos, i) in TICK_POSITIONS" :key="i" class="scrubber-tick" :style="{ left: `${pos}%` }" />
       </div>
 
       <div class="scrubber-thumb-wrapper" :style="{ left: `${percentage}%` }">
         <div class="scrubber-thumb" />
       </div>
 
-      <div class="scrubber-label">
-        {{ title }}
-      </div>
-
-      <div class="scrubber-value">
-        {{ formattedValue }}
-      </div>
+      <div class="scrubber-label">{{ title }}</div>
+      <div class="scrubber-value">{{ formattedValue }}</div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useScrubGesture } from '@/composables/useScrubGesture';
 
 const props = withDefaults(
   defineProps<{
@@ -68,144 +63,95 @@ const props = withDefaults(
 
 const modelValue = defineModel<number>({ default: 0 });
 
-const trackEl = ref<HTMLDivElement | null>(null);
-
-const isDragging = ref(false);
-const isHovering = ref(false);
-const isHoverDevice = ref(false);
+const TICKS = 9;
+const TICK_POSITIONS = Array.from({ length: TICKS }, (_, i) => ((i + 1) / (TICKS + 1)) * 100);
 
 const clamp = (val: number, min: number, max: number) => Math.min(Math.max(val, min), max);
-
-function stepDecimals(step: number): number {
+const stepDecimals = (step: number) => {
   const s = step.toString();
   const dot = s.indexOf('.');
   return dot === -1 ? 0 : s.length - dot - 1;
-}
-
-function roundToStep(val: number, step: number, min: number): number {
+};
+const roundToStep = (val: number, step: number, min: number) => {
   const raw = Math.round((val - min) / step) * step + min;
-
   const decimals = Math.max(stepDecimals(step), stepDecimals(min));
-
   return Number(raw.toFixed(decimals));
-}
+};
 
-const range = computed(() => props.max - props.min);
+const trackRef = ref<HTMLElement | null>(null);
+const isHovering = ref(false);
+const isHoverDevice = ref(false);
 
-const percentage = computed(() => (range.value > 0 ? ((modelValue.value - props.min) / range.value) * 100 : 0));
+const percentage = computed(() => {
+  const range = props.max - props.min;
+  return range > 0 ? ((modelValue.value - props.min) / range) * 100 : 0;
+});
+
+const computeValue = (clientX: number) => {
+  const track = trackRef.value;
+  if (!track) return modelValue.value;
+  const rect = track.getBoundingClientRect();
+  const ratio = clamp((clientX - rect.left) / rect.width, 0, 1);
+  const raw = props.min + ratio * (props.max - props.min);
+  return clamp(roundToStep(raw, props.step, props.min), props.min, props.max);
+};
+
+const setValue = (value: number) => {
+  modelValue.value = value;
+};
+
+const { isDragging, onPointerDown, onPointerMove, onPointerUp, onPointerCancel } = useScrubGesture({
+  trackRef,
+  computeValue,
+  onChange: setValue,
+  isDisabled: () => props.isDisabled
+});
 
 const isActive = computed(() => isDragging.value || (isHoverDevice.value && isHovering.value));
 
-const ticks = 9;
-
-const tickPositions = computed(() => Array.from({ length: ticks }, (_, i) => ((i + 1) / (ticks + 1)) * 100));
-
-const formattedValue = computed(() => {
-  if (props.displayValue) {
-    return props.displayValue(modelValue.value);
-  }
-
-  const decimals = stepDecimals(props.step);
-
-  return `${Number(modelValue.value.toFixed(decimals))}${props.valueUnit}`;
-});
-
-let mediaQuery: MediaQueryList | null = null;
-
-function handleMediaChange(e: MediaQueryListEvent) {
-  isHoverDevice.value = e.matches;
-}
-
-onMounted(() => {
-  mediaQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
-
-  isHoverDevice.value = mediaQuery.matches;
-
-  mediaQuery.addEventListener('change', handleMediaChange);
-});
-
-onUnmounted(() => {
-  mediaQuery?.removeEventListener('change', handleMediaChange);
-});
-
-function computeValue(clientX: number): number {
-  const track = trackEl.value;
-
-  if (!track) {
-    return modelValue.value;
-  }
-
-  const rect = track.getBoundingClientRect();
-
-  const ratio = clamp((clientX - rect.left) / rect.width, 0, 1);
-
-  const raw = props.min + ratio * range.value;
-
-  return clamp(roundToStep(raw, props.step, props.min), props.min, props.max);
-}
-
-function onPointerDown(e: PointerEvent) {
-  if (props.isDisabled) {
-    return;
-  }
-
-  e.preventDefault();
-
-  trackEl.value?.setPointerCapture(e.pointerId);
-
-  isDragging.value = true;
-
-  modelValue.value = computeValue(e.clientX);
-}
-
-function onPointerMove(e: PointerEvent) {
-  if (!isDragging.value) {
-    return;
-  }
-
-  modelValue.value = computeValue(e.clientX);
-}
-
-function onPointerUp(e: PointerEvent) {
-  if (trackEl.value?.hasPointerCapture?.(e.pointerId)) {
-    trackEl.value.releasePointerCapture(e.pointerId);
-  }
-
-  isDragging.value = false;
-}
+const formattedValue = computed(() =>
+  props.displayValue
+    ? props.displayValue(modelValue.value)
+    : `${Number(modelValue.value.toFixed(stepDecimals(props.step)))}${props.valueUnit}`
+);
 
 function onKeyDown(e: KeyboardEvent) {
-  if (props.isDisabled) {
-    return;
-  }
-
-  let next: number | undefined;
-
+  if (props.isDisabled) return;
+  let next: number;
   switch (e.key) {
     case 'ArrowRight':
     case 'ArrowUp':
       next = modelValue.value + props.step;
       break;
-
     case 'ArrowLeft':
     case 'ArrowDown':
       next = modelValue.value - props.step;
       break;
-
     case 'Home':
       next = props.min;
       break;
-
     case 'End':
       next = props.max;
       break;
-
     default:
       return;
   }
-
   e.preventDefault();
-
-  modelValue.value = clamp(roundToStep(next, props.step, props.min), props.min, props.max);
+  setValue(clamp(roundToStep(next, props.step, props.min), props.min, props.max));
 }
+
+let mq: MediaQueryList | null = null;
+const onMediaChange = (e: MediaQueryListEvent) => {
+  isHoverDevice.value = e.matches;
+};
+
+onMounted(() => {
+  mq = window.matchMedia('(hover: hover) and (pointer: fine)');
+  isHoverDevice.value = mq.matches;
+  mq.addEventListener('change', onMediaChange);
+});
+
+onBeforeUnmount(() => {
+  mq?.removeEventListener('change', onMediaChange);
+});
 </script>

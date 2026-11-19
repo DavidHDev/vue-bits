@@ -1,134 +1,231 @@
 <template>
-  <h1 class="sub-category">Flex Carousel</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="flexCarousel.usage"
-    :source="flexCarouselSource"
-    component-name="FlexCarousel"
-    :props-table="props"
   >
-    <template #preview>
-      <div class="relative p-0 h-135 overflow-hidden demo-container">
-        <FlexCarousel
-          :key="run"
-          :preset="preset"
-          :intro="intro"
-          :fit="fit"
-          :card-height="cardHeight"
-          :gap="gap"
-          :radius="radius"
-          :lens-width="lensWidth"
-          :lens-height="lensHeight"
-          :tilt="tilt"
-          :roundness="roundness"
-          :bend="bend"
-          :reach="reach"
-          :curl="curl"
-          :dispersion="dispersion"
-          :liquid="liquid"
-          :follow-cursor="followCursor"
-          :squeeze="squeeze"
-          :focus-on-click="focusOnClick"
-          :autoplay="autoplay"
-          :interval="interval"
-          :captions="captions"
-          :capture-wheel="captureWheel"
-        />
-        <RefreshButton @click="run++" />
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 540px; padding: 0">
+          <FlexCarousel :key="rerenderKey" v-bind="props" />
+          <RefreshButton @click="forceRerender" />
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewSelect
-          title="Preset"
-          :options="PRESET_OPTIONS"
-          :model-value="preset"
-          @update:model-value="choosePreset($event as BendPreset)"
-        />
-        <PreviewSelect
-          title="Intro"
-          :options="INTRO_OPTIONS"
-          :model-value="intro"
-          @update:model-value="chooseIntro($event as CarouselIntro)"
-        />
-        <PreviewSelect title="Fit" :options="FIT_OPTIONS" v-model="fit" />
+        <Customize>
+          <PreviewSelect
+            title="Preset"
+            :options="PRESET_OPTIONS"
+            :model-value="props.preset"
+            @update:model-value="choosePreset"
+          />
 
-        <PreviewSlider title="Card Height" :min="0.3" :max="0.8" :step="0.01" v-model="cardHeight" />
-        <PreviewSlider title="Gap" :min="0" :max="64" :step="1" valueUnit="px" v-model="gap" />
-        <PreviewSlider title="Radius" :min="0" :max="48" :step="1" valueUnit="px" v-model="radius" />
+          <PreviewSelect
+            title="Intro"
+            :options="INTRO_OPTIONS"
+            :model-value="props.intro"
+            @update:model-value="chooseIntro"
+          />
 
-        <PreviewSlider title="Lens Width" :min="0.2" :max="2" :step="0.01" v-model="lensWidth" />
-        <PreviewSlider title="Lens Height" :min="0.2" :max="2" :step="0.01" v-model="lensHeight" />
-        <PreviewSlider title="Tilt" :min="-180" :max="180" :step="1" valueUnit="°" v-model="tilt" />
-        <PreviewSlider title="Roundness" :min="0" :max="1" :step="0.01" v-model="roundness" />
+          <PreviewSelect
+            title="Fit"
+            :options="FIT_OPTIONS"
+            :model-value="props.fit"
+            @update:model-value="value => updateProp('fit', value as CardFit)"
+          />
 
-        <PreviewSlider title="Bend" :min="0" :max="1.2" :step="0.01" v-model="bend" />
-        <PreviewSlider title="Reach" :min="0.1" :max="0.9" :step="0.01" v-model="reach" />
-        <PreviewSelect title="Curl" :options="CURL_OPTIONS" v-model="curl" />
-        <PreviewSlider title="Dispersion" :min="0" :max="2" :step="0.01" v-model="dispersion" />
-        <PreviewSlider title="Liquid" :min="0" :max="1" :step="0.01" v-model="liquid" />
+          <PreviewSlider
+            title="Card Height"
+            :min="0.3"
+            :max="0.8"
+            :step="0.01"
+            :model-value="props.cardHeight"
+            @update:model-value="value => updateProp('cardHeight', value)"
+          />
 
-        <PreviewSwitch title="Follow Cursor" v-model="followCursor" />
-        <PreviewSlider title="Squeeze" :min="0" :max="0.4" :step="0.01" v-model="squeeze" />
-        <PreviewSwitch title="Focus On Click" v-model="focusOnClick" />
-        <PreviewSwitch title="Autoplay" v-model="autoplay" />
-        <PreviewSlider
-          title="Interval"
-          :min="1.5"
-          :max="10"
-          :step="0.5"
-          valueUnit="s"
-          :isDisabled="!autoplay"
-          v-model="interval"
-        />
-        <PreviewSwitch title="Captions" v-model="captions" />
-        <PreviewSwitch title="Capture Wheel" v-model="captureWheel" />
-      </Customize>
-    </template>
+          <PreviewSlider
+            title="Gap"
+            :min="0"
+            :max="64"
+            :step="1"
+            value-unit="px"
+            :model-value="props.gap"
+            @update:model-value="value => updateProp('gap', value)"
+          />
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+          <PreviewSlider
+            title="Radius"
+            :min="0"
+            :max="48"
+            :step="1"
+            value-unit="px"
+            :model-value="props.radius"
+            @update:model-value="value => updateProp('radius', value)"
+          />
 
-    <template #code>
-      <DemoCodeTab slug="flex-carousel" :usage="flexCarousel.usage!" :source="flexCarouselSource" />
-    </template>
-  </TabsLayout>
+          <PreviewSlider
+            title="Lens Width"
+            :min="0.2"
+            :max="2"
+            :step="0.01"
+            :model-value="props.lensWidth"
+            @update:model-value="value => updateProp('lensWidth', value)"
+          />
+
+          <PreviewSlider
+            title="Lens Height"
+            :min="0.2"
+            :max="2"
+            :step="0.01"
+            :model-value="props.lensHeight"
+            @update:model-value="value => updateProp('lensHeight', value)"
+          />
+
+          <PreviewSlider
+            title="Tilt"
+            :min="-180"
+            :max="180"
+            :step="1"
+            value-unit="°"
+            :model-value="props.tilt"
+            @update:model-value="value => updateProp('tilt', value)"
+          />
+
+          <PreviewSlider
+            title="Roundness"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="props.roundness"
+            @update:model-value="value => updateProp('roundness', value)"
+          />
+
+          <PreviewSlider
+            title="Bend"
+            :min="0"
+            :max="1.2"
+            :step="0.01"
+            :model-value="props.bend"
+            @update:model-value="value => updateProp('bend', value)"
+          />
+
+          <PreviewSlider
+            title="Reach"
+            :min="0.1"
+            :max="0.9"
+            :step="0.01"
+            :model-value="props.reach"
+            @update:model-value="value => updateProp('reach', value)"
+          />
+
+          <PreviewSelect
+            title="Curl"
+            :options="CURL_OPTIONS"
+            :model-value="props.curl"
+            @update:model-value="value => updateProp('curl', value as CurlMode)"
+          />
+
+          <PreviewSlider
+            title="Dispersion"
+            :min="0"
+            :max="2"
+            :step="0.01"
+            :model-value="props.dispersion"
+            @update:model-value="value => updateProp('dispersion', value)"
+          />
+
+          <PreviewSlider
+            title="Liquid"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="props.liquid"
+            @update:model-value="value => updateProp('liquid', value)"
+          />
+
+          <PreviewSwitch
+            title="Follow Cursor"
+            :model-value="props.followCursor"
+            @update:model-value="value => updateProp('followCursor', value)"
+          />
+
+          <PreviewSlider
+            title="Squeeze"
+            :min="0"
+            :max="0.4"
+            :step="0.01"
+            :model-value="props.squeeze"
+            @update:model-value="value => updateProp('squeeze', value)"
+          />
+
+          <PreviewSwitch
+            title="Focus On Click"
+            :model-value="props.focusOnClick"
+            @update:model-value="value => updateProp('focusOnClick', value)"
+          />
+
+          <PreviewSwitch
+            title="Autoplay"
+            :model-value="props.autoplay"
+            @update:model-value="value => updateProp('autoplay', value)"
+          />
+
+          <PreviewSlider
+            title="Interval"
+            :min="1.5"
+            :max="10"
+            :step="0.5"
+            value-unit="s"
+            :is-disabled="!props.autoplay"
+            :model-value="props.interval"
+            @update:model-value="value => updateProp('interval', value)"
+          />
+
+          <PreviewSwitch
+            title="Captions"
+            :model-value="props.captions"
+            @update:model-value="value => updateProp('captions', value)"
+          />
+
+          <PreviewSwitch
+            title="Capture Wheel"
+            :model-value="props.captureWheel"
+            @update:model-value="value => updateProp('captureWheel', value)"
+          />
+        </Customize>
+
+        <PropTable :data="propData" />
+        <Dependencies :dependency-list="['ogl']" />
+      </template>
+
+      <template #code>
+        <CodeExample :code-object="flexCarousel" component-name="FlexCarousel" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
+import Dependencies from '@/components/common/Dependencies.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
 import RefreshButton from '@/components/common/RefreshButton.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
+import { useForceRerender } from '@/composables/useForceRerender';
 import { flexCarousel } from '@/constants/code/Components/flexCarouselCode';
-import FlexCarousel from '@/content/Components/FlexCarousel/FlexCarousel.vue';
-import flexCarouselSource from '@/content/Components/FlexCarousel/FlexCarousel.vue?raw';
-import { computed, ref } from 'vue';
-
-type BendPreset = 'liquid' | 'ribbon' | 'vortex' | 'arch';
-type CarouselIntro = 'rise' | 'bloom' | 'spin' | 'deal' | 'none';
-type CurlMode = 'twist' | 'rise' | 'fall';
-type CardFit = 'natural' | 'portrait' | 'square' | 'landscape';
-
-interface PresetValues {
-  lensWidth: number;
-  lensHeight: number;
-  tilt: number;
-  roundness: number;
-  bend: number;
-  reach: number;
-  curl: CurlMode;
-  dispersion: number;
-  liquid: number;
-  followCursor: boolean;
-}
+import FlexCarousel, {
+  type BendPreset,
+  type CardFit,
+  type CarouselIntro,
+  type CurlMode,
+  type PresetValues
+} from '@/content/Components/FlexCarousel/FlexCarousel.vue';
 
 const PRESETS: Record<BendPreset, PresetValues> = {
   liquid: {
@@ -187,6 +284,7 @@ const PRESET_OPTIONS = [
   { label: 'Vortex', value: 'vortex' },
   { label: 'Arch', value: 'arch' }
 ];
+
 const INTRO_OPTIONS = [
   { label: 'Rise', value: 'rise' },
   { label: 'Bloom', value: 'bloom' },
@@ -194,11 +292,13 @@ const INTRO_OPTIONS = [
   { label: 'Deal', value: 'deal' },
   { label: 'None', value: 'none' }
 ];
+
 const CURL_OPTIONS = [
   { label: 'Twist', value: 'twist' },
   { label: 'Rise', value: 'rise' },
   { label: 'Fall', value: 'fall' }
 ];
+
 const FIT_OPTIONS = [
   { label: 'Natural', value: 'natural' },
   { label: 'Portrait', value: 'portrait' },
@@ -206,7 +306,7 @@ const FIT_OPTIONS = [
   { label: 'Landscape', value: 'landscape' }
 ];
 
-const DEFAULTS = {
+const DEFAULT_PROPS = {
   preset: 'liquid' as BendPreset,
   intro: 'rise' as CarouselIntro,
   fit: 'natural' as CardFit,
@@ -222,99 +322,46 @@ const DEFAULTS = {
   captureWheel: true
 };
 
-const preset = ref(DEFAULTS.preset);
-const intro = ref(DEFAULTS.intro);
-const fit = ref(DEFAULTS.fit);
-const cardHeight = ref(DEFAULTS.cardHeight);
-const gap = ref(DEFAULTS.gap);
-const radius = ref(DEFAULTS.radius);
-const lensWidth = ref(DEFAULTS.lensWidth);
-const lensHeight = ref(DEFAULTS.lensHeight);
-const tilt = ref(DEFAULTS.tilt);
-const roundness = ref(DEFAULTS.roundness);
-const bend = ref(DEFAULTS.bend);
-const reach = ref(DEFAULTS.reach);
-const curl = ref(DEFAULTS.curl);
-const dispersion = ref(DEFAULTS.dispersion);
-const liquid = ref(DEFAULTS.liquid);
-const followCursor = ref(DEFAULTS.followCursor);
-const squeeze = ref(DEFAULTS.squeeze);
-const focusOnClick = ref(DEFAULTS.focusOnClick);
-const autoplay = ref(DEFAULTS.autoplay);
-const interval = ref(DEFAULTS.interval);
-const captions = ref(DEFAULTS.captions);
-const captureWheel = ref(DEFAULTS.captureWheel);
-const run = ref(0);
+const { rerenderKey, forceRerender } = useForceRerender();
+const { props, updateProp, updateProps, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
 
-const state = {
-  preset,
-  intro,
-  fit,
-  cardHeight,
-  gap,
-  radius,
-  lensWidth,
-  lensHeight,
-  tilt,
-  roundness,
-  bend,
-  reach,
-  curl,
-  dispersion,
-  liquid,
-  followCursor,
-  squeeze,
-  focusOnClick,
-  autoplay,
-  interval,
-  captions,
-  captureWheel
-};
-type Key = keyof typeof state;
-const keys = Object.keys(DEFAULTS) as Key[];
-
-const choosePreset = (value: BendPreset) => {
-  preset.value = value;
-  const values = PRESETS[value] || PRESETS.liquid;
-  (Object.keys(values) as (keyof PresetValues)[]).forEach(k => ((state[k] as { value: unknown }).value = values[k]));
-};
-const chooseIntro = (value: CarouselIntro) => {
-  intro.value = value;
-  run.value++;
+const choosePreset = (option: string | number) => {
+  const value = option as BendPreset;
+  updateProps({ preset: value, ...(PRESETS[value] || PRESETS.liquid) });
 };
 
-const hasChanges = computed(() => keys.some(k => state[k].value !== DEFAULTS[k]));
-function reset() {
-  keys.forEach(k => ((state[k] as { value: unknown }).value = DEFAULTS[k]));
-  run.value++;
-}
+const chooseIntro = (option: string | number) => {
+  const value = option as CarouselIntro;
+  updateProp('intro', value);
+  forceRerender();
+};
 
-const props: PropRow[] = [
+const propData: PropRow[] = [
   {
     name: 'items',
     type: 'Array<{ src: string; alt?: string; title?: string; subtitle?: string }>',
     default: '12 sample photos',
     description:
-      'Images shown in the row. Each keeps its natural aspect ratio unless fit is set. The alt text is announced to screen readers, the title and optional subtitle are shown under the row.'
+      'Images shown in the row. Each keeps its natural aspect ratio unless fit is set. The alt text is announced to screen readers, the title and optional subtitle are shown above the row.'
   },
   {
     name: 'preset',
-    type: '"liquid" | "ribbon" | "vortex" | "arch"',
-    default: '"liquid"',
+    type: "'liquid' | 'ribbon' | 'vortex' | 'arch'",
+    default: "'liquid'",
     description:
       'A starting shape for the invisible glass. Every lens prop below overrides the preset value when you pass it.'
   },
   {
     name: 'intro',
-    type: '"rise" | "bloom" | "spin" | "deal" | "none"',
-    default: '"rise"',
+    type: "'rise' | 'bloom' | 'spin' | 'deal' | 'none'",
+    default: "'rise'",
     description:
       'Entrance once the images load. Rise lifts the cards in from below, bloom fades them in while the bend forms, spin lands a fast flick, deal spreads the cards from the middle. Any input skips it.'
   },
   {
     name: 'fit',
-    type: '"natural" | "portrait" | "square" | "landscape"',
-    default: '"natural"',
+    type: "'natural' | 'portrait' | 'square' | 'landscape'",
+    default: "'natural'",
     description: 'Card shape. Natural keeps each image uncropped, the others crop every card to the same shape.'
   },
   {
@@ -366,7 +413,7 @@ const props: PropRow[] = [
   },
   {
     name: 'curl',
-    type: '"twist" | "rise" | "fall"',
+    type: "'twist' | 'rise' | 'fall'",
     default: 'from preset',
     description:
       'Which way the ends of the row flex. Twist sends the left end down and the right end up, rise lifts both, fall drops both.'
@@ -413,7 +460,7 @@ const props: PropRow[] = [
     name: 'captions',
     type: 'boolean',
     default: 'true',
-    description: 'Show the title of the centered card under the row and a counter below it.'
+    description: 'Show the title of the centered card above the row and a counter below it.'
   },
   {
     name: 'captureWheel',
@@ -423,17 +470,18 @@ const props: PropRow[] = [
       'Let a vertical mouse wheel scroll the carousel while hovering. Horizontal wheels and trackpads always scroll it.'
   },
   {
-    name: '@change',
+    name: 'onChange',
     type: '(index: number, item) => void',
     default: '-',
     description: 'Called whenever a different card reaches the center.'
   },
   {
-    name: '@select',
+    name: 'onSelect',
     type: '(index: number, item) => void',
     default: '-',
     description: 'Called when the centered card is clicked or Enter is pressed. Clicking a side card centers it first.'
   },
-  { name: 'className', type: 'string', default: '""', description: 'Extra classes on the container.' }
+  { name: 'className', type: 'string', default: "''", description: 'Extra classes on the container.' },
+  { name: 'style', type: 'CSSProperties', default: '-', description: 'Inline styles on the container.' }
 ];
 </script>

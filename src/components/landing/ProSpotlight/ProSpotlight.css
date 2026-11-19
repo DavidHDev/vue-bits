@@ -1,0 +1,144 @@
+.ln-prospot-section {
+  position: relative;
+  width: 100%;
+  padding: 96px 0 104px;
+  background: #0c0e0c;
+  z-index: 4;
+  font-family: 'Geist', sans-serif;
+}
+
+.ln-prospot-inner {
+  max-width: 1324px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.ln-prospot-header {
+  display: grid;
+  align-items: end;
+  gap: 32px 48px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin-bottom: 40px;
+}
+
+.ln-prospot-header h2 {
+  margin: 0;
+  color: #f4f6f4;
+  text-wrap: balance;
+}
+
+.ln-prospot-copy > p {
+  max-width: 62ch;
+  margin: 16px 0 0;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 15px;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.ln-prospot-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 20px;
+  border-radius: 13px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--dur-press) var(--ease-out);
+}
+
+.ln-prospot-btn:active {
+  transform: scale(0.97);
+}
+
+.ln-prospot-btn svg {
+  transition: transform 260ms var(--ease-out);
+}
+
+.ln-prospot-btn:hover svg {
+  transform: translateX(2px);
+}
+
+.ln-prospot-btn--primary {
+  padding: 0 17px 0 21px;
+  background: #f4f6f4;
+  color: #111111;
+}
+
+.ln-prospot-btn--primary:hover {
+  background: #fff;
+  color: #111111;
+}
+
+@media (max-width: 960px) {
+  .ln-prospot-header {
+    align-items: start;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ln-prospot-btn--primary {
+    justify-self: start;
+  }
+}
+
+@media (max-width: 600px) {
+  .ln-prospot-section {
+    padding: 76px 0 82px;
+  }
+
+  .ln-prospot-inner {
+    padding: 0 16px;
+  }
+
+  .ln-prospot-header {
+    gap: 28px;
+    margin-bottom: 32px;
+  }
+
+  .ln-prospot-btn--primary {
+    justify-self: stretch;
+    height: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ln-prospot-btn,
+  .ln-prospot-btn svg {
+    transition: none;
+  }
+
+  .ln-prospot-btn:active,
+  .ln-prospot-btn:hover svg {
+    transform: none;
+  }
+}
+
+:root[data-theme='light'] .ln-prospot-section {
+  background: #fff;
+}
+
+:root[data-theme='light'] .ln-prospot-header h2 {
+  color: #161816;
+}
+
+:root[data-theme='light'] .ln-prospot-copy > p {
+  color: #565c57;
+}
+
+:root[data-theme='light'] .ln-prospot-btn--primary {
+  background: #161816;
+  color: #fff;
+}
+
+:root[data-theme='light'] .ln-prospot-btn--primary:hover {
+  background: #000;
+  color: #fff;
+}

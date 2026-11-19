@@ -2,20 +2,16 @@ import code from '@/content/Components/Counter/Counter.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const counter = createCodeObject(code, 'Components/Counter', {
-  installation: `npm i motion-v`,
+  dependencies: '',
   usage: `<template>
   <Counter
-    :value="1"
-    :places="[100, 10, 1]"
+    :value="1284"
     :font-size="80"
-    :padding="5"
-    :gap="10"
-    text-color="white"
-    :font-weight="900"
+    :font-weight="600"
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Counter from './Counter.vue'
 </script>`
 });

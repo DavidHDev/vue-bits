@@ -7,12 +7,17 @@ export const circularText = createCodeObject(code, 'TextAnimations/CircularText'
   <CircularText
     text="VUE*BITS*COMPONENTS*"
     on-hover="speedUp"
+    direction="clockwise"
     :spin-duration="20"
-    class="custom-class"
+    :size="200"
+    :font-size="24"
+    :draggable="true"
+    :hover-tilt="20"
+    class-name="custom-class"
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import CircularText from './CircularText.vue'
 </script>`
 });

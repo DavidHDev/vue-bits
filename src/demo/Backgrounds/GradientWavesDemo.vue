@@ -1,320 +1,283 @@
 <template>
-  <h1 class="sub-category">Gradient Waves</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="gradientWaves.usage"
-    :source="gradientWavesSource"
-    componentName="GradientWaves"
-    :props-table="props"
+    :demo-only-props="['preset']"
   >
-    <template #preview>
-      <div class="relative bg-[#14110e] rounded-2xl w-full h-125 overflow-hidden demo-container">
-        <GradientWaves :key="key" v-bind="gradientWavesProps" />
-        <BackgroundContent pillText="New Background" headline="Soft rolling gradient waves fading into haze." />
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 500px; padding: 0">
+          <GradientWaves :key="rerenderKey" v-bind="settings" />
+          <BackgroundContent pill-text="New Background" headline="Soft rolling gradient waves fading into haze." />
+          <RefreshButton @click="forceRerender" />
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewColorPicker title="Horizon Color" v-model="horizonColor" />
-        <PreviewColorPicker title="Wave Color" v-model="waveColor" />
-        <PreviewColorPicker title="Crest Color" v-model="crestColor" />
-        <PreviewSlider title="Speed" :min="0" :max="2" :step="0.05" v-model="speed" />
-        <PreviewSlider title="Amplitude" :min="0" :max="5" :step="0.05" v-model="amplitude" />
-        <PreviewSlider title="Wave Scale" :min="0.3" :max="3" :step="0.05" v-model="waveScale" />
-        <PreviewSlider title="Wave Ratio" :min="0.3" :max="3" :step="0.05" v-model="waveRatio" />
-        <PreviewSlider title="Swell" :min="0" :max="40" :step="0.5" v-model="swell" />
-        <PreviewSlider title="Turbulence" :min="0" :max="60" :step="0.5" v-model="turbulence" />
-        <PreviewSlider title="Tilt" :min="0.2" :max="1.3" :step="0.01" v-model="tilt" />
-        <PreviewSlider title="Zoom" :min="0.4" :max="2.5" :step="0.05" v-model="zoom" />
-        <PreviewSlider title="Horizon Height" :min="2" :max="10" :step="0.1" v-model="height" />
-        <PreviewSlider title="Fog Depth" :min="5" :max="60" :step="1" v-model="fogDepth" />
-        <PreviewSelect
-          title="Detail"
-          name="gradient-waves-detail"
-          width="140"
-          v-model="detail"
-          :options="['low', 'medium', 'high']"
-        />
-        <PreviewSlider title="Brightness" :min="0.2" :max="2" :step="0.05" v-model="brightness" />
-        <PreviewSlider title="Opacity" :min="0" :max="1" :step="0.01" v-model="opacity" />
-        <PreviewSwitch title="Cursor Parallax" v-model="mouseInteraction" />
-        <PreviewSlider title="Parallax Strength" :min="0" :max="1" :step="0.01" v-model="parallaxStrength" />
-        <PreviewSwitch title="Grain" v-model="grain" />
-        <PreviewSlider title="Grain Intensity" :min="0" :max="0.3" :step="0.01" v-model="grainIntensity" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewSelect
+            title="Preset"
+            :options="PRESET_OPTIONS"
+            :model-value="props.preset"
+            @update:model-value="applyPreset"
+          />
+          <PreviewColorPickerCustom
+            title="Horizon Color"
+            :color="settings.horizonColor"
+            @change="(value: string) => updateProp('horizonColor', value)"
+          />
+          <PreviewColorPickerCustom
+            title="Wave Color"
+            :color="settings.waveColor"
+            @change="(value: string) => updateProp('waveColor', value)"
+          />
+          <PreviewColorPickerCustom
+            title="Crest Color"
+            :color="settings.crestColor"
+            @change="(value: string) => updateProp('crestColor', value)"
+          />
+          <PreviewSelect
+            title="Quality"
+            :options="QUALITY_OPTIONS"
+            :model-value="settings.quality"
+            @update:model-value="value => updateProp('quality', value as Quality)"
+          />
+          <PreviewSlider
+            v-for="slider in SLIDERS"
+            :key="slider.name"
+            :title="slider.title"
+            :min="slider.min"
+            :max="slider.max"
+            :step="slider.step"
+            :value-unit="slider.unit"
+            :is-disabled="slider.cursor ? !settings.mouseInteraction : false"
+            :model-value="settings[slider.name]"
+            @update:model-value="value => updateProp(slider.name, value)"
+          />
+          <PreviewSwitch
+            v-for="toggle in SWITCHES"
+            :key="toggle.name"
+            :title="toggle.title"
+            :model-value="settings[toggle.name]"
+            @update:model-value="value => updateProp(toggle.name, value)"
+          />
+        </Customize>
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+        <PropTable :data="propData" />
+      </template>
 
-    <template #code>
-      <DemoCodeTab slug="gradient-waves" :usage="gradientWaves.usage!" :source="gradientWavesSource" />
-    </template>
-  </TabsLayout>
+      <template #code>
+        <CodeExample :code-object="gradientWaves" component-name="GradientWaves" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewColorPickerCustom from '@/components/common/PreviewColorPickerCustom.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
 import { useForceRerender } from '@/composables/useForceRerender';
+import { useColorMode } from '@/composables/useTheme';
 import { gradientWaves } from '@/constants/code/Backgrounds/gradientWavesCode';
-import GradientWaves, { type GradientWavesDetail } from '@/content/Backgrounds/GradientWaves/GradientWaves.vue';
-import gradientWavesSource from '@/content/Backgrounds/GradientWaves/GradientWaves.vue?raw';
-import { computed, ref } from 'vue';
+import GradientWaves from '@/content/Backgrounds/GradientWaves/GradientWaves.vue';
+import { DEFAULT_PROPS, PRESET_OPTIONS, presetProps } from './presets/GradientWaves';
 
-const { rerenderKey: key, forceRerender } = useForceRerender();
+type Quality = 'low' | 'medium' | 'high';
+type SliderName =
+  | 'speed'
+  | 'amplitude'
+  | 'waveScale'
+  | 'waveRatio'
+  | 'swell'
+  | 'turbulence'
+  | 'tilt'
+  | 'zoom'
+  | 'height'
+  | 'fogDepth'
+  | 'relief'
+  | 'lightAngle'
+  | 'sheen'
+  | 'brightness'
+  | 'opacity'
+  | 'grain'
+  | 'parallaxStrength'
+  | 'mouseStrength';
+type SwitchName = 'intro' | 'mouseInteraction' | 'swellOnClick' | 'lightMode' | 'paused';
 
-const DEFAULTS = {
-  horizonColor: '#10B981',
-  waveColor: '#84CC16',
-  crestColor: '#FFFFFF',
-  speed: 0.4,
-  amplitude: 2.5,
-  waveScale: 0.6,
-  waveRatio: 0.9,
-  swell: 35,
-  turbulence: 20,
-  tilt: 1.11,
-  zoom: 1.0,
-  height: 5.5,
-  fogDepth: 15,
-  detail: 'medium' as GradientWavesDetail,
-  brightness: 1.0,
-  opacity: 1.0,
-  mouseInteraction: true,
-  parallaxStrength: 0.5,
-  grain: true,
-  grainIntensity: 0.05
+const QUALITY_OPTIONS = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' }
+];
+
+const SLIDERS: {
+  name: SliderName;
+  title: string;
+  min: number;
+  max: number;
+  step: number;
+  unit?: string;
+  cursor?: boolean;
+}[] = [
+  { name: 'speed', title: 'Speed', min: 0, max: 1.5, step: 0.01 },
+  { name: 'amplitude', title: 'Amplitude', min: 0, max: 5, step: 0.05 },
+  { name: 'waveScale', title: 'Wave Scale', min: 0.3, max: 2, step: 0.01 },
+  { name: 'waveRatio', title: 'Wave Ratio', min: 0.3, max: 2, step: 0.01 },
+  { name: 'swell', title: 'Swell', min: 0, max: 40, step: 0.5 },
+  { name: 'turbulence', title: 'Turbulence', min: 0, max: 40, step: 0.5 },
+  { name: 'tilt', title: 'Tilt', min: 30, max: 80, step: 1, unit: '°' },
+  { name: 'zoom', title: 'Zoom', min: 0.6, max: 1.6, step: 0.01 },
+  { name: 'height', title: 'Height', min: 2, max: 10, step: 0.1 },
+  { name: 'fogDepth', title: 'Fog Depth', min: 5, max: 40, step: 0.5 },
+  { name: 'relief', title: 'Relief', min: 0, max: 1, step: 0.01 },
+  { name: 'lightAngle', title: 'Light Angle', min: -180, max: 180, step: 1, unit: '°' },
+  { name: 'sheen', title: 'Sheen', min: 0, max: 1, step: 0.01 },
+  { name: 'brightness', title: 'Brightness', min: 0.4, max: 1.6, step: 0.01 },
+  { name: 'opacity', title: 'Opacity', min: 0, max: 1, step: 0.01 },
+  { name: 'grain', title: 'Grain', min: 0, max: 0.5, step: 0.01 },
+  { name: 'parallaxStrength', title: 'Parallax', min: 0, max: 1, step: 0.01, cursor: true },
+  { name: 'mouseStrength', title: 'Light Follow', min: 0, max: 1, step: 0.01, cursor: true }
+];
+
+const SWITCHES: { name: SwitchName; title: string }[] = [
+  { name: 'intro', title: 'Intro' },
+  { name: 'mouseInteraction', title: 'Cursor' },
+  { name: 'swellOnClick', title: 'Swell on Click' },
+  { name: 'lightMode', title: 'Light Mode' },
+  { name: 'paused', title: 'Pause' }
+];
+
+const { rerenderKey, forceRerender } = useForceRerender();
+const { isLight } = useColorMode();
+const { props, updateProp, updateProps, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
+
+const settings = computed(() => {
+  const { preset: _preset, ...rest } = props.value;
+  void _preset;
+  return { ...rest, quality: rest.quality as Quality };
+});
+
+const applyPreset = (value: string | number) => {
+  updateProps({ ...presetProps(String(value), { light: isLight.value }), preset: String(value) });
 };
 
-const horizonColor = ref(DEFAULTS.horizonColor);
-const waveColor = ref(DEFAULTS.waveColor);
-const crestColor = ref(DEFAULTS.crestColor);
-const speed = ref(DEFAULTS.speed);
-const amplitude = ref(DEFAULTS.amplitude);
-const waveScale = ref(DEFAULTS.waveScale);
-const waveRatio = ref(DEFAULTS.waveRatio);
-const swell = ref(DEFAULTS.swell);
-const turbulence = ref(DEFAULTS.turbulence);
-const tilt = ref(DEFAULTS.tilt);
-const zoom = ref(DEFAULTS.zoom);
-const height = ref(DEFAULTS.height);
-const fogDepth = ref(DEFAULTS.fogDepth);
-const detail = ref(DEFAULTS.detail);
-const brightness = ref(DEFAULTS.brightness);
-const opacity = ref(DEFAULTS.opacity);
-const mouseInteraction = ref(DEFAULTS.mouseInteraction);
-const parallaxStrength = ref(DEFAULTS.parallaxStrength);
-const grain = ref(DEFAULTS.grain);
-const grainIntensity = ref(DEFAULTS.grainIntensity);
-
-const gradientWavesProps = computed(() => ({
-  horizonColor: horizonColor.value,
-  waveColor: waveColor.value,
-  crestColor: crestColor.value,
-  speed: speed.value,
-  amplitude: amplitude.value,
-  waveScale: waveScale.value,
-  waveRatio: waveRatio.value,
-  swell: swell.value,
-  turbulence: turbulence.value,
-  tilt: tilt.value,
-  zoom: zoom.value,
-  height: height.value,
-  fogDepth: fogDepth.value,
-  detail: detail.value,
-  brightness: brightness.value,
-  opacity: opacity.value,
-  mouseInteraction: mouseInteraction.value,
-  parallaxStrength: parallaxStrength.value,
-  grain: grain.value,
-  grainIntensity: grainIntensity.value
-}));
-
-const hasChanges = computed(
-  () =>
-    horizonColor.value !== DEFAULTS.horizonColor ||
-    waveColor.value !== DEFAULTS.waveColor ||
-    crestColor.value !== DEFAULTS.crestColor ||
-    speed.value !== DEFAULTS.speed ||
-    amplitude.value !== DEFAULTS.amplitude ||
-    waveScale.value !== DEFAULTS.waveScale ||
-    waveRatio.value !== DEFAULTS.waveRatio ||
-    swell.value !== DEFAULTS.swell ||
-    turbulence.value !== DEFAULTS.turbulence ||
-    tilt.value !== DEFAULTS.tilt ||
-    zoom.value !== DEFAULTS.zoom ||
-    height.value !== DEFAULTS.height ||
-    fogDepth.value !== DEFAULTS.fogDepth ||
-    detail.value !== DEFAULTS.detail ||
-    brightness.value !== DEFAULTS.brightness ||
-    opacity.value !== DEFAULTS.opacity ||
-    mouseInteraction.value !== DEFAULTS.mouseInteraction ||
-    parallaxStrength.value !== DEFAULTS.parallaxStrength ||
-    grain.value !== DEFAULTS.grain ||
-    grainIntensity.value !== DEFAULTS.grainIntensity
-);
-
-function reset() {
-  horizonColor.value = DEFAULTS.horizonColor;
-  waveColor.value = DEFAULTS.waveColor;
-  crestColor.value = DEFAULTS.crestColor;
-  speed.value = DEFAULTS.speed;
-  amplitude.value = DEFAULTS.amplitude;
-  waveScale.value = DEFAULTS.waveScale;
-  waveRatio.value = DEFAULTS.waveRatio;
-  swell.value = DEFAULTS.swell;
-  turbulence.value = DEFAULTS.turbulence;
-  tilt.value = DEFAULTS.tilt;
-  zoom.value = DEFAULTS.zoom;
-  height.value = DEFAULTS.height;
-  fogDepth.value = DEFAULTS.fogDepth;
-  detail.value = DEFAULTS.detail;
-  brightness.value = DEFAULTS.brightness;
-  opacity.value = DEFAULTS.opacity;
-  mouseInteraction.value = DEFAULTS.mouseInteraction;
-  parallaxStrength.value = DEFAULTS.parallaxStrength;
-  grain.value = DEFAULTS.grain;
-  grainIntensity.value = DEFAULTS.grainIntensity;
-  forceRerender();
-}
-
-const props: PropRow[] = [
+const propData: PropRow[] = [
   {
     name: 'horizonColor',
     type: 'string',
-    default: "'#10B981'",
-    description: 'Distant haze color the waves fade into.'
+    default: "'#42b883'",
+    description: 'Haze the waves fade into toward the horizon, and the tint of their shadows.'
   },
-  {
-    name: 'waveColor',
-    type: 'string',
-    default: "'#84CC16'",
-    description: 'Mid color of the rolling wave bodies.'
-  },
+  { name: 'waveColor', type: 'string', default: "'#a0ffbc'", description: 'Main color of the wave bodies.' },
   {
     name: 'crestColor',
     type: 'string',
     default: "'#FFFFFF'",
-    description: 'Highlight color of the nearest wave crests.'
+    description: 'Color of the crests and the light they catch.'
   },
   {
-    name: 'speed',
-    type: 'number',
-    default: '0.4',
-    description: 'Animation speed of the undulating wave field.'
+    name: 'backgroundColor',
+    type: 'string',
+    default: "'transparent'",
+    description: 'Fills the canvas behind the waves. Transparent lets the page show through.'
   },
   {
-    name: 'amplitude',
-    type: 'number',
-    default: '2.5',
-    description: 'Height of the sine-plasma waves.'
+    name: 'lightMode',
+    type: 'boolean',
+    default: 'false',
+    description: 'Draws the waves as soft colored ink for light pages.'
   },
+  { name: 'speed', type: 'number', default: '0.4', description: 'How fast the waves roll in.' },
+  { name: 'amplitude', type: 'number', default: '2.5', description: 'Height of the waves.' },
   {
     name: 'waveScale',
     type: 'number',
     default: '0.6',
-    description: 'Overall spatial frequency of the waves.'
+    description: 'How many waves fit in view. Higher is choppier.'
   },
   {
     name: 'waveRatio',
     type: 'number',
     default: '0.9',
-    description: 'Ratio between the short and long wavelength components.'
+    description: 'Balance between the long rolling waves and the shorter cross waves.'
   },
-  {
-    name: 'swell',
-    type: 'number',
-    default: '35',
-    description: 'Large-scale horizontal swell distortion.'
-  },
-  {
-    name: 'turbulence',
-    type: 'number',
-    default: '20',
-    description: 'Large-scale cross-flow turbulence distortion.'
-  },
+  { name: 'swell', type: 'number', default: '35', description: 'How much the long waves bend and meander.' },
+  { name: 'turbulence', type: 'number', default: '20', description: 'How much the cross waves wander.' },
   {
     name: 'tilt',
     type: 'number',
-    default: '1.11',
-    description: 'Camera pitch toward the horizon (radians).'
+    default: '64',
+    description: 'Camera angle in degrees, from looking down to facing the horizon.'
   },
+  { name: 'zoom', type: 'number', default: '1', description: 'Field of view. Higher zooms in.' },
+  { name: 'height', type: 'number', default: '5.5', description: 'Water level. Higher brings the waves closer.' },
+  { name: 'fogDepth', type: 'number', default: '15', description: 'How far you can see before the waves fade out.' },
   {
-    name: 'zoom',
+    name: 'relief',
     type: 'number',
-    default: '1.0',
-    description: 'Field-of-view zoom into the wave field.'
+    default: '1',
+    description: 'Depth of the light and shadow on the waves. 0 gives flat gradient waves.'
   },
   {
-    name: 'height',
+    name: 'lightAngle',
     type: 'number',
-    default: '5.5',
-    description: 'Vertical offset of the horizon line.'
+    default: '120',
+    description: 'Direction the light comes from, in degrees. 0 lights the waves from behind you, 180 from the horizon.'
   },
+  { name: 'sheen', type: 'number', default: '0', description: 'Strength of a soft highlight on the crests.' },
+  { name: 'brightness', type: 'number', default: '1', description: 'Overall brightness.' },
+  { name: 'opacity', type: 'number', default: '1', description: 'Opacity of the whole effect.' },
+  { name: 'grain', type: 'number', default: '0.2', description: 'Film grain on the waves, up to 0.5. 0 turns it off.' },
   {
-    name: 'fogDepth',
-    type: 'number',
-    default: '15',
-    description: 'Distance over which the waves fade into haze and transparency.'
-  },
-  {
-    name: 'detail',
-    type: 'string',
+    name: 'quality',
+    type: "'low' | 'medium' | 'high'",
     default: "'medium'",
-    description: "Raymarch quality tier: 'low', 'medium', or 'high'."
+    description: 'Rendering precision. Lower is faster on weak devices.'
   },
   {
-    name: 'brightness',
-    type: 'number',
-    default: '1.0',
-    description: 'Overall brightness multiplier for the final color.'
-  },
-  {
-    name: 'opacity',
-    type: 'number',
-    default: '1.0',
-    description: 'Global opacity of the effect.'
+    name: 'intro',
+    type: 'boolean',
+    default: 'true',
+    description: 'Starts from calm water and lets the waves rise from the horizon toward you.'
   },
   {
     name: 'mouseInteraction',
     type: 'boolean',
     default: 'true',
-    description: 'Enable subtle pointer-driven camera parallax.'
+    description: 'The light follows the cursor across the waves and the view turns gently toward it.'
   },
   {
     name: 'parallaxStrength',
     type: 'number',
     default: '0.5',
-    description: 'Strength of the cursor parallax drift.'
+    description: 'How far the view turns toward the cursor.'
   },
   {
-    name: 'grain',
+    name: 'mouseStrength',
+    type: 'number',
+    default: '0.6',
+    description: 'How far the light turns to follow the cursor.'
+  },
+  {
+    name: 'swellOnClick',
     type: 'boolean',
     default: 'true',
-    description: 'Overlay a whisper-subtle animated film grain on the effect.'
+    description: 'Clicking sends a swell rolling in from that point.'
   },
-  {
-    name: 'grainIntensity',
-    type: 'number',
-    default: '0.05',
-    description: 'Amplitude of the grain overlay. 0 disables it entirely.'
-  },
-  {
-    name: 'className',
-    type: 'string',
-    default: "''",
-    description: 'Additional CSS classes applied to the container.'
-  }
+  { name: 'paused', type: 'boolean', default: 'false', description: 'Freezes the waves.' },
+  { name: 'dpr', type: 'number', default: '2', description: 'Maximum device pixel ratio of the canvas.' },
+  { name: 'className', type: 'string', default: "''", description: 'Extra class names for the container.' },
+  { name: 'style', type: 'CSSProperties', default: '-', description: 'Inline styles for the container.' }
 ];
 </script>

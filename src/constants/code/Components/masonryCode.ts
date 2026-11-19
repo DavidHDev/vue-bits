@@ -2,42 +2,40 @@ import code from '@/content/Components/Masonry/Masonry.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const masonry = createCodeObject(code, 'Components/Masonry', {
-  installation: `npm install gsap`,
+  installation: `npm install @hugeicons/vue @hugeicons/core-free-icons`,
   usage: `<template>
   <Masonry
     :items="items"
-    ease="power3.out"
-    :duration="0.6"
-    :stagger="0.05"
+    :column-width="240"
+    :gap="12"
+    :radius="12"
     animate-from="bottom"
-    :scale-on-hover="true"
-    :hover-scale="0.95"
-    :blur-to-focus="true"
-    :color-shift-on-hover="false"
+    hover-effect="zoom"
+    captions="hover"
+    :lightbox="true"
+    :draggable="true"
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Masonry from './Masonry.vue'
 
 const items = [
   {
-    id: "1",
-    img: "https://picsum.photos/id/1015/600/900?grayscale",
-    url: "https://example.com/one",
-    height: 400,
+    id: '1',
+    img: 'https://picsum.photos/id/1015/600/900?grayscale',
+    width: 600,
+    height: 900,
+    title: 'Alexey Topolyanskiy',
+    url: 'https://unsplash.com/photos/-oWyJoSqBRM'
   },
   {
-    id: "2",
-    img: "https://picsum.photos/id/1011/600/750?grayscale",
-    url: "https://example.com/two",
-    height: 250,
-  },
-  {
-    id: "3",
-    img: "https://picsum.photos/id/1020/600/800?grayscale",
-    url: "https://example.com/three",
-    height: 600,
+    id: '2',
+    img: 'https://picsum.photos/id/1011/600/750?grayscale',
+    width: 600,
+    height: 750,
+    title: 'Roberto Nickson',
+    url: 'https://unsplash.com/photos/7BjmDICVloE'
   }
 ]
 </script>`

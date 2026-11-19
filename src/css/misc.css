@@ -275,8 +275,8 @@
 
 .eb-button-container:hover {
   transform: scale(1.1);
-  background-color: rgba(177, 158, 239, 0.1);
-  box-shadow: 0 8px 16px rgba(177, 158, 239, 0.1);
+  background-color: rgba(124, 255, 103, 0.1);
+  box-shadow: 0 8px 16px rgba(124, 255, 103, 0.1);
   transition: 0.3s ease;
   filter: saturate(1.5);
 }
@@ -363,12 +363,12 @@
     transform 120ms ease,
     filter 120ms ease,
     box-shadow 120ms ease;
-  box-shadow: 0 4px 16px rgba(82, 39, 255, 0.25);
+  box-shadow: 0 4px 16px rgba(66, 184, 131, 0.25);
 }
 
 .mr-demo-card-cta:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 24px rgba(82, 39, 255, 0.35);
+  box-shadow: 0 6px 24px rgba(66, 184, 131, 0.35);
 }
 
 .mr-demo-card-heart {

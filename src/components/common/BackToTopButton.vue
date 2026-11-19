@@ -1,17 +1,19 @@
 <template>
   <button
-    :class="[
-      'font-medium rounded-md px-3 py-2 fixed right-[12px] md:right-[2em] z-98 shadow-[10px_0_25px_rgba(0,0,6,1)] transition-all duration-300 ease back-to-top',
-      visible ? 'opacity-100 cursor-pointer bottom-24 md:bottom-10' : 'opacity-0 cursor-default bottom-4'
-    ]"
+    type="button"
+    class="back-to-top"
+    :class="{ 'back-to-top--visible': visible }"
+    :aria-hidden="!visible"
+    aria-label="Back to top"
     @click="visible && scrollToTop()"
   >
-    <i class="pi pi-arrow-up" style="color: #fff; font-size: 1rem"></i>
+    <FiArrowUp :size="16" color="var(--text-primary)" />
   </button>
 </template>
 
 <script setup lang="ts">
 import { useToast } from 'primevue/usetoast';
+import { FiArrowUp } from 'vue-icons-plus/fi';
 import { onMounted, onUnmounted, ref } from 'vue';
 
 const toast = useToast();
@@ -55,3 +57,53 @@ onUnmounted(() => {
   window.removeEventListener('scroll', onScroll);
 });
 </script>
+
+<style>
+.back-to-top {
+  position: fixed;
+  right: 2em;
+  bottom: 1em;
+  z-index: 98;
+  display: inline-flex;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 12px;
+  font-weight: 500;
+  cursor: default;
+  opacity: 0;
+  transition:
+    opacity var(--transition-slow),
+    bottom var(--transition-slow),
+    transform var(--dur-press) var(--ease-out);
+}
+
+.back-to-top--visible {
+  bottom: 2.5em;
+  cursor: pointer;
+  opacity: 1;
+}
+
+.back-to-top--visible:active {
+  transform: scale(0.94);
+}
+
+@media (max-width: 767px) {
+  .back-to-top {
+    right: 12px;
+  }
+
+  .back-to-top--visible {
+    bottom: 6em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .back-to-top--visible:active {
+    transform: none;
+  }
+}
+</style>

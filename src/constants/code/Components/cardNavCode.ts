@@ -2,53 +2,47 @@ import code from '@/content/Components/CardNav/CardNav.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const cardNav = createCodeObject(code, 'Components/CardNav', {
-  installation: `npm install gsap`,
+  installation: `npm install @hugeicons/vue @hugeicons/core-free-icons`,
   usage: `<template>
   <CardNav
     :logo="logo"
-    logo-alt="Company Logo"
+    logo-alt="Company"
     :items="items"
-    base-color="#fff"
-    menu-color="#000"
-    button-bg-color="#111"
-    button-text-color="#fff"
-    ease="power3.out"
+    :cta="{ label: 'Get started', href: '/signup' }"
+    card-effect="rise"
+    open-on="click"
   />
 </template>
 
-<script setup>
-import CardNav from './CardNav.vue'
-import logo from './logo.svg'
+<script setup lang="ts">
+import CardNav, { type CardNavItem } from './CardNav.vue';
+import logo from './logo.svg';
 
-const items = [
+const items: CardNavItem[] = [
   {
-    label: "About",
-    bgColor: "#1B1722",
-    textColor: "#fff",
+    label: 'About',
+    description: 'The people and the story behind the studio.',
     links: [
-      { label: "Company", ariaLabel: "About Company" },
-      { label: "Careers", ariaLabel: "About Careers" }
+      { label: 'Company', href: '/company' },
+      { label: 'Careers', href: '/careers' }
     ]
   },
   {
-    label: "Projects", 
-    bgColor: "#2F293A",
-    textColor: "#fff",
+    label: 'Projects',
+    description: 'Selected work from the last few years.',
     links: [
-      { label: "Featured", ariaLabel: "Featured Projects" },
-      { label: "Case Studies", ariaLabel: "Project Case Studies" }
+      { label: 'Featured', href: '/featured' },
+      { label: 'Case studies', href: '/case-studies' }
     ]
   },
   {
-    label: "Contact",
-    bgColor: "#2F293A", 
-    textColor: "#fff",
+    label: 'Contact',
+    description: 'Say hello, we read everything.',
     links: [
-      { label: "Email", ariaLabel: "Email us" },
-      { label: "Twitter", ariaLabel: "Twitter" },
-      { label: "LinkedIn", ariaLabel: "LinkedIn" }
+      { label: 'Email', href: 'mailto:hello@example.com' },
+      { label: 'LinkedIn', href: 'https://linkedin.com' }
     ]
   }
-]
+];
 </script>`
 });

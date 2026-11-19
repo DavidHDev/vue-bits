@@ -1,20 +1,173 @@
+<template>
+  <Teleport to="body">
+    <div v-if="isSearchOpen" class="search-backdrop" @click="closeSearch">
+      <div class="search-dialog" role="dialog" aria-label="Search" @click.stop>
+        <div class="search-input-row">
+          <span class="search-input-icon">
+            <HugeiconsIcon :icon="Search01Icon" :size="18" :stroke-width="1.6" aria-hidden="true" />
+          </span>
+          <input
+            ref="inputRef"
+            v-model="inputValue"
+            class="search-input"
+            placeholder="Search components, categories, or keywords..."
+            aria-label="Search"
+          />
+          <kbd class="search-kbd" @click="closeSearch">esc</kbd>
+        </div>
+
+        <div v-if="searchValue" class="search-results-wrapper">
+          <div ref="resultsRef" class="search-results" role="listbox" @scroll="handleScroll">
+            <template v-if="results.length > 0">
+              <span
+                class="search-highlight"
+                aria-hidden="true"
+                :data-ready="highlight?.ready ? '' : undefined"
+                :style="
+                  highlight
+                    ? {
+                        height: `${highlight.height}px`,
+                        transform: `translateY(${highlight.y}px)`,
+                        opacity: highlight.visible ? 1 : 0
+                      }
+                    : { opacity: 0 }
+                "
+              />
+
+              <div class="search-group-label">Vue Bits</div>
+
+              <div
+                v-for="(result, index) in results"
+                :key="`${result.categoryName}-${result.componentName}`"
+                class="search-row"
+                :data-index="index"
+                :data-selected="index === selectedIndex ? '' : undefined"
+                role="option"
+                :aria-selected="index === selectedIndex"
+                @mousemove="index !== selectedIndex && (selectedIndex = index)"
+                @click="handleSelect(result)"
+              >
+                <span class="search-row-icon">
+                  <HugeiconsIcon
+                    :icon="CATEGORY_ICONS[result.categoryName] ?? Search01Icon"
+                    :size="16"
+                    :stroke-width="1.6"
+                    aria-hidden="true"
+                  />
+                </span>
+                <span class="search-row-text">
+                  <span class="search-row-title">{{ result.componentName }}</span>
+                  <span class="search-row-meta">{{ result.matchLabel }}</span>
+                </span>
+                <span class="search-row-trail">
+                  <HugeiconsIcon :icon="ArrowTurnBackwardIcon" :size="16" :stroke-width="1.6" aria-hidden="true" />
+                </span>
+              </div>
+            </template>
+
+            <p v-else class="search-no-results">
+              No results for
+              <strong>{{ searchValue }}</strong>
+            </p>
+          </div>
+
+          <div class="search-gradient search-gradient-top" :style="{ opacity: topGradientOpacity }" />
+          <div class="search-gradient search-gradient-bottom" :style="{ opacity: bottomGradientOpacity }" />
+        </div>
+
+        <div class="search-footer">
+          <div class="search-hints" aria-hidden="true">
+            <span>
+              <kbd>↑</kbd>
+              <kbd>↓</kbd>
+              Navigate
+            </span>
+            <span>
+              <kbd>↵</kbd>
+              Open
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Teleport>
+</template>
+
 <script setup lang="ts">
-import { CATEGORIES, slug } from '@/constants/Categories';
-import { fuzzyMatch } from '@/utils/fuzzy';
-import { computed, nextTick, onUnmounted, ref, watch } from 'vue';
+import {
+  ArrowTurnBackwardIcon,
+  File01Icon,
+  Image01Icon,
+  Motion01Icon,
+  MousePointerClickIcon,
+  PuzzleIcon,
+  Search01Icon,
+  TextFontIcon
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { useSearch } from '@/composables/useSearch';
+import { CATEGORIES } from '@/constants/Categories';
+import { componentMetadata } from '@/constants/Information';
+import { getComponentMatchLabel, rankComponentSearch } from '@/utils/componentSearch';
 
-type Result = { categoryName: string; componentName: string };
+type Result = { categoryName: string; componentName: string; matchLabel: string; score: number };
 
-const { isOpen = false } = defineProps<{
-  isOpen?: boolean;
-}>();
+const CATEGORY_ICONS: Record<string, typeof Search01Icon> = {
+  'Get Started': File01Icon,
+  'Text Animations': TextFontIcon,
+  Animations: Motion01Icon,
+  Components: PuzzleIcon,
+  Micro: MousePointerClickIcon,
+  Backgrounds: Image01Icon
+};
 
-const emit = defineEmits<{
-  close: [];
-  toggle: [];
-}>();
+const slug = (value: string) => value.replace(/\s+/g, '-').toLowerCase();
 
+const pathOf = (url: string) => {
+  try {
+    return new URL(url).pathname;
+  } catch {
+    return url;
+  }
+};
+
+const metadataByPath = new Map(Object.values(componentMetadata).map(meta => [pathOf(meta.docsUrl), meta]));
+
+function searchComponents(query: string): Result[] {
+  if (!query || query.trim() === '') return [];
+  const results: Result[] = [];
+  CATEGORIES.forEach(category => {
+    const { name: categoryName, subcategories } = category;
+    if (categoryName === 'Get Started') return;
+
+    subcategories.forEach(componentName => {
+      const metadata = metadataByPath.get(`/${slug(categoryName)}/${slug(componentName)}`);
+      const match = rankComponentSearch(
+        {
+          title: componentName,
+          categoryLabel: categoryName,
+          description: metadata?.description,
+          tags: metadata?.tags
+        },
+        query
+      );
+
+      if (match) {
+        results.push({
+          categoryName,
+          componentName,
+          matchLabel: getComponentMatchLabel(categoryName, match.type),
+          score: match.score
+        });
+      }
+    });
+  });
+  return results.sort((a, b) => b.score - a.score || a.componentName.localeCompare(b.componentName)).slice(0, 8);
+}
+
+const { isSearchOpen, closeSearch } = useSearch();
 const router = useRouter();
 
 const inputValue = ref('');
@@ -23,317 +176,120 @@ const topGradientOpacity = ref(0);
 const bottomGradientOpacity = ref(1);
 const selectedIndex = ref(-1);
 const keyboardNav = ref(false);
-
 const resultsRef = ref<HTMLDivElement | null>(null);
 const inputRef = ref<HTMLInputElement | null>(null);
-const dialogRef = ref<HTMLDivElement | null>(null);
-let previouslyFocused: HTMLElement | null = null;
-
-const listboxId = 'component-search-results';
-
-// ── search ────────────────────────────────────────────────────────────────────
-function searchComponents(query: string): Result[] {
-  if (!query || query.trim() === '') return [];
-  const results: Result[] = [];
-  CATEGORIES.forEach(({ name: categoryName, subcategories }) => {
-    if (fuzzyMatch(categoryName, query)) {
-      subcategories.forEach(componentName => results.push({ categoryName, componentName }));
-    } else {
-      subcategories.forEach(componentName => {
-        if (fuzzyMatch(componentName, query)) results.push({ categoryName, componentName });
-      });
-    }
-  });
-  return results;
-}
+const highlight = ref<{ y: number; height: number; visible: boolean; ready: boolean } | null>(null);
 
 const results = computed(() => searchComponents(searchValue.value));
 
-// ── sync input → search immediately (no debounce, matches Svelte) ─────────────
-function handleInput(e: Event) {
-  inputValue.value = (e.currentTarget as HTMLInputElement).value;
-  searchValue.value = inputValue.value;
-  selectedIndex.value = -1;
-}
-
-// ── update bottom gradient when results change ────────────────────────────────
-watch(results, () => {
-  nextTick(() => {
-    if (!resultsRef.value) return;
-    const { scrollTop, scrollHeight, clientHeight } = resultsRef.value;
-    bottomGradientOpacity.value =
-      scrollHeight <= clientHeight ? 0 : Math.min((scrollHeight - (scrollTop + clientHeight)) / 50, 1);
-  });
+let debounce: ReturnType<typeof setTimeout> | undefined;
+watch(inputValue, value => {
+  clearTimeout(debounce);
+  debounce = setTimeout(() => {
+    searchValue.value = value;
+    selectedIndex.value = -1;
+  }, 180);
 });
 
-// ── open/close ────────────────────────────────────────────────────────────────
-watch(
-  () => isOpen,
-  open => {
-    if (open) {
-      previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      nextTick(() => setTimeout(() => inputRef.value?.focus(), 50));
-    } else {
-      inputValue.value = '';
-      searchValue.value = '';
-      selectedIndex.value = -1;
-      topGradientOpacity.value = 0;
-      bottomGradientOpacity.value = 1;
-      previouslyFocused?.focus();
-      previouslyFocused = null;
-    }
-  }
-);
-
-// ── global keyboard: / to open, Escape to close ───────────────────────────────
-function onGlobalKey(e: KeyboardEvent) {
-  const target = e.target as HTMLElement | null;
-  const isEditable =
-    target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target?.isContentEditable;
-
-  if (e.key === '/' && !isOpen && !isEditable) {
-    e.preventDefault();
-    emit('toggle');
-  } else if (e.key === 'Escape' && isOpen) {
-    emit('close');
-  }
-}
-
-// ── dialog keyboard: arrows, enter, focus trap ────────────────────────────────
-function onDialogKey(e: KeyboardEvent) {
-  if (!isOpen) return;
-
-  // Focus trap
-  if (e.key === 'Tab') {
-    if (!dialogRef.value) return;
-    const focusable = getFocusable(dialogRef.value);
-    if (focusable.length === 0) return;
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault();
-      first.focus();
-    }
-    return;
-  }
-
-  if (!searchValue.value) return;
-
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    keyboardNav.value = true;
-    selectedIndex.value = Math.min(selectedIndex.value + 1, results.value.length - 1);
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    keyboardNav.value = true;
-    selectedIndex.value = Math.max(selectedIndex.value - 1, 0);
-  } else if (e.key === 'Enter' && selectedIndex.value >= 0) {
-    e.preventDefault();
-    selectResult(results.value[selectedIndex.value]);
-  }
-}
-
-function handleInputKeydown(e: KeyboardEvent) {
-  if (e.key === 'ArrowDown' && results.value.length > 0) {
-    e.preventDefault();
-    keyboardNav.value = true;
-    selectedIndex.value = Math.max(selectedIndex.value, 0);
-  }
-}
-
-// ── scroll selected item into view ────────────────────────────────────────────
-watch([selectedIndex, keyboardNav], () => {
-  if (!keyboardNav.value || selectedIndex.value < 0 || !resultsRef.value) return;
-  const item = resultsRef.value.querySelector(`[data-index="${selectedIndex.value}"]`) as HTMLElement | null;
-  if (!item) return;
-
-  const margin = 50;
-  const itemTop = item.offsetTop;
-  const itemBottom = itemTop + item.offsetHeight;
-  if (itemTop < resultsRef.value.scrollTop + margin) {
-    resultsRef.value.scrollTo({ top: itemTop - margin, behavior: 'smooth' });
-  } else if (itemBottom > resultsRef.value.scrollTop + resultsRef.value.clientHeight - margin) {
-    resultsRef.value.scrollTo({ top: itemBottom - resultsRef.value.clientHeight + margin, behavior: 'smooth' });
-  }
-  keyboardNav.value = false;
-});
-
-// ── scroll gradients ──────────────────────────────────────────────────────────
-function handleScroll(e: Event) {
-  const target = e.currentTarget as HTMLDivElement;
-  const { scrollTop, scrollHeight, clientHeight } = target;
+function handleScroll(event: Event) {
+  const { scrollTop, scrollHeight, clientHeight } = event.target as HTMLElement;
   topGradientOpacity.value = Math.min(scrollTop / 50, 1);
   const bottomDist = scrollHeight - (scrollTop + clientHeight);
   bottomGradientOpacity.value = scrollHeight <= clientHeight ? 0 : Math.min(bottomDist / 50, 1);
 }
 
-// ── actions ───────────────────────────────────────────────────────────────────
-function selectResult(result: Result | undefined) {
-  if (!result) return;
-  router.push(`/${slug(result.categoryName)}/${slug(result.componentName)}`);
+watch(results, () =>
+  nextTick(() => {
+    if (!resultsRef.value) return;
+    const { scrollTop, scrollHeight, clientHeight } = resultsRef.value;
+    bottomGradientOpacity.value =
+      scrollHeight <= clientHeight ? 0 : Math.min((scrollHeight - (scrollTop + clientHeight)) / 50, 1);
+  })
+);
+
+function reset() {
+  clearTimeout(debounce);
   inputValue.value = '';
   searchValue.value = '';
   selectedIndex.value = -1;
-  emit('close');
 }
 
-function closeFromBackdrop(e: MouseEvent) {
-  if (e.target === e.currentTarget) emit('close');
+function handleSelect(result: Result | undefined) {
+  if (!result) return;
+  router.push(`/${slug(result.categoryName)}/${slug(result.componentName)}`);
+  reset();
+  closeSearch();
 }
 
-function getFocusable(container: HTMLElement): HTMLElement[] {
-  return Array.from(
-    container.querySelectorAll<HTMLElement>(
-      'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
-    )
-  ).filter(el => !el.hasAttribute('disabled') && el.tabIndex !== -1);
+function onKey(event: KeyboardEvent) {
+  if (!isSearchOpen.value || !searchValue.value) return;
+  if (event.key === 'ArrowDown' || (event.key === 'Tab' && !event.shiftKey)) {
+    event.preventDefault();
+    keyboardNav.value = true;
+    selectedIndex.value = Math.min(selectedIndex.value + 1, results.value.length - 1);
+  } else if (event.key === 'ArrowUp' || (event.key === 'Tab' && event.shiftKey)) {
+    event.preventDefault();
+    keyboardNav.value = true;
+    selectedIndex.value = Math.max(selectedIndex.value - 1, 0);
+  } else if (event.key === 'Enter' && selectedIndex.value >= 0) {
+    event.preventDefault();
+    handleSelect(results.value[selectedIndex.value]);
+  }
 }
 
-// ── category icons ────────────────────────────────────────────────────────────
-function getCategoryIcon(categoryName: string): string {
-  const map: Record<string, string> = {
-    'Text Animations': `<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>`,
-    Components: `<path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/>`,
-    Backgrounds: `<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/>`,
-    Animations: `<circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="m12 8 4 4-4 4"/>`
-  };
-  return (
-    map[categoryName] ?? `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/>`
-  );
-}
+watch(
+  [selectedIndex, results],
+  () =>
+    nextTick(() => {
+      const row =
+        selectedIndex.value >= 0
+          ? resultsRef.value?.querySelector<HTMLElement>(`[data-index="${selectedIndex.value}"]`)
+          : null;
+      const previous = highlight.value;
+      if (!row) {
+        highlight.value = previous ? { ...previous, visible: false } : null;
+      } else {
+        highlight.value = { y: row.offsetTop, height: row.offsetHeight, visible: true, ready: Boolean(previous) };
+      }
 
-window.addEventListener('keydown', onGlobalKey);
-window.addEventListener('keydown', onDialogKey);
-onUnmounted(() => {
-  window.removeEventListener('keydown', onGlobalKey);
-  window.removeEventListener('keydown', onDialogKey);
+      if (!keyboardNav.value || !row || !resultsRef.value) return;
+      const container = resultsRef.value;
+      const margin = 50;
+      const itemTop = row.offsetTop;
+      const itemBottom = itemTop + row.offsetHeight;
+      if (itemTop < container.scrollTop + margin) {
+        container.scrollTo({ top: itemTop - margin, behavior: 'smooth' });
+      } else if (itemBottom > container.scrollTop + container.clientHeight - margin) {
+        container.scrollTo({ top: itemBottom - container.clientHeight + margin, behavior: 'smooth' });
+      }
+      keyboardNav.value = false;
+    }),
+  { flush: 'post' }
+);
+
+watch(
+  isSearchOpen,
+  open => {
+    if (open) {
+      setTimeout(() => inputRef.value?.focus(), 50);
+    } else {
+      reset();
+      highlight.value = null;
+      topGradientOpacity.value = 0;
+      bottomGradientOpacity.value = 1;
+    }
+  },
+  { immediate: true }
+);
+
+onMounted(() => window.addEventListener('keydown', onKey));
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKey);
+  clearTimeout(debounce);
 });
 </script>
 
-<template>
-  <div v-if="isOpen" class="search-backdrop" @click="closeFromBackdrop" role="presentation">
-    <div ref="dialogRef" class="search-dialog" role="dialog" aria-modal="true" aria-label="Search" tabindex="-1">
-      <!-- Input row -->
-      <div class="search-input-row">
-        <svg
-          class="search-input-icon"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.35-4.35" />
-        </svg>
-        <input
-          ref="inputRef"
-          class="search-input"
-          :value="inputValue"
-          @input="handleInput"
-          @keydown="handleInputKeydown"
-          placeholder="Search components, categories, or keywords..."
-          role="combobox"
-          :aria-expanded="Boolean(searchValue)"
-          :aria-controls="listboxId"
-          aria-autocomplete="list"
-          :aria-activedescendant="selectedIndex >= 0 ? `search-result-${selectedIndex}` : undefined"
-        />
-        <button type="button" class="search-kbd" @click="$emit('close')">esc</button>
-      </div>
-
-      <!-- Results -->
-      <div v-if="searchValue" class="search-results-motion">
-        <div class="search-results-wrapper">
-          <div
-            :id="listboxId"
-            ref="resultsRef"
-            class="search-results"
-            @scroll="handleScroll"
-            role="listbox"
-            aria-label="Search results"
-          >
-            <template v-if="results.length > 0">
-              <div
-                v-for="(r, i) in results"
-                :key="`${r.categoryName}-${r.componentName}-${i}`"
-                :id="`search-result-${i}`"
-                class="search-result-anim"
-                :data-index="i"
-                @mouseenter="selectedIndex = i"
-                @click="selectResult(r)"
-                @keydown="
-                  e => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      selectResult(r);
-                    }
-                  }
-                "
-                role="option"
-                :aria-selected="selectedIndex === i"
-                tabindex="-1"
-              >
-                <div :class="['search-result-item', { selected: selectedIndex === i }]">
-                  <div class="search-result-icon">
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                      v-html="getCategoryIcon(r.categoryName)"
-                    />
-                  </div>
-                  <div class="search-result-text">
-                    <span class="search-result-name">{{ r.componentName }}</span>
-                    <span class="search-result-category">in {{ r.categoryName }}</span>
-                  </div>
-                  <div class="search-result-enter">
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M20 4v7a4 4 0 0 1-4 4H5" />
-                      <path d="m9 11-4 4 4 4" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </template>
-            <p v-else class="search-no-results">
-              No results found for
-              <strong>{{ searchValue }}</strong>
-            </p>
-          </div>
-
-          <div class="search-gradient-top search-gradient" :style="{ opacity: topGradientOpacity }" />
-          <div class="search-gradient-bottom search-gradient" :style="{ opacity: bottomGradientOpacity }" />
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
-<style scoped>
+<style>
 .search-backdrop {
   position: fixed;
   inset: 0;
@@ -341,251 +297,334 @@ onUnmounted(() => {
   display: flex;
   justify-content: center;
   padding-top: 12vh;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  animation: search-fade-in 0.15s ease;
-}
-
-@keyframes search-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  background: rgba(6, 8, 6, 0.56);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  animation: search-fade-in 140ms var(--ease-out);
 }
 
 .search-dialog {
   width: 100%;
-  max-width: 560px;
-  margin: 0 16px;
+  max-width: 600px;
   height: fit-content;
-  border-radius: 16px;
-  border: 1px solid #2e4e3e;
-  background: rgba(11, 11, 11, 0.9);
-  backdrop-filter: blur(32px) saturate(1.3);
-  -webkit-backdrop-filter: blur(32px) saturate(1.3);
-  box-shadow:
-    0 8px 40px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(158, 239, 176, 0.04);
+  margin: 0 16px;
   overflow: hidden;
-  animation: search-slide-in 0.2s ease;
-}
-
-@keyframes search-slide-in {
-  from {
-    opacity: 0;
-    transform: translateY(-8px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  border-radius: 16px;
+  background: var(--menu-bg);
+  box-shadow: var(--menu-shadow);
+  font-family: 'Geist', sans-serif;
+  transform-origin: 50% 0;
+  animation: search-rise 180ms var(--ease-out);
 }
 
 .search-input-row {
   display: flex;
+  height: 56px;
   align-items: center;
-  gap: 10px;
-  padding: 14px 16px;
+  gap: 12px;
+  padding: 0 14px 0 18px;
 }
 
 .search-input-icon {
-  flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.35);
+  display: inline-flex;
+  flex: none;
+  color: var(--tool-muted);
 }
 
 .search-input {
   flex: 1;
+  min-width: 0;
+  border: 0;
   background: none;
-  border: none;
+  color: var(--text-primary);
+  caret-color: var(--color-primary);
+  font-family: 'Geist', sans-serif;
+  font-size: 15px;
+  font-weight: 450;
+  letter-spacing: -0.01em;
   outline: none;
-  font-size: 14px;
-  font-weight: 400;
-  color: #fff;
-  caret-color: #9eefb0;
 }
 
 .search-input::placeholder {
-  color: rgba(255, 255, 255, 0.25);
+  color: var(--tool-muted);
+}
+
+.search-kbd,
+.search-hints kbd {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--tool-track);
+  color: var(--tool-muted);
+  font-family: 'Geist', sans-serif;
+  font-weight: 500;
 }
 
 .search-kbd {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2px 6px;
-  font-size: 10px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.05);
+  height: 24px;
+  padding: 0 8px;
+  font-size: 11.5px;
   cursor: pointer;
-  transition: border-color 0.15s ease;
+  transition:
+    background-color var(--dur-menu) var(--ease-out),
+    color var(--dur-menu) var(--ease-out);
 }
 
 .search-kbd:hover {
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.search-results-motion {
-  overflow: hidden;
-  animation: search-results-in 0.3s ease;
-}
-
-@keyframes search-results-in {
-  from {
-    opacity: 0;
-    max-height: 0;
-  }
-  to {
-    opacity: 1;
-    max-height: 460px;
-  }
+  background: var(--tool-track-hover);
+  color: var(--text-primary);
 }
 
 .search-results-wrapper {
   position: relative;
-  border-top: 1px solid #2e4e3e;
+  border-top: 1px solid var(--inset-divider);
 }
 
 .search-results {
-  max-height: 400px;
+  position: relative;
+  max-height: min(420px, 56vh);
   overflow-y: auto;
-  padding: 6px 10px 10px;
+  padding: 4px 8px 8px;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--tool-track-hover) transparent;
 }
 
-.search-results::-webkit-scrollbar {
-  width: 4px;
-}
-.search-results::-webkit-scrollbar-track {
-  background: transparent;
-}
-.search-results::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 4px;
-}
-
-.search-result-anim {
-  cursor: pointer;
-  animation: search-result-pop 0.2s ease both;
-}
-
-@keyframes search-result-pop {
-  from {
-    opacity: 0;
-    transform: scale(0.7);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.search-result-item {
-  display: flex;
-  align-items: center;
-  padding: 10px 12px;
-  margin-top: 4px;
+.search-highlight {
+  position: absolute;
+  top: 0;
+  right: 8px;
+  left: 8px;
   border-radius: 10px;
-  border: 1px solid transparent;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--menu-highlight);
+  pointer-events: none;
+}
+
+.search-highlight[data-ready] {
   transition:
-    background 0.15s ease,
-    border-color 0.15s ease;
+    transform 220ms var(--ease-out),
+    height 220ms var(--ease-out),
+    opacity 140ms var(--ease-out);
 }
 
-.search-result-item.selected {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(158, 239, 176, 0.18);
-}
-
-.search-result-icon {
-  flex-shrink: 0;
+.search-group-label {
   display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 10px 6px;
+  color: var(--menu-label);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+}
+
+.search-row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 52px;
   align-items: center;
-  justify-content: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.search-row-icon {
+  display: grid;
   width: 32px;
   height: 32px;
-  margin-right: 12px;
-  border-radius: 8px;
-  background: rgba(158, 239, 176, 0.1);
-  color: rgba(158, 239, 176, 0.76);
+  flex: none;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--tool-track);
+  color: var(--tool-muted);
+  transition:
+    background-color var(--dur-menu) var(--ease-out),
+    color var(--dur-menu) var(--ease-out);
 }
 
-.search-result-text {
-  flex: 1;
+.search-row[data-selected] .search-row-icon {
+  background: var(--tool-raised);
+  box-shadow: var(--tool-raised-shadow);
+  color: var(--text-primary);
+}
+
+.search-row-text {
   display: flex;
-  flex-direction: column;
-  gap: 1px;
   min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.search-result-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: #fff;
-  white-space: nowrap;
+.search-row-title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
   overflow: hidden;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.search-result-category {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.35);
+.search-row-meta {
+  overflow: hidden;
+  color: var(--tool-muted);
+  font-size: 12.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.search-result-enter {
-  flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.2);
-  margin-left: 8px;
+.search-row-trail {
+  display: inline-flex;
+  flex: none;
+  color: var(--tool-muted);
+  opacity: 0;
+  transform: translateX(-3px);
+  transition:
+    opacity var(--dur-menu) var(--ease-out),
+    transform var(--dur-menu) var(--ease-out);
 }
 
-.search-result-item.selected .search-result-enter {
-  color: rgba(255, 255, 255, 0.4);
+.search-row[data-selected] .search-row-trail {
+  opacity: 1;
+  transform: none;
 }
 
 .search-no-results {
+  margin: 0;
+  padding: 28px 16px 30px;
+  color: var(--tool-muted);
+  font-size: 13.5px;
   text-align: center;
-  padding: 20px 16px;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.35);
 }
 
 .search-no-results strong {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.search-footer {
+  display: flex;
+  height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 14px 0 16px;
+  border-top: 1px solid var(--inset-divider);
+}
+
+.search-hints {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--tool-muted);
+  font-size: 12px;
+}
+
+.search-hints span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.search-hints kbd {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  font-size: 11px;
+}
+
+.search-hints kbd:last-of-type {
+  margin-right: 3px;
 }
 
 .search-gradient {
   position: absolute;
-  left: 0;
   right: 0;
+  left: 0;
+  z-index: 2;
   pointer-events: none;
   transition: opacity 0.3s;
 }
 
 .search-gradient-top {
   top: 0;
-  height: 50px;
-  background: linear-gradient(to bottom, rgba(11, 11, 11, 0.9), transparent);
+  height: 40px;
+  background: linear-gradient(to bottom, rgb(var(--menu-bg-rgb)), rgba(var(--menu-bg-rgb), 0));
 }
 
 .search-gradient-bottom {
   bottom: 0;
-  height: 80px;
-  background: linear-gradient(to top, rgba(11, 11, 11, 0.9), transparent);
+  height: 56px;
+  background: linear-gradient(to top, rgb(var(--menu-bg-rgb)), rgba(var(--menu-bg-rgb), 0));
+}
+
+:root[data-theme='light'] .search-backdrop {
+  background: rgba(22, 24, 22, 0.18);
+}
+
+@keyframes search-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes search-rise {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 @media (max-width: 768px) {
   .search-backdrop {
     padding-top: 8vh;
   }
+
   .search-dialog {
     max-width: none;
     margin: 0 12px;
+  }
+
+  .search-hints {
+    display: none;
+  }
+
+  .search-footer {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-backdrop,
+  .search-dialog {
+    animation: none;
+  }
+
+  .search-highlight[data-ready],
+  .search-row-trail,
+  .search-row-icon,
+  .search-gradient,
+  .search-kbd {
+    transition: none;
   }
 }
 </style>

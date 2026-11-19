@@ -1,10 +1,11 @@
 <template>
-  <div ref="containerRef" :class="['w-full h-full relative pointer-events-none z-[3] overflow-hidden', className]" />
+  <div ref="containerRef" :class="['light-rays', className].filter(Boolean).join(' ')" :style="style">
+    <canvas ref="canvasRef" class="light-rays__canvas" aria-hidden="true" />
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, useTemplateRef, computed, nextTick } from 'vue';
-import { Renderer, Program, Triangle, Mesh } from 'ogl';
+import { computed, onMounted, onUnmounted, ref, watch, type CSSProperties } from 'vue';
 
 export type RaysOrigin =
   | 'top-center'
@@ -22,484 +23,649 @@ interface LightRaysProps {
   raysSpeed?: number;
   lightSpread?: number;
   rayLength?: number;
+  rayDensity?: number;
+  tilt?: number;
+  raySharpness?: number;
+  glow?: number;
+  haze?: number;
+  atmosphere?: number;
+  intensity?: number;
   pulsating?: boolean;
   fadeDistance?: number;
   saturation?: number;
   followMouse?: boolean;
   mouseInfluence?: number;
+  cursorShadow?: boolean;
+  clickPulse?: boolean;
   noiseAmount?: number;
   distortion?: number;
+  intro?: boolean;
+  lightMode?: boolean;
+  opacity?: number;
+  maxDevicePixelRatio?: number;
   className?: string;
+  style?: CSSProperties;
 }
 
-interface MousePosition {
-  x: number;
-  y: number;
+interface Origin {
+  anchor: number[];
+  dir: number[];
 }
 
-interface AnchorAndDirection {
-  anchor: [number, number];
-  dir: [number, number];
+interface Settings {
+  origin: Origin;
+  color: number[];
+  speed: number;
+  spread: number;
+  length: number;
+  density: number;
+  tilt: number;
+  sharpness: number;
+  glow: number;
+  haze: number;
+  atmosphere: number;
+  intensity: number;
+  pulsating: boolean;
+  fade: number;
+  saturation: number;
+  follow: boolean;
+  influence: number;
+  cursorShadow: boolean;
+  clickPulse: boolean;
+  noise: number;
+  distortion: number;
+  intro: boolean;
+  light: boolean;
+  opacity: number;
+  maxRatio: number;
 }
 
-interface WebGLUniforms {
-  iTime: { value: number };
-  iResolution: { value: [number, number] };
-  rayPos: { value: [number, number] };
-  rayDir: { value: [number, number] };
-  raysColor: { value: [number, number, number] };
-  raysSpeed: { value: number };
-  lightSpread: { value: number };
-  rayLength: { value: number };
-  pulsating: { value: number };
-  fadeDistance: { value: number };
-  saturation: { value: number };
-  mousePos: { value: [number, number] };
-  mouseInfluence: { value: number };
-  noiseAmount: { value: number };
-  distortion: { value: number };
+interface Program {
+  program: WebGLProgram;
+  uniforms: Record<string, WebGLUniformLocation | null>;
 }
 
-const props = withDefaults(defineProps<LightRaysProps>(), {
+const PIXEL_BUDGET = 2.4e6;
+const MAX_PULSES = 4;
+
+const ORIGINS: Record<RaysOrigin, Origin> = {
+  'top-left': { anchor: [0, -0.2], dir: [0, 1] },
+  'top-center': { anchor: [0.5, -0.2], dir: [0, 1] },
+  'top-right': { anchor: [1, -0.2], dir: [0, 1] },
+  left: { anchor: [-0.2, 0.5], dir: [1, 0] },
+  right: { anchor: [1.2, 0.5], dir: [-1, 0] },
+  'bottom-left': { anchor: [0, 1.2], dir: [0, -1] },
+  'bottom-center': { anchor: [0.5, 1.2], dir: [0, -1] },
+  'bottom-right': { anchor: [1, 1.2], dir: [0, -1] }
+};
+
+const VERTEX = `#version 300 es
+const vec2 corners[3] = vec2[3](vec2(-1.0, -1.0), vec2(3.0, -1.0), vec2(-1.0, 3.0));
+void main() {
+  gl_Position = vec4(corners[gl_VertexID], 0.0, 1.0);
+}`;
+
+const FRAGMENT = `#version 300 es
+precision highp float;
+uniform vec2 uResolution;
+uniform float uScale;
+uniform float uTime;
+uniform vec2 uSource;
+uniform vec2 uAim;
+uniform float uReach;
+uniform vec3 uColor;
+uniform float uSpread;
+uniform float uLength;
+uniform float uFade;
+uniform float uSaturation;
+uniform float uPulsating;
+uniform float uNoise;
+uniform float uDistortion;
+uniform float uDensity;
+uniform float uSharpness;
+uniform float uGlow;
+uniform float uHaze;
+uniform float uAtmosphere;
+uniform float uIntensity;
+uniform vec4 uShadow;
+uniform vec4 uPulses[${MAX_PULSES}];
+uniform vec2 uIntro;
+uniform float uLight;
+uniform float uOpacity;
+out vec4 fragColor;
+
+float hash(vec2 p) {
+  p = fract(p * vec2(123.34, 456.21));
+  p += dot(p, p + 45.32);
+  return fract(p.x * p.y);
+}
+
+float valueNoise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = p - i;
+  vec2 w = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
+  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), w.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), w.x), w.y);
+}
+
+float shape(float strength, float width) {
+  float edge = max(mix(0.5, 0.08, uSharpness), width);
+  return mix(strength, smoothstep(0.62 - edge, 0.62 + edge, strength), uSharpness);
+}
+
+void main() {
+  vec2 coord = vec2(gl_FragCoord.x, uResolution.y - gl_FragCoord.y) / uScale;
+  vec2 delta = coord - uSource;
+  float distance = length(delta);
+  vec2 dir = delta / max(distance, 1e-4);
+  float cosAngle = dot(dir, uAim);
+  float angle = cosAngle + uDistortion * sin(uTime * 2.0 + distance * 0.02) * 0.2;
+  float slope = fwidth(angle);
+  float depth = distance / uReach;
+
+  float source = exp(-depth * depth * 9.0) * 0.9 + exp(-depth * 3.2) * 0.25;
+  float glowLight = uGlow * source * smoothstep(-0.2, 0.6, cosAngle);
+  float spread = pow(max(angle, 0.0), 1.0 / uSpread);
+  float lengthFalloff = clamp(1.0 - distance / (uReach * uLength), 0.0, 1.0);
+  float fadeFalloff = clamp(1.0 - distance / (uReach * uFade), 0.5, 1.0);
+  float envelope = spread * lengthFalloff * fadeFalloff;
+  float reveal = uIntensity * uIntro.y * (1.0 - smoothstep(uIntro.x - 0.35, uIntro.x, depth));
+  if ((envelope * 1.6 + glowLight) * reveal < 0.0015) {
+    fragColor = vec4(0.0);
+    return;
+  }
+
+  float phaseA = angle * 36.2214 * uDensity + uTime * 1.5;
+  float phaseB = -angle * 21.11349 * uDensity + uTime * 1.5;
+  float phaseC = angle * 22.3991 * uDensity + uTime * 1.1;
+  float phaseD = -angle * 18.0234 * uDensity + uTime * 1.1;
+  float strengthA = clamp(0.75 + 0.15 * sin(phaseA) + 0.2 * cos(phaseB), 0.0, 1.0);
+  float strengthB = clamp(0.75 + 0.15 * sin(phaseC) + 0.2 * cos(phaseD), 0.0, 1.0);
+  float widthA = abs(0.15 * 36.2214 * cos(phaseA) + 0.2 * 21.11349 * sin(phaseB)) * uDensity * slope;
+  float widthB = abs(0.15 * 22.3991 * cos(phaseC) + 0.2 * 18.0234 * sin(phaseD)) * uDensity * slope;
+  float pulseA = uPulsating > 0.5 ? 0.8 + 0.2 * sin(uTime * 4.5) : 1.0;
+  float pulseB = uPulsating > 0.5 ? 0.8 + 0.2 * sin(uTime * 3.3) : 1.0;
+  float rayLight = envelope * (0.5 * shape(strengthA, widthA) * pulseA + 0.4 * shape(strengthB, widthB) * pulseB);
+
+  if (uHaze > 0.0) {
+    float around = atan(uAim.x * dir.y - uAim.y * dir.x, cosAngle);
+    vec2 drift = vec2(around * 2.2 + uTime * 0.035, depth * 2.6 - uTime * 0.11);
+    float fog = 0.65 * valueNoise(drift * vec2(3.0, 1.0)) + 0.35 * valueNoise(drift * vec2(7.0, 2.3) + 4.1);
+    rayLight *= mix(1.0, 0.25 + 1.2 * fog, uHaze);
+  }
+
+  if (uShadow.z > 0.0) {
+    vec2 toCursor = uShadow.xy - uSource;
+    float cursorDistance = length(toCursor);
+    float along = dot(delta, toCursor) / max(cursorDistance * cursorDistance, 1e-4);
+    float side = abs(delta.x * toCursor.y - delta.y * toCursor.x) / max(cursorDistance, 1e-4);
+    float trail = max(along - 1.0, 0.0);
+    float width = uShadow.w * along + 0.22 * trail * cursorDistance;
+    float behind = smoothstep(0.97, 1.25, along) * exp(-trail * 1.1);
+    float shade = (1.0 - smoothstep(width * 0.3, width * 1.6, side)) * behind;
+    rayLight *= 1.0 - uShadow.z * 0.62 * shade;
+  }
+
+  float boost = 0.0;
+  for (int i = 0; i < ${MAX_PULSES}; i++) {
+    vec4 wave = uPulses[i];
+    if (wave.z <= 0.0) continue;
+    float x = (depth - wave.x) / wave.y;
+    boost += wave.z * exp(-x * x);
+  }
+  float light = (rayLight * (1.0 + boost) + glowLight) * reveal;
+
+  if (uNoise > 0.0) {
+    float n = fract(sin(dot(coord * 0.02 + uTime * 0.1, vec2(12.9898, 78.233))) * 43758.5453123);
+    light *= 1.0 - uNoise + uNoise * n;
+  }
+
+  float near = clamp(1.2 - distance / (uResolution.y / uScale), 0.0, 1.0);
+  vec3 tint = mix(vec3(0.9), vec3(0.1, 0.3, 0.5) + near * vec3(0.8, 0.6, 0.5), uAtmosphere);
+  float gray = dot(tint, vec3(0.299, 0.587, 0.114));
+  vec3 hue = max(mix(vec3(gray), tint, uSaturation), 0.0) * uColor;
+
+  float grain = (fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715)))) - 0.5) / 255.0;
+  if (uLight > 0.5) {
+    vec3 color = hue * light;
+    float energy = max(color.r, max(color.g, color.b));
+    vec3 tone = clamp(1.0 - (1.0 - hue / max(max(hue.r, max(hue.g, hue.b)), 1e-4)) * 1.8, 0.0, 1.0);
+    float warm = clamp((min(tone.r, tone.g) - tone.b) * 2.0, 0.0, 1.0);
+    vec3 ink = tone * (mix(0.66, 0.94, warm) - 0.1 * smoothstep(0.4, 1.2, energy));
+    float density = clamp(0.82 * (1.0 - exp(-1.5 * energy * energy)) * uOpacity + grain, 0.0, 1.0);
+    fragColor = vec4(ink * density, density);
+    return;
+  }
+  float level = light < 0.75 ? light : 0.75 + 0.25 * (1.0 - exp(-(light - 0.75) / 0.25));
+  float top = max(hue.r, max(hue.g, hue.b));
+  hue = mix(hue, vec3(top), smoothstep(0.8, 1.0, level) * 0.45);
+  vec3 shown = clamp(hue * level, 0.0, 1.0) * level;
+  fragColor = vec4(clamp(shown + grain, 0.0, level) * uOpacity, level * uOpacity);
+}`;
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+const parseColor = (value: string): number[] | null => {
+  const text = String(value || '').trim();
+  const hex = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(text);
+  if (hex) {
+    const full = hex[1].length === 3 ? hex[1].replace(/./g, digit => digit + digit) : hex[1];
+    return [0, 2, 4].map(index => parseInt(full.slice(index, index + 2), 16) / 255);
+  }
+  const rgb = /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/i.exec(text);
+  if (rgb) return [rgb[1], rgb[2], rgb[3]].map(channel => clamp(parseFloat(channel) / 255, 0, 1));
+  return null;
+};
+
+const compile = (gl: WebGL2RenderingContext, type: number, source: string) => {
+  const shader = gl.createShader(type);
+  if (!shader) return null;
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    console.error(gl.getShaderInfoLog(shader));
+    gl.deleteShader(shader);
+    return null;
+  }
+  return shader;
+};
+
+const link = (gl: WebGL2RenderingContext): Program | null => {
+  const vertex = compile(gl, gl.VERTEX_SHADER, VERTEX);
+  const fragment = compile(gl, gl.FRAGMENT_SHADER, FRAGMENT);
+  const program = vertex && fragment ? gl.createProgram() : null;
+  if (!vertex || !fragment || !program) {
+    if (vertex) gl.deleteShader(vertex);
+    if (fragment) gl.deleteShader(fragment);
+    return null;
+  }
+  gl.attachShader(program, vertex);
+  gl.attachShader(program, fragment);
+  gl.linkProgram(program);
+  gl.deleteShader(vertex);
+  gl.deleteShader(fragment);
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    console.error(gl.getProgramInfoLog(program));
+    gl.deleteProgram(program);
+    return null;
+  }
+  const uniforms: Program['uniforms'] = {};
+  const count = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+  for (let index = 0; index < count; index++) {
+    const info = gl.getActiveUniform(program, index);
+    if (info) uniforms[info.name.replace(/\[0\]$/, '')] = gl.getUniformLocation(program, info.name);
+  }
+  return { program, uniforms };
+};
+
+const smoother = (t: number) => {
+  const x = clamp(t, 0, 1);
+  return x * x * x * (x * (x * 6 - 15) + 10);
+};
+
+const P = withDefaults(defineProps<LightRaysProps>(), {
   raysOrigin: 'top-center',
   raysColor: '#ffffff',
   raysSpeed: 1,
-  lightSpread: 1,
-  rayLength: 2,
+  lightSpread: 0.5,
+  rayLength: 3,
+  rayDensity: 1,
+  tilt: 0,
+  raySharpness: 0.35,
+  glow: 0.6,
+  haze: 0.25,
+  atmosphere: 1,
+  intensity: 1,
   pulsating: false,
-  fadeDistance: 1.0,
-  saturation: 1.0,
+  fadeDistance: 1,
+  saturation: 1,
   followMouse: true,
   mouseInfluence: 0.1,
-  noiseAmount: 0.0,
-  distortion: 0.0,
-  className: ''
+  cursorShadow: true,
+  clickPulse: true,
+  noiseAmount: 0,
+  distortion: 0,
+  intro: true,
+  lightMode: false,
+  opacity: 1,
+  maxDevicePixelRatio: 2,
+  className: '',
+  style: undefined
 });
 
-const containerRef = useTemplateRef<HTMLDivElement>('containerRef');
+const containerRef = ref<HTMLDivElement | null>(null);
+const canvasRef = ref<HTMLCanvasElement | null>(null);
+let wakeHandler: (() => void) | null = null;
+let teardown: (() => void) | null = null;
+let generation = 0;
 
-const uniformsRef = ref<WebGLUniforms | null>(null);
-const rendererRef = ref<Renderer | null>(null);
-const mouseRef = ref<MousePosition>({ x: 0.5, y: 0.5 });
-const smoothMouseRef = ref<MousePosition>({ x: 0.5, y: 0.5 });
-const animationIdRef = ref<number | null>(null);
-const meshRef = ref<Mesh | null>(null);
-const cleanupFunctionRef = ref<(() => void) | null>(null);
-const isVisible = ref<boolean>(false);
-const observerRef = ref<IntersectionObserver | null>(null);
-const resizeTimeoutRef = ref<number | null>(null);
+const settings = computed<Settings>(() => ({
+  origin: ORIGINS[P.raysOrigin] || ORIGINS['top-center'],
+  color: parseColor(P.raysColor) || [1, 1, 1],
+  speed: Math.max(0, P.raysSpeed),
+  spread: Math.max(0.001, P.lightSpread),
+  length: Math.max(0.01, P.rayLength),
+  density: clamp(P.rayDensity, 0.1, 6),
+  tilt: (clamp(P.tilt, -90, 90) * Math.PI) / 180,
+  sharpness: clamp(P.raySharpness, 0, 1),
+  glow: Math.max(0, P.glow),
+  haze: clamp(P.haze, 0, 1),
+  atmosphere: clamp(P.atmosphere, 0, 1),
+  intensity: Math.max(0, P.intensity),
+  pulsating: P.pulsating,
+  fade: Math.max(0.01, P.fadeDistance),
+  saturation: Math.max(0, P.saturation),
+  follow: P.followMouse,
+  influence: clamp(P.mouseInfluence, 0, 1),
+  cursorShadow: P.cursorShadow,
+  clickPulse: P.clickPulse,
+  noise: clamp(P.noiseAmount, 0, 1),
+  distortion: P.distortion,
+  intro: P.intro,
+  light: P.lightMode,
+  opacity: clamp(P.opacity, 0, 1),
+  maxRatio: clamp(P.maxDevicePixelRatio, 0.5, 3)
+}));
 
-const rgbColor = computed<[number, number, number]>(() => hexToRgb(props.raysColor));
-const pulsatingValue = computed<number>(() => (props.pulsating ? 1.0 : 0.0));
-const devicePixelRatio = computed<number>(() => Math.min(window.devicePixelRatio || 1, 2));
+watch(settings, () => {
+  wakeHandler?.();
+});
 
-const hexToRgb = (hex: string): [number, number, number] => {
-  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return m ? [parseInt(m[1], 16) / 255, parseInt(m[2], 16) / 255, parseInt(m[3], 16) / 255] : [1, 1, 1];
-};
+const start = () => {
+  const container = containerRef.value;
+  const canvas = canvasRef.value;
+  if (!container || !canvas) return;
 
-const getAnchorAndDir = (origin: RaysOrigin, w: number, h: number): AnchorAndDirection => {
-  const outside = 0.2;
-  switch (origin) {
-    case 'top-left':
-      return { anchor: [0, -outside * h], dir: [0, 1] };
-    case 'top-right':
-      return { anchor: [w, -outside * h], dir: [0, 1] };
-    case 'left':
-      return { anchor: [-outside * w, 0.5 * h], dir: [1, 0] };
-    case 'right':
-      return { anchor: [(1 + outside) * w, 0.5 * h], dir: [-1, 0] };
-    case 'bottom-left':
-      return { anchor: [0, (1 + outside) * h], dir: [0, -1] };
-    case 'bottom-center':
-      return { anchor: [0.5 * w, (1 + outside) * h], dir: [0, -1] };
-    case 'bottom-right':
-      return { anchor: [w, (1 + outside) * h], dir: [0, -1] };
-    default:
-      return { anchor: [0.5 * w, -outside * h], dir: [0, 1] };
-  }
-};
-
-const debouncedUpdatePlacement = (() => {
-  let timeoutId: number | null = null;
-
-  return (updateFn: () => void): void => {
-    if (timeoutId !== null) {
-      clearTimeout(timeoutId);
-    }
-    timeoutId = window.setTimeout(() => {
-      updateFn();
-      timeoutId = null;
-    }, 16);
-  };
-})();
-
-const vertexShader: string = `
-attribute vec2 position;
-varying vec2 vUv;
-void main() {
-  vUv = position * 0.5 + 0.5;
-  gl_Position = vec4(position, 0.0, 1.0);
-}`;
-
-const fragmentShader: string = `precision highp float;
-
-uniform float iTime;
-uniform vec2  iResolution;
-
-uniform vec2  rayPos;
-uniform vec2  rayDir;
-uniform vec3  raysColor;
-uniform float raysSpeed;
-uniform float lightSpread;
-uniform float rayLength;
-uniform float pulsating;
-uniform float fadeDistance;
-uniform float saturation;
-uniform vec2  mousePos;
-uniform float mouseInfluence;
-uniform float noiseAmount;
-uniform float distortion;
-
-varying vec2 vUv;
-
-float noise(vec2 st) {
-  return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
-}
-
-float rayStrength(vec2 raySource, vec2 rayRefDirection, vec2 coord,
-                  float seedA, float seedB, float speed) {
-  vec2 sourceToCoord = coord - raySource;
-  vec2 dirNorm = normalize(sourceToCoord);
-  float cosAngle = dot(dirNorm, rayRefDirection);
-
-  float distortedAngle = cosAngle + distortion * sin(iTime * 2.0 + length(sourceToCoord) * 0.01) * 0.2;
-
-  float spreadFactor = pow(max(distortedAngle, 0.0), 1.0 / max(lightSpread, 0.001));
-
-  float distance = length(sourceToCoord);
-  float maxDistance = iResolution.x * rayLength;
-  float lengthFalloff = clamp((maxDistance - distance) / maxDistance, 0.0, 1.0);
-
-  float fadeFalloff = clamp((iResolution.x * fadeDistance - distance) / (iResolution.x * fadeDistance), 0.5, 1.0);
-  float pulse = pulsating > 0.5 ? (0.8 + 0.2 * sin(iTime * speed * 3.0)) : 1.0;
-
-  float baseStrength = clamp(
-    (0.45 + 0.15 * sin(distortedAngle * seedA + iTime * speed)) +
-    (0.3 + 0.2 * cos(-distortedAngle * seedB + iTime * speed)),
-    0.0, 1.0
-  );
-
-  return baseStrength * lengthFalloff * fadeFalloff * spreadFactor * pulse;
-}
-
-void mainImage(out vec4 fragColor, in vec2 fragCoord) {
-  vec2 coord = vec2(fragCoord.x, iResolution.y - fragCoord.y);
-
-  vec2 finalRayDir = rayDir;
-  if (mouseInfluence > 0.0) {
-    vec2 mouseScreenPos = mousePos * iResolution.xy;
-    vec2 mouseDirection = normalize(mouseScreenPos - rayPos);
-    finalRayDir = normalize(mix(rayDir, mouseDirection, mouseInfluence));
-  }
-
-  vec4 rays1 = vec4(1.0) *
-               rayStrength(rayPos, finalRayDir, coord, 36.2214, 21.11349,
-                           1.5 * raysSpeed);
-  vec4 rays2 = vec4(1.0) *
-               rayStrength(rayPos, finalRayDir, coord, 22.3991, 18.0234,
-                           1.1 * raysSpeed);
-
-  fragColor = rays1 * 0.5 + rays2 * 0.4;
-
-  if (noiseAmount > 0.0) {
-    float n = noise(coord * 0.01 + iTime * 0.1);
-    fragColor.rgb *= (1.0 - noiseAmount + noiseAmount * n);
-  }
-
-  float brightness = 1.0 - (coord.y / iResolution.y);
-  fragColor.x *= 0.1 + brightness * 0.8;
-  fragColor.y *= 0.3 + brightness * 0.6;
-  fragColor.z *= 0.5 + brightness * 0.5;
-
-  if (saturation != 1.0) {
-    float gray = dot(fragColor.rgb, vec3(0.299, 0.587, 0.114));
-    fragColor.rgb = mix(vec3(gray), fragColor.rgb, saturation);
-  }
-
-  fragColor.rgb *= raysColor;
-}
-
-void main() {
-  vec4 color;
-  mainImage(color, gl_FragCoord.xy);
-  gl_FragColor = color;
-}`;
-
-const initializeWebGL = async (): Promise<void> => {
-  if (!containerRef.value) return;
-
-  await nextTick();
-
-  if (!containerRef.value) return;
-
-  try {
-    const renderer = new Renderer({
-      dpr: devicePixelRatio.value,
-      alpha: true,
-      antialias: false,
-      powerPreference: 'high-performance'
-    });
-    rendererRef.value = renderer;
-
-    const gl = renderer.gl;
-    gl.canvas.style.width = '100%';
-    gl.canvas.style.height = '100%';
-
-    while (containerRef.value.firstChild) {
-      containerRef.value.removeChild(containerRef.value.firstChild);
-    }
-    containerRef.value.appendChild(gl.canvas);
-
-    const uniforms: WebGLUniforms = {
-      iTime: { value: 0 },
-      iResolution: { value: [1, 1] },
-      rayPos: { value: [0, 0] },
-      rayDir: { value: [0, 1] },
-      raysColor: { value: rgbColor.value },
-      raysSpeed: { value: props.raysSpeed },
-      lightSpread: { value: props.lightSpread },
-      rayLength: { value: props.rayLength },
-      pulsating: { value: pulsatingValue.value },
-      fadeDistance: { value: props.fadeDistance },
-      saturation: { value: props.saturation },
-      mousePos: { value: [0.5, 0.5] },
-      mouseInfluence: { value: props.mouseInfluence },
-      noiseAmount: { value: props.noiseAmount },
-      distortion: { value: props.distortion }
-    };
-    uniformsRef.value = uniforms;
-
-    const geometry = new Triangle(gl);
-    const program = new Program(gl, {
-      vertex: vertexShader,
-      fragment: fragmentShader,
-      uniforms
-    });
-    const mesh = new Mesh(gl, { geometry, program });
-    meshRef.value = mesh;
-
-    const updatePlacement = (): void => {
-      if (!containerRef.value || !renderer) return;
-
-      renderer.dpr = devicePixelRatio.value;
-
-      const { clientWidth: wCSS, clientHeight: hCSS } = containerRef.value;
-      renderer.setSize(wCSS, hCSS);
-
-      const dpr = renderer.dpr;
-      const w = wCSS * dpr;
-      const h = hCSS * dpr;
-
-      uniforms.iResolution.value = [w, h];
-
-      const { anchor, dir } = getAnchorAndDir(props.raysOrigin, w, h);
-      uniforms.rayPos.value = anchor;
-      uniforms.rayDir.value = dir;
-    };
-
-    const loop = (t: number): void => {
-      if (!rendererRef.value || !uniformsRef.value || !meshRef.value || !isVisible.value) {
-        return;
-      }
-
-      uniforms.iTime.value = t * 0.001;
-
-      if (props.followMouse && props.mouseInfluence > 0.0) {
-        const smoothing = 0.92;
-
-        smoothMouseRef.value.x = smoothMouseRef.value.x * smoothing + mouseRef.value.x * (1 - smoothing);
-        smoothMouseRef.value.y = smoothMouseRef.value.y * smoothing + mouseRef.value.y * (1 - smoothing);
-
-        uniforms.mousePos.value = [smoothMouseRef.value.x, smoothMouseRef.value.y];
-      }
-
-      try {
-        renderer.render({ scene: mesh });
-        animationIdRef.value = requestAnimationFrame(loop);
-      } catch (error) {
-        console.warn('WebGL rendering error:', error);
-        return;
-      }
-    };
-
-    const handleResize = (): void => {
-      debouncedUpdatePlacement(updatePlacement);
-    };
-
-    window.addEventListener('resize', handleResize, { passive: true });
-    updatePlacement();
-    animationIdRef.value = requestAnimationFrame(loop);
-
-    cleanupFunctionRef.value = (): void => {
-      if (animationIdRef.value) {
-        cancelAnimationFrame(animationIdRef.value);
-        animationIdRef.value = null;
-      }
-
-      window.removeEventListener('resize', handleResize);
-
-      if (resizeTimeoutRef.value) {
-        clearTimeout(resizeTimeoutRef.value);
-        resizeTimeoutRef.value = null;
-      }
-
-      if (renderer) {
-        try {
-          const canvas = renderer.gl.canvas;
-          const loseContextExt = renderer.gl.getExtension('WEBGL_lose_context');
-          if (loseContextExt) {
-            loseContextExt.loseContext();
-          }
-
-          if (canvas && canvas.parentNode) {
-            canvas.parentNode.removeChild(canvas);
-          }
-        } catch (error) {
-          console.warn('Error during WebGL cleanup:', error);
-        }
-      }
-
-      rendererRef.value = null;
-      uniformsRef.value = null;
-      meshRef.value = null;
-    };
-  } catch (error) {
-    console.error('Failed to initialize WebGL:', error);
-  }
-};
-
-let mouseThrottleId: number | null = null;
-const handleMouseMove = (e: MouseEvent): void => {
-  if (!containerRef.value || !rendererRef.value) return;
-
-  if (mouseThrottleId) return;
-
-  mouseThrottleId = requestAnimationFrame(() => {
-    if (!containerRef.value) return;
-
-    const rect = containerRef.value.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-    mouseRef.value = { x, y };
-    mouseThrottleId = null;
+  const gl = canvas.getContext('webgl2', {
+    alpha: true,
+    premultipliedAlpha: true,
+    antialias: false,
+    depth: false,
+    stencil: false,
+    powerPreference: 'high-performance'
   });
+  const shader = gl ? link(gl) : null;
+  if (!gl || !shader) return;
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const vao = gl.createVertexArray();
+  const size = { width: 1, height: 1, ratio: 1 };
+  const pointer = { x: 0.5, y: 0.5, inside: false, seen: false };
+  const aim = { x: 0.5, y: 0.5 };
+  const shade = { x: 0.5, y: 0.5, presence: 0 };
+  const pulses: { age: number }[] = [];
+  const pulseData = new Float32Array(MAX_PULSES * 4);
+  let time = 0;
+  let opening = settings.value.intro && !reduced && generation === 0 ? 0 : 1;
+  let raf = 0;
+  let last = 0;
+  let visible = true;
+  let pageVisible = document.visibilityState !== 'hidden';
+  let lost = false;
+
+  let resizePending = false;
+  const applyResize = () => {
+    const s = settings.value;
+    const rect = container.getBoundingClientRect();
+    const cssWidth = Math.max(1, rect.width);
+    const cssHeight = Math.max(1, rect.height);
+    const detail = s.density * (0.35 + 0.65 * s.sharpness);
+    const sampling = Math.max(clamp(0.35 + 0.3 * detail, 0.5, 2), s.noise > 0 ? 1 : 0);
+    const ratio = Math.min(
+      window.devicePixelRatio || 1,
+      s.maxRatio,
+      sampling,
+      Math.sqrt(PIXEL_BUDGET / (cssWidth * cssHeight))
+    );
+    const width = Math.max(1, Math.round(cssWidth * ratio));
+    const height = Math.max(1, Math.round(cssHeight * ratio));
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width;
+      canvas.height = height;
+    }
+    size.width = cssWidth;
+    size.height = cssHeight;
+    size.ratio = width / cssWidth;
+  };
+
+  const resize = () => {
+    resizePending = true;
+    wake();
+  };
+
+  const frame = (now: number) => {
+    raf = 0;
+    if (resizePending) {
+      resizePending = false;
+      applyResize();
+    }
+    if (lost) return;
+    const s = settings.value;
+    const dt = clamp((now - last) / 1000 || 0, 0, 0.05);
+    last = Math.max(last, now);
+    time += dt * s.speed * (reduced ? 0.35 : 1);
+    if (opening < 1) opening = Math.min(1, opening + dt / 1.8);
+
+    const steer = 1 - Math.exp(-dt / 0.2);
+    const aimX = s.follow && pointer.seen ? pointer.x : 0.5;
+    const aimY = s.follow && pointer.seen ? pointer.y : 0.5;
+    aim.x += (aimX - aim.x) * steer;
+    aim.y += (aimY - aim.y) * steer;
+    const glide = 1 - Math.exp(-dt / 0.08);
+    shade.x += (pointer.x - shade.x) * glide;
+    shade.y += (pointer.y - shade.y) * glide;
+    const shading = pointer.inside && s.cursorShadow && !reduced;
+    shade.presence += ((shading ? 1 : 0) - shade.presence) * (1 - Math.exp(-dt / (shading ? 0.25 : 0.5)));
+
+    for (let index = pulses.length - 1; index >= 0; index--) {
+      pulses[index].age += dt;
+      if (pulses[index].age >= 2) pulses.splice(index, 1);
+    }
+    pulseData.fill(0);
+    pulses.forEach((pulse, index) => {
+      const t = pulse.age;
+      pulseData[index * 4] = 0.05 + t * 1.05;
+      pulseData[index * 4 + 1] = 0.14 + t * 0.14;
+      pulseData[index * 4 + 2] = 0.9 * smoother(t / 0.15) * (1 - smoother(t / 2));
+    });
+
+    const width = size.width;
+    const height = size.height;
+    const sourceX = s.origin.anchor[0] * width;
+    const sourceY = s.origin.anchor[1] * height;
+    const cos = Math.cos(s.tilt);
+    const sin = Math.sin(s.tilt);
+    let dirX = s.origin.dir[0] * cos - s.origin.dir[1] * sin;
+    let dirY = s.origin.dir[0] * sin + s.origin.dir[1] * cos;
+    if (s.follow && s.influence > 0) {
+      const mx = aim.x * width - sourceX;
+      const my = aim.y * height - sourceY;
+      const ml = Math.hypot(mx, my) || 1;
+      const bx = dirX + (mx / ml - dirX) * s.influence;
+      const by = dirY + (my / ml - dirY) * s.influence;
+      const bl = Math.hypot(bx, by) || 1;
+      dirX = bx / bl;
+      dirY = by / bl;
+    }
+    const eased = 1 - Math.pow(1 - opening, 3);
+
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.useProgram(shader.program);
+    gl.bindVertexArray(vao);
+    const u = shader.uniforms;
+    gl.uniform2f(u.uResolution, canvas.width, canvas.height);
+    gl.uniform1f(u.uScale, size.ratio);
+    gl.uniform1f(u.uTime, time);
+    gl.uniform2f(u.uSource, sourceX, sourceY);
+    gl.uniform2f(u.uAim, dirX, dirY);
+    gl.uniform1f(u.uReach, Math.max(width, height));
+    gl.uniform3f(u.uColor, s.color[0], s.color[1], s.color[2]);
+    gl.uniform1f(u.uSpread, s.spread);
+    gl.uniform1f(u.uLength, s.length);
+    gl.uniform1f(u.uFade, s.fade);
+    gl.uniform1f(u.uSaturation, s.saturation);
+    gl.uniform1f(u.uPulsating, s.pulsating ? 1 : 0);
+    gl.uniform1f(u.uNoise, s.noise);
+    gl.uniform1f(u.uDistortion, s.distortion);
+    gl.uniform1f(u.uDensity, s.density);
+    gl.uniform1f(u.uSharpness, s.sharpness);
+    gl.uniform1f(u.uGlow, s.glow);
+    gl.uniform1f(u.uHaze, s.haze);
+    gl.uniform1f(u.uAtmosphere, s.atmosphere);
+    gl.uniform1f(u.uIntensity, s.intensity);
+    gl.uniform4f(u.uShadow, shade.x * width, shade.y * height, shade.presence, 16);
+    gl.uniform4fv(u.uPulses, pulseData);
+    gl.uniform2f(u.uIntro, eased * 2.6, smoother(opening / 0.5));
+    gl.uniform1f(u.uLight, s.light ? 1 : 0);
+    gl.uniform1f(u.uOpacity, s.opacity);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+    const settling =
+      Math.abs(aim.x - aimX) > 1e-4 ||
+      Math.abs(aim.y - aimY) > 1e-4 ||
+      (shade.presence > 1e-3 && Math.abs(shade.x - pointer.x) + Math.abs(shade.y - pointer.y) > 1e-4) ||
+      Math.abs((shading ? 1 : 0) - shade.presence) > 1e-3 ||
+      pulses.length > 0;
+    const busy = s.speed > 0 || opening < 1 || settling;
+    if (busy && visible && pageVisible) raf = requestAnimationFrame(frame);
+  };
+
+  const wake = () => {
+    if (raf || lost || !visible || !pageVisible) return;
+    last = performance.now();
+    raf = requestAnimationFrame(frame);
+  };
+  wakeHandler = () => {
+    resize();
+    wake();
+  };
+
+  const locate = (event: PointerEvent) => {
+    const rect = container.getBoundingClientRect();
+    return {
+      x: (event.clientX - rect.left) / Math.max(1, rect.width),
+      y: (event.clientY - rect.top) / Math.max(1, rect.height),
+      inside:
+        event.clientX >= rect.left &&
+        event.clientX <= rect.right &&
+        event.clientY >= rect.top &&
+        event.clientY <= rect.bottom
+    };
+  };
+
+  const onPointerMove = (event: PointerEvent) => {
+    const spot = locate(event);
+    if (!pointer.inside && spot.inside) {
+      shade.x = spot.x;
+      shade.y = spot.y;
+    }
+    pointer.x = spot.x;
+    pointer.y = spot.y;
+    pointer.inside = spot.inside;
+    pointer.seen = true;
+    wake();
+  };
+  const onPointerDown = (event: PointerEvent) => {
+    const s = settings.value;
+    const spot = locate(event);
+    if (!spot.inside || !s.clickPulse || reduced) return;
+    pulses.push({ age: 0 });
+    if (pulses.length > MAX_PULSES) pulses.shift();
+    wake();
+  };
+  const onLeave = () => {
+    pointer.inside = false;
+    wake();
+  };
+  const onPointerUp = (event: PointerEvent) => {
+    if (event.pointerType !== 'mouse') onLeave();
+  };
+  window.addEventListener('pointermove', onPointerMove, { passive: true });
+  window.addEventListener('pointerdown', onPointerDown, { passive: true });
+  window.addEventListener('pointerup', onPointerUp, { passive: true });
+  window.addEventListener('pointercancel', onPointerUp, { passive: true });
+  document.documentElement.addEventListener('pointerleave', onLeave);
+
+  const onLost = (event: Event) => {
+    event.preventDefault();
+    lost = true;
+    cancelAnimationFrame(raf);
+    raf = 0;
+  };
+  const onRestored = () => {
+    generation += 1;
+    teardown?.();
+    teardown = start() ?? null;
+  };
+  canvas.addEventListener('webglcontextlost', onLost);
+  canvas.addEventListener('webglcontextrestored', onRestored);
+
+  const resizeObserver = new ResizeObserver(() => {
+    resize();
+    wake();
+  });
+  resizeObserver.observe(container);
+
+  const intersection = new IntersectionObserver(entries => {
+    visible = entries.some(entry => entry.isIntersecting);
+    wake();
+  });
+  intersection.observe(container);
+
+  const onVisibility = () => {
+    pageVisible = document.visibilityState !== 'hidden';
+    wake();
+  };
+  document.addEventListener('visibilitychange', onVisibility);
+
+  resize();
+  wake();
+
+  return () => {
+    cancelAnimationFrame(raf);
+    wakeHandler = null;
+    resizeObserver.disconnect();
+    intersection.disconnect();
+    window.removeEventListener('pointermove', onPointerMove);
+    window.removeEventListener('pointerdown', onPointerDown);
+    window.removeEventListener('pointerup', onPointerUp);
+    window.removeEventListener('pointercancel', onPointerUp);
+    document.documentElement.removeEventListener('pointerleave', onLeave);
+    document.removeEventListener('visibilitychange', onVisibility);
+    canvas.removeEventListener('webglcontextlost', onLost);
+    canvas.removeEventListener('webglcontextrestored', onRestored);
+    if (!gl.isContextLost()) {
+      gl.deleteVertexArray(vao);
+      gl.deleteProgram(shader.program);
+    }
+  };
 };
 
-onMounted((): void => {
-  if (!containerRef.value) return;
-
-  observerRef.value = new IntersectionObserver(
-    (entries: IntersectionObserverEntry[]): void => {
-      const entry = entries[0];
-      isVisible.value = entry.isIntersecting;
-    },
-    {
-      threshold: 0.1,
-      rootMargin: '50px'
-    }
-  );
-
-  observerRef.value.observe(containerRef.value);
+onMounted(() => {
+  teardown = start() ?? null;
 });
 
-watch(isVisible, (newVisible: boolean): void => {
-  if (newVisible && containerRef.value) {
-    if (cleanupFunctionRef.value) {
-      cleanupFunctionRef.value();
-      cleanupFunctionRef.value = null;
-    }
-    initializeWebGL();
-  } else if (!newVisible && cleanupFunctionRef.value) {
-    if (animationIdRef.value) {
-      cancelAnimationFrame(animationIdRef.value);
-      animationIdRef.value = null;
-    }
-  }
-});
-
-watch(
-  [
-    () => props.raysColor,
-    () => props.raysSpeed,
-    () => props.lightSpread,
-    () => props.raysOrigin,
-    () => props.rayLength,
-    () => props.pulsating,
-    () => props.fadeDistance,
-    () => props.saturation,
-    () => props.mouseInfluence,
-    () => props.noiseAmount,
-    () => props.distortion
-  ],
-  (): void => {
-    if (!uniformsRef.value || !containerRef.value || !rendererRef.value) return;
-
-    const u = uniformsRef.value;
-    const renderer = rendererRef.value;
-
-    u.raysColor.value = rgbColor.value;
-    u.raysSpeed.value = props.raysSpeed;
-    u.lightSpread.value = props.lightSpread;
-    u.rayLength.value = props.rayLength;
-    u.pulsating.value = pulsatingValue.value;
-    u.fadeDistance.value = props.fadeDistance;
-    u.saturation.value = props.saturation;
-    u.mouseInfluence.value = props.mouseInfluence;
-    u.noiseAmount.value = props.noiseAmount;
-    u.distortion.value = props.distortion;
-
-    const { clientWidth: wCSS, clientHeight: hCSS } = containerRef.value;
-    const dpr = renderer.dpr;
-    const { anchor, dir } = getAnchorAndDir(props.raysOrigin, wCSS * dpr, hCSS * dpr);
-    u.rayPos.value = anchor;
-    u.rayDir.value = dir;
-  },
-  { flush: 'post' }
-);
-
-watch(
-  () => props.followMouse,
-  (newFollowMouse: boolean): void => {
-    if (newFollowMouse) {
-      window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    } else {
-      window.removeEventListener('mousemove', handleMouseMove);
-      if (mouseThrottleId) {
-        cancelAnimationFrame(mouseThrottleId);
-        mouseThrottleId = null;
-      }
-    }
-  },
-  { immediate: true }
-);
-
-onUnmounted((): void => {
-  if (observerRef.value) {
-    observerRef.value.disconnect();
-    observerRef.value = null;
-  }
-
-  if (cleanupFunctionRef.value) {
-    cleanupFunctionRef.value();
-    cleanupFunctionRef.value = null;
-  }
-
-  if (mouseThrottleId) {
-    cancelAnimationFrame(mouseThrottleId);
-    mouseThrottleId = null;
-  }
-
-  window.removeEventListener('mousemove', handleMouseMove);
+onUnmounted(() => {
+  teardown?.();
+  teardown = null;
 });
 </script>
+
+<style>
+.light-rays {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.light-rays__canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+</style>

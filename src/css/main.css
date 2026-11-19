@@ -6,7 +6,14 @@
 @import './misc.css';
 @import './landing.css';
 @import './docs.css';
-@import './preview.css';
+@import './pro.css';
+@import './preview.css' layer(components);
+@import './color-picker.css' layer(components);
+@import './category.css' layer(components);
+@import './docs-code.css' layer(components);
+@import './docs-overview.css' layer(components);
+@import './prop-table.css' layer(components);
+@import './background-content.css' layer(components);
 
 *,
 *::before,
@@ -17,8 +24,7 @@
 :root {
   line-height: 1.5;
   font-weight: 400;
-  color-scheme: dark;
-  color: rgba(255, 255, 255, 0.87);
+  color: var(--text-primary);
   background-color: var(--bg-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -26,20 +32,41 @@
 
 html {
   scroll-behavior: smooth;
+  min-height: 100%;
+  background: var(--bg-body);
 }
 
-a {
-  font-weight: 500;
-  text-decoration: none;
-  color: inherit;
+::selection {
+  background: rgba(124, 255, 103, 0.32);
+  color: #ffffff;
+  text-shadow: none;
+}
+
+:root[data-theme='light'] ::selection {
+  background: rgba(31, 157, 69, 0.2);
+  color: #161816;
+}
+
+@layer base {
+  a {
+    font-weight: 500;
+    text-decoration: none;
+    color: inherit;
+  }
 }
 
 body {
   font-family: 'Geist', sans-serif;
   margin: 0;
   min-width: 100%;
-  background: var(--bg-body);
+  min-height: 100%;
   color: var(--text-primary);
+  background: var(--bg-body);
+}
+
+#app {
+  min-height: 100vh;
+  background: var(--bg-body);
 }
 
 .app-container {
@@ -56,6 +83,39 @@ body {
 }
 
 .back-to-top {
-  background: var(--bg-body) !important;
-  border: 1px solid var(--border-secondary);
+  background: var(--surface-ghost) !important;
+  border: 1px solid transparent;
+  box-shadow: var(--surface-ghost-highlight);
+  backdrop-filter: var(--surface-ghost-blur);
+  -webkit-backdrop-filter: var(--surface-ghost-blur);
+}
+
+.back-to-top:hover {
+  background: var(--surface-ghost-hover) !important;
+}
+
+:root[data-theme='light'] .back-to-top {
+  border-color: var(--border-subtle);
+  background: #fafbfa !important;
+  box-shadow: none;
+}
+
+:root[data-theme='light'] .back-to-top::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid var(--inset-border);
+  border-radius: 8px;
+  background: #fff;
+  pointer-events: none;
+}
+
+:root[data-theme='light'] .back-to-top svg,
+:root[data-theme='light'] .back-to-top i {
+  position: relative;
+  z-index: 1;
+}
+
+:root[data-theme='light'] .back-to-top:hover {
+  background: #f7f7f8 !important;
 }

@@ -1,80 +1,165 @@
 <template>
-  <h1 class="sub-category">Color Bends</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="colorBends.usage"
-    :source="colorBendsSource"
-    component-name="ColorBends"
-    :props-table="props"
+    :demo-only-props="['color']"
+    :computed-props="{ colors }"
   >
-    <template #preview>
-      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
-        <ColorBends
-          :key="key"
-          :rotation="rotation"
-          :auto-rotate="autoRotate"
-          :speed="speed"
-          :scale="scale"
-          :frequency="frequency"
-          :warp-strength="warpStrength"
-          :mouse-influence="mouseInfluence"
-          :parallax="parallax"
-          :noise="noise"
-          :iterations="iterations"
-          :intensity="intensity"
-          :band-width="bandWidth"
-          :colors="[color]"
-        />
-        <BackgroundContent pill-text="New Background" headline="You have the power to reshape your own destiny" />
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 500px; padding: 0">
+          <ColorBends
+            :rotation="props.rotation"
+            :auto-rotate="props.autoRotate"
+            :speed="props.speed"
+            :scale="props.scale"
+            :frequency="props.frequency"
+            :warp-strength="props.warpStrength"
+            :mouse-influence="props.mouseInfluence"
+            :parallax="props.parallax"
+            :noise="props.noise"
+            :iterations="props.iterations"
+            :intensity="props.intensity"
+            :band-width="props.bandWidth"
+            :colors="colors"
+          />
 
-    <template #customize>
-      <Customize>
-        <PreviewColorPicker v-model="color" title="Single Color" />
-        <PreviewSlider title="Rotation (deg)" :min="-180" :max="180" :step="1" v-model="rotation" />
-        <PreviewSlider title="Auto Rotate (deg/s)" :min="-5" :max="5" :step="1" v-model="autoRotate" />
-        <PreviewSlider title="Speed" :min="0" :max="1" :step="0.01" v-model="speed" />
-        <PreviewSlider title="Scale" :min="0.2" :max="5" :step="0.1" v-model="scale" />
-        <PreviewSlider title="Frequency" :min="0" :max="5" :step="0.1" v-model="frequency" />
-        <PreviewSlider title="Warp Strength" :min="0.9" :max="1" :step="0.005" v-model="warpStrength" />
-        <PreviewSlider title="Mouse Influence" :min="0" :max="2" :step="0.05" v-model="mouseInfluence" />
-        <PreviewSlider title="Parallax" :min="0" :max="2" :step="0.05" v-model="parallax" />
-        <PreviewSlider title="Noise" :min="0" :max="1" :step="0.01" v-model="noise" />
-        <PreviewSlider title="Iterations" :min="1" :max="5" :step="1" v-model="iterations" />
-        <PreviewSlider title="Intensity" :min="0.1" :max="2" :step="0.1" v-model="intensity" />
-        <PreviewSlider title="Band Width" :min="1" :max="20" :step="0.5" v-model="bandWidth" />
-      </Customize>
-    </template>
+          <BackgroundContent pill-text="New Background" headline="You have the power to reshape your own destiny" />
+        </div>
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+        <Customize>
+          <PreviewColorPickerCustom
+            title="Color"
+            :color="props.color"
+            @change="(value: string) => updateProp('color', value)"
+          />
+          <PreviewSlider
+            title="Rotation (deg)"
+            :min="-180"
+            :max="180"
+            :step="1"
+            :model-value="props.rotation"
+            @update:model-value="(value: number) => updateProp('rotation', value)"
+          />
+          <PreviewSlider
+            title="Auto Rotate (deg/s)"
+            :min="-5"
+            :max="5"
+            :step="1"
+            :model-value="props.autoRotate"
+            @update:model-value="(value: number) => updateProp('autoRotate', value)"
+          />
+          <PreviewSlider
+            title="Speed"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="props.speed"
+            @update:model-value="(value: number) => updateProp('speed', value)"
+          />
+          <PreviewSlider
+            title="Scale"
+            :min="0.2"
+            :max="5"
+            :step="0.1"
+            :model-value="props.scale"
+            @update:model-value="(value: number) => updateProp('scale', value)"
+          />
+          <PreviewSlider
+            title="Frequency"
+            :min="0.0"
+            :max="5"
+            :step="0.1"
+            :model-value="props.frequency"
+            @update:model-value="(value: number) => updateProp('frequency', value)"
+          />
+          <PreviewSlider
+            title="Warp Strength"
+            :min="0.9"
+            :max="1"
+            :step="0.005"
+            :model-value="props.warpStrength"
+            @update:model-value="(value: number) => updateProp('warpStrength', value)"
+          />
+          <PreviewSlider
+            title="Mouse Influence"
+            :min="0"
+            :max="2"
+            :step="0.05"
+            :model-value="props.mouseInfluence"
+            @update:model-value="(value: number) => updateProp('mouseInfluence', value)"
+          />
+          <PreviewSlider
+            title="Parallax"
+            :min="0"
+            :max="2"
+            :step="0.05"
+            :model-value="props.parallax"
+            @update:model-value="(value: number) => updateProp('parallax', value)"
+          />
+          <PreviewSlider
+            title="Noise"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="props.noise"
+            @update:model-value="(value: number) => updateProp('noise', value)"
+          />
+          <PreviewSlider
+            title="Iterations"
+            :min="1"
+            :max="5"
+            :step="1"
+            :model-value="props.iterations"
+            @update:model-value="(value: number) => updateProp('iterations', value)"
+          />
+          <PreviewSlider
+            title="Intensity"
+            :min="0.1"
+            :max="2"
+            :step="0.1"
+            :model-value="props.intensity"
+            @update:model-value="(value: number) => updateProp('intensity', value)"
+          />
+          <PreviewSlider
+            title="Band Width"
+            :min="1"
+            :max="20"
+            :step="0.5"
+            :model-value="props.bandWidth"
+            @update:model-value="(value: number) => updateProp('bandWidth', value)"
+          />
+        </Customize>
 
-    <template #code>
-      <DemoCodeTab slug="color-bends" :usage="colorBends.usage!" :source="colorBendsSource" />
-    </template>
-  </TabsLayout>
+        <PropTable :data="propData" />
+        <Dependencies :dependency-list="['three']" />
+      </template>
+
+      <template #code>
+        <CodeExample :code-object="colorBends" component-name="ColorBends" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import Dependencies from '@/components/common/Dependencies.vue';
+import PreviewColorPickerCustom from '@/components/common/PreviewColorPickerCustom.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
-import { useForceRerender } from '@/composables/useForceRerender';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
 import { colorBends } from '@/constants/code/Backgrounds/colorBendsCode';
 import ColorBends from '@/content/Backgrounds/ColorBends/ColorBends.vue';
-import colorBendsSource from '@/content/Backgrounds/ColorBends/ColorBends.vue?raw';
-import { computed, ref } from 'vue';
 
-const { rerenderKey: key, forceRerender } = useForceRerender();
-
-const DEFAULTS = {
+const DEFAULT_PROPS = {
   rotation: 90,
   autoRotate: 0,
   speed: 0.2,
@@ -87,58 +172,14 @@ const DEFAULTS = {
   iterations: 1,
   intensity: 1.5,
   bandWidth: 6,
-  color: '#27ff64'
+  color: '#7cff67'
 };
 
-const rotation = ref(DEFAULTS.rotation);
-const autoRotate = ref(DEFAULTS.autoRotate);
-const speed = ref(DEFAULTS.speed);
-const scale = ref(DEFAULTS.scale);
-const frequency = ref(DEFAULTS.frequency);
-const warpStrength = ref(DEFAULTS.warpStrength);
-const mouseInfluence = ref(DEFAULTS.mouseInfluence);
-const parallax = ref(DEFAULTS.parallax);
-const noise = ref(DEFAULTS.noise);
-const iterations = ref(DEFAULTS.iterations);
-const intensity = ref(DEFAULTS.intensity);
-const bandWidth = ref(DEFAULTS.bandWidth);
-const color = ref(DEFAULTS.color);
+const { props, updateProp, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
 
-const hasChanges = computed(
-  () =>
-    rotation.value !== DEFAULTS.rotation ||
-    autoRotate.value !== DEFAULTS.autoRotate ||
-    speed.value !== DEFAULTS.speed ||
-    scale.value !== DEFAULTS.scale ||
-    frequency.value !== DEFAULTS.frequency ||
-    warpStrength.value !== DEFAULTS.warpStrength ||
-    mouseInfluence.value !== DEFAULTS.mouseInfluence ||
-    parallax.value !== DEFAULTS.parallax ||
-    noise.value !== DEFAULTS.noise ||
-    iterations.value !== DEFAULTS.iterations ||
-    intensity.value !== DEFAULTS.intensity ||
-    bandWidth.value !== DEFAULTS.bandWidth ||
-    color.value !== DEFAULTS.color
-);
+const colors = computed(() => [props.value.color]);
 
-function reset() {
-  rotation.value = DEFAULTS.rotation;
-  autoRotate.value = DEFAULTS.autoRotate;
-  speed.value = DEFAULTS.speed;
-  scale.value = DEFAULTS.scale;
-  frequency.value = DEFAULTS.frequency;
-  warpStrength.value = DEFAULTS.warpStrength;
-  mouseInfluence.value = DEFAULTS.mouseInfluence;
-  parallax.value = DEFAULTS.parallax;
-  noise.value = DEFAULTS.noise;
-  iterations.value = DEFAULTS.iterations;
-  intensity.value = DEFAULTS.intensity;
-  bandWidth.value = DEFAULTS.bandWidth;
-  color.value = DEFAULTS.color;
-  forceRerender();
-}
-
-const props: PropRow[] = [
+const propData: PropRow[] = [
   { name: 'rotation', type: 'number', default: '90', description: 'Base rotation angle in degrees.' },
   { name: 'autoRotate', type: 'number', default: '0', description: 'Automatic rotation speed in degrees/sec.' },
   { name: 'speed', type: 'number', default: '0.2', description: 'Animation time scale of the shader.' },

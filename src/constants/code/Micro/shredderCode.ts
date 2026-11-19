@@ -2,46 +2,40 @@ import code from '@/content/Micro/Shredder/Shredder.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const shredder = createCodeObject(code, 'Micro/Shredder', {
-  usage: `<script setup>
+  dependencies: '',
+  usage: `<template>
+  <Shredder
+    :items="files"
+    :width="340"
+    :height="460"
+    :feed-speed="180"
+    :bite="18"
+    :strip-width="10"
+    :curl="1"
+    :auto-animate="false"
+    :loop="false"
+    :loop-after-delete="false"
+    :fall-height="140"
+    @shred="file => (files = files.filter(f => f.id !== file.id))"
+    @reorder="next => (files = next)"
+  >
+    <template #renderItem="{ item }">
+      <div class="row">
+        <span>{{ item.name }}</span>
+        <span>{{ item.size }}</span>
+      </div>
+    </template>
+  </Shredder>
+</template>
+
+<script setup lang="ts">
 import { ref } from 'vue'
 import Shredder from './Shredder.vue'
 
-const items = ref([
-  { id: '1', title: 'Harbour at dusk' },
-  { id: '2', title: 'Studio, take two' }
+const files = ref([
+  { id: 1, name: 'Harbour at dusk', size: '4.1 MB' },
+  { id: 2, name: 'Studio, take two', size: '2.8 MB' },
+  { id: 3, name: 'Fog over the bay', size: '6.3 MB' }
 ])
-</script>
-
-<template>
-<!-- drag a row into the slit, or press Delete/Backspace on a focused row -->
-<Shredder :items="items" @shred="item => items = items.filter(i => i.id !== item.id)">
-  <template #default="{ item }">{{ item.title }}</template>
-</Shredder>
-
-<Shredder
-  :items="items"
-  :width="340"
-  :height="460"
-  :inset="14"
-  :gap="10"
-  :slitHeight="4"
-  :fallHeight="140"
-  :feedSpeed="180"
-  :bite="18"
-  autoFeed
-  :stripWidth="10"
-  :curl="1"
-  :autoAnimate="false"
-  :loop="false"
-  :loopAfterDelete="false"
-  :dragTilt="6"
-  :lift="1.02"
-  slitColor="#3f3f46"
-  color="#f5f5f5"
-  @shred="onShred"
-  @reorder="next => (items = next)"
->
-  <template #default="{ item }">{{ item.title }}</template>
-</Shredder>
-</template>`
+</script>`
 });

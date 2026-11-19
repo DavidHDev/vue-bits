@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import Matter from 'matter-js';
-import { computed, nextTick, onMounted, onUnmounted, ref, watch, type CSSProperties } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch, type CSSProperties } from 'vue';
 
 const { Bodies, Body, Composite, Engine } = Matter;
 
 export type FolderFloatItem = string | { label: string; value: string };
 export type FolderFloatTrigger = 'hover' | 'click';
 
-interface FolderFloatProps {
+export interface FolderFloatProps {
   items?: FolderFloatItem[];
   label?: string;
   sublabel?: string;
@@ -102,11 +102,11 @@ const props = withDefaults(defineProps<FolderFloatProps>(), {
   closeOnSelect: true,
   physics: true,
   drift: 0.5,
-  folderColor: '#3f3f46',
-  frontColor: '#52525b',
+  folderColor: '#3d403d',
+  frontColor: '#4f5550',
   paperColor: '#f5f5f5',
   itemColor: '#f5f5f5',
-  itemTextColor: '#18181b',
+  itemTextColor: '#161816',
   labelColor: '#f5f5f5',
   width: 200,
   height: 148,
@@ -141,9 +141,10 @@ const world: World = {
   zone: null,
   live: false
 };
+let reduce = false;
 let popTimer: ReturnType<typeof setTimeout> | undefined;
 let liveTimer: ReturnType<typeof setTimeout> | undefined;
-const reduce = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+let mq: MediaQueryList | null = null;
 
 const list = computed<Entry[]>(() =>
   props.items.map(item => (typeof item === 'string' ? { label: item, value: item } : item))
@@ -152,19 +153,22 @@ const n = computed(() => list.value.length);
 const sub = computed(() => props.sublabel || `${n.value} ${n.value === 1 ? 'note' : 'notes'}`);
 const pos = computed(() => layout(list.value, props.spread, props.lift, props.tilt, sizes.value));
 const labelsKey = computed(() => list.value.map(item => item.label).join('|'));
+const posKey = computed(() => pos.value.map(p => `${p.x},${p.y}`).join('|'));
+
+const setPill = (el: unknown, i: number) => {
+  pills[i] = (el as HTMLButtonElement | null) ?? null;
+};
 
 const measure = () => {
   const next = pills.slice(0, n.value).map(el => (el ? { w: el.offsetWidth, h: el.offsetHeight } : null));
-  if (next.some(s => !s)) return;
+  if (next.length < n.value || next.some(s => !s)) return;
   const sized = next as Size[];
   const prev = sizes.value;
   if (prev.length === sized.length && prev.every((s, i) => s.w === sized[i].w && s.h === sized[i].h)) return;
   sizes.value = sized;
 };
 
-// --x / --y are written by hand so the physics loop and Vue never fight over them
-const applyLayout = () => {
-  if (world.live) return;
+const writeLayout = () => {
   pos.value.forEach((p, i) => {
     const el = pills[i];
     if (!el) return;
@@ -245,27 +249,28 @@ const startPhysics = () => {
   w.t0 = performance.now();
   live.value = true;
   const tick = (now: number) => {
-    if (!world.engine) return;
-    const dt = world.last ? Math.min(32, now - world.last) : 16;
-    world.last = now;
-    const t = (now - world.t0) / 1000;
+    const s = world;
+    if (!s.engine) return;
+    const dt = s.last ? Math.min(32, now - s.last) : 16;
+    s.last = now;
+    const t = (now - s.t0) / 1000;
     const k = props.drift * 0.00005 * Math.min(1, t / 2);
-    world.bodies.forEach((b, i) => {
-      if (world.drag && world.drag.i === i) return;
+    s.bodies.forEach((b, i) => {
+      if (s.drag && s.drag.i === i) return;
       const ph = (b as PhasedBody).plugin.phase;
       Body.applyForce(b, b.position, {
         x: Math.sin(t * 0.9 + ph) * k * b.mass,
         y: Math.cos(t * 1.3 + ph * 1.7) * k * b.mass
       });
     });
-    Engine.update(world.engine, dt);
-    world.bodies.forEach((b, i) => {
+    Engine.update(s.engine, dt);
+    s.bodies.forEach((b, i) => {
       const el = pills[i];
       if (!el) return;
       el.style.setProperty('--x', `${b.position.x.toFixed(1)}px`);
-      el.style.setProperty('--y', `${(b.position.y - world.sizes[i].h / 2).toFixed(1)}px`);
+      el.style.setProperty('--y', `${(b.position.y - s.sizes[i].h / 2).toFixed(1)}px`);
     });
-    world.raf = requestAnimationFrame(tick);
+    s.raf = requestAnimationFrame(tick);
   };
   w.raf = requestAnimationFrame(tick);
 };
@@ -277,28 +282,49 @@ const set = (next: boolean) => {
   emit('openChange', next);
 };
 
+const syncReduce = () => {
+  reduce = !!mq?.matches;
+};
+
 onMounted(() => {
+  mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  syncReduce();
+  mq.addEventListener('change', syncReduce);
+  writeLayout();
   measure();
-  applyLayout();
   document.fonts?.ready.then(measure);
 });
-watch([n, labelsKey], () => nextTick(measure));
-watch(pos, () => nextTick(applyLayout), { flush: 'post' });
+
+watch([n, labelsKey], measure, { flush: 'post' });
+watch(posKey, writeLayout, { flush: 'post' });
 
 watch(
-  () => [open.value, props.physics, props.openDuration, props.stagger, n.value],
-  () => {
+  () =>
+    [
+      open.value,
+      props.physics,
+      props.openDuration,
+      props.stagger,
+      n.value,
+      props.spread,
+      props.lift,
+      posKey.value
+    ] as const,
+  (_value, _old, onCleanup) => {
     clearTimeout(liveTimer);
     if (!open.value || !props.physics || reduce) {
-      if (!open.value || !props.physics) stopPhysics();
+      if (!open.value) stopPhysics();
+      else if (!props.physics) stopPhysics();
       return;
     }
     liveTimer = setTimeout(startPhysics, props.openDuration + (n.value - 1) * props.stagger + 80);
+    onCleanup(() => clearTimeout(liveTimer));
   },
   { immediate: true }
 );
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
+  mq?.removeEventListener('change', syncReduce);
   clearTimeout(popTimer);
   stopPhysics();
 });
@@ -315,12 +341,14 @@ const pointerAt = (e: PointerEvent) => {
   const r = anchorRef.value?.getBoundingClientRect();
   return r ? { x: e.clientX - r.left, y: e.clientY - r.top } : { x: 0, y: 0 };
 };
+
 const down = (e: PointerEvent, i: number) => {
-  if (!world.live || e.button !== 0) return;
-  const b = world.bodies[i];
+  const w = world;
+  if (!w.live || e.button !== 0) return;
+  const b = w.bodies[i];
   if (!b) return;
   const p = pointerAt(e);
-  world.drag = {
+  w.drag = {
     i,
     id: e.pointerId,
     dx: b.position.x - p.x,
@@ -332,47 +360,54 @@ const down = (e: PointerEvent, i: number) => {
   try {
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   } catch {
-    // capture unavailable
+    return;
   }
 };
+
 const move = (e: PointerEvent, i: number) => {
-  const d = world.drag;
+  const w = world;
+  const d = w.drag;
   if (!d || d.i !== i || d.id !== e.pointerId) return;
   if (!d.moved && Math.hypot(e.clientX - d.sx, e.clientY - d.sy) >= DRAG_MIN) {
     d.moved = true;
     (e.currentTarget as HTMLElement).setAttribute('data-drag', '');
   }
   if (!d.moved) return;
-  const b = world.bodies[i];
-  const { w: bw, h: bh } = world.sizes[i];
-  const z = world.zone as Zone;
+  const b = w.bodies[i];
+  const { w: bw, h: bh } = w.sizes[i];
+  const z = w.zone as Zone;
   const p = pointerAt(e);
   const x = Math.min(z.right - bw / 2, Math.max(z.left + bw / 2, p.x + d.dx));
   const y = Math.min(z.bottom - bh / 2, Math.max(z.top + bh / 2, p.y + d.dy));
   Body.setVelocity(b, { x: (x - b.position.x) * 0.6, y: (y - b.position.y) * 0.6 });
   Body.setPosition(b, { x, y });
 };
+
 const up = (e: PointerEvent, i: number, item: Entry) => {
-  const d = world.drag;
+  const w = world;
+  const d = w.drag;
   if (!d || d.i !== i || d.id !== e.pointerId) return;
-  world.drag = null;
+  w.drag = null;
   const el = e.currentTarget as HTMLElement;
   el.removeAttribute('data-drag');
-  try {
-    el.releasePointerCapture(e.pointerId);
-  } catch {
-    // already released
-  }
+  if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
   if (!d.moved && e.type === 'pointerup') pick(item, i);
 };
 
+const onItemClick = (e: MouseEvent, item: Entry, i: number) => {
+  if (!world.live || e.detail === 0) pick(item, i);
+};
+
 const hover = computed(() => props.trigger === 'hover');
+
 const onEnter = () => {
   if (hover.value) set(true);
 };
+
 const onLeave = () => {
   if (hover.value && !world.drag) set(false);
 };
+
 const onKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Escape' && open.value) {
     e.stopPropagation();
@@ -400,8 +435,6 @@ const rootStyle = computed(
       '--ff-close': `${Math.round(props.openDuration * 0.6)}ms`,
       '--ff-stagger': `${props.stagger}ms`,
       '--ff-n': n.value,
-      '--ff-tab': '14px',
-      '--ff-ease-out': 'cubic-bezier(0.23, 1, 0.32, 1)',
       '--ff-spring': `cubic-bezier(0.34, ${(1 + props.bounce * 1.9).toFixed(2)}, 0.64, 1)`
     }) as CSSProperties
 );
@@ -409,8 +442,7 @@ const rootStyle = computed(
 
 <template>
   <div
-    class="group relative inline-block font-medium text-[13px] leading-none [width:var(--ff-w)] [padding-top:var(--ff-tab)] [font-family:inherit]"
-    :class="className"
+    :class="`folder-float${className ? ` ${className}` : ''}`"
     :data-open="open ? '' : undefined"
     :data-live="live ? '' : undefined"
     :data-physics="physics ? '' : undefined"
@@ -420,52 +452,36 @@ const rootStyle = computed(
     @pointerleave="onLeave"
     @keydown="onKeyDown"
   >
-    <div
-      ref="anchorRef"
-      class="top-[var(--ff-tab)] left-1/2 z-[1] absolute w-0 h-0 group-data-[open]:before:absolute group-data-[open]:before:top-[calc(-1*(var(--ff-lift)+120px))] group-data-[open]:before:left-[calc(-1*(var(--ff-spread)+100px))] group-data-[open]:before:h-[calc(var(--ff-lift)+120px)] group-data-[open]:before:w-[calc(2*var(--ff-spread)+200px)] group-data-[open]:before:content-['']"
-    >
+    <div ref="anchorRef" class="folder-float__items">
       <button
         v-for="(item, i) in list"
         :key="`${item.value}-${i}`"
-        :ref="el => (pills[i] = el as HTMLButtonElement | null)"
+        :ref="el => setPill(el, i)"
         type="button"
-        class="top-0 left-1/2 absolute group-data-[open]:hover:[scale:1.05] group-data-[open]:active:[scale:0.97] data-[drag]:cursor-grabbing! m-0 px-3.5 border-0 rounded-[17px] h-[34px] whitespace-nowrap opacity-0 group-data-[open]:opacity-100 shadow-[0_4px_12px_rgba(0,0,0,0.14)] outline-none cursor-pointer pointer-events-none group-data-[open]:pointer-events-auto group-data-[live]:cursor-grab [background:var(--ff-item)] [color:var(--ff-item-ink)] [font:inherit] [transform:translate(-50%,44px)_scale(0.6)] [transform-origin:50%_50%] [-webkit-tap-highlight-color:transparent] [transition:transform_var(--ff-close)_var(--ff-ease-out)_calc((var(--ff-n)-1-var(--i))*var(--ff-stagger)*0.5),opacity_160ms_ease_calc((var(--ff-n)-1-var(--i))*var(--ff-stagger)*0.5+var(--ff-close)*0.45),scale_160ms_var(--ff-ease-out)] group-data-[open]:[transform:translate(calc(-50%+var(--x)),var(--y))_rotate(var(--r))_scale(1)] group-data-[open]:[transition:transform_var(--ff-open)_var(--ff-spring)_calc(var(--i)*var(--ff-stagger)),opacity_160ms_ease_calc(var(--i)*var(--ff-stagger)),scale_160ms_var(--ff-ease-out)] group-data-[live]:[transition:scale_160ms_var(--ff-ease-out)] data-[pop]:[animation:folder-float-pop_320ms_var(--ff-ease-out)] motion-reduce:[transition:opacity_200ms_ease] motion-reduce:group-data-[open]:[transition:opacity_200ms_ease_calc(var(--i)*var(--ff-stagger))]"
+        class="folder-float__item"
         :tabindex="open ? 0 : -1"
         :aria-hidden="!open"
         :data-pop="popped === i ? '' : undefined"
-        :style="{ '--i': i, '--r': `${pos[i]?.r.toFixed(2) ?? 0}deg` }"
+        :style="{ '--i': i, '--r': `${(pos[i]?.r ?? 0).toFixed(2)}deg` }"
         @pointerdown="down($event, i)"
         @pointermove="move($event, i)"
         @pointerup="up($event, i, item)"
         @pointercancel="up($event, i, item)"
-        @click="!world.live || $event.detail === 0 ? pick(item, i) : undefined"
+        @click="onItemClick($event, item, i)"
       >
-        <span
-          class="block [animation-delay:calc(var(--i)*-0.7s)] [animation-play-state:paused] group-data-[open]:[animation-play-state:running] group-data-[physics]:[animation:none] group-data-[live]:[animation:none] motion-reduce:[animation:none] [animation:folder-float-drift_3.2s_ease-in-out_infinite]"
-        >
-          {{ item.label }}
-        </span>
+        <span class="folder-float__drift">{{ item.label }}</span>
       </button>
     </div>
-    <div class="relative [width:var(--ff-w)] [height:var(--ff-h)]">
-      <span
-        class="absolute inset-0 z-0 [border-radius:var(--ff-r)] [background:var(--ff-back)] [transform:perspective(600px)_rotateX(8deg)] [transform-origin:50%_100%] before:absolute before:top-[calc(-1*var(--ff-tab))] before:left-0 before:h-[calc(var(--ff-tab)+var(--ff-r))] before:w-[42%] before:[border-radius:var(--ff-r)_var(--ff-r)_0_0] before:[background:inherit] before:content-['']"
-        aria-hidden="true"
-      />
-      <span
-        class="top-[10%] right-[8%] left-[8%] z-[1] absolute opacity-0 group-data-[open]:opacity-100 rounded-md h-1/2 [background:var(--ff-paper)] [transform:translateY(10px)] [transition:transform_var(--ff-close)_var(--ff-ease-out),opacity_var(--ff-close)_ease] group-data-[open]:[transform:translateY(0)] group-data-[open]:[transition:transform_var(--ff-open)_var(--ff-ease-out),opacity_200ms_ease] motion-reduce:[transform:none]! motion-reduce:[transition:opacity_200ms_ease]"
-        aria-hidden="true"
-      />
-      <span
-        class="right-0 bottom-0 left-0 z-[2] absolute flex flex-col justify-end gap-[5px] px-4 py-3.5 h-[76%] box-border shadow-[0_-10px_24px_rgba(0,0,0,0.28)] [border-radius:var(--ff-r)] [background:linear-gradient(180deg,color-mix(in_srgb,var(--ff-front)_92%,#fff),var(--ff-front)_60%)] [color:var(--ff-label)] [transform:perspective(600px)_rotateX(calc(-1*var(--ff-rest)))] [transform-origin:50%_100%] [transition:transform_var(--ff-open)_var(--ff-ease-out)] group-data-[open]:[transform:perspective(600px)_rotateX(calc(-1*var(--ff-angle)))] motion-reduce:group-data-[open]:[transform:perspective(600px)_rotateX(calc(-1*var(--ff-rest)))] motion-reduce:[transition:opacity_200ms_ease]"
-        aria-hidden="true"
-      >
-        <span class="font-medium text-[13px]">{{ label }}</span>
-        <span class="opacity-55 text-[11px]">{{ sub }}</span>
+    <div class="folder-float__folder">
+      <span class="folder-float__back" aria-hidden="true" />
+      <span class="folder-float__paper" aria-hidden="true" />
+      <span class="folder-float__front" aria-hidden="true">
+        <span class="folder-float__label">{{ label }}</span>
+        <span class="folder-float__sub">{{ sub }}</span>
       </span>
       <button
         type="button"
-        class="right-0 bottom-0 left-0 z-[3] absolute bg-transparent m-0 p-0 border-0 outline-none h-[76%] cursor-pointer [border-radius:var(--ff-r)] [-webkit-tap-highlight-color:transparent]"
+        class="folder-float__trigger"
         :aria-expanded="open"
         :aria-label="`${label}, ${sub}`"
         @click="set(!open)"
@@ -475,21 +491,281 @@ const rootStyle = computed(
 </template>
 
 <style>
+.folder-float {
+  --ff-w: 200px;
+  --ff-h: 148px;
+  --ff-r: 14px;
+  --ff-tab: 14px;
+  --ff-back: #3d403d;
+  --ff-front: #4f5550;
+  --ff-paper: #f5f5f5;
+  --ff-item: #f5f5f5;
+  --ff-item-ink: #161816;
+  --ff-label: #f5f5f5;
+  --ff-spread: 180px;
+  --ff-lift: 26px;
+  --ff-angle: 34deg;
+  --ff-rest: 16deg;
+  --ff-open: 520ms;
+  --ff-close: 312ms;
+  --ff-stagger: 45ms;
+  --ff-n: 6;
+  --ff-spring: cubic-bezier(0.34, 1.57, 0.64, 1);
+  --ff-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+
+  position: relative;
+  display: inline-block;
+  width: var(--ff-w);
+  padding-top: var(--ff-tab);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.folder-float__folder {
+  position: relative;
+  width: var(--ff-w);
+  height: var(--ff-h);
+}
+
+.folder-float__back {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: var(--ff-r);
+  background: var(--ff-back);
+  transform: perspective(600px) rotateX(8deg);
+  transform-origin: 50% 100%;
+}
+
+.folder-float__back::before {
+  content: '';
+  position: absolute;
+  top: calc(-1 * var(--ff-tab));
+  left: 0;
+  width: 42%;
+  height: calc(var(--ff-tab) + var(--ff-r));
+  border-radius: var(--ff-r) var(--ff-r) 0 0;
+  background: inherit;
+}
+
+.folder-float__paper {
+  position: absolute;
+  top: 10%;
+  z-index: 1;
+  right: 8%;
+  left: 8%;
+  height: 50%;
+  border-radius: 6px;
+  background: var(--ff-paper);
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    transform var(--ff-close) var(--ff-ease-out),
+    opacity var(--ff-close) ease;
+}
+
+.folder-float__front {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 5px;
+  height: 76%;
+  padding: 14px 16px;
+  box-sizing: border-box;
+  border-radius: var(--ff-r);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ff-front) 92%, #fff), var(--ff-front) 60%);
+  color: var(--ff-label);
+  box-shadow: 0 -10px 24px rgba(0, 0, 0, 0.28);
+  transform: perspective(600px) rotateX(calc(-1 * var(--ff-rest)));
+  transform-origin: 50% 100%;
+  transition: transform var(--ff-open) var(--ff-ease-out);
+}
+
+.folder-float__label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.folder-float__sub {
+  font-size: 11px;
+  opacity: 0.55;
+}
+
+.folder-float__trigger {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 3;
+  height: 76%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ff-r);
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.folder-float[data-open] .folder-float__front {
+  transform: perspective(600px) rotateX(calc(-1 * var(--ff-angle)));
+}
+
+.folder-float[data-open] .folder-float__paper {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    transform var(--ff-open) var(--ff-ease-out),
+    opacity 200ms ease;
+}
+
+.folder-float__items {
+  position: absolute;
+  top: var(--ff-tab);
+  left: 50%;
+  z-index: 1;
+  width: 0;
+  height: 0;
+}
+
+.folder-float[data-open] .folder-float__items::before {
+  content: '';
+  position: absolute;
+  top: calc(-1 * (var(--ff-lift) + 120px));
+  left: calc(-1 * (var(--ff-spread) + 100px));
+  width: calc(2 * var(--ff-spread) + 200px);
+  height: calc(var(--ff-lift) + 120px);
+}
+
+.folder-float__item {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  margin: 0;
+  padding: 0 14px;
+  height: 34px;
+  border: 0;
+  border-radius: 17px;
+  background: var(--ff-item);
+  color: var(--ff-item-ink);
+  font: inherit;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+  cursor: pointer;
+  outline: none;
+  opacity: 0;
+  transform: translate(-50%, 44px) scale(0.6);
+  transform-origin: 50% 50%;
+  pointer-events: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--ff-close) var(--ff-ease-out) calc((var(--ff-n) - 1 - var(--i)) * var(--ff-stagger) * 0.5),
+    opacity 160ms ease calc((var(--ff-n) - 1 - var(--i)) * var(--ff-stagger) * 0.5 + var(--ff-close) * 0.45),
+    scale 160ms var(--ff-ease-out);
+}
+
+.folder-float[data-open] .folder-float__item {
+  opacity: 1;
+  transform: translate(calc(-50% + var(--x)), var(--y)) rotate(var(--r)) scale(1);
+  pointer-events: auto;
+  transition:
+    transform var(--ff-open) var(--ff-spring) calc(var(--i) * var(--ff-stagger)),
+    opacity 160ms ease calc(var(--i) * var(--ff-stagger)),
+    scale 160ms var(--ff-ease-out);
+}
+
+.folder-float[data-live] .folder-float__item {
+  cursor: grab;
+  transition: scale 160ms var(--ff-ease-out);
+}
+
+.folder-float__item[data-drag] {
+  cursor: grabbing;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .folder-float[data-open] .folder-float__item:hover {
+    scale: 1.05;
+  }
+}
+
+.folder-float[data-open] .folder-float__item:active {
+  scale: 0.97;
+}
+
+.folder-float__item[data-pop] {
+  animation: folder-float-pop 320ms var(--ff-ease-out);
+}
+
+.folder-float__drift {
+  display: block;
+  animation: folder-float-drift 3.2s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.7s);
+  animation-play-state: paused;
+}
+
+.folder-float[data-open] .folder-float__drift {
+  animation-play-state: running;
+}
+
+.folder-float[data-physics] .folder-float__drift,
+.folder-float[data-live] .folder-float__drift {
+  animation: none;
+}
+
 @keyframes folder-float-drift {
   0%,
   100% {
     translate: 0 0;
   }
+
   50% {
     translate: 0 -3px;
   }
 }
+
 @keyframes folder-float-pop {
   30% {
     scale: 1.1;
   }
+
   100% {
     scale: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .folder-float__front,
+  .folder-float__paper {
+    transition: opacity 200ms ease;
+  }
+
+  .folder-float[data-open] .folder-float__front {
+    transform: perspective(600px) rotateX(calc(-1 * var(--ff-rest)));
+  }
+
+  .folder-float__paper {
+    transform: none !important;
+  }
+
+  .folder-float__item {
+    transition: opacity 200ms ease;
+  }
+
+  .folder-float[data-open] .folder-float__item {
+    transition: opacity 200ms ease calc(var(--i) * var(--ff-stagger));
+  }
+
+  .folder-float__drift {
+    animation: none;
   }
 }
 </style>

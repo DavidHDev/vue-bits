@@ -1,122 +1,271 @@
 <template>
-  <h1 class="sub-category">Shredder</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="shredder.usage"
-    :source="shredderSource"
-    component-name="Shredder"
-    :props-table="props"
   >
-    <template #preview>
-      <div class="relative p-0 h-130 overflow-hidden demo-container">
-        <RefreshButton @click="restart" />
-        <Shredder
-          :key="run"
-          :items="items"
-          :width="width"
-          :height="height"
-          :inset="inset"
-          :gap="gap"
-          :slit-height="slitHeight"
-          :fall-height="fallHeight"
-          :feed-speed="feedSpeed"
-          :bite="bite"
-          :auto-feed="autoFeed"
-          :strip-width="stripWidth"
-          :curl="curl"
-          :auto-animate="autoAnimate"
-          :loop="loop"
-          :loop-after-delete="loopAfterDelete"
-          :drag-tilt="dragTilt"
-          :lift="lift"
-          :slit-color="slitColor"
-          :color="color"
-          :disabled="disabled"
-          @shred="onShred"
-          @reorder="items = $event"
-        >
-          <template #default="{ item }">
-            <div
-              class="box-border flex items-center gap-3 p-1.5"
-              style="padding-right: 14px; border-radius: 12px"
-              :style="{ background: surface }"
-            >
-              <img
-                :src="item.image"
-                alt=""
-                draggable="false"
-                class="block flex-none rounded-[6px] w-12 h-12 object-cover"
-                style="filter: grayscale(1)"
-              />
-              <div class="flex-1 gap-1 grid min-w-0 text-left">
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 520px">
+          <RefreshButton @click="restart" />
+          <Shredder
+            :key="run"
+            :items="items"
+            :width="props.width"
+            :height="props.height"
+            :inset="props.inset"
+            :gap="props.gap"
+            :slit-height="props.slitHeight"
+            :fall-height="props.fallHeight"
+            :feed-speed="props.feedSpeed"
+            :bite="props.bite"
+            :auto-feed="props.autoFeed"
+            :strip-width="props.stripWidth"
+            :curl="props.curl"
+            :auto-animate="props.autoAnimate"
+            :loop="props.loop"
+            :loop-after-delete="props.loopAfterDelete"
+            :drag-tilt="props.dragTilt"
+            :lift="props.lift"
+            :slit-color="renderedSlit"
+            :color="renderedColor"
+            :disabled="props.disabled"
+            @shred="onShred"
+            @reorder="onReorder"
+          >
+            <template #renderItem="{ item }">
+              <div
+                :style="{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: `${ROW_PAD}px 14px ${ROW_PAD}px ${ROW_PAD}px`,
+                  borderRadius: `${ROW_RADIUS}px`,
+                  background: surface,
+                  boxSizing: 'border-box'
+                }"
+              >
+                <img
+                  :src="item.image"
+                  alt=""
+                  :draggable="false"
+                  :style="{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: `${ROW_RADIUS - ROW_PAD}px`,
+                    objectFit: 'cover',
+                    flex: 'none',
+                    display: 'block',
+                    filter: 'grayscale(1)'
+                  }"
+                />
+                <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; text-align: left">
+                  <span
+                    style="
+                      font-size: 14px;
+                      font-weight: 500;
+                      line-height: 1.2;
+                      letter-spacing: -0.01em;
+                      white-space: nowrap;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                    "
+                  >
+                    {{ item.title }}
+                  </span>
+                  <span style="font-size: 12px; line-height: 1.2; opacity: 0.5; white-space: nowrap">
+                    {{ item.meta }}
+                  </span>
+                </div>
                 <span
-                  class="overflow-hidden font-medium text-[14px] text-ellipsis leading-[1.2] tracking-[-0.01em] whitespace-nowrap"
+                  style="font-size: 12px; line-height: 1; opacity: 0.45; font-variant-numeric: tabular-nums; flex: none"
                 >
-                  {{ item.title }}
+                  {{ item.size }}
                 </span>
-                <span class="opacity-50 text-[12px] leading-[1.2] whitespace-nowrap">{{ item.meta }}</span>
               </div>
-              <span class="flex-none opacity-45 tabular-nums text-[12px] leading-none">{{ item.size }}</span>
-            </div>
-          </template>
-        </Shredder>
-      </div>
-    </template>
+            </template>
+          </Shredder>
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewSlider title="Feed speed" :min="60" :max="600" :step="10" valueUnit="px/s" v-model="feedSpeed" />
-        <PreviewSlider title="Bite" :min="4" :max="40" :step="1" valueUnit="px" v-model="bite" />
-        <PreviewSwitch title="Auto feed" v-model="autoFeed" />
-        <PreviewSlider title="Strip width" :min="4" :max="40" :step="1" valueUnit="px" v-model="stripWidth" />
-        <PreviewSlider title="Curl" :min="0" :max="2" :step="0.1" v-model="curl" />
-        <PreviewSwitch
-          title="Auto animate"
-          :model-value="autoAnimate"
-          @update:model-value="setAutoAnimate($event as boolean)"
-        />
-        <PreviewSwitch title="Loop" v-model="loop" />
-        <PreviewSwitch title="Loop after delete" v-model="loopAfterDelete" />
-        <PreviewSlider title="Drag tilt" :min="0" :max="16" :step="1" valueUnit="°" v-model="dragTilt" />
-        <PreviewSlider title="Lift" :min="1" :max="1.1" :step="0.01" v-model="lift" />
-        <PreviewSlider title="Width" :min="260" :max="460" :step="10" valueUnit="px" v-model="width" />
-        <PreviewSlider title="Height" :min="300" :max="500" :step="10" valueUnit="px" v-model="height" />
-        <PreviewSlider title="Inset" :min="6" :max="30" :step="1" valueUnit="px" v-model="inset" />
-        <PreviewSlider title="Gap" :min="0" :max="24" :step="1" valueUnit="px" v-model="gap" />
-        <PreviewSlider title="Slit thickness" :min="1" :max="14" :step="1" valueUnit="px" v-model="slitHeight" />
-        <PreviewSlider title="Fall height" :min="60" :max="240" :step="5" valueUnit="px" v-model="fallHeight" />
-        <PreviewColorPicker title="Slit" v-model="slitColor" />
-        <PreviewColorPicker title="Text" v-model="color" />
-        <PreviewSwitch title="Disabled" v-model="disabled" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewSlider
+            title="Feed speed"
+            :min="60"
+            :max="600"
+            :step="10"
+            value-unit="px/s"
+            :model-value="props.feedSpeed"
+            @update:model-value="(val: number) => updateProp('feedSpeed', val)"
+          />
+          <PreviewSlider
+            title="Bite"
+            :min="4"
+            :max="40"
+            :step="1"
+            value-unit="px"
+            :model-value="props.bite"
+            @update:model-value="(val: number) => updateProp('bite', val)"
+          />
+          <PreviewSwitch
+            title="Auto feed"
+            :model-value="props.autoFeed"
+            @update:model-value="(val: boolean) => updateProp('autoFeed', val)"
+          />
+          <PreviewSlider
+            title="Strip width"
+            :min="4"
+            :max="40"
+            :step="1"
+            value-unit="px"
+            :model-value="props.stripWidth"
+            @update:model-value="(val: number) => updateProp('stripWidth', val)"
+          />
+          <PreviewSlider
+            title="Curl"
+            :min="0"
+            :max="2"
+            :step="0.1"
+            :model-value="props.curl"
+            @update:model-value="(val: number) => updateProp('curl', val)"
+          />
+          <PreviewSwitch
+            title="Auto animate"
+            :model-value="props.autoAnimate"
+            @update:model-value="
+              (val: boolean) => {
+                updateProp('autoAnimate', val);
+                restart();
+              }
+            "
+          />
+          <PreviewSwitch
+            title="Loop"
+            :model-value="props.loop"
+            @update:model-value="(val: boolean) => updateProp('loop', val)"
+          />
+          <PreviewSwitch
+            title="Loop after delete"
+            :model-value="props.loopAfterDelete"
+            @update:model-value="(val: boolean) => updateProp('loopAfterDelete', val)"
+          />
+          <PreviewSlider
+            title="Drag tilt"
+            :min="0"
+            :max="16"
+            :step="1"
+            value-unit="°"
+            :model-value="props.dragTilt"
+            @update:model-value="(val: number) => updateProp('dragTilt', val)"
+          />
+          <PreviewSlider
+            title="Lift"
+            :min="1"
+            :max="1.1"
+            :step="0.01"
+            :model-value="props.lift"
+            @update:model-value="(val: number) => updateProp('lift', val)"
+          />
+          <PreviewSlider
+            title="Width"
+            :min="260"
+            :max="460"
+            :step="10"
+            value-unit="px"
+            :model-value="props.width"
+            @update:model-value="(val: number) => updateProp('width', val)"
+          />
+          <PreviewSlider
+            title="Height"
+            :min="300"
+            :max="500"
+            :step="10"
+            value-unit="px"
+            :model-value="props.height"
+            @update:model-value="(val: number) => updateProp('height', val)"
+          />
+          <PreviewSlider
+            title="Inset"
+            :min="6"
+            :max="30"
+            :step="1"
+            value-unit="px"
+            :model-value="props.inset"
+            @update:model-value="(val: number) => updateProp('inset', val)"
+          />
+          <PreviewSlider
+            title="Gap"
+            :min="0"
+            :max="24"
+            :step="1"
+            value-unit="px"
+            :model-value="props.gap"
+            @update:model-value="(val: number) => updateProp('gap', val)"
+          />
+          <PreviewSlider
+            title="Slit thickness"
+            :min="1"
+            :max="14"
+            :step="1"
+            value-unit="px"
+            :model-value="props.slitHeight"
+            @update:model-value="(val: number) => updateProp('slitHeight', val)"
+          />
+          <PreviewSlider
+            title="Fall height"
+            :min="60"
+            :max="240"
+            :step="5"
+            value-unit="px"
+            :model-value="props.fallHeight"
+            @update:model-value="(val: number) => updateProp('fallHeight', val)"
+          />
+          <PreviewColorPickerCustom
+            title="Slit"
+            :color="renderedSlit"
+            @change="(val: string) => updateProp('slitColor', val)"
+          />
+          <PreviewColorPickerCustom
+            title="Text"
+            :color="renderedColor"
+            @change="(val: string) => updateProp('color', val)"
+          />
+          <PreviewSwitch
+            title="Disabled"
+            :model-value="props.disabled"
+            @update:model-value="(val: boolean) => updateProp('disabled', val)"
+          />
+        </Customize>
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+        <PropTable :data="propData" />
+        <Dependencies :dependency-list="[]" />
+      </template>
 
-    <template #code>
-      <DemoCodeTab slug="shredder" :usage="shredder.usage!" :source="shredderSource" />
-    </template>
-  </TabsLayout>
+      <template #code>
+        <CodeExample :code-object="shredder" component-name="Shredder" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import { computed, ref } from 'vue';
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import Dependencies from '@/components/common/Dependencies.vue';
+import PreviewColorPickerCustom from '@/components/common/PreviewColorPickerCustom.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
 import RefreshButton from '@/components/common/RefreshButton.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
+import { useColorModeValue } from '@/composables/useTheme';
 import { shredder } from '@/constants/code/Micro/shredderCode';
 import Shredder from '@/content/Micro/Shredder/Shredder.vue';
-import shredderSource from '@/content/Micro/Shredder/Shredder.vue?raw';
-import { computed, ref } from 'vue';
 
-interface FileItem {
+interface FileRow {
   id: string;
   title: string;
   meta: string;
@@ -147,9 +296,13 @@ const FILES = [
   },
   { title: 'Sunday market', meta: 'Edited 12 Mar', size: '3.5 MB', image: photo('photo-1781242629922-6f39cc3671cd') }
 ];
-const build = (run: number): FileItem[] => FILES.map((file, i) => ({ ...file, id: `${run}-${i}` }));
 
-const DEFAULTS = {
+const build = (run: number): FileRow[] => FILES.map((file, i) => ({ ...file, id: `${run}-${i}` }));
+
+const ROW_RADIUS = 12;
+const ROW_PAD = 6;
+
+const DEFAULT_PROPS = {
   width: 340,
   height: 460,
   inset: 14,
@@ -166,79 +319,39 @@ const DEFAULTS = {
   loopAfterDelete: false,
   dragTilt: 6,
   lift: 1.02,
-  slitColor: '#3f3f46',
+  slitColor: '#3d403d',
   color: '#f5f5f5',
   disabled: false
 };
 
-const surface = '#27272a';
-
-const width = ref(DEFAULTS.width);
-const height = ref(DEFAULTS.height);
-const inset = ref(DEFAULTS.inset);
-const gap = ref(DEFAULTS.gap);
-const slitHeight = ref(DEFAULTS.slitHeight);
-const fallHeight = ref(DEFAULTS.fallHeight);
-const feedSpeed = ref(DEFAULTS.feedSpeed);
-const bite = ref(DEFAULTS.bite);
-const autoFeed = ref(DEFAULTS.autoFeed);
-const stripWidth = ref(DEFAULTS.stripWidth);
-const curl = ref(DEFAULTS.curl);
-const autoAnimate = ref(DEFAULTS.autoAnimate);
-const loop = ref(DEFAULTS.loop);
-const loopAfterDelete = ref(DEFAULTS.loopAfterDelete);
-const dragTilt = ref(DEFAULTS.dragTilt);
-const lift = ref(DEFAULTS.lift);
-const slitColor = ref(DEFAULTS.slitColor);
-const color = ref(DEFAULTS.color);
-const disabled = ref(DEFAULTS.disabled);
+const { props, updateProp, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
 
 const run = ref(0);
-const items = ref<FileItem[]>(build(0));
+const items = ref<FileRow[]>(build(0));
+
+const lightSlit = computed(() =>
+  props.value.slitColor === DEFAULT_PROPS.slitColor ? '#161816' : props.value.slitColor
+);
+const lightColor = computed(() => (props.value.color === DEFAULT_PROPS.color ? '#161816' : props.value.color));
+const renderedSlit = useColorModeValue(lightSlit, () => props.value.slitColor);
+const renderedColor = useColorModeValue(lightColor, () => props.value.color);
+const surface = useColorModeValue('#f4f6f4', '#262926');
 
 const restart = () => {
-  run.value++;
+  run.value += 1;
   items.value = build(run.value);
 };
-const setAutoAnimate = (val: boolean) => {
-  autoAnimate.value = val;
-  restart();
-};
-const onShred = (item: FileItem) => {
-  if (!autoAnimate.value && !loop.value && !loopAfterDelete.value) {
-    items.value = items.value.filter(row => row.id !== item.id);
-  }
+
+const onShred = (item: FileRow) => {
+  const { autoAnimate, loop, loopAfterDelete } = props.value;
+  if (!autoAnimate && !loop && !loopAfterDelete) items.value = items.value.filter(row => row.id !== item.id);
 };
 
-const state = {
-  width,
-  height,
-  inset,
-  gap,
-  slitHeight,
-  fallHeight,
-  feedSpeed,
-  bite,
-  autoFeed,
-  stripWidth,
-  curl,
-  autoAnimate,
-  loop,
-  loopAfterDelete,
-  dragTilt,
-  lift,
-  slitColor,
-  color,
-  disabled
+const onReorder = (next: FileRow[]) => {
+  items.value = next;
 };
-const keys = Object.keys(DEFAULTS) as (keyof typeof DEFAULTS)[];
-const hasChanges = computed(() => keys.some(k => state[k].value !== DEFAULTS[k]));
-function reset() {
-  keys.forEach(k => ((state[k] as { value: unknown }).value = DEFAULTS[k]));
-  restart();
-}
 
-const props: PropRow[] = [
+const propData: PropRow[] = [
   {
     name: 'items',
     type: 'T[]',
@@ -246,8 +359,8 @@ const props: PropRow[] = [
     description: 'Rows to render, top to bottom. Each item needs a unique id.'
   },
   {
-    name: 'default slot',
-    type: '({ item, index }) => VNode',
+    name: '#renderItem',
+    type: 'slot { item: T, index: number }',
     default: '-',
     description:
       'Renders one row. A snapshot of the rendered row is what gets cut into strips, so plain markup, inline images and inline SVG all work.'
@@ -257,13 +370,13 @@ const props: PropRow[] = [
     type: '(item: T) => void',
     default: '-',
     description:
-      'Called the moment a row has gone through the rollers. Remove the item from your list here, unless loop, loopAfterDelete or autoAnimate is on.'
+      'Emitted the moment a row has gone through the rollers. Remove the item from your list here, unless loop, loopAfterDelete or autoAnimate is on.'
   },
   {
     name: '@reorder',
     type: '(items: T[]) => void',
     default: '-',
-    description: 'Called with the items in their new order after a row is dropped somewhere else in the list.'
+    description: 'Emitted with the items in their new order after a row is dropped somewhere else in the list.'
   },
   { name: 'width', type: 'number', default: '340', description: 'Width of the whole machine in pixels.' },
   {
@@ -279,7 +392,12 @@ const props: PropRow[] = [
     description: 'Horizontal inset of the rows from the edges. The slit is 6px wider than the rows on each side.'
   },
   { name: 'gap', type: 'number', default: '10', description: 'Space between rows in pixels.' },
-  { name: 'slitHeight', type: 'number', default: '4', description: 'Thickness of the slit. It is always a full pill.' },
+  {
+    name: 'slitHeight',
+    type: 'number',
+    default: '4',
+    description: 'Thickness of the slit. It is always a full pill.'
+  },
   {
     name: 'fallHeight',
     type: 'number',
@@ -322,7 +440,7 @@ const props: PropRow[] = [
     type: 'boolean',
     default: 'false',
     description:
-      'Plays through the rows on its own, bottom to top, then brings them back and starts over. Keep the rows in your list while it runs; @shred still fires.'
+      'Plays through the rows on its own, bottom to top, then brings them back and starts over. Keep the rows in your list while it runs; shred is still emitted.'
   },
   {
     name: 'loop',
@@ -344,9 +462,14 @@ const props: PropRow[] = [
     description: 'Maximum lean in degrees while a row is dragged sideways.'
   },
   { name: 'lift', type: 'number', default: '1.02', description: 'Scale of a row while it is held.' },
-  { name: 'slitColor', type: 'string', default: '"#3f3f46"', description: 'Colour of the slit.' },
+  { name: 'slitColor', type: 'string', default: '"#3d403d"', description: 'Colour of the slit.' },
   { name: 'color', type: 'string', default: '"#f5f5f5"', description: 'Text colour inherited by the rows.' },
-  { name: 'disabled', type: 'boolean', default: 'false', description: 'Rows cannot be dragged or shredded.' },
+  {
+    name: 'disabled',
+    type: 'boolean',
+    default: 'false',
+    description: 'Rows cannot be dragged or shredded.'
+  },
   { name: 'className', type: 'string', default: '""', description: 'Extra classes for the root.' }
 ];
 </script>

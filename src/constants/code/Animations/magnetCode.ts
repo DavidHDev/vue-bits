@@ -2,13 +2,10 @@ import code from '@/content/Animations/Magnet/Magnet.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const magnet = createCodeObject(code, 'Animations/Magnet', {
+  dependencies: '',
   usage: `<template>
-  <Magnet
-    :padding="50"
-    :disabled="false"
-    :magnet-strength="50"
-  >
-    <p>Star Vue Bits on GitHub!</p>
+  <Magnet :padding="100" :magnet-strength="2">
+    <button>Star Vue Bits on GitHub</button>
   </Magnet>
 </template>
 

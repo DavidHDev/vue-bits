@@ -1,83 +1,143 @@
 <template>
-  <h1 class="sub-category">Morph Slider</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="morphSlider.usage"
-    :source="morphSliderSource"
-    component-name="MorphSlider"
-    :props-table="props"
   >
-    <template #preview>
-      <div class="h-140 overflow-hidden demo-container">
-        <MorphSlider :key="key" :items="DEMO_ITEMS" v-bind="morphSliderProps" />
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 500px; padding: 0">
+          <MorphSlider v-bind="props" :items="DEMO_ITEMS" />
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewSelect title="Transition" :options="TRANSITION_OPTIONS" v-model="transition" />
-        <PreviewColorPicker title="Overlay" v-model="overlayColor" />
-        <PreviewSelect title="Ease" :options="EASE_OPTIONS" v-model="ease" />
-        <PreviewSlider title="Duration" :min="0.4" :max="2.5" :step="0.1" v-model="duration" valueUnit="s" />
-        <PreviewSlider title="Intensity" :min="0" :max="1.2" :step="0.05" v-model="intensity" />
-        <PreviewSlider title="Noise Scale" :min="0.5" :max="6" :step="0.1" v-model="scale" />
-        <PreviewSlider title="Aberration" :min="0" :max="1" :step="0.05" v-model="aberration" />
-        <PreviewSlider title="Drift" :min="0" :max="1.5" :step="0.05" v-model="drift" />
-        <PreviewSlider title="Autoplay Delay" :min="1.5" :max="8" :step="0.5" v-model="autoplayDelay" valueUnit="s" />
-        <PreviewSlider title="Radius" :min="0" :max="40" :step="1" v-model="radius" valueUnit="px" />
-        <PreviewSwitch title="Autoplay" v-model="autoplay" />
-        <PreviewSwitch title="Loop" v-model="loop" />
-        <PreviewSwitch title="Captions" v-model="showCaptions" />
-        <PreviewSwitch title="Controls" v-model="showControls" />
-        <PreviewSwitch title="Indicators" v-model="showIndicators" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewSelect
+            title="Transition"
+            :options="TRANSITION_OPTIONS"
+            :model-value="props.transition"
+            :width="140"
+            @update:model-value="v => updateProp('transition', v as MorphTransition)"
+          />
+          <PreviewColorPickerCustom
+            title="Overlay"
+            :color="props.overlayColor"
+            @change="v => updateProp('overlayColor', v)"
+          />
+          <PreviewSelect
+            title="Ease"
+            :options="EASE_OPTIONS"
+            :model-value="props.ease"
+            :width="200"
+            @update:model-value="v => updateProp('ease', v as string)"
+          />
+          <PreviewSlider
+            title="Duration"
+            :min="0.4"
+            :max="2.5"
+            :step="0.1"
+            value-unit="s"
+            :model-value="props.duration"
+            @update:model-value="v => updateProp('duration', v)"
+          />
+          <PreviewSlider
+            title="Intensity"
+            :min="0"
+            :max="1.2"
+            :step="0.05"
+            :model-value="props.intensity"
+            @update:model-value="v => updateProp('intensity', v)"
+          />
+          <PreviewSlider
+            title="Noise Scale"
+            :min="0.5"
+            :max="6"
+            :step="0.1"
+            :model-value="props.scale"
+            @update:model-value="v => updateProp('scale', v)"
+          />
+          <PreviewSlider
+            title="Aberration"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="props.aberration"
+            @update:model-value="v => updateProp('aberration', v)"
+          />
+          <PreviewSlider
+            title="Drift"
+            :min="0"
+            :max="1.5"
+            :step="0.05"
+            :model-value="props.drift"
+            @update:model-value="v => updateProp('drift', v)"
+          />
+          <PreviewSlider
+            title="Autoplay Delay"
+            :min="1.5"
+            :max="8"
+            :step="0.5"
+            value-unit="s"
+            :model-value="props.autoplayDelay"
+            @update:model-value="v => updateProp('autoplayDelay', v)"
+          />
+          <PreviewSlider
+            title="Radius"
+            :min="0"
+            :max="40"
+            :step="1"
+            value-unit="px"
+            :model-value="props.radius"
+            @update:model-value="v => updateProp('radius', v)"
+          />
+          <PreviewSwitch
+            title="Autoplay"
+            :model-value="props.autoplay"
+            @update:model-value="v => updateProp('autoplay', v)"
+          />
+          <PreviewSwitch title="Loop" :model-value="props.loop" @update:model-value="v => updateProp('loop', v)" />
+          <PreviewSwitch
+            title="Captions"
+            :model-value="props.showCaptions"
+            @update:model-value="v => updateProp('showCaptions', v)"
+          />
+          <PreviewSwitch
+            title="Controls"
+            :model-value="props.showControls"
+            @update:model-value="v => updateProp('showControls', v)"
+          />
+          <PreviewSwitch
+            title="Indicators"
+            :model-value="props.showIndicators"
+            @update:model-value="v => updateProp('showIndicators', v)"
+          />
+        </Customize>
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+        <PropTable :data="propData" />
+        <Dependencies :dependency-list="['ogl', 'gsap']" />
+      </template>
 
-    <template #code>
-      <DemoCodeTab slug="morph-slider" :usage="morphSlider.usage!" :source="morphSliderSource" />
-    </template>
-  </TabsLayout>
+      <template #code>
+        <CodeExample :code-object="morphSlider" component-name="MorphSlider" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import Dependencies from '@/components/common/Dependencies.vue';
+import PreviewColorPickerCustom from '@/components/common/PreviewColorPickerCustom.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
-import { useForceRerender } from '@/composables/useForceRerender';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
 import { morphSlider } from '@/constants/code/Components/morphSliderCode';
 import MorphSlider, { type MorphTransition } from '@/content/Components/MorphSlider/MorphSlider.vue';
-import morphSliderSource from '@/content/Components/MorphSlider/MorphSlider.vue?raw';
-import { computed, ref } from 'vue';
-
-const { rerenderKey: key, forceRerender } = useForceRerender();
-
-const DEFAULTS = {
-  transition: 'melt' as MorphTransition,
-  overlayColor: '#05060a',
-  duration: 1.1,
-  ease: 'power2.inOut',
-  intensity: 0.55,
-  scale: 2.4,
-  aberration: 0.35,
-  drift: 0.4,
-  autoplay: false,
-  autoplayDelay: 4,
-  loop: true,
-  radius: 16,
-  showCaptions: true,
-  showControls: true,
-  showIndicators: true
-};
 
 const DEMO_ITEMS = [
   {
@@ -112,79 +172,27 @@ const EASE_OPTIONS = [
   { value: 'none', label: 'Linear' }
 ];
 
-const transition = ref(DEFAULTS.transition);
-const overlayColor = ref(DEFAULTS.overlayColor);
-const duration = ref(DEFAULTS.duration);
-const ease = ref(DEFAULTS.ease);
-const intensity = ref(DEFAULTS.intensity);
-const scale = ref(DEFAULTS.scale);
-const aberration = ref(DEFAULTS.aberration);
-const drift = ref(DEFAULTS.drift);
-const autoplay = ref(DEFAULTS.autoplay);
-const autoplayDelay = ref(DEFAULTS.autoplayDelay);
-const loop = ref(DEFAULTS.loop);
-const radius = ref(DEFAULTS.radius);
-const showCaptions = ref(DEFAULTS.showCaptions);
-const showControls = ref(DEFAULTS.showControls);
-const showIndicators = ref(DEFAULTS.showIndicators);
+const DEFAULT_PROPS = {
+  transition: 'melt' as MorphTransition,
+  overlayColor: '#05060a',
+  duration: 1.1,
+  ease: 'power2.inOut',
+  intensity: 0.55,
+  scale: 2.4,
+  aberration: 0.35,
+  drift: 0.4,
+  autoplay: false,
+  autoplayDelay: 4,
+  loop: true,
+  radius: 16,
+  showCaptions: true,
+  showControls: true,
+  showIndicators: true
+};
 
-const morphSliderProps = computed(() => ({
-  transition: transition.value,
-  overlayColor: overlayColor.value,
-  duration: duration.value,
-  ease: ease.value,
-  intensity: intensity.value,
-  scale: scale.value,
-  aberration: aberration.value,
-  drift: drift.value,
-  autoplay: autoplay.value,
-  autoplayDelay: autoplayDelay.value,
-  loop: loop.value,
-  radius: radius.value,
-  showCaptions: showCaptions.value,
-  showControls: showControls.value,
-  showIndicators: showIndicators.value
-}));
+const { props, updateProp, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
 
-const hasChanges = computed(
-  () =>
-    transition.value !== DEFAULTS.transition ||
-    overlayColor.value !== DEFAULTS.overlayColor ||
-    duration.value !== DEFAULTS.duration ||
-    ease.value !== DEFAULTS.ease ||
-    intensity.value !== DEFAULTS.intensity ||
-    scale.value !== DEFAULTS.scale ||
-    aberration.value !== DEFAULTS.aberration ||
-    drift.value !== DEFAULTS.drift ||
-    autoplay.value !== DEFAULTS.autoplay ||
-    autoplayDelay.value !== DEFAULTS.autoplayDelay ||
-    loop.value !== DEFAULTS.loop ||
-    radius.value !== DEFAULTS.radius ||
-    showCaptions.value !== DEFAULTS.showCaptions ||
-    showControls.value !== DEFAULTS.showControls ||
-    showIndicators.value !== DEFAULTS.showIndicators
-);
-
-function reset() {
-  transition.value = DEFAULTS.transition;
-  overlayColor.value = DEFAULTS.overlayColor;
-  duration.value = DEFAULTS.duration;
-  ease.value = DEFAULTS.ease;
-  intensity.value = DEFAULTS.intensity;
-  scale.value = DEFAULTS.scale;
-  aberration.value = DEFAULTS.aberration;
-  drift.value = DEFAULTS.drift;
-  autoplay.value = DEFAULTS.autoplay;
-  autoplayDelay.value = DEFAULTS.autoplayDelay;
-  loop.value = DEFAULTS.loop;
-  radius.value = DEFAULTS.radius;
-  showCaptions.value = DEFAULTS.showCaptions;
-  showControls.value = DEFAULTS.showControls;
-  showIndicators.value = DEFAULTS.showIndicators;
-  forceRerender();
-}
-
-const props: PropRow[] = [
+const propData: PropRow[] = [
   {
     name: 'items',
     type: 'Array<{ image: string; caption?: string }>',

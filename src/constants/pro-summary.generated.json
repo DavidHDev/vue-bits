@@ -1,0 +1,715 @@
+{
+  "counts": {
+    "components": 255,
+    "blocks": 400,
+    "blockCategories": 31,
+    "appUi": 300,
+    "appUiCategories": 38,
+    "templates": 18,
+    "agentKit": 35,
+    "total": 1008
+  },
+  "newCounts": { "components": 25, "blocks": 100, "templates": 3, "agentKit": 15 },
+  "assets": { "baseUrl": "https://reactbits.dev/rbp" },
+  "startingPrice": 129,
+  "tiers": [
+    { "id": "starter", "name": "Starter", "lifetime": 129, "annual": 79, "popular": false, "ctaText": "Get Starter" },
+    { "id": "pro", "name": "Pro", "lifetime": 249, "annual": 149, "popular": false, "ctaText": "Get Pro" },
+    {
+      "id": "ultimate",
+      "name": "Ultimate",
+      "lifetime": 349,
+      "annual": 199,
+      "popular": true,
+      "ctaText": "Get Everything"
+    }
+  ],
+  "plans": {
+    "free": { "components": 0, "blocks": 0, "appUi": 0, "templates": 1, "agentKit": 1 },
+    "starter": { "components": 255, "blocks": 0, "appUi": 0, "templates": 1, "agentKit": 2 },
+    "pro": { "components": 255, "blocks": 400, "appUi": 300, "templates": 1, "agentKit": 35 },
+    "ultimate": { "components": 255, "blocks": 400, "appUi": 300, "templates": 18, "agentKit": 35 }
+  },
+  "showcase": {
+    "components": [
+      {
+        "name": "Glowing Ridges",
+        "slug": "glowing-ridges",
+        "href": "https://pro.reactbits.dev/docs/components/glowing-ridges",
+        "image": "https://reactbits.dev/assets/pro/showcase/components/glowing-ridges-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/components/glowing-ridges-light.webp"
+      },
+      {
+        "name": "Long Exposure",
+        "slug": "long-exposure",
+        "href": "https://pro.reactbits.dev/docs/components/long-exposure",
+        "image": "https://reactbits.dev/assets/pro/showcase/components/long-exposure-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/components/long-exposure-light.webp"
+      },
+      {
+        "name": "Prismatic Slats",
+        "slug": "prismatic-slats",
+        "href": "https://pro.reactbits.dev/docs/components/prismatic-slats",
+        "image": "https://reactbits.dev/assets/pro/showcase/components/prismatic-slats-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/components/prismatic-slats-light.webp"
+      },
+      {
+        "name": "Astral Shell",
+        "slug": "astral-shell",
+        "href": "https://pro.reactbits.dev/docs/components/astral-shell",
+        "image": "https://reactbits.dev/assets/pro/showcase/components/astral-shell-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/components/astral-shell-light.webp"
+      },
+      {
+        "name": "Glyph Tide",
+        "slug": "glyph-tide",
+        "href": "https://pro.reactbits.dev/docs/components/glyph-tide",
+        "image": "https://reactbits.dev/assets/pro/showcase/components/glyph-tide-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/components/glyph-tide-light.webp"
+      },
+      {
+        "name": "Vapor Type",
+        "slug": "vapor-type",
+        "href": "https://pro.reactbits.dev/docs/components/vapor-type",
+        "image": "https://reactbits.dev/assets/pro/showcase/components/vapor-type-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/components/vapor-type-light.webp"
+      },
+      {
+        "name": "Radial Liquid",
+        "slug": "radial-liquid",
+        "href": "https://pro.reactbits.dev/docs/components/radial-liquid",
+        "image": "https://reactbits.dev/assets/pro/showcase/components/radial-liquid-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/components/radial-liquid-light.webp"
+      },
+      {
+        "name": "Synaptic Shift",
+        "slug": "synaptic-shift",
+        "href": "https://pro.reactbits.dev/docs/components/synaptic-shift",
+        "image": "https://reactbits.dev/assets/pro/showcase/components/synaptic-shift-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/components/synaptic-shift-light.webp"
+      },
+      {
+        "name": "Glass Tiles",
+        "slug": "glass-tiles",
+        "href": "https://pro.reactbits.dev/docs/components/glass-tiles",
+        "image": "https://reactbits.dev/assets/pro/showcase/components/glass-tiles-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/components/glass-tiles-light.webp"
+      },
+      {
+        "name": "Dither Wave",
+        "slug": "dither-wave",
+        "href": "https://pro.reactbits.dev/docs/components/dither-wave",
+        "image": "https://reactbits.dev/assets/pro/showcase/components/dither-wave-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/components/dither-wave-light.webp"
+      },
+      {
+        "name": "Passage Gallery",
+        "slug": "passage-gallery",
+        "href": "https://pro.reactbits.dev/docs/components/passage-gallery",
+        "image": "https://reactbits.dev/assets/pro/showcase/components/passage-gallery-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/components/passage-gallery-light.webp"
+      },
+      {
+        "name": "Orbit Reel",
+        "slug": "orbit-reel",
+        "href": "https://pro.reactbits.dev/docs/components/orbit-reel",
+        "image": "https://reactbits.dev/assets/pro/showcase/components/orbit-reel-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/components/orbit-reel-light.webp"
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Page block 1",
+        "slug": "blocks-01",
+        "href": "https://pro.reactbits.dev/docs/blocks",
+        "image": "https://reactbits.dev/assets/pro/showcase/blocks/01-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/blocks/01-light.webp"
+      },
+      {
+        "name": "Page block 2",
+        "slug": "blocks-02",
+        "href": "https://pro.reactbits.dev/docs/blocks",
+        "image": "https://reactbits.dev/assets/pro/showcase/blocks/02-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/blocks/02-light.webp"
+      },
+      {
+        "name": "Page block 3",
+        "slug": "blocks-03",
+        "href": "https://pro.reactbits.dev/docs/blocks",
+        "image": "https://reactbits.dev/assets/pro/showcase/blocks/03-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/blocks/03-light.webp"
+      },
+      {
+        "name": "Page block 4",
+        "slug": "blocks-04",
+        "href": "https://pro.reactbits.dev/docs/blocks",
+        "image": "https://reactbits.dev/assets/pro/showcase/blocks/04-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/blocks/04-light.webp"
+      },
+      {
+        "name": "Page block 5",
+        "slug": "blocks-05",
+        "href": "https://pro.reactbits.dev/docs/blocks",
+        "image": "https://reactbits.dev/assets/pro/showcase/blocks/05-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/blocks/05-light.webp"
+      },
+      {
+        "name": "Page block 6",
+        "slug": "blocks-06",
+        "href": "https://pro.reactbits.dev/docs/blocks",
+        "image": "https://reactbits.dev/assets/pro/showcase/blocks/06-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/blocks/06-light.webp"
+      },
+      {
+        "name": "Page block 7",
+        "slug": "blocks-07",
+        "href": "https://pro.reactbits.dev/docs/blocks",
+        "image": "https://reactbits.dev/assets/pro/showcase/blocks/07-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/blocks/07-light.webp"
+      },
+      {
+        "name": "Page block 8",
+        "slug": "blocks-08",
+        "href": "https://pro.reactbits.dev/docs/blocks",
+        "image": "https://reactbits.dev/assets/pro/showcase/blocks/08-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/blocks/08-light.webp"
+      },
+      {
+        "name": "Page block 9",
+        "slug": "blocks-09",
+        "href": "https://pro.reactbits.dev/docs/blocks",
+        "image": "https://reactbits.dev/assets/pro/showcase/blocks/09-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/blocks/09-light.webp"
+      },
+      {
+        "name": "Page block 10",
+        "slug": "blocks-10",
+        "href": "https://pro.reactbits.dev/docs/blocks",
+        "image": "https://reactbits.dev/assets/pro/showcase/blocks/10-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/blocks/10-light.webp"
+      },
+      {
+        "name": "Page block 11",
+        "slug": "blocks-11",
+        "href": "https://pro.reactbits.dev/docs/blocks",
+        "image": "https://reactbits.dev/assets/pro/showcase/blocks/11-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/blocks/11-light.webp"
+      },
+      {
+        "name": "Page block 12",
+        "slug": "blocks-12",
+        "href": "https://pro.reactbits.dev/docs/blocks",
+        "image": "https://reactbits.dev/assets/pro/showcase/blocks/12-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/blocks/12-light.webp"
+      }
+    ],
+    "app-ui": [
+      {
+        "name": "App UI block 1",
+        "slug": "app-ui-01",
+        "href": "https://pro.reactbits.dev/docs/app-ui",
+        "image": "https://reactbits.dev/assets/pro/showcase/app-ui/01-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/app-ui/01-light.webp"
+      },
+      {
+        "name": "App UI block 2",
+        "slug": "app-ui-02",
+        "href": "https://pro.reactbits.dev/docs/app-ui",
+        "image": "https://reactbits.dev/assets/pro/showcase/app-ui/02-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/app-ui/02-light.webp"
+      },
+      {
+        "name": "App UI block 3",
+        "slug": "app-ui-03",
+        "href": "https://pro.reactbits.dev/docs/app-ui",
+        "image": "https://reactbits.dev/assets/pro/showcase/app-ui/03-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/app-ui/03-light.webp"
+      },
+      {
+        "name": "App UI block 4",
+        "slug": "app-ui-04",
+        "href": "https://pro.reactbits.dev/docs/app-ui",
+        "image": "https://reactbits.dev/assets/pro/showcase/app-ui/04-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/app-ui/04-light.webp"
+      },
+      {
+        "name": "App UI block 5",
+        "slug": "app-ui-05",
+        "href": "https://pro.reactbits.dev/docs/app-ui",
+        "image": "https://reactbits.dev/assets/pro/showcase/app-ui/05-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/app-ui/05-light.webp"
+      },
+      {
+        "name": "App UI block 6",
+        "slug": "app-ui-06",
+        "href": "https://pro.reactbits.dev/docs/app-ui",
+        "image": "https://reactbits.dev/assets/pro/showcase/app-ui/06-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/app-ui/06-light.webp"
+      },
+      {
+        "name": "App UI block 7",
+        "slug": "app-ui-07",
+        "href": "https://pro.reactbits.dev/docs/app-ui",
+        "image": "https://reactbits.dev/assets/pro/showcase/app-ui/07-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/app-ui/07-light.webp"
+      },
+      {
+        "name": "App UI block 8",
+        "slug": "app-ui-08",
+        "href": "https://pro.reactbits.dev/docs/app-ui",
+        "image": "https://reactbits.dev/assets/pro/showcase/app-ui/08-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/app-ui/08-light.webp"
+      },
+      {
+        "name": "App UI block 9",
+        "slug": "app-ui-09",
+        "href": "https://pro.reactbits.dev/docs/app-ui",
+        "image": "https://reactbits.dev/assets/pro/showcase/app-ui/09-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/app-ui/09-light.webp"
+      },
+      {
+        "name": "App UI block 10",
+        "slug": "app-ui-10",
+        "href": "https://pro.reactbits.dev/docs/app-ui",
+        "image": "https://reactbits.dev/assets/pro/showcase/app-ui/10-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/app-ui/10-light.webp"
+      },
+      {
+        "name": "App UI block 11",
+        "slug": "app-ui-11",
+        "href": "https://pro.reactbits.dev/docs/app-ui",
+        "image": "https://reactbits.dev/assets/pro/showcase/app-ui/11-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/app-ui/11-light.webp"
+      },
+      {
+        "name": "App UI block 12",
+        "slug": "app-ui-12",
+        "href": "https://pro.reactbits.dev/docs/app-ui",
+        "image": "https://reactbits.dev/assets/pro/showcase/app-ui/12-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/app-ui/12-light.webp"
+      }
+    ],
+    "templates": [
+      {
+        "name": "Template 1",
+        "slug": "templates-01",
+        "href": "https://pro.reactbits.dev/docs/templates",
+        "image": "https://reactbits.dev/assets/pro/showcase/templates/01-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/templates/01-light.webp"
+      },
+      {
+        "name": "Template 2",
+        "slug": "templates-02",
+        "href": "https://pro.reactbits.dev/docs/templates",
+        "image": "https://reactbits.dev/assets/pro/showcase/templates/02-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/templates/02-light.webp"
+      },
+      {
+        "name": "Template 3",
+        "slug": "templates-03",
+        "href": "https://pro.reactbits.dev/docs/templates",
+        "image": "https://reactbits.dev/assets/pro/showcase/templates/03-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/templates/03-light.webp"
+      },
+      {
+        "name": "Template 4",
+        "slug": "templates-04",
+        "href": "https://pro.reactbits.dev/docs/templates",
+        "image": "https://reactbits.dev/assets/pro/showcase/templates/04-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/templates/04-light.webp"
+      },
+      {
+        "name": "Template 5",
+        "slug": "templates-05",
+        "href": "https://pro.reactbits.dev/docs/templates",
+        "image": "https://reactbits.dev/assets/pro/showcase/templates/05-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/templates/05-light.webp"
+      },
+      {
+        "name": "Template 6",
+        "slug": "templates-06",
+        "href": "https://pro.reactbits.dev/docs/templates",
+        "image": "https://reactbits.dev/assets/pro/showcase/templates/06-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/templates/06-light.webp"
+      },
+      {
+        "name": "Template 7",
+        "slug": "templates-07",
+        "href": "https://pro.reactbits.dev/docs/templates",
+        "image": "https://reactbits.dev/assets/pro/showcase/templates/07-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/templates/07-light.webp"
+      },
+      {
+        "name": "Template 8",
+        "slug": "templates-08",
+        "href": "https://pro.reactbits.dev/docs/templates",
+        "image": "https://reactbits.dev/assets/pro/showcase/templates/08-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/templates/08-light.webp"
+      },
+      {
+        "name": "Template 9",
+        "slug": "templates-09",
+        "href": "https://pro.reactbits.dev/docs/templates",
+        "image": "https://reactbits.dev/assets/pro/showcase/templates/09-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/templates/09-light.webp"
+      },
+      {
+        "name": "Template 10",
+        "slug": "templates-10",
+        "href": "https://pro.reactbits.dev/docs/templates",
+        "image": "https://reactbits.dev/assets/pro/showcase/templates/10-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/templates/10-light.webp"
+      },
+      {
+        "name": "Template 11",
+        "slug": "templates-11",
+        "href": "https://pro.reactbits.dev/docs/templates",
+        "image": "https://reactbits.dev/assets/pro/showcase/templates/11-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/templates/11-light.webp"
+      },
+      {
+        "name": "Template 12",
+        "slug": "templates-12",
+        "href": "https://pro.reactbits.dev/docs/templates",
+        "image": "https://reactbits.dev/assets/pro/showcase/templates/12-dark.webp",
+        "imageLight": "https://reactbits.dev/assets/pro/showcase/templates/12-light.webp"
+      }
+    ],
+    "agent-kit": [
+      {
+        "name": "Neobrutalism",
+        "slug": "neobrutalism",
+        "href": "https://pro.reactbits.dev/docs/agent-kit/skills/neobrutalism",
+        "image": "https://reactbits.dev/assets/pro/agent-kit/skill-neobrutalism.webp"
+      },
+      {
+        "name": "Playful Motion",
+        "slug": "playful-motion",
+        "href": "https://pro.reactbits.dev/docs/agent-kit/skills/playful-motion",
+        "image": "https://reactbits.dev/assets/pro/agent-kit/skill-playful-motion.webp"
+      },
+      {
+        "name": "Swiss Grid",
+        "slug": "swiss-grid",
+        "href": "https://pro.reactbits.dev/docs/agent-kit/skills/swiss-grid",
+        "image": "https://reactbits.dev/assets/pro/agent-kit/skill-swiss-grid.webp"
+      },
+      {
+        "name": "Terminal Dark",
+        "slug": "terminal-dark",
+        "href": "https://pro.reactbits.dev/docs/agent-kit/skills/terminal-dark",
+        "image": "https://reactbits.dev/assets/pro/agent-kit/skill-terminal-dark.webp"
+      },
+      {
+        "name": "Editorial",
+        "slug": "editorial",
+        "href": "https://pro.reactbits.dev/docs/agent-kit/skills/editorial",
+        "image": "https://reactbits.dev/assets/pro/agent-kit/skill-editorial.webp"
+      },
+      {
+        "name": "Luxury Serif",
+        "slug": "luxury-serif",
+        "href": "https://pro.reactbits.dev/docs/agent-kit/skills/luxury-serif",
+        "image": "https://reactbits.dev/assets/pro/agent-kit/skill-luxury-serif.webp"
+      },
+      {
+        "name": "Apple Minimal",
+        "slug": "apple-minimal",
+        "href": "https://pro.reactbits.dev/docs/agent-kit/skills/apple-minimal",
+        "image": "https://reactbits.dev/assets/pro/agent-kit/skill-apple-minimal.webp"
+      },
+      {
+        "name": "Corporate Trust",
+        "slug": "corporate-trust",
+        "href": "https://pro.reactbits.dev/docs/agent-kit/skills/corporate-trust",
+        "image": "https://reactbits.dev/assets/pro/agent-kit/skill-corporate-trust.webp"
+      },
+      {
+        "name": "Fintech",
+        "slug": "fintech",
+        "href": "https://pro.reactbits.dev/docs/agent-kit/prompts/fintech",
+        "image": "https://reactbits.dev/assets/pro/agent-kit/prompt-fintech.webp"
+      },
+      {
+        "name": "Consumer Hardware",
+        "slug": "consumer-hardware",
+        "href": "https://pro.reactbits.dev/docs/agent-kit/prompts/consumer-hardware",
+        "image": "https://reactbits.dev/assets/pro/agent-kit/prompt-consumer-hardware.webp"
+      },
+      {
+        "name": "Ecommerce Brand",
+        "slug": "ecommerce-brand",
+        "href": "https://pro.reactbits.dev/docs/agent-kit/prompts/ecommerce-brand",
+        "image": "https://reactbits.dev/assets/pro/agent-kit/prompt-ecommerce-brand.webp"
+      },
+      {
+        "name": "SaaS Homepage",
+        "slug": "saas-homepage",
+        "href": "https://pro.reactbits.dev/docs/agent-kit/recipes/saas-homepage",
+        "image": "https://reactbits.dev/assets/pro/agent-kit/recipe-saas-homepage.webp"
+      }
+    ]
+  },
+  "categories": {
+    "backgrounds": {
+      "count": 106,
+      "noun": "backgrounds",
+      "pitch": "Shader scenes and animated surfaces made to sit behind real content.",
+      "path": "/docs/components?category=Backgrounds",
+      "items": [
+        {
+          "name": "Spectral Tiles",
+          "slug": "spectral-tiles",
+          "href": "https://pro.reactbits.dev/docs/components/spectral-tiles",
+          "media": {
+            "animated": "https://reactbits.dev/rbp/showcase/components/spectral-tiles.webp",
+            "poster": "https://reactbits.dev/rbp/showcase/components/spectral-tiles-poster.webp",
+            "light": "https://reactbits.dev/rbp/components/spectral-tiles-light.webp",
+            "dark": "https://reactbits.dev/rbp/components/spectral-tiles-dark.webp"
+          }
+        },
+        {
+          "name": "Glass Keys",
+          "slug": "glass-keys",
+          "href": "https://pro.reactbits.dev/docs/components/glass-keys",
+          "media": {
+            "animated": "https://reactbits.dev/rbp/showcase/components/glass-keys.webp",
+            "poster": "https://reactbits.dev/rbp/showcase/components/glass-keys-poster.webp",
+            "light": "https://reactbits.dev/rbp/components/glass-keys-light.webp",
+            "dark": "https://reactbits.dev/rbp/components/glass-keys-dark.webp"
+          }
+        },
+        {
+          "name": "Circuit Flash",
+          "slug": "circuit-flash",
+          "href": "https://pro.reactbits.dev/docs/components/circuit-flash",
+          "media": {
+            "animated": "https://reactbits.dev/rbp/showcase/components/circuit-flash.webp",
+            "poster": "https://reactbits.dev/rbp/showcase/components/circuit-flash-poster.webp",
+            "light": "https://reactbits.dev/rbp/components/circuit-flash-light.webp",
+            "dark": "https://reactbits.dev/rbp/components/circuit-flash-dark.webp"
+          }
+        },
+        {
+          "name": "ASCII Stream",
+          "slug": "ascii-stream",
+          "href": "https://pro.reactbits.dev/docs/components/ascii-stream",
+          "media": {
+            "animated": "https://reactbits.dev/rbp/showcase/components/ascii-stream.webp",
+            "poster": "https://reactbits.dev/rbp/showcase/components/ascii-stream-poster.webp",
+            "light": "https://reactbits.dev/rbp/components/ascii-stream-light.webp",
+            "dark": "https://reactbits.dev/rbp/components/ascii-stream-dark.webp"
+          }
+        }
+      ]
+    },
+    "text-animations": {
+      "count": 32,
+      "noun": "text animations",
+      "pitch": "Scroll reveals, 3D type and glitch effects for headlines that need to land.",
+      "path": "/docs/components?category=Text",
+      "items": [
+        {
+          "name": "Orbital Type",
+          "slug": "orbital-type",
+          "href": "https://pro.reactbits.dev/docs/components/orbital-type",
+          "media": {
+            "animated": "https://reactbits.dev/rbp/showcase/components/orbital-type.webp",
+            "poster": "https://reactbits.dev/rbp/showcase/components/orbital-type-poster.webp",
+            "light": "https://reactbits.dev/rbp/components/orbital-type-light.webp",
+            "dark": "https://reactbits.dev/rbp/components/orbital-type-dark.webp"
+          }
+        },
+        {
+          "name": "Shatter Type",
+          "slug": "shatter-type",
+          "href": "https://pro.reactbits.dev/docs/components/shatter-type",
+          "media": {
+            "animated": "https://reactbits.dev/rbp/showcase/components/shatter-type.webp",
+            "poster": "https://reactbits.dev/rbp/showcase/components/shatter-type-poster.webp",
+            "light": "https://reactbits.dev/rbp/components/shatter-type-light.webp",
+            "dark": "https://reactbits.dev/rbp/components/shatter-type-dark.webp"
+          }
+        },
+        {
+          "name": "Ribbon Type",
+          "slug": "ribbon-type",
+          "href": "https://pro.reactbits.dev/docs/components/ribbon-type",
+          "media": {
+            "animated": "https://reactbits.dev/rbp/showcase/components/ribbon-type.webp",
+            "poster": "https://reactbits.dev/rbp/showcase/components/ribbon-type-poster.webp",
+            "light": "https://reactbits.dev/rbp/components/ribbon-type-light.webp",
+            "dark": "https://reactbits.dev/rbp/components/ribbon-type-dark.webp"
+          }
+        },
+        {
+          "name": "Elastic Lettering",
+          "slug": "elastic-lettering",
+          "href": "https://pro.reactbits.dev/docs/components/elastic-lettering",
+          "media": {
+            "animated": "https://reactbits.dev/rbp/showcase/components/elastic-lettering.webp",
+            "poster": "https://reactbits.dev/rbp/showcase/components/elastic-lettering-poster.webp",
+            "light": "https://reactbits.dev/rbp/components/elastic-lettering-light.webp",
+            "dark": "https://reactbits.dev/rbp/components/elastic-lettering-dark.webp"
+          }
+        }
+      ]
+    },
+    "animations": {
+      "count": 19,
+      "noun": "cursor effects",
+      "pitch": "Cursor trails and pointer effects that give a site its own feel.",
+      "path": "/docs/components?category=Cursors",
+      "items": [
+        {
+          "name": "Pigment Trail",
+          "slug": "pigment-trail",
+          "href": "https://pro.reactbits.dev/docs/components/pigment-trail",
+          "media": {
+            "animated": "https://reactbits.dev/rbp/showcase/components/pigment-trail.webp",
+            "poster": "https://reactbits.dev/rbp/showcase/components/pigment-trail-poster.webp",
+            "light": "https://reactbits.dev/rbp/components/pigment-trail-light.webp",
+            "dark": "https://reactbits.dev/rbp/components/pigment-trail-dark.webp"
+          }
+        },
+        {
+          "name": "Chroma Halo",
+          "slug": "chroma-halo",
+          "href": "https://pro.reactbits.dev/docs/components/chroma-halo",
+          "media": {
+            "animated": "https://reactbits.dev/rbp/showcase/components/chroma-halo.webp",
+            "poster": "https://reactbits.dev/rbp/showcase/components/chroma-halo-poster.webp",
+            "light": "https://reactbits.dev/rbp/components/chroma-halo-light.webp",
+            "dark": "https://reactbits.dev/rbp/components/chroma-halo-dark.webp"
+          }
+        },
+        {
+          "name": "Glyph Stream",
+          "slug": "glyph-stream",
+          "href": "https://pro.reactbits.dev/docs/components/glyph-stream",
+          "media": {
+            "animated": "https://reactbits.dev/rbp/showcase/components/glyph-stream.webp",
+            "poster": "https://reactbits.dev/rbp/showcase/components/glyph-stream-poster.webp",
+            "light": "https://reactbits.dev/rbp/components/glyph-stream-light.webp",
+            "dark": "https://reactbits.dev/rbp/components/glyph-stream-dark.webp"
+          }
+        },
+        {
+          "name": "Celebration Cursor",
+          "slug": "celebration-cursor",
+          "href": "https://pro.reactbits.dev/docs/components/celebration-cursor",
+          "media": {
+            "animated": "https://reactbits.dev/rbp/showcase/components/celebration-cursor.webp",
+            "poster": "https://reactbits.dev/rbp/showcase/components/celebration-cursor-poster.webp",
+            "light": "https://reactbits.dev/rbp/components/celebration-cursor-light.webp",
+            "dark": "https://reactbits.dev/rbp/components/celebration-cursor-dark.webp"
+          }
+        }
+      ]
+    },
+    "components": {
+      "count": 255,
+      "noun": "components",
+      "pitch": "Galleries, cards and interactive pieces for pages that need more than the basics.",
+      "path": "/docs/components",
+      "items": [
+        {
+          "name": "Browser Window",
+          "slug": "browser-window",
+          "href": "https://pro.reactbits.dev/docs/components/browser-window",
+          "media": {
+            "animated": "https://reactbits.dev/rbp/showcase/components/browser-window.webp",
+            "poster": "https://reactbits.dev/rbp/showcase/components/browser-window-poster.webp",
+            "light": "https://reactbits.dev/rbp/components/browser-window-light.webp",
+            "dark": "https://reactbits.dev/rbp/components/browser-window-dark.webp"
+          }
+        },
+        {
+          "name": "Keycaps",
+          "slug": "keycaps",
+          "href": "https://pro.reactbits.dev/docs/components/keycaps",
+          "media": {
+            "animated": "https://reactbits.dev/rbp/showcase/components/keycaps.webp",
+            "poster": "https://reactbits.dev/rbp/showcase/components/keycaps-poster.webp",
+            "light": "https://reactbits.dev/rbp/components/keycaps-light.webp",
+            "dark": "https://reactbits.dev/rbp/components/keycaps-dark.webp"
+          }
+        },
+        {
+          "name": "Liquid Circles",
+          "slug": "liquid-circles",
+          "href": "https://pro.reactbits.dev/docs/components/liquid-circles",
+          "media": {
+            "animated": "https://reactbits.dev/rbp/showcase/components/liquid-circles.webp",
+            "poster": "https://reactbits.dev/rbp/showcase/components/liquid-circles-poster.webp",
+            "light": "https://reactbits.dev/rbp/components/liquid-circles-light.webp",
+            "dark": "https://reactbits.dev/rbp/components/liquid-circles-dark.webp"
+          }
+        },
+        {
+          "name": "Particle Chart",
+          "slug": "particle-chart",
+          "href": "https://pro.reactbits.dev/docs/components/particle-chart",
+          "media": {
+            "animated": "https://reactbits.dev/rbp/showcase/components/particle-chart.webp",
+            "poster": "https://reactbits.dev/rbp/showcase/components/particle-chart-poster.webp",
+            "light": "https://reactbits.dev/rbp/components/particle-chart-light.webp",
+            "dark": "https://reactbits.dev/rbp/components/particle-chart-dark.webp"
+          }
+        }
+      ]
+    },
+    "default": {
+      "count": 255,
+      "noun": "components",
+      "pitch": "Components, page blocks, app UI and templates, built to work together.",
+      "path": "/",
+      "items": [
+        {
+          "name": "Spectral Tiles",
+          "slug": "spectral-tiles",
+          "href": "https://pro.reactbits.dev/docs/components/spectral-tiles",
+          "media": {
+            "animated": "https://reactbits.dev/rbp/showcase/components/spectral-tiles.webp",
+            "poster": "https://reactbits.dev/rbp/showcase/components/spectral-tiles-poster.webp",
+            "light": "https://reactbits.dev/rbp/components/spectral-tiles-light.webp",
+            "dark": "https://reactbits.dev/rbp/components/spectral-tiles-dark.webp"
+          }
+        },
+        {
+          "name": "Browser Window",
+          "slug": "browser-window",
+          "href": "https://pro.reactbits.dev/docs/components/browser-window",
+          "media": {
+            "animated": "https://reactbits.dev/rbp/showcase/components/browser-window.webp",
+            "poster": "https://reactbits.dev/rbp/showcase/components/browser-window-poster.webp",
+            "light": "https://reactbits.dev/rbp/components/browser-window-light.webp",
+            "dark": "https://reactbits.dev/rbp/components/browser-window-dark.webp"
+          }
+        },
+        {
+          "name": "Keycaps",
+          "slug": "keycaps",
+          "href": "https://pro.reactbits.dev/docs/components/keycaps",
+          "media": {
+            "animated": "https://reactbits.dev/rbp/showcase/components/keycaps.webp",
+            "poster": "https://reactbits.dev/rbp/showcase/components/keycaps-poster.webp",
+            "light": "https://reactbits.dev/rbp/components/keycaps-light.webp",
+            "dark": "https://reactbits.dev/rbp/components/keycaps-dark.webp"
+          }
+        },
+        {
+          "name": "Circuit Flash",
+          "slug": "circuit-flash",
+          "href": "https://pro.reactbits.dev/docs/components/circuit-flash",
+          "media": {
+            "animated": "https://reactbits.dev/rbp/showcase/components/circuit-flash.webp",
+            "poster": "https://reactbits.dev/rbp/showcase/components/circuit-flash-poster.webp",
+            "light": "https://reactbits.dev/rbp/components/circuit-flash-light.webp",
+            "dark": "https://reactbits.dev/rbp/components/circuit-flash-dark.webp"
+          }
+        }
+      ]
+    }
+  }
+}

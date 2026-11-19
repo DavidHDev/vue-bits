@@ -2,27 +2,31 @@ import code from '@/content/TextAnimations/StrokeText/StrokeText.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const strokeText = createCodeObject(code, 'TextAnimations/StrokeText', {
-  usage: `<script setup>
-import StrokeText from './StrokeText.vue'
-</script>
-
-<template>
-<div :style="{ width: '100%', height: 360, background: '#09090f' }">
+  installation: `npm install gsap`,
+  usage: `<template>
   <StrokeText
     text="Draw Attention"
-    strokeColor="#A78BFA"
-    fillColor="#F8FAFC"
-    :strokeWidth="1.4"
-    :drawDuration="1.6"
-    :fillDelay="0.2"
+    stroke-color="#7cff67"
+    stroke-style="solid"
+    :stroke-width="1.4"
+    :dash-length="10"
+    :draw-duration="1.6"
+    :fill-delay="0.2"
     :stagger="0.05"
     ease="power2.out"
     trigger="mount"
-    fillMode="wipe"
-    :fontSize="128"
-    :fontWeight="800"
-    :letterSpacing="-4"
+    fill-mode="wipe"
+    wipe-from="left"
+    :font-size="128"
+    :font-weight="800"
+    :letter-spacing="-4"
+    :marching="false"
+    :hover-redraw="true"
+    :shadow="false"
   />
-</div>
-</template>`
+</template>
+
+<script setup lang="ts">
+import StrokeText from './StrokeText.vue'
+</script>`
 });

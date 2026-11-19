@@ -2,40 +2,27 @@ import code from '@/content/Backgrounds/PixelBlast/PixelBlast.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const pixelBlast = createCodeObject(code, 'Backgrounds/PixelBlast', {
-  installation: `npm install three postprocessing`,
-  usage: `// Component inspired by github.com/zavalit/bayer-dithering-webgl-demo
-
-<template>
-  <div
-    style="
-      width: 100%;
-      height: 600px;
-      position: relative;
-    "
-  >
+  dependencies: '',
+  usage: `<template>
+  <div style="width: 100%; height: 600px; position: relative">
     <PixelBlast
-      variant="circle"
-      :pixel-size="6"
-      color="#B497CF"
-      :pattern-scale="3"
-      :pattern-density="1.2"
-      :pixel-size-jitter="0.5"
+      variant="square"
+      :pixel-size="3"
+      color="#a0ffbc"
+      :pattern-scale="2"
+      :pattern-density="1"
+      :softness="0.6"
+      :glow="0.4"
+      :twinkle="0.25"
+      :drift="0.2"
+      hover-effect="reveal"
       enable-ripples
-      :ripple-speed="0.4"
-      :ripple-thickness="0.12"
-      :ripple-intensity-scale="1.5"
-      liquid
-      :liquid-strength="0.12"
-      :liquid-radius="1.2"
-      :liquid-wobble-speed="5"
-      :speed="0.6"
       :edge-fade="0.25"
-      transparent
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import PixelBlast from './PixelBlast.vue'
+import PixelBlast from './PixelBlast.vue';
 </script>`
 });

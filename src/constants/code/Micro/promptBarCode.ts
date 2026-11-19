@@ -2,54 +2,55 @@ import code from '@/content/Micro/PromptBar/PromptBar.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const promptBar = createCodeObject(code, 'Micro/PromptBar', {
-  usage: `<script setup>
-import { ref } from 'vue'
-import PromptBar from './PromptBar.vue'
+  installation: `npm install motion-v @hugeicons/vue @hugeicons/core-free-icons`,
+  usage: `<template>
+  <PromptBar
+    placeholder="Ask anything"
+    :sources="sources"
+    :commands="[{ key: 'summarize', name: '/summarize', description: 'Digest the thread so far' }]"
+    :models="[
+      { key: 'nova-3', name: 'Nova 3', tag: 'Flagship' },
+      { key: 'nova-mini', name: 'Nova Mini', tag: 'Fast' }
+    ]"
+    :efforts="['Low', 'Medium', 'High', 'Extra', 'Max']"
+    :busy="busy"
+    :on-attach="() => pickFiles()"
+    :on-dictate="() => transcribe()"
+    background="#272a27"
+    color="#f5f5f5"
+    menu-background="#313531"
+    spark-color="#a0ffbc"
+    :spark-boost="1"
+    :width="400"
+    :radius="16"
+    :max-rows="5"
+    :morph-duration="240"
+    :squash="0.12"
+    :tilt="8"
+    :press-scale="0.96"
+    @send="send"
+    @stop="controller?.abort()"
+  />
+</template>
 
-const busy = ref(false)
+<script setup lang="ts">
+import { ref } from 'vue';
+import { Attachment01Icon, Globe02Icon } from '@hugeicons/core-free-icons';
+import PromptBar, { type PromptBarSendDetail } from './PromptBar.vue';
 
-const send = async (text, { attachments, model, effort }) => {
-  busy.value = true
-  await api.ask(text, { attachments, model: model?.key, effort })
-  busy.value = false
-}
+const busy = ref(false);
+let controller: AbortController | null = null;
 
-// return file names (or a promise of them) and they show up as chips
-const attach = () => openFilePicker()
+const sources = [
+  { key: 'files', name: 'Photos & files', description: 'Upload from this device', icon: Attachment01Icon, attach: true },
+  { key: 'web', name: 'Web search', description: 'Live results', icon: Globe02Icon }
+];
 
-// return the transcript (or a promise of it) and it lands in the draft
-const dictate = () => listen()
-</script>
-
-<template>
-<PromptBar
-  placeholder="Ask anything"
-  :busy="busy"
-  :onAttach="attach"
-  :onDictate="dictate"
-  background="#27272a"
-  color="#f5f5f5"
-  menuBackground="#323236"
-  sparkColor="#b39dff"
-  :sparkBoost="1"
-  :width="400"
-  :radius="16"
-  :maxRows="5"
-  :morphDuration="240"
-  :squash="0.12"
-  :tilt="8"
-  :pressScale="0.96"
-  @send="send"
-  @stop="() => api.cancel()"
-  @effortChange="effort => console.log(effort)"
-/>
-
-<!-- your own rows -->
-<PromptBar
-  :sources="[{ key: 'docs', name: 'Docs', description: 'Search the wiki', icon: MyDocsIcon }]"
-  :commands="[{ key: 'fix', name: '/fix', description: 'Fix the selection' }]"
-  :models="[{ key: 'fast', name: 'Fast', tag: 'Cheap' }, { key: 'deep', name: 'Deep', tag: 'Slow' }]"
-  :efforts="['Low', 'Medium', 'High']"
-/>
-</template>`
+const send = async (text: string, { attachments, model, effort }: PromptBarSendDetail) => {
+  busy.value = true;
+  controller = new AbortController();
+  await ask({ text, attachments, model: model?.key, effort, signal: controller.signal }).catch(() => {});
+  busy.value = false;
+};
+</script>`
 });

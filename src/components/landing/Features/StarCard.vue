@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { useStars } from '@/composables/useStars';
+import { computed } from 'vue';
 
 const stars = useStars();
+const formatted = computed(() =>
+  stars.value >= 1000 ? `${(stars.value / 1000).toFixed(1).replace(/\.0$/, '')}k` : String(stars.value)
+);
 </script>
 
 <template>
   <div class="ln-feat-stars">
     <span class="ln-feat-stars-label">GitHub Stars</span>
-    <span class="ln-feat-stars-count">{{ stars }}</span>
+    <span class="ln-feat-stars-count">{{ formatted }}</span>
     <div class="ln-feat-stars-chart">
       <svg viewBox="0 0 200 50" fill="none" preserveAspectRatio="none">
         <defs>
@@ -32,3 +36,24 @@ const stars = useStars();
     </div>
   </div>
 </template>
+
+<style>
+.ln-feat-stars-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: ln-feat-stars-draw 2s ease-out forwards;
+}
+
+@keyframes ln-feat-stars-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ln-feat-stars-line {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+</style>

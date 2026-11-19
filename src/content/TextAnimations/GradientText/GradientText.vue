@@ -1,140 +1,298 @@
 <script setup lang="ts">
-import { Motion, useAnimationFrame, useMotionValue, useTransform } from 'motion-v';
-import { computed, ref, useSlots } from 'vue';
+import { computed, onBeforeUnmount, onMounted, onUpdated, ref, type CSSProperties } from 'vue';
+
+type Variant = 'linear' | 'flow' | 'conic';
 
 interface GradientTextProps {
-  className?: string;
   colors?: string[];
   animationSpeed?: number;
-  showBorder?: boolean;
+  variant?: Variant;
+  angle?: number;
   direction?: 'horizontal' | 'vertical' | 'diagonal';
-  pauseOnHover?: boolean;
+  scale?: number;
   yoyo?: boolean;
+  glow?: number;
+  showBorder?: boolean;
+  borderWidth?: number;
+  pauseOnHover?: boolean;
+  followPointer?: boolean;
+  className?: string;
+  style?: CSSProperties;
 }
 
+interface Settings {
+  colors: string[];
+  speed: number;
+  variant: Variant;
+  angle: number;
+  scale: number;
+  yoyo: boolean;
+  pauseOnHover: boolean;
+  followPointer: boolean;
+}
+
+const VARIANTS: Variant[] = ['linear', 'flow', 'conic'];
+const ANGLES: Record<string, number> = { horizontal: 90, vertical: 180, diagonal: 135 };
+const TAU = Math.PI * 2;
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
 const props = withDefaults(defineProps<GradientTextProps>(), {
-  className: '',
-  colors: () => ['#27FF64', '#27FF64', '#A0FFBC'],
+  colors: () => ['#42b883', '#7cff67', '#a0ffbc'],
   animationSpeed: 8,
+  variant: 'linear',
+  angle: 90,
+  direction: undefined,
+  scale: 3,
+  yoyo: true,
+  glow: 0,
   showBorder: false,
-  direction: 'horizontal',
+  borderWidth: 1.5,
   pauseOnHover: false,
-  yoyo: true
+  followPointer: false,
+  className: '',
+  style: undefined
 });
 
-const slots = useSlots();
-const text = computed(() => (slots.default?.() ?? []).map(v => v.children).join(''));
+const rootRef = ref<HTMLSpanElement | null>(null);
 
-const isPaused = ref(false);
-const progress = useMotionValue(0);
-const elapsedRef = ref(0);
-const lastTimeRef = ref<number | null>(null);
-
-const animationDuration = props.animationSpeed * 1000;
-
-useAnimationFrame(time => {
-  if (isPaused.value) {
-    lastTimeRef.value = null;
-    return;
-  }
-
-  if (lastTimeRef.value === null) {
-    lastTimeRef.value = time;
-    return;
-  }
-
-  const deltaTime = time - lastTimeRef.value;
-  lastTimeRef.value = time;
-  elapsedRef.value += deltaTime;
-
-  if (props.yoyo) {
-    const fullCycle = animationDuration * 2;
-    const cycleTime = elapsedRef.value % fullCycle;
-
-    if (cycleTime < animationDuration) {
-      progress.set((cycleTime / animationDuration) * 100);
-    } else {
-      progress.set(100 - ((cycleTime - animationDuration) / animationDuration) * 100);
-    }
-  } else {
-    // Continuously increase position for seamless looping
-    progress.set((elapsedRef.value / animationDuration) * 100);
-  }
-});
-
-const backgroundPosition = useTransform(progress, p => {
-  if (props.direction === 'horizontal') {
-    return `${p}% 50%`;
-  } else if (props.direction === 'vertical') {
-    return `50% ${p}%`;
-  } else {
-    // For diagonal, move only horizontally to avoid interference patterns
-    return `${p}% 50%`;
-  }
-});
-
-const handleMouseEnter = () => {
-  if (props.pauseOnHover) isPaused.value = true;
-};
-
-const handleMouseLeave = () => {
-  if (props.pauseOnHover) isPaused.value = false;
-};
-
-const gradientAngle = computed(() =>
-  props.direction === 'horizontal' ? 'to right' : props.direction === 'vertical' ? 'to bottom' : 'to bottom right'
+const palette = computed(() =>
+  props.colors.length > 1 ? props.colors : [props.colors[0] ?? '#ffffff', props.colors[0] ?? '#ffffff']
 );
 
-// Duplicate first color at the end for seamless looping
-const gradientColors = computed(() => [...props.colors, props.colors[0]].join(', '));
+const resolvedAngle = computed(() => (props.direction ? (ANGLES[props.direction] ?? props.angle) : props.angle));
 
-const gradientStyle = computed(() => ({
-  backgroundImage: `linear-gradient(${gradientAngle.value}, ${gradientColors.value})`,
-  backgroundSize:
-    props.direction === 'horizontal' ? '300% 100%' : props.direction === 'vertical' ? '100% 300%' : '300% 300%',
-  backgroundRepeat: 'repeat'
+const settings = computed<Settings>(() => ({
+  colors: palette.value,
+  speed: Math.max(0.2, props.animationSpeed),
+  variant: VARIANTS.includes(props.variant as Variant) ? (props.variant as Variant) : 'linear',
+  angle: resolvedAngle.value,
+  scale: clamp(props.scale, 1, 6),
+  yoyo: props.yoyo,
+  pauseOnHover: props.pauseOnHover,
+  followPointer: props.followPointer
 }));
+
+const rootClass = computed(
+  () =>
+    `gradient-text${props.showBorder ? ' gradient-text--border' : ''}${props.className ? ` ${props.className}` : ''}`
+);
+
+const rootStyle = computed(() => {
+  const loop = [...palette.value, palette.value[0]];
+  return {
+    '--gt-gradient': `linear-gradient(${resolvedAngle.value}deg, ${loop.join(', ')})`,
+    '--gt-border': `${props.borderWidth}px`,
+    '--gt-glow': clamp(props.glow, 0, 1),
+    ...props.style
+  } as CSSProperties;
+});
+
+let wakeFn: (() => void) | null = null;
+let cleanup: (() => void) | null = null;
+
+onUpdated(() => {
+  wakeFn?.();
+});
+
+onMounted(() => {
+  const root = rootRef.value;
+  if (!root) return;
+
+  const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  const state = { time: 0, inside: false, visible: true, x: 0.5, y: 0.5, px: 0.5, py: 0.5, vx: 0, vy: 0, pull: 0 };
+  let raf = 0;
+  let last = 0;
+  let alive = true;
+
+  const paint = () => {
+    const s = settings.value;
+    const list = s.colors;
+    const cycle = state.time / s.speed;
+    let image;
+    if (s.variant === 'flow') {
+      const blobs = list.map((color, i) => {
+        const spin = cycle * TAU;
+        const rate = 0.55 + ((i * 0.618) % 1) * 0.5;
+        let x = 50 + 44 * Math.sin(spin * rate + i * 2.1);
+        let y = 50 + 40 * Math.sin(spin * (rate * 0.83 + 0.21) + i * 1.3);
+        if (i === 0) {
+          x += (state.px * 100 - x) * state.pull;
+          y += (state.py * 100 - y) * state.pull;
+        }
+        return `radial-gradient(ellipse ${(22 + 12 * s.scale).toFixed(1)}% ${(60 + 30 * s.scale).toFixed(1)}% at ${x.toFixed(2)}% ${y.toFixed(2)}%, ${color} 0%, transparent 100%)`;
+      });
+      image = `${blobs.join(', ')}, linear-gradient(${s.angle}deg, ${list.join(', ')})`;
+    } else if (s.variant === 'conic') {
+      const sway = s.yoyo ? Math.sin(cycle * Math.PI) * 50 : cycle * 360;
+      const cx = 50 + (state.px * 100 - 50) * state.pull;
+      const cy = 260 + (state.py * 100 - 260) * state.pull;
+      image = `repeating-conic-gradient(from ${(sway - 30).toFixed(2)}deg at ${cx.toFixed(2)}% ${cy.toFixed(2)}%, ${[...list, list[0]].map((color, i) => `${color} ${((i / list.length) * 60 * (3 / s.scale)).toFixed(2)}deg`).join(', ')})`;
+    } else {
+      const loop = [...list, list[0]];
+      const period = 100 * s.scale;
+      let offset;
+      if (s.yoyo) {
+        const swing = cycle % 2;
+        const t = swing < 1 ? swing : 2 - swing;
+        offset = (0.5 - Math.cos(Math.PI * t) / 2) * (period - 100);
+      } else {
+        offset = (cycle % 1) * period;
+      }
+      offset += (state.px - 0.5) * period * 0.5 * state.pull;
+      const stops = loop.map((color, i) => `${color} ${((i / (loop.length - 1)) * period - offset).toFixed(2)}%`);
+      image = `repeating-linear-gradient(${s.angle}deg, ${stops.join(', ')})`;
+    }
+    root.style.setProperty('--gt-gradient', image);
+  };
+
+  const tick = (now: number) => {
+    raf = 0;
+    if (!alive) return;
+    const s = settings.value;
+    const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
+    last = now;
+    const paused = reduce || (s.pauseOnHover && state.inside);
+    if (!paused) state.time += dt;
+    const target = s.followPointer && state.inside ? 1 : 0;
+    state.pull += (target - state.pull) * (1 - Math.exp(-dt * 6));
+    const stiffness = 160;
+    state.vx += ((state.x - state.px) * stiffness - state.vx * 2 * Math.sqrt(stiffness)) * dt;
+    state.vy += ((state.y - state.py) * stiffness - state.vy * 2 * Math.sqrt(stiffness)) * dt;
+    state.px += state.vx * dt;
+    state.py += state.vy * dt;
+    paint();
+    const settling = Math.abs(state.pull - target) > 0.001 || Math.abs(state.vx) + Math.abs(state.vy) > 0.001;
+    if (!state.visible || (paused && !settling)) return;
+    raf = requestAnimationFrame(tick);
+  };
+
+  const wake = () => {
+    if (raf || !alive) return;
+    last = performance.now();
+    raf = requestAnimationFrame(tick);
+  };
+  wakeFn = () => {
+    paint();
+    wake();
+  };
+
+  const locate = (event: PointerEvent) => {
+    const rect = root.getBoundingClientRect();
+    state.x = clamp((event.clientX - rect.left) / rect.width, 0, 1);
+    state.y = clamp((event.clientY - rect.top) / rect.height, 0, 1);
+  };
+  const onEnter = (event: PointerEvent) => {
+    locate(event);
+    if (!state.inside) {
+      state.px = state.x;
+      state.py = state.y;
+    }
+    state.inside = true;
+    wake();
+  };
+  const onMove = (event: PointerEvent) => {
+    locate(event);
+    wake();
+  };
+  const onLeave = () => {
+    state.inside = false;
+    wake();
+  };
+
+  const observer = new IntersectionObserver(entries => {
+    state.visible = entries.some(entry => entry.isIntersecting);
+    if (state.visible) wake();
+  });
+  observer.observe(root);
+  root.addEventListener('pointerenter', onEnter);
+  root.addEventListener('pointermove', onMove);
+  root.addEventListener('pointerleave', onLeave);
+  paint();
+  wake();
+
+  cleanup = () => {
+    alive = false;
+    cancelAnimationFrame(raf);
+    observer.disconnect();
+    root.removeEventListener('pointerenter', onEnter);
+    root.removeEventListener('pointermove', onMove);
+    root.removeEventListener('pointerleave', onLeave);
+    wakeFn = null;
+  };
+});
+
+onBeforeUnmount(() => {
+  cleanup?.();
+  cleanup = null;
+});
 </script>
 
 <template>
-  <Motion
-    tag="div"
-    :class="[
-      'relative mx-auto flex max-w-fit flex-row items-center justify-center rounded-[1.25rem] font-medium backdrop-blur transition-shadow duration-500 overflow-hidden cursor-pointer',
-      className,
-      showBorder && 'py-1 px-2'
-    ]"
-    @mouseenter="handleMouseEnter"
-    @mouseleave="handleMouseLeave"
-  >
-    <Motion
-      tag="div"
-      v-if="showBorder"
-      class="z-0 absolute inset-0 rounded-[1.25rem] pointer-events-none"
-      :style="{ ...gradientStyle, backgroundPosition }"
-    >
-      <div
-        class="z-[-1] absolute bg-black rounded-[1.25rem]"
-        :style="{
-          width: 'calc(100% - 2px)',
-          height: 'calc(100% - 2px)',
-          left: '50%',
-          top: '50%',
-          transform: 'translate(-50%, -50%)'
-        }"
-      />
-    </Motion>
-
-    <Motion
-      tag="div"
-      class="inline-block z-2 relative bg-clip-text text-transparent"
-      :style="{
-        ...gradientStyle,
-        backgroundPosition,
-        WebkitBackgroundClip: 'text'
-      }"
-    >
-      {{ text }}
-    </Motion>
-  </Motion>
+  <span ref="rootRef" :class="rootClass" :style="rootStyle">
+    <span class="gradient-text__inner">
+      <span class="gradient-text__content"><slot /></span>
+      <span v-if="glow > 0" class="gradient-text__glow" aria-hidden="true"><slot /></span>
+    </span>
+  </span>
 </template>
+
+<style>
+.gradient-text {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  isolation: isolate;
+}
+
+.gradient-text--border {
+  padding: 0.35em 0.75em;
+  border-radius: 999px;
+}
+
+.gradient-text--border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: var(--gt-border);
+  border-radius: inherit;
+  background-image: var(--gt-gradient);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+
+.gradient-text__inner {
+  position: relative;
+  display: inline-block;
+}
+
+.gradient-text__content {
+  display: inline-block;
+  background-image: var(--gt-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gradient-text__glow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: var(--gt-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: blur(0.3em) saturate(1.4);
+  opacity: var(--gt-glow);
+  pointer-events: none;
+  user-select: none;
+}
+</style>

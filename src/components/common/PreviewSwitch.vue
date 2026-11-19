@@ -4,11 +4,11 @@
       type="button"
       class="scrubber-track scrubber-track--switch"
       role="switch"
-      :aria-checked="modelValue"
+      :aria-checked="checked"
       :aria-label="title"
       :aria-disabled="isDisabled"
       :data-disabled="isDisabled"
-      :data-checked="modelValue"
+      :data-checked="checked"
       :tabindex="isDisabled ? -1 : 0"
       @click="toggle"
       @keydown="onKeyDown"
@@ -22,19 +22,28 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+
 const props = withDefaults(
   defineProps<{
     title?: string;
     isDisabled?: boolean;
+    isChecked?: boolean;
   }>(),
-  { title: '', isDisabled: false }
+  { title: '', isDisabled: false, isChecked: undefined }
 );
+
+const emit = defineEmits<{ change: [value: boolean] }>();
 
 const modelValue = defineModel<boolean>({ default: false });
 
+const checked = computed(() => (props.isChecked !== undefined ? props.isChecked : modelValue.value));
+
 function toggle() {
   if (props.isDisabled) return;
-  modelValue.value = !modelValue.value;
+  const next = !checked.value;
+  modelValue.value = next;
+  emit('change', next);
 }
 
 function onKeyDown(e: KeyboardEvent) {

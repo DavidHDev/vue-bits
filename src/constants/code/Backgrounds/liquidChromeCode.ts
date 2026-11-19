@@ -2,25 +2,21 @@ import code from '@/content/Backgrounds/LiquidChrome/LiquidChrome.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const liquidChrome = createCodeObject(code, 'Backgrounds/LiquidChrome', {
-  installation: `npm install ogl`,
+  dependencies: '',
   usage: `<template>
-  <div
-    style="
-      width: 100%;
-      height: 600px;
-      position: relative;
-    "
-  >
+  <div style="width: 100%; height: 600px; position: relative">
     <LiquidChrome
-      :base-color="[0.1, 0.1, 0.1]"
-      :speed="1"
-      :amplitude="0.6"
+      color="#ffffff"
+      :speed="0.2"
+      :amplitude="0.3"
+      :detail="4"
+      :thickness="1"
       :interactive="true"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import LiquidChrome from './LiquidChrome.vue'
+import LiquidChrome from './LiquidChrome.vue';
 </script>`
 });

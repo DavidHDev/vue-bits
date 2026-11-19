@@ -1,344 +1,760 @@
-<template>
-  <div class="relative w-1/2 max-md:w-11/12 aspect-square" :style="wrapperStyle">
-    <div ref="sceneRef" class="grid w-full h-full" :style="sceneStyle">
-      <template v-for="(_, r) in cells" :key="`row-${r}`">
-        <div
-          v-for="(__, c) in cells"
-          :key="`${r}-${c}`"
-          class="relative w-full h-full aspect-square transform-3d cube"
-          :data-row="r"
-          :data-col="c"
-        >
-          <span class="absolute -inset-9 pointer-events-none" />
-
-          <div
-            class="absolute inset-0 flex justify-center items-center cube-face"
-            :style="{
-              background: 'var(--cube-face-bg)',
-              border: 'var(--cube-face-border)',
-              boxShadow: 'var(--cube-face-shadow)',
-              transform: 'translateY(-50%) rotateX(90deg)'
-            }"
-          />
-
-          <div
-            class="absolute inset-0 flex justify-center items-center cube-face"
-            :style="{
-              background: 'var(--cube-face-bg)',
-              border: 'var(--cube-face-border)',
-              boxShadow: 'var(--cube-face-shadow)',
-              transform: 'translateY(50%) rotateX(-90deg)'
-            }"
-          />
-
-          <div
-            class="absolute inset-0 flex justify-center items-center cube-face"
-            :style="{
-              background: 'var(--cube-face-bg)',
-              border: 'var(--cube-face-border)',
-              boxShadow: 'var(--cube-face-shadow)',
-              transform: 'translateX(-50%) rotateY(-90deg)'
-            }"
-          />
-
-          <div
-            class="absolute inset-0 flex justify-center items-center cube-face"
-            :style="{
-              background: 'var(--cube-face-bg)',
-              border: 'var(--cube-face-border)',
-              boxShadow: 'var(--cube-face-shadow)',
-              transform: 'translateX(50%) rotateY(90deg)'
-            }"
-          />
-
-          <div
-            class="absolute inset-0 flex justify-center items-center cube-face"
-            :style="{
-              background: 'var(--cube-face-bg)',
-              border: 'var(--cube-face-border)',
-              boxShadow: 'var(--cube-face-shadow)',
-              transform: 'rotateY(-90deg) translateX(50%) rotateY(90deg)'
-            }"
-          />
-
-          <div
-            class="absolute inset-0 flex justify-center items-center cube-face"
-            :style="{
-              background: 'var(--cube-face-bg)',
-              border: 'var(--cube-face-border)',
-              boxShadow: 'var(--cube-face-shadow)',
-              transform: 'rotateY(90deg) translateX(-50%) rotateY(-90deg)'
-            }"
-          />
-        </div>
-      </template>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, useTemplateRef } from 'vue';
-import gsap from 'gsap';
+import { onBeforeUnmount, onMounted, useTemplateRef, watch } from 'vue';
 
-interface Gap {
-  row: number;
-  col: number;
-}
+export type CubesEdgeStyle = 'solid' | 'dashed' | 'dotted' | 'none';
 
-interface Duration {
-  enter: number;
-  leave: number;
-}
-
-interface Props {
+interface CubesProps {
   gridSize?: number;
-  cubeSize?: number;
+  gap?: number;
+  faceColor?: string;
+  edgeColor?: string;
+  edgeWidth?: number;
+  edgeStyle?: CubesEdgeStyle;
+  faceOpacity?: number;
+  shading?: number;
   maxAngle?: number;
   radius?: number;
-  easing?: gsap.EaseString;
-  duration?: Duration;
-  cellGap?: number | Gap;
-  borderStyle?: string;
-  faceColor?: string;
-  shadow?: boolean | string;
+  speed?: number;
+  bounce?: number;
+  brush?: number;
+  perspective?: number;
   autoAnimate?: boolean;
   rippleOnClick?: boolean;
   rippleColor?: string;
   rippleSpeed?: number;
+  intro?: boolean;
+  paused?: boolean;
+  dpr?: number;
+  className?: string;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<CubesProps>(), {
   gridSize: 10,
+  gap: 0.18,
+  faceColor: '#111111',
+  edgeColor: '#ffffff',
+  edgeWidth: 1,
+  edgeStyle: 'solid',
+  faceOpacity: 1,
+  shading: 0.6,
   maxAngle: 45,
   radius: 3,
-  easing: 'power3.out',
-  duration: () => ({ enter: 0.3, leave: 0.6 }),
-  borderStyle: '1px solid #fff',
-  faceColor: '#0b0b0b',
-  shadow: false,
+  speed: 1,
+  bounce: 0.4,
+  brush: 1,
+  perspective: 0,
   autoAnimate: true,
   rippleOnClick: true,
-  rippleColor: '#fff',
-  rippleSpeed: 2
+  rippleColor: '#ffffff',
+  rippleSpeed: 1,
+  intro: true,
+  paused: false,
+  dpr: undefined,
+  className: ''
 });
 
-const sceneRef = useTemplateRef<HTMLDivElement>('sceneRef');
-const rafRef = ref<number | null>(null);
-const idleTimerRef = ref<ReturnType<typeof setTimeout> | null>(null);
-const userActiveRef = ref(false);
-const simPosRef = ref<{ x: number; y: number }>({ x: 0, y: 0 });
-const simTargetRef = ref<{ x: number; y: number }>({ x: 0, y: 0 });
-const simRAFRef = ref<number | null>(null);
-
-const colGap = computed(() => {
-  return typeof props.cellGap === 'number'
-    ? `${props.cellGap}px`
-    : (props.cellGap as Gap)?.col !== undefined
-      ? `${(props.cellGap as Gap).col}px`
-      : '5%';
-});
-
-const rowGap = computed(() => {
-  return typeof props.cellGap === 'number'
-    ? `${props.cellGap}px`
-    : (props.cellGap as Gap)?.row !== undefined
-      ? `${(props.cellGap as Gap).row}px`
-      : '5%';
-});
-
-const enterDur = computed(() => props.duration.enter);
-const leaveDur = computed(() => props.duration.leave);
-
-const cells = computed(() => Array.from({ length: props.gridSize }));
-
-const sceneStyle = computed(() => ({
-  gridTemplateColumns: props.cubeSize
-    ? `repeat(${props.gridSize}, ${props.cubeSize}px)`
-    : `repeat(${props.gridSize}, 1fr)`,
-  gridTemplateRows: props.cubeSize
-    ? `repeat(${props.gridSize}, ${props.cubeSize}px)`
-    : `repeat(${props.gridSize}, 1fr)`,
-  columnGap: colGap.value,
-  rowGap: rowGap.value,
-  perspective: '99999999px',
-  gridAutoRows: '1fr'
-}));
-
-const wrapperStyle = computed(() => ({
-  '--cube-face-border': props.borderStyle,
-  '--cube-face-bg': props.faceColor,
-  '--cube-face-shadow': props.shadow === true ? '0 0 6px rgba(0,0,0,.5)' : props.shadow || 'none',
-  ...(props.cubeSize
-    ? {
-        width: `${props.gridSize * props.cubeSize}px`,
-        height: `${props.gridSize * props.cubeSize}px`
-      }
-    : {})
-}));
-
-const tiltAt = (rowCenter: number, colCenter: number) => {
-  if (!sceneRef.value) return;
-
-  sceneRef.value.querySelectorAll<HTMLDivElement>('.cube').forEach(cube => {
-    const r = +cube.dataset.row!;
-    const c = +cube.dataset.col!;
-    const dist = Math.hypot(r - rowCenter, c - colCenter);
-
-    if (dist <= props.radius) {
-      const pct = 1 - dist / props.radius;
-      const angle = pct * props.maxAngle;
-      gsap.to(cube, {
-        duration: enterDur.value,
-        ease: props.easing,
-        overwrite: true,
-        rotateX: -angle,
-        rotateY: angle
-      });
-    } else {
-      gsap.to(cube, {
-        duration: leaveDur.value,
-        ease: 'power3.out',
-        overwrite: true,
-        rotateX: 0,
-        rotateY: 0
-      });
-    }
-  });
+type Settings = {
+  gridSize: number;
+  gap: number;
+  faceColor: string;
+  edgeColor: string;
+  edgeWidth: number;
+  edgeStyle: CubesEdgeStyle;
+  faceOpacity: number;
+  shading: number;
+  maxAngle: number;
+  radius: number;
+  speed: number;
+  bounce: number;
+  brush: number;
+  perspective: number;
+  autoAnimate: boolean;
+  rippleOnClick: boolean;
+  rippleColor: string;
+  rippleSpeed: number;
+  intro: boolean;
+  paused: boolean;
+  dpr?: number;
 };
 
-const onPointerMove = (e: PointerEvent) => {
-  userActiveRef.value = true;
-  if (idleTimerRef.value) clearTimeout(idleTimerRef.value);
+type Quaternion = [number, number, number, number];
 
-  const rect = sceneRef.value!.getBoundingClientRect();
-  const cellW = rect.width / props.gridSize;
-  const cellH = rect.height / props.gridSize;
-  const colCenter = (e.clientX - rect.left) / cellW;
-  const rowCenter = (e.clientY - rect.top) / cellH;
+const VERTEX = `#version 300 es
+in vec3 aPosition;
+in vec3 aNormal;
+in vec2 aUv;
+in vec2 aCenter;
+in vec4 aRotation;
+in vec2 aState;
+uniform mat4 uProjection;
+uniform float uSize;
+out vec3 vNormal;
+out vec2 vUv;
+out float vFlash;
 
-  if (rafRef.value) cancelAnimationFrame(rafRef.value);
-  rafRef.value = requestAnimationFrame(() => tiltAt(rowCenter, colCenter));
+vec3 turn(vec4 q, vec3 v) {
+  return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
+}
 
-  idleTimerRef.value = setTimeout(() => {
-    userActiveRef.value = false;
-  }, 3000);
-};
+void main() {
+  vec3 local = turn(aRotation, aPosition * uSize * aState.y);
+  vNormal = turn(aRotation, aNormal);
+  vUv = aUv;
+  vFlash = aState.x;
+  gl_Position = uProjection * vec4(vec3(aCenter, 0.0) + local, 1.0);
+}`;
 
-const resetAll = () => {
-  if (!sceneRef.value) return;
-  sceneRef.value.querySelectorAll<HTMLDivElement>('.cube').forEach(cube =>
-    gsap.to(cube, {
-      duration: leaveDur.value,
-      rotateX: 0,
-      rotateY: 0,
-      ease: 'power3.out'
-    })
-  );
-};
+const FRAGMENT = `#version 300 es
+precision highp float;
+in vec3 vNormal;
+in vec2 vUv;
+in float vFlash;
+uniform vec3 uFace;
+uniform vec3 uEdge;
+uniform vec3 uRipple;
+uniform vec3 uLight;
+uniform float uShading;
+uniform float uEdgeWidth;
+uniform float uStyle;
+uniform float uMarks;
+uniform float uOpacity;
+out vec4 outColor;
 
-const onClick = (e: MouseEvent) => {
-  if (!props.rippleOnClick || !sceneRef.value) return;
+void main() {
+  vec2 span = max(fwidth(vUv), vec2(0.00001));
+  vec2 border = min(vUv, 1.0 - vUv) / span;
+  bool vertical = border.x < border.y;
+  float distance = min(border.x, border.y);
+  float halfWidth = uEdgeWidth * 0.5;
+  float cover = 1.0 - smoothstep(halfWidth - 0.5, halfWidth + 0.5, distance);
+  float along = vertical ? vUv.y : vUv.x;
+  float phase = along * uMarks;
+  float step = max(vertical ? span.y : span.x, 0.00001) * uMarks;
+  float offset = abs(fract(phase + 0.5) - 0.5);
+  if (uStyle > 0.5 && uStyle < 1.5) {
+    cover *= 1.0 - smoothstep(0.25 - step, 0.25 + step, offset);
+  } else if (uStyle > 1.5 && uStyle < 2.5) {
+    float radius = max(uEdgeWidth * 0.9, 1.0);
+    float dot = length(vec2(offset / step, distance));
+    cover = 1.0 - smoothstep(radius - 0.75, radius + 0.75, dot);
+  } else if (uStyle > 2.5) {
+    cover = 0.0;
+  }
+  vec3 normal = normalize(vNormal);
+  cover *= smoothstep(0.06, 0.28, abs(normal.z));
+  float side = clamp(1.0 - normal.z, 0.0, 1.0);
+  float toward = clamp(0.6 + 0.6 * dot(normalize(normal.xy + vec2(0.00001)), normalize(uLight.xy)), 0.0, 1.0);
+  vec3 face = mix(uFace, uEdge, side * mix(0.12, 0.42, toward) * uShading);
+  face = mix(face, uRipple, vFlash * 0.22);
+  vec3 edge = mix(uEdge, uRipple, vFlash);
+  vec3 color = mix(face, edge, cover);
+  float alpha = mix(uOpacity, 1.0, cover);
+  outColor = vec4(color * alpha, alpha);
+}`;
 
-  const rect = sceneRef.value.getBoundingClientRect();
-  const cellW = rect.width / props.gridSize;
-  const cellH = rect.height / props.gridSize;
-  const colHit = Math.floor((e.clientX - rect.left) / cellW);
-  const rowHit = Math.floor((e.clientY - rect.top) / cellH);
+const FACES = [
+  [0, 0, 1, 1, 0, 0, 0, 1, 0],
+  [0, 0, -1, -1, 0, 0, 0, 1, 0],
+  [1, 0, 0, 0, 0, -1, 0, 1, 0],
+  [-1, 0, 0, 0, 0, 1, 0, 1, 0],
+  [0, 1, 0, 1, 0, 0, 0, 0, -1],
+  [0, -1, 0, 1, 0, 0, 0, 0, 1]
+];
 
-  const baseRingDelay = 0.15;
-  const baseAnimDur = 0.3;
-  const baseHold = 0.6;
-
-  const spreadDelay = baseRingDelay / props.rippleSpeed;
-  const animDuration = baseAnimDur / props.rippleSpeed;
-  const holdTime = baseHold / props.rippleSpeed;
-
-  const rings: Record<number, HTMLDivElement[]> = {};
-  sceneRef.value.querySelectorAll<HTMLDivElement>('.cube').forEach(cube => {
-    const r = +cube.dataset.row!;
-    const c = +cube.dataset.col!;
-    const dist = Math.hypot(r - rowHit, c - colHit);
-    const ring = Math.round(dist);
-    if (!rings[ring]) rings[ring] = [];
-    rings[ring].push(cube);
-  });
-
-  Object.keys(rings)
-    .map(Number)
-    .sort((a, b) => a - b)
-    .forEach(ring => {
-      const delay = ring * spreadDelay;
-      const faces = rings[ring].flatMap(cube => Array.from(cube.querySelectorAll<HTMLElement>('.cube-face')));
-
-      gsap.to(faces, {
-        backgroundColor: props.rippleColor,
-        duration: animDuration,
-        delay,
-        ease: 'power3.out'
-      });
-      gsap.to(faces, {
-        backgroundColor: props.faceColor,
-        duration: animDuration,
-        delay: delay + animDuration + holdTime,
-        ease: 'power3.out'
-      });
+const buildCube = () => {
+  const vertices: number[] = [];
+  const indices: number[] = [];
+  FACES.forEach(([nx, ny, nz, ux, uy, uz, vx, vy, vz], face) => {
+    [
+      [0, 0],
+      [1, 0],
+      [1, 1],
+      [0, 1]
+    ].forEach(([u, v]) => {
+      vertices.push(
+        nx * 0.5 + (u - 0.5) * ux + (v - 0.5) * vx,
+        ny * 0.5 + (u - 0.5) * uy + (v - 0.5) * vy,
+        nz * 0.5 + (u - 0.5) * uz + (v - 0.5) * vz,
+        nx,
+        ny,
+        nz,
+        u,
+        v
+      );
     });
+    const base = face * 4;
+    indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+  });
+  return { vertices: new Float32Array(vertices), indices: new Uint16Array(indices) };
 };
 
-const startAutoAnimation = () => {
-  if (!props.autoAnimate || !sceneRef.value) return;
+const STYLES: Record<CubesEdgeStyle, number> = { solid: 0, dashed: 1, dotted: 2, none: 3 };
+const INTRO_SECONDS = 1.1;
 
-  simPosRef.value = {
-    x: Math.random() * props.gridSize,
-    y: Math.random() * props.gridSize
-  };
-  simTargetRef.value = {
-    x: Math.random() * props.gridSize,
-    y: Math.random() * props.gridSize
-  };
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
-  const speed = 0.02;
-  const loop = () => {
-    if (!userActiveRef.value) {
-      const pos = simPosRef.value;
-      const tgt = simTargetRef.value;
-      pos.x += (tgt.x - pos.x) * speed;
-      pos.y += (tgt.y - pos.y) * speed;
-      tiltAt(pos.y, pos.x);
+const compile = (gl: WebGL2RenderingContext, type: number, source: string) => {
+  const shader = gl.createShader(type);
+  if (!shader) return null;
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  if (gl.getShaderParameter(shader, gl.COMPILE_STATUS)) return shader;
+  gl.deleteShader(shader);
+  return null;
+};
 
-      if (Math.hypot(pos.x - tgt.x, pos.y - tgt.y) < 0.1) {
-        simTargetRef.value = {
-          x: Math.random() * props.gridSize,
-          y: Math.random() * props.gridSize
-        };
-      }
+const link = (gl: WebGL2RenderingContext) => {
+  const vertex = compile(gl, gl.VERTEX_SHADER, VERTEX);
+  const fragment = compile(gl, gl.FRAGMENT_SHADER, FRAGMENT);
+  const program = gl.createProgram();
+  if (!vertex || !fragment || !program) return null;
+  gl.attachShader(program, vertex);
+  gl.attachShader(program, fragment);
+  ['aPosition', 'aNormal', 'aUv', 'aCenter', 'aRotation', 'aState'].forEach((name, index) =>
+    gl.bindAttribLocation(program, index, name)
+  );
+  gl.linkProgram(program);
+  gl.deleteShader(vertex);
+  gl.deleteShader(fragment);
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    gl.deleteProgram(program);
+    return null;
+  }
+  const uniforms: Record<string, WebGLUniformLocation | null> = {};
+  const count = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+  for (let i = 0; i < count; i++) {
+    const info = gl.getActiveUniform(program, i);
+    if (info) uniforms[info.name] = gl.getUniformLocation(program, info.name);
+  }
+  return { program, uniforms };
+};
+
+const toRotation = (rx: number, ry: number, out: Quaternion | Float32Array, offset: number) => {
+  const angle = Math.hypot(rx, ry);
+  if (angle < 0.000001) {
+    out[offset] = 0;
+    out[offset + 1] = 0;
+    out[offset + 2] = 0;
+    out[offset + 3] = 1;
+    return;
+  }
+  const s = Math.sin(angle / 2) / angle;
+  out[offset] = rx * s;
+  out[offset + 1] = ry * s;
+  out[offset + 2] = 0;
+  out[offset + 3] = Math.cos(angle / 2);
+};
+
+const multiply = (a: Quaternion, b: Quaternion, out: Float32Array, offset: number) => {
+  const [ax, ay, az, aw] = a;
+  const [bx, by, bz, bw] = b;
+  out[offset] = aw * bx + ax * bw + ay * bz - az * by;
+  out[offset + 1] = aw * by - ax * bz + ay * bw + az * bx;
+  out[offset + 2] = aw * bz + ax * by - ay * bx + az * bw;
+  out[offset + 3] = aw * bw - ax * bx - ay * by - az * bz;
+};
+
+const projection = (width: number, height: number, scale: number, perspective: number) => {
+  const halfWidth = width / 2 / scale;
+  const halfHeight = height / 2 / scale;
+  const depth = Math.max(halfWidth, halfHeight) * 4 + 4;
+  if (perspective <= 0.001) {
+    return new Float32Array([1 / halfWidth, 0, 0, 0, 0, 1 / halfHeight, 0, 0, 0, 0, -1 / depth, 0, 0, 0, 0, 1]);
+  }
+  const fov = ((8 + perspective * 52) * Math.PI) / 180;
+  const distance = halfHeight / Math.tan(fov / 2);
+  const near = Math.max(0.1, distance - depth);
+  const far = distance + depth;
+  const f = 1 / Math.tan(fov / 2);
+  const aspect = halfWidth / halfHeight;
+  return new Float32Array([
+    f / aspect,
+    0,
+    0,
+    0,
+    0,
+    f,
+    0,
+    0,
+    0,
+    0,
+    (far + near) / (near - far),
+    -1,
+    0,
+    0,
+    (2 * far * near) / (near - far) - ((far + near) / (near - far)) * distance,
+    distance
+  ]);
+};
+
+const containerRef = useTemplateRef<HTMLDivElement>('containerRef');
+const canvasRef = useTemplateRef<HTMLCanvasElement>('canvasRef');
+let wakeFn: (() => void) | null = null;
+let cleanup: (() => void) | undefined;
+
+const getSettings = (): Settings => ({
+  gridSize: Math.round(clamp(props.gridSize, 1, 40)),
+  gap: clamp(props.gap, 0, 0.9),
+  faceColor: String(props.faceColor),
+  edgeColor: String(props.edgeColor),
+  edgeWidth: Math.max(0, props.edgeWidth),
+  edgeStyle: props.edgeStyle,
+  faceOpacity: clamp(props.faceOpacity, 0, 1),
+  shading: Math.max(0, props.shading),
+  maxAngle: props.maxAngle,
+  radius: Math.max(0.5, props.radius),
+  speed: Math.max(0.05, props.speed),
+  bounce: clamp(props.bounce, 0, 1),
+  brush: Math.max(0, props.brush),
+  perspective: clamp(props.perspective, 0, 1),
+  autoAnimate: props.autoAnimate,
+  rippleOnClick: props.rippleOnClick,
+  rippleColor: String(props.rippleColor),
+  rippleSpeed: Math.max(0.05, props.rippleSpeed),
+  intro: props.intro,
+  paused: props.paused,
+  dpr: props.dpr
+});
+
+const start = (): (() => void) | undefined => {
+  const containerEl = containerRef.value;
+  const canvasEl = canvasRef.value;
+  const container = containerEl;
+  const canvas = canvasEl;
+  const gl = canvas?.getContext('webgl2', {
+    alpha: true,
+    premultipliedAlpha: true,
+    antialias: true,
+    depth: true,
+    stencil: false
+  });
+  if (!container || !canvas || !gl) return undefined;
+  const shader = link(gl);
+  if (!shader) return undefined;
+
+  const cube = buildCube();
+  const vao = gl.createVertexArray();
+  gl.bindVertexArray(vao);
+  const vertexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, cube.vertices, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0);
+  gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 32, 0);
+  gl.enableVertexAttribArray(1);
+  gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 32, 12);
+  gl.enableVertexAttribArray(2);
+  gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 32, 24);
+  const indexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, cube.indices, gl.STATIC_DRAW);
+  const instanceBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, instanceBuffer);
+  [
+    [3, 2, 0],
+    [4, 4, 8],
+    [5, 2, 24]
+  ].forEach(([location, size, offset]) => {
+    gl.enableVertexAttribArray(location);
+    gl.vertexAttribPointer(location, size, gl.FLOAT, false, 32, offset);
+    gl.vertexAttribDivisor(location, 1);
+  });
+
+  const probe = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+  const colorCache = new Map<string, [number, number, number]>();
+  const toRgb = (value: string): [number, number, number] => {
+    const cached = colorCache.get(value);
+    if (cached) return cached;
+    let rgb: [number, number, number] = [1, 1, 1];
+    if (probe) {
+      probe.clearRect(0, 0, 1, 1);
+      probe.fillStyle = '#ffffff';
+      probe.fillStyle = value;
+      probe.fillRect(0, 0, 1, 1);
+      const [r, g, b] = probe.getImageData(0, 0, 1, 1).data;
+      rgb = [r / 255, g / 255, b / 255];
     }
-    simRAFRef.value = requestAnimationFrame(loop);
+    colorCache.set(value, rgb);
+    return rgb;
   };
-  simRAFRef.value = requestAnimationFrame(loop);
+
+  const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  const view = { width: 1, height: 1, ratio: 1, scale: 1 };
+  const pointer = { x: 0, y: 0, inside: false, moved: 0 };
+  const cursor = { x: 0, y: 0, vx: 0, vy: 0, weight: 0, primed: false };
+  const grid = { size: 0, count: 0 };
+  let rx = new Float32Array(0);
+  let ry = new Float32Array(0);
+  let wx = new Float32Array(0);
+  let wy = new Float32Array(0);
+  let glow = new Float32Array(0);
+  const rings: { x: number; y: number; born: number }[] = [];
+  let delays = new Float32Array(0);
+  let instances = new Float32Array(0);
+  let clock = 0;
+  let introClock = getSettings().intro && !reduce ? 0 : 99;
+  let raf = 0;
+  let last = 0;
+  let visible = true;
+
+  const allocate = (size: number) => {
+    if (grid.size === size) return;
+    grid.size = size;
+    grid.count = size * size;
+    rx = new Float32Array(grid.count);
+    ry = new Float32Array(grid.count);
+    wx = new Float32Array(grid.count);
+    wy = new Float32Array(grid.count);
+    glow = new Float32Array(grid.count);
+    delays = new Float32Array(grid.count);
+    instances = new Float32Array(grid.count * 8);
+    const center = (size - 1) / 2;
+    for (let i = 0; i < grid.count; i++) {
+      const col = i % size;
+      const row = Math.floor(i / size);
+      delays[i] = Math.hypot(col - center, row - center) / Math.max(1, size / 2);
+    }
+  };
+
+  const cellOf = (i: number) => {
+    const size = grid.size;
+    const center = (size - 1) / 2;
+    return [(i % size) - center, center - Math.floor(i / size)];
+  };
+
+  const toWorld = (x: number, y: number): [number, number] => [
+    (x - view.width / 2) / view.scale,
+    (view.height / 2 - y) / view.scale
+  ];
+
+  const ripple = (x: number, y: number) => {
+    const s = getSettings();
+    if (!s.rippleOnClick || reduce) return;
+    const [ox, oy] = toWorld(x, y);
+    rings.push({ x: ox, y: oy, born: clock });
+    if (rings.length > 6) rings.shift();
+    wake();
+  };
+
+  const render = () => {
+    const s = getSettings();
+    const width = canvas.width;
+    const height = canvas.height;
+    gl.viewport(0, 0, width, height);
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    if (!grid.count) return;
+
+    gl.useProgram(shader.program);
+    gl.bindVertexArray(vao);
+    gl.bindBuffer(gl.ARRAY_BUFFER, instanceBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, instances, gl.DYNAMIC_DRAW);
+    const u = shader.uniforms;
+    gl.uniformMatrix4fv(u.uProjection, false, projection(view.width, view.height, view.scale, s.perspective));
+    gl.uniform1f(u.uSize, 1 - s.gap);
+    gl.uniform3fv(u.uFace, toRgb(s.faceColor));
+    gl.uniform3fv(u.uEdge, toRgb(s.edgeColor));
+    gl.uniform3fv(u.uRipple, toRgb(s.rippleColor));
+    const light = [-0.42, 0.55, 0.72];
+    const length = Math.hypot(...light);
+    gl.uniform3f(u.uLight, light[0] / length, light[1] / length, light[2] / length);
+    gl.uniform1f(u.uShading, s.shading);
+    gl.uniform1f(u.uEdgeWidth, s.edgeWidth * view.ratio);
+    gl.uniform1f(u.uStyle, STYLES[s.edgeStyle] ?? 0);
+    const cubePixels = (1 - s.gap) * view.scale;
+    const spacing = s.edgeStyle === 'dotted' ? Math.max(4, s.edgeWidth * 4) : Math.max(6, s.edgeWidth * 6);
+    gl.uniform1f(u.uMarks, Math.max(1, Math.round(cubePixels / spacing)));
+    gl.uniform1f(u.uOpacity, s.faceOpacity);
+
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    if (s.faceOpacity >= 0.999) {
+      gl.depthMask(true);
+      gl.cullFace(gl.BACK);
+      gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0, grid.count);
+    } else {
+      gl.depthMask(false);
+      gl.cullFace(gl.FRONT);
+      gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0, grid.count);
+      gl.cullFace(gl.BACK);
+      gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0, grid.count);
+      gl.depthMask(true);
+    }
+  };
+
+  const step = (dt: number) => {
+    const s = getSettings();
+    allocate(s.gridSize);
+    clock += dt;
+    if (introClock < 99) introClock += dt;
+
+    const live = s.autoAnimate && !reduce && (!pointer.inside || clock - pointer.moved > 3);
+    let goalX = cursor.x;
+    let goalY = cursor.y;
+    let engaged = false;
+    if (pointer.inside && clock - pointer.moved <= 3) {
+      [goalX, goalY] = toWorld(pointer.x, pointer.y);
+      engaged = true;
+    } else if (live) {
+      const reach = grid.size * 0.42;
+      goalX = Math.sin(clock * 0.37) * reach * Math.cos(clock * 0.11);
+      goalY = Math.sin(clock * 0.53 + 1.2) * reach;
+      engaged = true;
+    }
+    if (!cursor.primed && engaged) {
+      cursor.x = goalX;
+      cursor.y = goalY;
+      cursor.primed = true;
+    }
+    const follow = 1 - Math.exp(-dt * 18);
+    const prevX = cursor.x;
+    const prevY = cursor.y;
+    cursor.x += (goalX - cursor.x) * follow;
+    cursor.y += (goalY - cursor.y) * follow;
+    const blend = 1 - Math.exp(-dt * 10);
+    cursor.vx += ((cursor.x - prevX) / Math.max(dt, 0.001) - cursor.vx) * blend;
+    cursor.vy += ((cursor.y - prevY) / Math.max(dt, 0.001) - cursor.vy) * blend;
+    cursor.weight += ((engaged ? 1 : 0) - cursor.weight) * (1 - Math.exp(-dt * (engaged ? 6 : 2.5)));
+
+    const stiffness = 160 * s.speed * s.speed;
+    const damping = 2 * (1 - 0.82 * s.bounce) * Math.sqrt(stiffness);
+    const maxAngle = (s.maxAngle * Math.PI) / 180;
+    const lift = 0.8;
+    const travel = 8 * s.rippleSpeed;
+    const fade = Math.exp(-dt * 3.2);
+    const reachLimit = grid.size * 1.5 + 2;
+    for (let k = rings.length - 1; k >= 0; k--) {
+      if ((clock - rings[k].born) * travel > reachLimit) rings.splice(k, 1);
+    }
+    const speedNow = Math.hypot(cursor.vx, cursor.vy);
+    const sweepX = speedNow > 0.0001 ? -cursor.vy / speedNow : 0;
+    const sweepY = speedNow > 0.0001 ? cursor.vx / speedNow : 0;
+    const sweep = reduce ? 0 : Math.min(speedNow, 40) * s.brush * 1.6;
+    let moving = false;
+
+    for (let i = 0; i < grid.count; i++) {
+      const [cx, cy] = cellOf(i);
+      const dx = cx - cursor.x;
+      const dy = cy - cursor.y;
+      const distance = Math.hypot(dx, dy);
+      const t = distance / s.radius;
+      const falloff = t < 1 ? (1 - t * t) * (1 - t * t) * cursor.weight : 0;
+      let targetX = 0;
+      let targetY = 0;
+      if (falloff > 0 && distance > 0.0001) {
+        const tilt = maxAngle * falloff * (distance / Math.hypot(distance, lift));
+        targetX = (dy / distance) * tilt;
+        targetY = (-dx / distance) * tilt;
+      }
+      if (falloff > 0 && sweep > 0) {
+        wx[i] += sweepX * sweep * falloff * dt * 4;
+        wy[i] += sweepY * sweep * falloff * dt * 4;
+      }
+      glow[i] *= fade;
+      for (let k = 0; k < rings.length; k++) {
+        const ring = rings[k];
+        const ox = cx - ring.x;
+        const oy = cy - ring.y;
+        const reach = Math.hypot(ox, oy);
+        const now = (clock - ring.born) * travel;
+        if (reach > now || reach <= now - travel * dt || reach < 0.0001) continue;
+        const strength = Math.exp(-reach / (grid.size * 0.8));
+        wx[i] -= (oy / reach) * 13 * strength;
+        wy[i] += (ox / reach) * 13 * strength;
+        glow[i] = Math.max(glow[i], strength);
+      }
+      if (glow[i] > 0.01) moving = true;
+      if (reduce) {
+        rx[i] = targetX;
+        ry[i] = targetY;
+        wx[i] = 0;
+        wy[i] = 0;
+      } else {
+        wx[i] += (stiffness * (targetX - rx[i]) - damping * wx[i]) * dt;
+        wy[i] += (stiffness * (targetY - ry[i]) - damping * wy[i]) * dt;
+        rx[i] += wx[i] * dt;
+        ry[i] += wy[i] * dt;
+      }
+      if (
+        Math.abs(targetX - rx[i]) + Math.abs(targetY - ry[i]) > 0.0005 ||
+        Math.abs(wx[i]) + Math.abs(wy[i]) > 0.0005
+      ) {
+        moving = true;
+      }
+
+      let grow = 1;
+      let tumble = 0;
+      if (introClock < 99) {
+        const local = clamp((introClock - delays[i] * 0.55) / INTRO_SECONDS, 0, 1);
+        const eased = 1 - Math.pow(1 - local, 3);
+        grow = eased;
+        tumble = (1 - eased) * (Math.PI / 2);
+        if (local < 1) moving = true;
+      }
+
+      const tilt: Quaternion = [0, 0, 0, 1];
+      toRotation(rx[i], ry[i], tilt, 0);
+      const turn: Quaternion = [Math.sin(tumble / 2), 0, 0, Math.cos(tumble / 2)];
+      const base = i * 8;
+      instances[base] = cx;
+      instances[base + 1] = cy;
+      multiply(tilt, turn, instances, base + 2);
+      instances[base + 6] = glow[i];
+      instances[base + 7] = grow;
+    }
+    if (introClock >= INTRO_SECONDS + 0.6 && introClock < 99) introClock = 99;
+    return (
+      moving ||
+      live ||
+      rings.length > 0 ||
+      (engaged && speedNow > 0.01) ||
+      Math.abs((engaged ? 1 : 0) - cursor.weight) > 0.002
+    );
+  };
+
+  const frame = (now: number) => {
+    raf = 0;
+    if (!visible || document.hidden) return;
+    const s = getSettings();
+    const dt = last ? Math.min(0.05, (now - last) / 1000) : 1 / 60;
+    last = now;
+    const active = s.paused ? false : step(dt);
+    render();
+    if (active) raf = requestAnimationFrame(frame);
+    else last = 0;
+  };
+
+  const wake = () => {
+    if (!raf && visible && !document.hidden) raf = requestAnimationFrame(frame);
+  };
+
+  const resize = () => {
+    const s = getSettings();
+    const width = Math.max(1, container.clientWidth);
+    const height = Math.max(1, container.clientHeight);
+    view.ratio = Math.min(s.dpr || window.devicePixelRatio || 1, 2);
+    view.width = width;
+    view.height = height;
+    view.scale = Math.min(width, height) / (s.gridSize + 0.9);
+    canvas.width = Math.max(1, Math.round(width * view.ratio));
+    canvas.height = Math.max(1, Math.round(height * view.ratio));
+    allocate(s.gridSize);
+    step(0);
+    render();
+    wake();
+  };
+
+  const onPointerMove = (event: PointerEvent) => {
+    const rect = container.getBoundingClientRect();
+    pointer.x = event.clientX - rect.left;
+    pointer.y = event.clientY - rect.top;
+    pointer.inside = pointer.x >= 0 && pointer.y >= 0 && pointer.x <= rect.width && pointer.y <= rect.height;
+    if (pointer.inside) pointer.moved = clock;
+    wake();
+  };
+
+  const onPointerLeave = () => {
+    pointer.inside = false;
+    wake();
+  };
+
+  const onPointerDown = (event: PointerEvent) => {
+    const rect = container.getBoundingClientRect();
+    ripple(event.clientX - rect.left, event.clientY - rect.top);
+  };
+
+  const onVisibility = () => {
+    last = 0;
+    wake();
+  };
+
+  const resizeObserver = new ResizeObserver(resize);
+  resizeObserver.observe(container);
+  const intersection = new IntersectionObserver(entries => {
+    visible = entries.some(entry => entry.isIntersecting);
+    if (visible) {
+      last = 0;
+      wake();
+    }
+  });
+  intersection.observe(container);
+  window.addEventListener('pointermove', onPointerMove, { passive: true });
+  document.documentElement.addEventListener('pointerleave', onPointerLeave);
+  container.addEventListener('pointerdown', onPointerDown);
+  document.addEventListener('visibilitychange', onVisibility);
+  resize();
+
+  let lastSize = getSettings().gridSize;
+  let lastDpr = getSettings().dpr;
+  wakeFn = () => {
+    const s = getSettings();
+    if (s.gridSize !== lastSize || s.dpr !== lastDpr) {
+      lastSize = s.gridSize;
+      lastDpr = s.dpr;
+      resize();
+      return;
+    }
+    if (!raf) {
+      step(0);
+      render();
+    }
+    wake();
+  };
+
+  return () => {
+    cancelAnimationFrame(raf);
+    wakeFn = null;
+    resizeObserver.disconnect();
+    intersection.disconnect();
+    window.removeEventListener('pointermove', onPointerMove);
+    document.documentElement.removeEventListener('pointerleave', onPointerLeave);
+    container.removeEventListener('pointerdown', onPointerDown);
+    document.removeEventListener('visibilitychange', onVisibility);
+    gl.deleteBuffer(vertexBuffer);
+    gl.deleteBuffer(indexBuffer);
+    gl.deleteBuffer(instanceBuffer);
+    gl.deleteVertexArray(vao);
+    gl.deleteProgram(shader.program);
+  };
 };
 
 onMounted(() => {
-  const el = sceneRef.value;
-  if (!el) return;
-
-  el.addEventListener('pointermove', onPointerMove);
-  el.addEventListener('pointerleave', resetAll);
-  el.addEventListener('click', onClick);
-
-  startAutoAnimation();
+  cleanup = start();
 });
 
-onUnmounted(() => {
-  const el = sceneRef.value;
-  if (el) {
-    el.removeEventListener('pointermove', onPointerMove);
-    el.removeEventListener('pointerleave', resetAll);
-    el.removeEventListener('click', onClick);
-  }
-
-  if (rafRef.value !== null) cancelAnimationFrame(rafRef.value);
-  if (idleTimerRef.value !== null) clearTimeout(idleTimerRef.value);
-  if (simRAFRef.value !== null) cancelAnimationFrame(simRAFRef.value);
+onBeforeUnmount(() => {
+  cleanup?.();
+  cleanup = undefined;
 });
+
+watch(
+  () => getSettings(),
+  () => wakeFn?.(),
+  { deep: true }
+);
 </script>
+
+<template>
+  <div ref="containerRef" :class="['cubes-container', className]">
+    <canvas ref="canvasRef" class="cubes-canvas" aria-hidden="true" />
+  </div>
+</template>
+
+<style>
+.cubes-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.cubes-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+</style>

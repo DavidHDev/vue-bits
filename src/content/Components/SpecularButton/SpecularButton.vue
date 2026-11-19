@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, type CSSProperties } from 'vue';
-import { Renderer, Program, Mesh, Triangle, Color } from 'ogl';
+import { computed, onMounted, onUnmounted, ref, watch, type CSSProperties } from 'vue';
 
-export type ButtonSize = 'sm' | 'md' | 'lg';
+export type SpecularButtonSize = 'sm' | 'md' | 'lg';
 
-interface SpecularButtonProps {
-  size?: ButtonSize;
+export interface SpecularButtonProps {
+  size?: SpecularButtonSize;
   radius?: number;
   tint?: string;
   tintOpacity?: number;
@@ -14,267 +13,581 @@ interface SpecularButtonProps {
   lineColor?: string;
   baseColor?: string;
   intensity?: number;
+  idleIntensity?: number;
   shineSize?: number;
   shineFade?: number;
   thickness?: number;
+  glow?: number;
   speed?: number;
   followMouse?: boolean;
   proximity?: number;
   autoAnimate?: boolean;
   disabled?: boolean;
   type?: 'button' | 'submit' | 'reset';
+  className?: string;
+  style?: CSSProperties;
 }
 
-const PAD = 20;
-
-const SIZES: Record<ButtonSize, string> = {
-  sm: 'text-[0.85rem] px-[22px] py-[10px]',
-  md: 'text-[1rem] px-[30px] py-[14px]',
-  lg: 'text-[1.15rem] px-10 py-[18px]'
+type Settings = {
+  radius: number;
+  lineColor: string;
+  baseColor: string;
+  intensity: number;
+  idleIntensity: number;
+  shineSize: number;
+  shineFade: number;
+  thickness: number;
+  glow: number;
+  speed: number;
+  followMouse: boolean;
+  proximity: number;
+  autoAnimate: boolean;
+  disabled: boolean;
 };
 
-const VERT = `#version 300 es
-in vec2 position;
+const PAD = 24;
+const TAU = Math.PI * 2;
+
+const VERTEX = `#version 300 es
+in vec2 aPosition;
 void main() {
-  gl_Position = vec4(position, 0.0, 1.0);
-}
-`;
+  gl_Position = vec4(aPosition, 0.0, 1.0);
+}`;
 
-const FRAG = `#version 300 es
+const FRAGMENT = `#version 300 es
 precision highp float;
-
 uniform vec2 uCenter;
-uniform vec2 uHalfSize;
+uniform vec2 uHalf;
 uniform float uRadius;
-uniform float uAngle;
 uniform float uPx;
+uniform float uSpot;
+uniform vec2 uEntry;
 uniform vec3 uLineColor;
 uniform vec3 uBaseColor;
 uniform float uIntensity;
-uniform float uShineSize;
-uniform float uShineFade;
+uniform vec2 uWindow;
 uniform float uThickness;
-uniform float uBaseWidth;
+uniform float uGlow;
+out vec4 outColor;
 
-out vec4 fragColor;
-
-float sdRoundedRect(vec2 p, vec2 b, float r) {
+float roundedBox(vec2 p, vec2 b, float r) {
   vec2 q = abs(p) - b + r;
   return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
 }
 
-float shapeSDF(vec2 p) { return sdRoundedRect(p, uHalfSize, uRadius); }
+float loopPosition(vec2 p, vec2 b, float r) {
+  vec2 inner = b - r;
+  float arc = 1.5707963 * r;
+  float quarter = inner.x + inner.y + arc;
+  vec2 a = abs(p);
+  vec2 q = a - inner;
+  float s = q.x > 0.0 && q.y > 0.0
+    ? inner.y + atan(q.y, q.x) * r
+    : (q.x > q.y ? min(a.y, inner.y) : inner.y + arc + inner.x - min(a.x, inner.x));
+  if (p.x < 0.0) s = p.y >= 0.0 ? 2.0 * quarter - s : 2.0 * quarter + s;
+  else if (p.y < 0.0) s = 4.0 * quarter - s;
+  return s / max(4.0 * quarter, 0.0001);
+}
 
-float gaussianLine(float d, float sigma) {
-  float x = d / (sigma + 1e-6);
-  float k = mix(1.0, 1.6, smoothstep(0.0, 1.5, x));
-  return exp(-k * x * x);
+float lobe(float position, float center) {
+  float gap = abs(fract(position - center + 0.5) - 0.5);
+  return 1.0 - smoothstep(uWindow.x, uWindow.x + uWindow.y, gap);
 }
 
 void main() {
   vec2 p = gl_FragCoord.xy - uCenter;
-  float d = shapeSDF(p);
-  vec2 L = vec2(cos(uAngle), sin(uAngle));
+  float d = roundedBox(p, uHalf, uRadius);
+  float position = loopPosition(p, uHalf, uRadius);
+  float key = lobe(position, uSpot);
+  float back = lobe(position, uSpot + 0.5);
+  float streak = key + back * 0.45;
+  float width = max(uThickness * uPx * mix(1.0, max(key, back), 0.6), 0.35);
+  float band = smoothstep(-width - 0.6, -width + 0.6, d) * (1.0 - smoothstep(-0.6, 0.6, d));
+  float hair = smoothstep(-uPx - 0.6, -uPx + 0.6, d) * (1.0 - smoothstep(-0.6, 0.6, d));
+  float inside = 1.0 - smoothstep(-0.6, 0.6, d);
+  vec2 pool = (p - uEntry) / (uHalf.y * vec2(1.6, 1.1));
+  float glow = streak * 0.2 * exp(-abs(d + width * 0.5) / (5.0 * uPx)) + inside * 0.08 * exp(-dot(pool, pool));
+  float light = clamp((band * streak + glow * uGlow) * uIntensity, 0.0, 1.0);
+  vec4 base = vec4(uBaseColor, 1.0) * hair * 0.6;
+  outColor = vec4(uLineColor, 1.0) * light + base * (1.0 - light);
+}`;
 
-  // Dark base stroke hugging the edge for a sense of thickness
-  float base = (1.0 - smoothstep(0.0, uBaseWidth, abs(d))) * 0.45;
+const UNIFORMS = [
+  'uCenter',
+  'uHalf',
+  'uRadius',
+  'uPx',
+  'uSpot',
+  'uEntry',
+  'uLineColor',
+  'uBaseColor',
+  'uIntensity',
+  'uWindow',
+  'uThickness',
+  'uGlow'
+];
 
-  // Symmetric specular: the edges facing toward/away from the light both
-  // catch a streak. The angular window (size + fade) is measured with an
-  // elliptical normal so it varies continuously along straight edges.
-  vec2 nEll = normalize(p / (uHalfSize * uHalfSize) + 1e-6);
-  float phi = acos(clamp(abs(dot(nEll, L)), 0.0, 1.0));
-  float rim = 1.0 - smoothstep(uShineSize - uShineFade, uShineSize + uShineFade + 1e-4, phi);
-  float line = gaussianLine(d, uThickness);
-  float edgeClamp = 1.0 - smoothstep(0.5 * uPx, 3.0 * uPx, abs(d));
-  float hi = line * rim * edgeClamp * uIntensity;
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
-  vec3 col = uBaseColor * base + uLineColor * hi;
-  float a = clamp(base + hi, 0.0, 1.0);
-  fragColor = vec4(col, a);
-}
-`;
+const wrap = (value: number) => value - Math.floor(value);
+
+const loopPosition = (x: number, y: number, halfX: number, halfY: number, r: number) => {
+  const innerX = halfX - r;
+  const innerY = halfY - r;
+  const arc = (Math.PI / 2) * r;
+  const quarter = innerX + innerY + arc;
+  const ax = Math.abs(x);
+  const ay = Math.abs(y);
+  const qx = ax - innerX;
+  const qy = ay - innerY;
+  let s;
+  if (qx > 0 && qy > 0) s = innerY + Math.atan2(qy, qx) * r;
+  else if (qx > qy) s = Math.min(ay, innerY);
+  else s = innerY + arc + innerX - Math.min(ax, innerX);
+  if (x < 0) s = y >= 0 ? 2 * quarter - s : 2 * quarter + s;
+  else if (y < 0) s = 4 * quarter - s;
+  return wrap(s / Math.max(4 * quarter, 0.0001));
+};
+
+const rimPoint = (position: number, halfX: number, halfY: number, r: number): [number, number] => {
+  const innerX = halfX - r;
+  const innerY = halfY - r;
+  const arc = (Math.PI / 2) * r;
+  const quarter = innerX + innerY + arc;
+  let s = wrap(position) * 4 * quarter;
+  let signX = 1;
+  let signY = 1;
+  if (s > 3 * quarter) {
+    s = 4 * quarter - s;
+    signY = -1;
+  } else if (s > 2 * quarter) {
+    s -= 2 * quarter;
+    signX = -1;
+    signY = -1;
+  } else if (s > quarter) {
+    s = 2 * quarter - s;
+    signX = -1;
+  }
+  let x = innerX - (s - innerY - arc);
+  let y = halfY;
+  if (s <= innerY) {
+    x = halfX;
+    y = s;
+  } else if (s <= innerY + arc) {
+    const angle = (s - innerY) / Math.max(r, 0.0001);
+    x = innerX + Math.cos(angle) * r;
+    y = innerY + Math.sin(angle) * r;
+  }
+  return [x * signX, y * signY];
+};
+
+const compile = (gl: WebGL2RenderingContext, type: number, source: string) => {
+  const shader = gl.createShader(type);
+  if (!shader) return null;
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  if (gl.getShaderParameter(shader, gl.COMPILE_STATUS)) return shader;
+  gl.deleteShader(shader);
+  return null;
+};
+
+const link = (gl: WebGL2RenderingContext) => {
+  const vertex = compile(gl, gl.VERTEX_SHADER, VERTEX);
+  const fragment = compile(gl, gl.FRAGMENT_SHADER, FRAGMENT);
+  const program = gl.createProgram();
+  if (!vertex || !fragment || !program) return null;
+  gl.attachShader(program, vertex);
+  gl.attachShader(program, fragment);
+  gl.bindAttribLocation(program, 0, 'aPosition');
+  gl.linkProgram(program);
+  gl.deleteShader(vertex);
+  gl.deleteShader(fragment);
+  if (gl.getProgramParameter(program, gl.LINK_STATUS)) return program;
+  gl.deleteProgram(program);
+  return null;
+};
 
 const props = withDefaults(defineProps<SpecularButtonProps>(), {
   size: 'lg',
   radius: 18,
   tint: '#ffffff',
-  tintOpacity: 0,
+  tintOpacity: 0.04,
   blur: 0,
   textColor: '#f5f5f5',
   lineColor: '#ffffff',
   baseColor: '#525252',
   intensity: 1,
+  idleIntensity: 0.35,
   shineSize: 10,
-  shineFade: 40,
-  thickness: 1,
+  shineFade: 34,
+  thickness: 1.2,
+  glow: 1,
   speed: 0.35,
   followMouse: true,
   proximity: 250,
   autoAnimate: false,
   disabled: false,
-  type: 'button'
+  type: 'button',
+  className: '',
+  style: undefined
 });
 
-const btnRef = ref<HTMLButtonElement | null>(null);
-const fxRef = ref<HTMLSpanElement | null>(null);
+const emit = defineEmits<{ click: [event: MouseEvent] }>();
 
-const sizeClass = computed(() => SIZES[props.size] || SIZES.md);
+const buttonRef = ref<HTMLButtonElement | null>(null);
+const canvasRef = ref<HTMLCanvasElement | null>(null);
+let wakeFn: (() => void) | null = null;
+let cleanup: (() => void) | null = null;
 
-const buttonStyle = computed<CSSProperties>(
+const settings = computed<Settings>(() => ({
+  radius: Math.max(0, props.radius),
+  lineColor: String(props.lineColor),
+  baseColor: String(props.baseColor),
+  intensity: Math.max(0, props.intensity),
+  idleIntensity: clamp(props.idleIntensity, 0, 1),
+  shineSize: Math.max(0, props.shineSize),
+  shineFade: Math.max(0, props.shineFade),
+  thickness: Math.max(0, props.thickness),
+  glow: Math.max(0, props.glow),
+  speed: props.speed,
+  followMouse: props.followMouse,
+  proximity: Math.max(1, props.proximity),
+  autoAnimate: props.autoAnimate,
+  disabled: props.disabled
+}));
+
+const buttonClass = computed(
+  () => `specular-button specular-button--${props.size}${props.className ? ` ${props.className}` : ''}`
+);
+
+const buttonStyle = computed(
   () =>
     ({
       '--sb-radius': `${props.radius}px`,
       '--sb-tint': props.tint,
       '--sb-tint-opacity': props.tintOpacity,
       '--sb-blur': `${props.blur}px`,
-      '--sb-text-color': props.textColor
+      '--sb-text-color': props.textColor,
+      ...props.style
     }) as CSSProperties
 );
 
 onMounted(() => {
-  const btn = btnRef.value;
-  const fx = fxRef.value;
-  if (!btn || !fx) return;
-
-  const dpr = window.devicePixelRatio || 1;
-  const renderer = new Renderer({ alpha: true, premultipliedAlpha: true, antialias: true, dpr });
-  const gl = renderer.gl;
-  gl.clearColor(0, 0, 0, 0);
-  gl.enable(gl.BLEND);
-  gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-
-  const geometry = new Triangle(gl);
-  if (geometry.attributes.uv) delete geometry.attributes.uv;
-
-  const program = new Program(gl, {
-    vertex: VERT,
-    fragment: FRAG,
-    uniforms: {
-      uCenter: { value: [0, 0] },
-      uHalfSize: { value: [1, 1] },
-      uRadius: { value: 0 },
-      uAngle: { value: 2.4 },
-      uPx: { value: dpr },
-      uLineColor: { value: [1, 1, 1] },
-      uBaseColor: { value: [0.32, 0.32, 0.32] },
-      uIntensity: { value: 1 },
-      uShineSize: { value: 0.17 },
-      uShineFade: { value: 0.7 },
-      uThickness: { value: 1 },
-      uBaseWidth: { value: dpr }
-    }
+  const button = buttonRef.value;
+  const canvas = canvasRef.value;
+  const gl = canvas?.getContext('webgl2', {
+    alpha: true,
+    premultipliedAlpha: true,
+    antialias: false,
+    depth: false,
+    stencil: false
   });
+  if (!button || !canvas || !gl) return;
+  const program = link(gl);
+  if (!program) return;
+  const uniforms: Record<string, WebGLUniformLocation | null> = {};
+  for (const name of UNIFORMS) uniforms[name] = gl.getUniformLocation(program, name);
+  const buffer = gl.createBuffer();
+  const vao = gl.createVertexArray();
+  gl.bindVertexArray(vao);
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0);
+  gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  gl.bindVertexArray(null);
 
-  const mesh = new Mesh(gl, { geometry, program });
-  fx.appendChild(gl.canvas);
-
-  const sizeRef = { w: 1, h: 1 };
-  const resize = () => {
-    // Fractional size + explicit center keep the SDF pinned to the exact
-    // CSS border, instead of drifting up to a pixel from offsetWidth rounding.
-    const rect = btn.getBoundingClientRect();
-    const w = rect.width;
-    const h = rect.height;
-    sizeRef.w = w;
-    sizeRef.h = h;
-    renderer.setSize(w + PAD * 2, h + PAD * 2);
-    program.uniforms.uCenter.value = [(PAD + w / 2) * dpr, (PAD + h / 2) * dpr];
-    program.uniforms.uHalfSize.value = [(w / 2) * dpr, (h / 2) * dpr];
-  };
-  const ro = new ResizeObserver(resize);
-  ro.observe(btn);
-  resize();
-
-  // Light angle steers toward the pointer (anywhere on the page) and falls
-  // back to a slow sweep when the pointer hasn't moved yet.
-  let pointerAngle: number | null = null;
-  let proximityT = 0;
-  const onPointerMove = (e: PointerEvent) => {
-    const rect = btn.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const dx = Math.max(rect.left - e.clientX, 0, e.clientX - rect.right);
-    const dy = Math.max(rect.top - e.clientY, 0, e.clientY - rect.bottom);
-    const dist = Math.hypot(dx, dy);
-    // Over the button itself the light settles on the diagonal (framing the
-    // corners) and gently sways with the cursor position within the button.
-    if (dist === 0) {
-      const nx = (e.clientX - cx) / (rect.width / 2);
-      const ny = (cy - e.clientY) / (rect.height / 2);
-      pointerAngle = Math.atan2(2 / rect.height, -2 / rect.width) + nx * 0.3 + ny * 0.15;
-    } else {
-      pointerAngle = Math.atan2(cy - e.clientY, e.clientX - cx);
-    }
-    const t = Math.max(0, 1 - dist / Math.max(props.proximity, 1));
-    proximityT = t * t * (3 - 2 * t);
-  };
-  window.addEventListener('pointermove', onPointerMove);
-
-  let angle = 2.4;
-  let idleAngle = 2.4;
-  let bright = 0;
-  let last = performance.now();
+  const probe = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+  const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  const colors = new Map<string, number[]>();
+  const view = { width: 1, height: 1, ratio: 1 };
+  const pointer = { x: 0, y: 0, known: false };
+  const state = { spot: 0, level: 0, press: 0, ready: false };
   let raf = 0;
+  let last = 0;
+  let visible = true;
 
-  const lineC = new Color();
-  const baseC = new Color();
-
-  const update = (now: number) => {
-    raf = requestAnimationFrame(update);
-    const dt = Math.min((now - last) / 1000, 0.05);
-    last = now;
-
-    idleAngle += props.speed * dt;
-    const steer = props.followMouse && pointerAngle != null && (!props.autoAnimate || proximityT > 0);
-    const target = steer ? pointerAngle! : idleAngle;
-    const diff = ((target - angle + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
-    angle += diff * (1 - Math.exp(-dt * 7));
-
-    // Shine fades in with pointer proximity unless autoAnimate keeps it on
-    const brightTarget = props.autoAnimate ? 1 : proximityT;
-    bright += (brightTarget - bright) * (1 - Math.exp(-dt * 8));
-
-    lineC.set(props.lineColor);
-    baseC.set(props.baseColor);
-    program.uniforms.uAngle.value = angle;
-    program.uniforms.uRadius.value = Math.min(props.radius, Math.min(sizeRef.w, sizeRef.h) / 2) * dpr;
-    program.uniforms.uLineColor.value = [lineC.r, lineC.g, lineC.b];
-    program.uniforms.uBaseColor.value = [baseC.r, baseC.g, baseC.b];
-    program.uniforms.uIntensity.value = props.intensity * bright;
-    program.uniforms.uShineSize.value = (props.shineSize * Math.PI) / 180;
-    program.uniforms.uShineFade.value = (props.shineFade * Math.PI) / 180;
-    program.uniforms.uThickness.value = props.thickness * dpr;
-    renderer.render({ scene: mesh });
+  const toRgb = (value: string): number[] => {
+    const cached = colors.get(value);
+    if (cached) return cached;
+    let rgb = [1, 1, 1];
+    if (probe) {
+      probe.clearRect(0, 0, 1, 1);
+      probe.fillStyle = '#000000';
+      probe.fillStyle = value;
+      probe.fillRect(0, 0, 1, 1);
+      const [r, g, b] = probe.getImageData(0, 0, 1, 1).data;
+      rgb = [r / 255, g / 255, b / 255];
+    }
+    colors.set(value, rgb);
+    return rgb;
   };
-  raf = requestAnimationFrame(update);
 
-  onUnmounted(() => {
-    cancelAnimationFrame(raf);
-    ro.disconnect();
-    window.removeEventListener('pointermove', onPointerMove);
-    if (gl.canvas.parentNode === fx) fx.removeChild(gl.canvas);
-    gl.getExtension('WEBGL_lose_context')?.loseContext();
+  const cornerRadius = (s: Settings) => Math.min(s.radius, view.width / 2, view.height / 2);
+
+  const restSpot = (s: Settings) => {
+    const r = cornerRadius(s);
+    const inset = r * (1 - Math.SQRT1_2);
+    return loopPosition(inset - view.width / 2, view.height / 2 - inset, view.width / 2, view.height / 2, r);
+  };
+
+  const aim = (s: Settings) => {
+    if (!s.followMouse || s.disabled || !pointer.known) return null;
+    const rect = button.getBoundingClientRect();
+    const scale = rect.width / view.width || 1;
+    const halfX = view.width / 2;
+    const halfY = view.height / 2;
+    const x = (pointer.x - rect.left - rect.width / 2) / scale;
+    const y = (rect.top + rect.height / 2 - pointer.y) / scale;
+    const distance = Math.hypot(Math.max(Math.abs(x) - halfX, 0), Math.max(Math.abs(y) - halfY, 0));
+    const t = clamp(1 - distance / s.proximity, 0, 1);
+    const near = t * t * (3 - 2 * t);
+    const nearest = loopPosition(x, y, halfX, halfY, cornerRadius(s));
+    if (distance > 0) return { spot: nearest, near };
+    const depth = clamp(Math.min(halfX - Math.abs(x), halfY - Math.abs(y)) / (halfY * 0.8), 0, 1);
+    const sway = restSpot(s) - (x / halfX) * 0.06 - (y / halfY) * 0.02;
+    const offset = sway - nearest - Math.round(sway - nearest);
+    return { spot: wrap(nearest + offset * depth * depth * (3 - 2 * depth)), near };
+  };
+
+  const draw = (s: Settings) => {
+    const { width, height } = view;
+    const scaleX = canvas.width / (width + PAD * 2);
+    const scaleY = canvas.height / (height + PAD * 2);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.useProgram(program);
+    gl.uniform2f(uniforms.uCenter, (PAD + width / 2) * scaleX, (PAD + height / 2) * scaleY);
+    gl.uniform2f(uniforms.uHalf, (width / 2) * scaleX, (height / 2) * scaleY);
+    gl.uniform1f(uniforms.uRadius, Math.min(s.radius, width / 2, height / 2) * scaleX);
+    gl.uniform1f(uniforms.uPx, view.ratio);
+    const r = Math.min(s.radius, width / 2, height / 2);
+    const [rimX, rimY] = rimPoint(state.spot, width / 2, height / 2, r);
+    const pull = 1 - Math.min(0.35 * (height / 2), Math.hypot(rimX, rimY)) / Math.max(Math.hypot(rimX, rimY), 0.0001);
+    gl.uniform1f(uniforms.uSpot, state.spot);
+    gl.uniform2f(uniforms.uEntry, rimX * pull * scaleX, rimY * pull * scaleY);
+    gl.uniform3fv(uniforms.uLineColor, toRgb(s.lineColor));
+    gl.uniform3fv(uniforms.uBaseColor, toRgb(s.baseColor));
+    gl.uniform1f(uniforms.uIntensity, s.intensity * (state.level + state.press * 0.8));
+    gl.uniform2f(uniforms.uWindow, s.shineSize / 360 + state.press * 0.06, s.shineFade / 360 + 0.0001);
+    gl.uniform1f(uniforms.uThickness, s.thickness);
+    gl.uniform1f(uniforms.uGlow, s.glow);
+    gl.bindVertexArray(vao);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.bindVertexArray(null);
+  };
+
+  const frame = (now: number) => {
+    raf = 0;
+    if (!visible) return;
+    const s = settings.value;
+    const dt = last ? Math.min(0.05, (now - last) / 1000) : 1 / 60;
+    last = now;
+    const target = aim(s);
+    const spinning = s.autoAnimate && !reduce;
+    const steering = !!target && target.near > 0;
+    if (!state.ready) {
+      state.spot = restSpot(s);
+      state.level = s.autoAnimate ? 1 : s.idleIntensity;
+      state.ready = true;
+    }
+    let diff = 0;
+    if (spinning && !steering) state.spot = wrap(state.spot + (s.speed / TAU) * dt);
+    else {
+      diff = (steering ? target.spot : restSpot(s)) - state.spot;
+      diff -= Math.round(diff);
+      state.spot = wrap(state.spot + diff * (1 - Math.exp(-dt * 8)));
+    }
+    const level = s.autoAnimate ? 1 : s.idleIntensity + (1 - s.idleIntensity) * (target ? target.near : 0);
+    state.level += (level - state.level) * (1 - Math.exp(-dt * 7));
+    state.press *= Math.exp(-dt * 5);
+    draw(s);
+    const settling = Math.abs(diff) > 0.0002 || Math.abs(level - state.level) > 0.001 || state.press > 0.002;
+    if (settling || (spinning && !steering)) raf = requestAnimationFrame(frame);
+    else last = 0;
+  };
+
+  const wake = () => {
+    if (!raf && visible) raf = requestAnimationFrame(frame);
+  };
+
+  const measure = (entry?: ResizeObserverEntry) => {
+    const box = entry?.borderBoxSize?.[0];
+    view.width = Math.max(1, box ? box.inlineSize : button.offsetWidth);
+    view.height = Math.max(1, box ? box.blockSize : button.offsetHeight);
+    view.ratio = Math.min(window.devicePixelRatio || 1, 3);
+    canvas.width = Math.max(1, Math.round((view.width + PAD * 2) * view.ratio));
+    canvas.height = Math.max(1, Math.round((view.height + PAD * 2) * view.ratio));
+    if (state.ready) draw(settings.value);
+    wake();
+  };
+
+  const onPointerMove = (event: PointerEvent) => {
+    pointer.x = event.clientX;
+    pointer.y = event.clientY;
+    pointer.known = true;
+    wake();
+  };
+
+  const onPointerDown = (event: PointerEvent) => {
+    pointer.x = event.clientX;
+    pointer.y = event.clientY;
+    pointer.known = true;
+    if (!settings.value.disabled) state.press = 1;
+    wake();
+  };
+
+  const onPointerEnd = (event: PointerEvent) => {
+    if (event.pointerType === 'mouse') return;
+    pointer.known = false;
+    wake();
+  };
+
+  const onPointerLeave = () => {
+    pointer.known = false;
+    wake();
+  };
+
+  const resizeObserver = new ResizeObserver(entries => measure(entries[entries.length - 1]));
+  resizeObserver.observe(button);
+  const intersection = new IntersectionObserver(entries => {
+    visible = entries.some(entry => entry.isIntersecting);
+    if (visible) {
+      last = 0;
+      wake();
+    }
   });
+  intersection.observe(button);
+  window.addEventListener('pointermove', onPointerMove, { passive: true });
+  window.addEventListener('pointerup', onPointerEnd, { passive: true });
+  window.addEventListener('pointercancel', onPointerEnd, { passive: true });
+  document.documentElement.addEventListener('pointerleave', onPointerLeave);
+  button.addEventListener('pointerdown', onPointerDown);
+  measure();
+  wakeFn = wake;
+
+  cleanup = () => {
+    cancelAnimationFrame(raf);
+    wakeFn = null;
+    resizeObserver.disconnect();
+    intersection.disconnect();
+    window.removeEventListener('pointermove', onPointerMove);
+    window.removeEventListener('pointerup', onPointerEnd);
+    window.removeEventListener('pointercancel', onPointerEnd);
+    document.documentElement.removeEventListener('pointerleave', onPointerLeave);
+    button.removeEventListener('pointerdown', onPointerDown);
+    gl.deleteBuffer(buffer);
+    gl.deleteVertexArray(vao);
+    gl.deleteProgram(program);
+    if (!canvas.isConnected) gl.getExtension('WEBGL_lose_context')?.loseContext();
+  };
+});
+
+watch(
+  () => [settings.value, props.size, props.blur, props.tint, props.tintOpacity, props.textColor],
+  () => wakeFn?.()
+);
+
+onUnmounted(() => {
+  cleanup?.();
+  cleanup = null;
 });
 </script>
 
 <template>
   <button
-    ref="btnRef"
+    ref="buttonRef"
     :type="type"
     :disabled="disabled"
-    :class="[
-      'relative m-0 inline-flex cursor-pointer items-center justify-center border-none font-medium leading-none tracking-[0.01em] outline-none transition-transform duration-150 active:scale-[0.97] disabled:cursor-default disabled:opacity-55 disabled:active:scale-100 text-(--sb-text-color) rounded-(--sb-radius) [background:color-mix(in_srgb,var(--sb-tint)_calc(var(--sb-tint-opacity)*100%),transparent)] [backdrop-filter:blur(var(--sb-blur))] shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_rgba(0,0,0,0.25)] focus-visible:outline-2 focus-visible:outline-offset-[3px]',
-      sizeClass
-    ]"
+    :class="buttonClass"
     :style="buttonStyle"
+    @click="event => emit('click', event)"
   >
-    <span
-      ref="fxRef"
-      aria-hidden="true"
-      class="[&_canvas]:block z-1 absolute -inset-5 [&_canvas]:w-full [&_canvas]:h-full pointer-events-none"
-    />
-    <span class="z-2 relative"><slot>Get Started</slot></span>
+    <canvas ref="canvasRef" class="specular-button__light" aria-hidden="true" />
+    <span class="specular-button__label"><slot>Get Started</slot></span>
   </button>
 </template>
+
+<style>
+.specular-button {
+  --sb-radius: 18px;
+  --sb-tint: #ffffff;
+  --sb-tint-opacity: 0.04;
+  --sb-blur: 0px;
+  --sb-text-color: #f5f5f5;
+
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  margin: 0;
+  border: 0;
+  border-radius: var(--sb-radius);
+  font: inherit;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: var(--sb-text-color);
+  background: color-mix(in srgb, var(--sb-tint) calc(var(--sb-tint-opacity) * 100%), transparent);
+  box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.45);
+  -webkit-backdrop-filter: blur(var(--sb-blur));
+  backdrop-filter: blur(var(--sb-blur));
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.specular-button:active {
+  transform: scale(0.97);
+}
+
+.specular-button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--sb-text-color) 55%, transparent);
+  outline-offset: 3px;
+}
+
+.specular-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.specular-button:disabled:active {
+  transform: none;
+}
+
+.specular-button--sm {
+  padding: 10px 20px;
+  font-size: 0.875rem;
+}
+
+.specular-button--md {
+  padding: 14px 28px;
+  font-size: 1rem;
+}
+
+.specular-button--lg {
+  padding: 18px 38px;
+  font-size: 1.125rem;
+}
+
+.specular-button__light {
+  position: absolute;
+  inset: -24px;
+  z-index: 1;
+  display: block;
+  width: calc(100% + 48px);
+  height: calc(100% + 48px);
+  pointer-events: none;
+}
+
+.specular-button__label {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: inherit;
+}
+</style>

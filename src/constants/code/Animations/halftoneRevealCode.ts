@@ -2,26 +2,23 @@ import code from '@/content/Animations/HalftoneReveal/HalftoneReveal.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const halftoneReveal = createCodeObject(code, 'Animations/HalftoneReveal', {
-  usage: `<script setup>
-import HalftoneReveal from './HalftoneReveal.vue'
-</script>
-
-<template>
-  <div
-    :style="{
-      height: '500px',
-      position: 'relative',
-    }"
-  >
+  dependencies: '',
+  usage: `<template>
+  <div style="width: 100%; height: 600px; position: relative">
     <HalftoneReveal
-      src="https://picsum.photos/seed/halftone-reveal/1200/800"
-      inkColor="#141414"
-      paperColor="#f4efe4"
+      src="https://images.unsplash.com/photo-1693250707557-a846a014b321?q=80&w=1400&auto=format&fit=crop"
       mode="mono"
-      :dotDensity="90"
-      :angle="28"
-      :revealRadius="0.28"
+      shape="dot"
+      :cell-size="6"
+      :angle="45"
+      ink-color="#111111"
+      paper-color="#ffffff"
+      :reveal-radius="160"
     />
   </div>
-</template>`
+</template>
+
+<script setup lang="ts">
+import HalftoneReveal from './HalftoneReveal.vue'
+</script>`
 });

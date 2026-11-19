@@ -1,345 +1,323 @@
 <template>
-  <h1 class="sub-category">Scroll Stack</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="scrollStack.usage"
-    :source="scrollStackSource"
-    component-name="ScrollStack"
-    :props-table="props"
+    :demo-only-props="['preset']"
+    :computed-props="{ stackPosition: `${props.stackPosition}%` }"
   >
-    <template #preview>
-      <div class="relative h-[500px] overflow-hidden demo-container">
-        <RefreshButton
-          @click="
-            () => {
-              isCompleted = false;
-              forceRerender();
-            }
-          "
-        />
-        <p
-          class="top-[25%] left-[50%] absolute font-black text-[#333] text-[clamp(2rem,4vw,3rem)] text-center transition-all -translate-x-1/2 -translate-y-1/2 duration-300 ease-in-out pointer-events-none transform"
-        >
-          {{ isCompleted ? 'Stack Completed!' : 'Scroll Down' }}
-        </p>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 500px; padding: 0">
+          <ScrollStack v-bind="settings" :stack-position="`${props.stackPosition}%`">
+            <ScrollStackItem
+              v-for="name in PHOTOS"
+              :key="name"
+              :style="{ height: '300px', padding: 0, background: 'none' }"
+            >
+              <img
+                :src="`/assets/demo/${name}.webp`"
+                alt=""
+                draggable="false"
+                style="
+                  position: absolute;
+                  inset: 0;
+                  width: 100%;
+                  height: 100%;
+                  object-fit: cover;
+                  border-radius: inherit;
+                "
+              />
+            </ScrollStackItem>
+          </ScrollStack>
+        </div>
 
-        <ScrollStack
-          :key="rerenderKey"
-          :item-distance="itemDistance"
-          className="scroll-stack-demo-container"
-          :item-stack-distance="itemStackDistance"
-          :stack-position="stackPosition"
-          :base-scale="baseScale"
-          :rotation-amount="rotationAmount"
-          :blur-amount="blurAmount"
-          @stackComplete="handleStackComplete"
-        >
-          <ScrollStackItem itemClassName="scroll-stack-card-demo ssc-demo-1">
-            <h3>Text Animations</h3>
+        <Customize>
+          <PreviewSelect
+            title="Preset"
+            :options="PRESET_OPTIONS"
+            :model-value="props.preset"
+            @update:model-value="value => applyPreset(String(value))"
+          />
+          <PreviewSlider
+            title="Item Distance"
+            :min="0"
+            :max="200"
+            :step="5"
+            value-unit="px"
+            :model-value="props.itemDistance"
+            @update:model-value="value => updateProp('itemDistance', value)"
+          />
+          <PreviewSlider
+            title="Stack Distance"
+            :min="0"
+            :max="60"
+            :step="1"
+            value-unit="px"
+            :model-value="props.itemStackDistance"
+            @update:model-value="value => updateProp('itemStackDistance', value)"
+          />
+          <PreviewSlider
+            title="Stack Position"
+            :min="0"
+            :max="40"
+            :step="1"
+            value-unit="%"
+            :model-value="props.stackPosition"
+            @update:model-value="value => updateProp('stackPosition', value)"
+          />
+          <PreviewSlider
+            title="Item Scale"
+            :min="0"
+            :max="0.15"
+            :step="0.005"
+            :model-value="props.itemScale"
+            @update:model-value="value => updateProp('itemScale', value)"
+          />
+          <PreviewSlider
+            title="Base Scale"
+            :min="0.5"
+            :max="1"
+            :step="0.01"
+            :model-value="props.baseScale"
+            @update:model-value="value => updateProp('baseScale', value)"
+          />
+          <PreviewSlider
+            title="Dim"
+            :min="0"
+            :max="0.6"
+            :step="0.01"
+            :model-value="props.dimAmount"
+            @update:model-value="value => updateProp('dimAmount', value)"
+          />
+          <PreviewSlider
+            title="Blur"
+            :min="0"
+            :max="8"
+            :step="0.1"
+            value-unit="px"
+            :model-value="props.blurAmount"
+            @update:model-value="value => updateProp('blurAmount', value)"
+          />
+          <PreviewSlider
+            title="Tilt"
+            :min="0"
+            :max="45"
+            :step="1"
+            value-unit="°"
+            :model-value="props.tiltAmount"
+            @update:model-value="value => updateProp('tiltAmount', value)"
+          />
+          <PreviewSlider
+            title="Rotation"
+            :min="0"
+            :max="10"
+            :step="0.5"
+            value-unit="°"
+            :model-value="props.rotationAmount"
+            @update:model-value="value => updateProp('rotationAmount', value)"
+          />
+          <PreviewSwitch
+            title="Smooth Scroll"
+            :model-value="props.smoothScroll"
+            @update:model-value="value => updateProp('smoothScroll', value)"
+          />
+          <PreviewSwitch
+            title="Snap"
+            :model-value="props.snap"
+            @update:model-value="value => updateProp('snap', value)"
+          />
+        </Customize>
 
-            <div className="stack-img-container">
-              <i class="pi-align-left pi" style="font-size: 120px"></i>
-            </div>
-          </ScrollStackItem>
+        <PropTable :data="propData" />
+      </template>
 
-          <ScrollStackItem itemClassName="scroll-stack-card-demo ssc-demo-2">
-            <h3>Animations</h3>
-
-            <div className="stack-img-container">
-              <i class="pi pi-play" style="font-size: 120px"></i>
-            </div>
-          </ScrollStackItem>
-
-          <ScrollStackItem itemClassName="scroll-stack-card-demo ssc-demo-3">
-            <h3>Components</h3>
-
-            <div className="stack-img-container">
-              <i class="pi pi-sliders-h" style="font-size: 120px"></i>
-            </div>
-          </ScrollStackItem>
-
-          <ScrollStackItem itemClassName="scroll-stack-card-demo ssc-demo-4">
-            <h3>Backgrounds</h3>
-
-            <div className="stack-img-container">
-              <i class="pi pi-image" style="font-size: 120px"></i>
-            </div>
-          </ScrollStackItem>
-
-          <ScrollStackItem itemClassName="scroll-stack-card-demo ssc-demo-5">
-            <h3>All on Vue Bits!</h3>
-          </ScrollStackItem>
-        </ScrollStack>
-      </div>
-    </template>
-
-    <template #customize>
-      <Customize>
-        <PreviewSlider title="Item Distance" v-model="itemDistance" :min="0" :max="1000" :step="10" value-unit="px" />
-        <PreviewSlider
-          title="Stack Distance"
-          v-model="itemStackDistance"
-          :min="0"
-          :max="40"
-          :step="5"
-          value-unit="px"
-        />
-        <PreviewSelect
-          title="Stack Position"
-          v-model="stackPosition"
-          :options="['10%', '15%', '20%', '25%', '30%', '35%']"
-        />
-        <PreviewSlider title="Base Scale" v-model="baseScale" :min="0.5" :max="1.0" :step="0.05" />
-        <PreviewSlider title="Rotation Amount" v-model="rotationAmount" :min="0" :max="1" :step="0.1" value-unit="°" />
-        <PreviewSlider title="Blur Amount" v-model="blurAmount" :min="0" :max="10" :step="0.5" value-unit="px" />
-      </Customize>
-    </template>
-
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
-
-    <template #code>
-      <DemoCodeTab slug="scroll-stack" :usage="scrollStack.usage!" :source="scrollStackSource" />
-    </template>
-  </TabsLayout>
+      <template #code>
+        <CodeExample :code-object="scrollStack" component-name="ScrollStack" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
-import RefreshButton from '@/components/common/RefreshButton.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
-import { useForceRerender } from '@/composables/useForceRerender';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
 import { scrollStack } from '@/constants/code/Components/scrollStackCode';
 import ScrollStack, { ScrollStackItem } from '@/content/Components/ScrollStack/ScrollStack.vue';
-import scrollStackSource from '@/content/Components/ScrollStack/ScrollStack.vue?raw';
-import { computed, ref } from 'vue';
 
-const { rerenderKey, forceRerender } = useForceRerender();
+const PHOTOS = ['night-landscape', 'day-portrait', 'night-sky', 'day-landscape', 'night-portrait'];
 
-const DEFAULTS = {
-  itemDistance: 200,
-  itemStackDistance: 30,
-  baseScale: 0.85,
-  rotationAmount: 0,
+const LOOK = {
+  itemStackDistance: 22,
+  itemScale: 0.05,
+  baseScale: 0.8,
+  dimAmount: 0.25,
   blurAmount: 0,
-  stackPosition: '20%'
+  tiltAmount: 0,
+  rotationAmount: 0
 };
 
-const isCompleted = ref(false);
-const itemDistance = ref(DEFAULTS.itemDistance);
-const itemStackDistance = ref(DEFAULTS.itemStackDistance);
-const baseScale = ref(DEFAULTS.baseScale);
-const rotationAmount = ref(DEFAULTS.rotationAmount);
-const blurAmount = ref(DEFAULTS.blurAmount);
-const stackPosition = ref(DEFAULTS.stackPosition);
-
-const handleStackComplete = () => {
-  isCompleted.value = true;
+const DEFAULT_PROPS = {
+  preset: 'stack',
+  itemDistance: 40,
+  stackPosition: 12,
+  ...LOOK,
+  smoothScroll: true,
+  snap: false
 };
 
-const hasChanges = computed(
-  () =>
-    itemDistance.value !== DEFAULTS.itemDistance ||
-    itemStackDistance.value !== DEFAULTS.itemStackDistance ||
-    baseScale.value !== DEFAULTS.baseScale ||
-    rotationAmount.value !== DEFAULTS.rotationAmount ||
-    blurAmount.value !== DEFAULTS.blurAmount ||
-    stackPosition.value !== DEFAULTS.stackPosition
-);
+type DemoProps = typeof DEFAULT_PROPS;
 
-function reset() {
-  isCompleted.value = false;
-  itemDistance.value = DEFAULTS.itemDistance;
-  itemStackDistance.value = DEFAULTS.itemStackDistance;
-  baseScale.value = DEFAULTS.baseScale;
-  rotationAmount.value = DEFAULTS.rotationAmount;
-  blurAmount.value = DEFAULTS.blurAmount;
-  stackPosition.value = DEFAULTS.stackPosition;
-  forceRerender();
-}
+const PRESETS: Record<string, Partial<DemoProps>> = {
+  stack: { ...LOOK },
+  deck: { ...LOOK, itemStackDistance: 30, itemScale: 0.03, tiltAmount: 24, dimAmount: 0.3 },
+  pile: { ...LOOK, itemStackDistance: 0, itemScale: 0.015, baseScale: 0.9, dimAmount: 0.12, rotationAmount: 3 },
+  focus: { ...LOOK, itemScale: 0.06, dimAmount: 0.35, blurAmount: 3 },
+  flat: { ...LOOK, itemStackDistance: 40, itemScale: 0, dimAmount: 0.15 }
+};
 
-// const stackPositionOptions = [
-//   { value: '10%', label: '10%' },
-//   { value: '15%', label: '15%' },
-//   { value: '20%', label: '20%' },
-//   { value: '25%', label: '25%' },
-//   { value: '30%', label: '30%' },
-//   { value: '35%', label: '35%' }
-// ];
+const PRESET_OPTIONS = [
+  { value: 'stack', label: 'Stack' },
+  { value: 'deck', label: 'Deck' },
+  { value: 'pile', label: 'Pile' },
+  { value: 'focus', label: 'Focus' },
+  { value: 'flat', label: 'Flat' }
+];
 
-const props: PropRow[] = [
+const { props, defaultProps, updateProp, updateProps, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
+
+const settings = computed(() => {
+  const { preset: _preset, stackPosition: _stackPosition, ...rest } = props.value;
+  return rest;
+});
+
+const applyPreset = (value: string) => {
+  const base = Object.fromEntries(
+    (Object.keys(DEFAULT_PROPS) as (keyof DemoProps)[]).map(name => [name, defaultProps.value[name]])
+  ) as DemoProps;
+  updateProps({
+    ...base,
+    ...PRESETS[value],
+    smoothScroll: props.value.smoothScroll,
+    snap: props.value.snap,
+    preset: value
+  });
+};
+
+const propData: PropRow[] = [
   {
-    name: 'children',
-    type: 'slot',
-    default: 'required',
-    description: 'The content to be displayed in the scroll stack. Should contain ScrollStackItem components.'
-  },
-  {
-    name: 'className',
-    type: 'string',
-    default: '""',
-    description: 'Additional CSS classes to apply to the scroll stack container.'
+    name: 'default slot',
+    type: 'VNode[]',
+    default: '-',
+    description: 'The cards to stack, usually ScrollStackItem elements.'
   },
   {
     name: 'itemDistance',
     type: 'number',
     default: '100',
-    description: 'Distance between stacked items in pixels.'
-  },
-  {
-    name: 'itemScale',
-    type: 'number',
-    default: '0.03',
-    description: 'Scale increment for each stacked item.'
+    description: 'Gap between cards before they stack, in px. Larger gaps mean more scrolling between cards.'
   },
   {
     name: 'itemStackDistance',
     type: 'number',
-    default: '30',
-    description: 'Distance between items when they start stacking.'
+    default: '24',
+    description: 'How far each card rests below the one before it in the stack, in px. 0 piles them exactly.'
   },
   {
     name: 'stackPosition',
-    type: 'string',
-    default: '"20%"',
-    description: 'Position where the stacking effect begins as a percentage of viewport height.'
+    type: 'number | string',
+    default: "'15%'",
+    description: 'Where the stack pins, from the top of the viewport or container. A number is px, or use a % string.'
   },
   {
-    name: 'scaleEndPosition',
-    type: 'string',
-    default: '"10%"',
-    description: 'Position where the scaling effect ends as a percentage of viewport height.'
+    name: 'itemScale',
+    type: 'number',
+    default: '0.05',
+    description: 'How much a card shrinks for each card stacked on top of it.'
   },
   {
     name: 'baseScale',
     type: 'number',
-    default: '0.85',
-    description: 'Base scale value for the first item in the stack.'
+    default: '0.8',
+    description: 'The smallest a buried card can shrink to.'
   },
   {
-    name: 'scaleDuration',
+    name: 'dimAmount',
     type: 'number',
-    default: '0.5',
-    description: 'Duration of the scaling animation in seconds.'
-  },
-  {
-    name: 'rotationAmount',
-    type: 'number',
-    default: '0',
-    description: 'Rotation amount for each item in degrees.'
+    default: '0.2',
+    description: 'How much a card darkens for each card stacked on top of it, from 0 to 1.'
   },
   {
     name: 'blurAmount',
     type: 'number',
     default: '0',
-    description: 'Blur amount for items that are further back in the stack.'
+    description: 'Blur added for each card stacked on top, in px.'
+  },
+  {
+    name: 'tiltAmount',
+    type: 'number',
+    default: '0',
+    description: 'How far buried cards lean back in 3D, in degrees.'
+  },
+  {
+    name: 'rotationAmount',
+    type: 'number',
+    default: '0',
+    description: 'How far buried cards turn, alternating left and right like a loose pile, in degrees.'
+  },
+  {
+    name: 'holdDistance',
+    type: 'number',
+    default: '200',
+    description: 'How long the finished stack stays pinned before it scrolls away, in px of scrolling.'
+  },
+  {
+    name: 'smoothScroll',
+    type: 'boolean',
+    default: 'true',
+    description:
+      'Glides mouse wheel scrolling smoothly. Touch, keyboard and scrollbar scrolling stay native. With useWindowScroll it smooths the whole page while the stack is mounted.'
+  },
+  {
+    name: 'snap',
+    type: 'boolean',
+    default: 'false',
+    description: 'When scrolling stops near a card, glides it the rest of the way onto the stack.'
   },
   {
     name: 'useWindowScroll',
     type: 'boolean',
     default: 'false',
-    description: 'Whether to use window scroll for the stack.'
+    description:
+      'Stacks the cards as the page scrolls instead of scrolling inside its own container. Avoid overflow: hidden on parent elements, which stops cards from pinning.'
   },
   {
     name: 'onStackComplete',
-    type: 'function',
-    default: 'undefined',
-    description: 'Callback function called when the stack animation is complete.'
+    type: '() => void',
+    default: '-',
+    description: 'Called when the last card lands on the stack.'
+  },
+  { name: 'className', type: 'string', default: "''", description: 'Extra class names for the stack container.' },
+  {
+    name: 'itemClassName',
+    type: 'string',
+    default: "''",
+    description: 'ScrollStackItem only. Extra class names for the card, for its size, colors and content.'
+  },
+  {
+    name: 'style',
+    type: 'StyleValue',
+    default: '-',
+    description: 'ScrollStackItem only. Inline styles for the card.'
   }
 ];
 </script>
-
-<style scoped>
-.scroll-stack-card-demo {
-  font-size: clamp(1.5rem, 4vw, 3rem);
-  font-weight: 900;
-  color: #fff;
-  display: flex;
-  justify-content: space-between;
-  flex-direction: column;
-  gap: 1rem;
-  white-space: nowrap;
-  text-align: center;
-}
-
-.scroll-stack-card-demo .stack-img-container {
-  width: 100%;
-  height: 100%;
-  min-height: 150px;
-  border-radius: 1.5rem;
-  border: 10px solid #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(4rem, 8vw, 8rem);
-}
-
-.scroll-stack-demo-container .scroll-stack-inner {
-  padding: 20vh 2rem 50rem;
-}
-
-.ssc-demo-1 {
-  background-color: #35724d;
-}
-
-.ssc-demo-2 {
-  background-color: #333;
-}
-
-.ssc-demo-3 {
-  background-color: #35724d;
-}
-
-.ssc-demo-4 {
-  background-color: #333;
-}
-
-.ssc-demo-5 {
-  background-color: #35724d;
-  text-align: center;
-  justify-content: center;
-  align-items: center;
-}
-
-@media only screen and (min-width: 1240px) {
-  .scroll-stack-card-demo {
-    flex-direction: row;
-    gap: 2rem;
-    text-align: left;
-  }
-
-  .scroll-stack-demo-container .scroll-stack-inner {
-    padding: 20vh 5rem 50rem;
-  }
-
-  .scroll-stack-card-demo .stack-img-container {
-    width: 50%;
-    min-height: auto;
-  }
-
-  .scroll-stack-card-demo h3 {
-    margin-bottom: 1em;
-  }
-}
-
-@media only screen and (max-width: 480px) {
-  .scroll-stack-card-demo {
-    font-size: 1rem;
-    padding: 0.2rem;
-    gap: 0.5rem;
-  }
-
-  .scroll-stack-card-demo .stack-img-container {
-    border-width: 5px;
-    border-radius: 1rem;
-    min-height: 120px;
-    font-size: 3rem;
-  }
-}
-</style>

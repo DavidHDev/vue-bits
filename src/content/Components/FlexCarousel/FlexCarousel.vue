@@ -1,11 +1,11 @@
-<script setup lang="ts">
-import { Mesh, Plane, Program, Renderer, RenderTarget, Texture, Triangle } from 'ogl';
-import { computed, defineComponent, h, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+<script lang="ts">
+import type { CSSProperties } from 'vue';
+import { Renderer, Program, Mesh, Triangle, Plane, Texture, RenderTarget } from 'ogl';
 
-type BendPreset = 'liquid' | 'ribbon' | 'vortex' | 'arch';
-type CurlMode = 'twist' | 'rise' | 'fall';
-type CarouselIntro = 'rise' | 'bloom' | 'spin' | 'deal' | 'none';
-type CardFit = 'natural' | 'portrait' | 'square' | 'landscape';
+export type BendPreset = 'liquid' | 'ribbon' | 'vortex' | 'arch';
+export type CurlMode = 'twist' | 'rise' | 'fall';
+export type CarouselIntro = 'rise' | 'bloom' | 'spin' | 'deal' | 'none';
+export type CardFit = 'natural' | 'portrait' | 'square' | 'landscape';
 
 export interface FlexCarouselItem {
   src: string;
@@ -14,7 +14,7 @@ export interface FlexCarouselItem {
   subtitle?: string;
 }
 
-interface PresetValues {
+export interface PresetValues {
   lensWidth: number;
   lensHeight: number;
   tilt: number;
@@ -27,7 +27,7 @@ interface PresetValues {
   followCursor: boolean;
 }
 
-interface FlexCarouselProps {
+export interface FlexCarouselProps extends Partial<PresetValues> {
   items?: FlexCarouselItem[];
   preset?: BendPreset;
   intro?: CarouselIntro;
@@ -35,16 +35,6 @@ interface FlexCarouselProps {
   gap?: number;
   radius?: number;
   fit?: CardFit;
-  lensWidth?: number;
-  lensHeight?: number;
-  tilt?: number;
-  roundness?: number;
-  bend?: number;
-  reach?: number;
-  curl?: CurlMode;
-  dispersion?: number;
-  liquid?: number;
-  followCursor?: boolean;
   squeeze?: number;
   focusOnClick?: boolean;
   autoplay?: boolean;
@@ -52,6 +42,7 @@ interface FlexCarouselProps {
   captions?: boolean;
   captureWheel?: boolean;
   className?: string;
+  style?: CSSProperties;
 }
 
 interface Settings extends PresetValues {
@@ -117,6 +108,11 @@ interface Draw {
   cw: number;
   ch: number;
   alpha: number;
+}
+
+interface Engine {
+  wake: () => void;
+  setItems: (items: FlexCarouselItem[]) => void;
 }
 
 const photo = (id: string) => `https://images.unsplash.com/${id}?w=1200&q=80&auto=format&fit=max`;
@@ -352,37 +348,13 @@ void main() {
   fragColor = color * uSceneAlpha;
 }
 `;
+</script>
 
-// rolling odometer digits for the counter
-const Digits = defineComponent({
-  props: { value: { type: Number, required: true } },
-  setup(p) {
-    return () =>
-      h(
-        'span',
-        { class: 'inline-flex' },
-        String(p.value)
-          .padStart(2, '0')
-          .split('')
-          .map((digit, index) =>
-            h('span', { key: index, class: 'inline-block h-[1em] overflow-hidden' }, [
-              h(
-                'span',
-                {
-                  class:
-                    'flex flex-col transition-transform duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
-                  style: { transform: `translateY(${-Number(digit) * 10}%)` }
-                },
-                '0123456789'.split('').map(n => h('span', { key: n, class: 'h-[1em]' }, n))
-              )
-            ])
-          )
-      );
-  }
-});
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 const props = withDefaults(defineProps<FlexCarouselProps>(), {
-  items: undefined,
+  items: () => DEFAULT_ITEMS,
   preset: 'liquid',
   intro: 'rise',
   cardHeight: 0.5,
@@ -405,7 +377,8 @@ const props = withDefaults(defineProps<FlexCarouselProps>(), {
   interval: 4,
   captions: true,
   captureWheel: true,
-  className: ''
+  className: '',
+  style: undefined
 });
 
 const emit = defineEmits<{
@@ -421,53 +394,40 @@ const focusOpen = ref(false);
 const list = computed(() => (props.items && props.items.length ? props.items : DEFAULT_ITEMS));
 const itemsKey = computed(() => list.value.map(item => item.src).join('|'));
 
-let settings: Settings | null = null;
-let engine: { wake: () => void; setItems: (items: FlexCarouselItem[]) => void } | null = null;
-
-const pick = <K extends keyof PresetValues>(key: K): PresetValues[K] => {
-  const value = props[key] as PresetValues[K] | undefined;
+const settings = computed<Settings>(() => {
   const base = BEND_PRESETS[props.preset] || BEND_PRESETS.liquid;
-  return value === undefined || value === null ? base[key] : value;
-};
+  const pick = <K extends keyof PresetValues>(value: PresetValues[K] | undefined, key: K): PresetValues[K] =>
+    value === undefined || value === null ? base[key] : value;
+  return {
+    intro: props.intro,
+    cardHeight: props.cardHeight,
+    gap: props.gap,
+    radius: props.radius,
+    fit: props.fit,
+    lensWidth: pick(props.lensWidth, 'lensWidth'),
+    lensHeight: pick(props.lensHeight, 'lensHeight'),
+    tilt: pick(props.tilt, 'tilt'),
+    roundness: pick(props.roundness, 'roundness'),
+    bend: pick(props.bend, 'bend'),
+    reach: pick(props.reach, 'reach'),
+    curl: pick(props.curl, 'curl'),
+    dispersion: pick(props.dispersion, 'dispersion'),
+    liquid: pick(props.liquid, 'liquid'),
+    followCursor: pick(props.followCursor, 'followCursor'),
+    squeeze: props.squeeze,
+    focusOnClick: props.focusOnClick,
+    autoplay: props.autoplay,
+    interval: props.interval,
+    captureWheel: props.captureWheel
+  };
+});
 
-watch(
-  () => ({ ...props }),
-  () => {
-    settings = {
-      intro: props.intro,
-      cardHeight: props.cardHeight,
-      gap: props.gap,
-      radius: props.radius,
-      fit: props.fit,
-      lensWidth: pick('lensWidth'),
-      lensHeight: pick('lensHeight'),
-      tilt: pick('tilt'),
-      roundness: pick('roundness'),
-      bend: pick('bend'),
-      reach: pick('reach'),
-      curl: pick('curl'),
-      dispersion: pick('dispersion'),
-      liquid: pick('liquid'),
-      followCursor: pick('followCursor'),
-      squeeze: props.squeeze,
-      focusOnClick: props.focusOnClick,
-      autoplay: props.autoplay,
-      interval: props.interval,
-      captureWheel: props.captureWheel
-    };
-    engine?.wake();
-  },
-  { immediate: true }
-);
+const settingsNow = (): Settings | null => settings.value;
 
-watch(itemsKey, () => engine?.setItems(list.value));
+let engine: Engine | null = null;
+let cleanup: (() => void) | undefined;
 
-let disposeScene: (() => void) | undefined;
-
-const mountScene = () => {
-  const container = containerRef.value;
-  if (!container) return;
-
+const mountEngine = (container: HTMLDivElement): (() => void) | undefined => {
   const renderer = new Renderer({
     dpr: Math.min(window.devicePixelRatio || 1, 2),
     alpha: true,
@@ -478,7 +438,7 @@ const mountScene = () => {
   const gl = renderer.gl;
   if (!renderer.isWebgl2) {
     gl.getExtension('WEBGL_lose_context')?.loseContext();
-    return;
+    return undefined;
   }
   gl.clearColor(0, 0, 0, 0);
   const canvas = gl.canvas;
@@ -591,12 +551,6 @@ const mountScene = () => {
   const introState = { kind: 'none', t: 0, running: false, done: false, readyAt: 0 };
   const focus = { index: -1, pending: -1, t: 0, v: 0, target: 0 };
   let instances: Instance[] = [];
-
-  const start = () => {
-    if (raf || !visible || !alive) return;
-    last = performance.now();
-    raf = requestAnimationFrame(frame);
-  };
 
   const loadSlot = (item: FlexCarouselItem, index: number): Slot => {
     const texture = new Texture(gl, {
@@ -829,7 +783,8 @@ const mountScene = () => {
     }
   };
 
-  const resize = () => {
+  let resizePending = false;
+  const applyResize = () => {
     width = Math.max(1, container.clientWidth);
     height = Math.max(1, container.clientHeight);
     renderer.dpr = Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(PIXEL_BUDGET / (width * height)));
@@ -837,13 +792,21 @@ const mountScene = () => {
     target.setSize(Math.max(2, Math.round(width * renderer.dpr)), Math.max(2, Math.round(height * renderer.dpr)));
     lensUniforms.tScene.value = target.texture;
     dirty = true;
+  };
+
+  const resize = () => {
+    resizePending = true;
     start();
   };
 
   const frame = (now: number) => {
     raf = 0;
+    if (resizePending) {
+      resizePending = false;
+      applyResize();
+    }
     if (!alive) return;
-    const s = settings;
+    const s = settingsNow();
     const dt = Math.min(0.05, Math.max(0.001, (now - last) / 1000));
     last = now;
     if (!s || !slots.length) {
@@ -895,11 +858,11 @@ const mountScene = () => {
       const stiffness = spinning ? 9 : mode === 'wheel' ? 80 : 55;
       const damping = 2 * Math.sqrt(stiffness);
       const steps = Math.ceil(dt / (1 / 240));
-      const hstep = dt / steps;
+      const h = dt / steps;
       for (let i = 0; i < steps; i++) {
         const acc = stiffness * (goal - pos) - damping * vel;
-        vel += acc * hstep;
-        pos += vel * hstep;
+        vel += acc * h;
+        pos += vel * h;
       }
       if (Math.abs(goal - pos) < 0.05 && Math.abs(vel) < 0.5) {
         pos = goal;
@@ -1120,6 +1083,12 @@ const mountScene = () => {
     if (visible && (animating || waiting || dirty || pointer.down)) raf = requestAnimationFrame(frame);
   };
 
+  const start = () => {
+    if (raf || !visible || !alive) return;
+    last = performance.now();
+    raf = requestAnimationFrame(frame);
+  };
+
   const localPoint = (e: PointerEvent) => {
     const rect = container.getBoundingClientRect();
     return [e.clientX - rect.left, e.clientY - rect.top];
@@ -1192,7 +1161,7 @@ const mountScene = () => {
     if (!pointer.down || e.pointerId !== pointer.id) return;
     pointer.down = false;
     container.removeAttribute('data-dragging');
-    const s = settings;
+    const s = settingsNow();
     if (!s) return;
     const m = metrics(s);
     interactedAt = performance.now();
@@ -1239,14 +1208,15 @@ const mountScene = () => {
     pointer.down = false;
     pointer.dragging = false;
     container.removeAttribute('data-dragging');
-    if (!settings) return;
-    goal = snapPoint(metrics(settings), pos);
+    const s = settingsNow();
+    if (!s) return;
+    goal = snapPoint(metrics(s), pos);
     mode = 'spring';
     start();
   };
 
   const onWheel = (e: WheelEvent) => {
-    const s = settings;
+    const s = settingsNow();
     if (!s || e.ctrlKey) return;
     let dx = e.deltaX;
     let dy = e.deltaY;
@@ -1269,7 +1239,7 @@ const mountScene = () => {
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
-    const s = settings;
+    const s = settingsNow();
     if (!s) return;
     const m = metrics(s);
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
@@ -1342,7 +1312,7 @@ const mountScene = () => {
   resize();
   setItems(list.value);
 
-  disposeScene = () => {
+  return () => {
     alive = false;
     visible = false;
     engine = null;
@@ -1366,53 +1336,176 @@ const mountScene = () => {
   };
 };
 
-onMounted(mountScene);
-onBeforeUnmount(() => disposeScene?.());
+watch(settings, () => engine?.wake());
+watch(itemsKey, () => engine?.setItems(list.value));
 
+onMounted(() => {
+  if (containerRef.value) cleanup = mountEngine(containerRef.value);
+});
+
+onBeforeUnmount(() => {
+  cleanup?.();
+  cleanup = undefined;
+});
+
+const pad = (value: number) => String(value).padStart(2, '0');
 const current = computed(() => list.value[active.value] || list.value[0]);
 const label = computed(() =>
   current.value ? current.value.title || current.value.alt || `Image ${active.value + 1}` : ''
 );
-const half = computed(() => `${Math.min(Math.max(props.cardHeight, 0.05), 1) * 50}%`);
+const rootClass = computed(() => `flex-carousel ${props.className}`.trim());
+const rootStyle = computed(() => [
+  props.style,
+  { '--flex-carousel-half': `${Math.min(Math.max(props.cardHeight, 0.05), 1) * 50}%` }
+]);
 </script>
 
 <template>
   <div
     ref="containerRef"
-    class="relative focus-visible:shadow-[inset_0_0_0_2px_rgba(128,128,140,0.55)] outline-none w-full h-full overflow-hidden overscroll-contain touch-pan-y cursor-grab data-[dragging]:cursor-grabbing data-[hover=close]:cursor-zoom-out data-[hover=open]:cursor-zoom-in select-none [-webkit-tap-highlight-color:transparent]"
-    :class="className"
-    :style="{ '--flex-carousel-half': half }"
+    :class="rootClass"
+    :style="rootStyle"
     role="region"
     aria-roledescription="carousel"
     aria-label="Image carousel"
     tabindex="0"
   >
-    <div
-      v-if="captions && current && revealed"
-      class="absolute inset-x-0 flex flex-col top-[calc(50%_+_var(--flex-carousel-half)_*_var(--flex-carousel-lift,1)_+_22px)] items-center gap-1.5 px-4 text-center animate-[flex-carousel-reveal_900ms_ease_both] motion-reduce:animate-none pointer-events-none"
-      aria-hidden="true"
-    >
-      <span
-        :key="active"
-        class="flex flex-col items-center max-w-full font-medium text-[15px] leading-[1.35] animate-[flex-carousel-title_520ms_cubic-bezier(0.22,1,0.36,1)] motion-reduce:animate-none"
-      >
+    <div v-if="captions && current && revealed" class="flex-carousel__caption" aria-hidden="true">
+      <span :key="active" class="flex-carousel__title">
         {{ current.title || current.alt }}
-        <span v-if="current.subtitle" class="opacity-60 font-normal">{{ current.subtitle }}</span>
+        <span v-if="current.subtitle" class="flex-carousel__subtitle">{{ current.subtitle }}</span>
       </span>
-      <span
-        class="inline-flex items-center gap-[3px] opacity-50 data-[hidden]:opacity-0 tabular-nums text-[12px] leading-none transition-opacity duration-[400ms]"
-        :data-hidden="focusOpen ? '' : undefined"
-      >
-        <Digits :value="active + 1" />
-        <span class="opacity-60">/</span>
-        <span>{{ String(list.length).padStart(2, '0') }}</span>
+      <span class="flex-carousel__count" :data-hidden="focusOpen ? '' : undefined">
+        <span class="flex-carousel__digits">
+          <span v-for="(digit, index) in pad(active + 1).split('')" :key="index" class="flex-carousel__digit">
+            <span class="flex-carousel__reel" :style="{ transform: `translateY(${-Number(digit) * 10}%)` }">
+              <span v-for="n in '0123456789'.split('')" :key="n">{{ n }}</span>
+            </span>
+          </span>
+        </span>
+        <span class="flex-carousel__slash">/</span>
+        <span>{{ pad(list.length) }}</span>
       </span>
     </div>
-    <div class="sr-only" aria-live="polite" aria-atomic="true">{{ `${label}, ${active + 1} of ${list.length}` }}</div>
+    <div class="flex-carousel__live" aria-live="polite" aria-atomic="true">
+      {{ `${label}, ${active + 1} of ${list.length}` }}
+    </div>
   </div>
 </template>
 
 <style>
+.flex-carousel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: contain;
+  outline: none;
+}
+
+.flex-carousel[data-hover='open'] {
+  cursor: zoom-in;
+}
+
+.flex-carousel[data-hover='close'] {
+  cursor: zoom-out;
+}
+
+.flex-carousel[data-dragging] {
+  cursor: grabbing;
+}
+
+.flex-carousel:focus-visible {
+  box-shadow: inset 0 0 0 2px rgba(128, 134, 128, 0.55);
+}
+
+.flex-carousel__caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(50% + var(--flex-carousel-half) * var(--flex-carousel-lift, 1) + 22px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  pointer-events: none;
+  text-align: center;
+  animation: flex-carousel-reveal 900ms ease both;
+}
+
+.flex-carousel__title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 100%;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.35;
+  animation: flex-carousel-title 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.flex-carousel__subtitle {
+  font-weight: 400;
+  opacity: 0.6;
+}
+
+.flex-carousel__count {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.5;
+  transition: opacity 400ms ease;
+}
+
+.flex-carousel__count[data-hidden] {
+  opacity: 0;
+}
+
+.flex-carousel__digits {
+  display: inline-flex;
+}
+
+.flex-carousel__digit {
+  display: inline-block;
+  height: 1em;
+  overflow: hidden;
+}
+
+.flex-carousel__reel {
+  display: flex;
+  flex-direction: column;
+  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.flex-carousel__reel span {
+  height: 1em;
+}
+
+.flex-carousel__slash {
+  opacity: 0.6;
+}
+
+.flex-carousel__live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 @keyframes flex-carousel-title {
   from {
     opacity: 0;
@@ -1423,12 +1516,24 @@ const half = computed(() => `${Math.min(Math.max(props.cardHeight, 0.05), 1) * 5
     transform: translateY(0);
   }
 }
+
 @keyframes flex-carousel-reveal {
   from {
     opacity: 0;
   }
   to {
     opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flex-carousel__caption,
+  .flex-carousel__title {
+    animation: none;
+  }
+
+  .flex-carousel__reel {
+    transition: none;
   }
 }
 </style>

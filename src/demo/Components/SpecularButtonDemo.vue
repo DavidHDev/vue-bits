@@ -1,102 +1,229 @@
 <template>
-  <h1 class="sub-category">Specular Button</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="specularButton.usage"
-    :source="specularButtonSource"
-    component-name="SpecularButton"
-    :props-table="props"
+    :demo-only-props="['preset']"
+    :computed-props="themed"
   >
-    <template #preview>
-      <div class="h-123 overflow-hidden demo-container">
-        <SpecularButton :key="key" v-bind="specularButtonProps">Get Started</SpecularButton>
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div
+          class="demo-container relative overflow-hidden"
+          style="height: 400px; display: flex; align-items: center; justify-content: center"
+        >
+          <SpecularButton v-bind="shown">Get Started</SpecularButton>
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewColorPicker title="Highlight" v-model="lineColor" />
-        <PreviewColorPicker title="Edge" v-model="baseColor" />
-        <PreviewColorPicker title="Tint" v-model="tint" />
-        <PreviewColorPicker title="Text" v-model="textColor" />
-        <PreviewSelect title="Size" :options="SIZE_OPTIONS" v-model="size" />
-        <PreviewSlider title="Radius" :min="0" :max="60" :step="1" v-model="radius" valueUnit="" />
-        <PreviewSlider title="Tint Opacity" :min="0" :max="0.4" :step="0.01" v-model="tintOpacity" />
-        <PreviewSlider title="Blur" :min="0" :max="30" :step="1" v-model="blur" valueUnit="px" />
-        <PreviewSlider title="Intensity" :min="0" :max="3" :step="0.05" v-model="intensity" />
-        <PreviewSlider title="Shine Size" :min="5" :max="90" :step="1" v-model="shineSize" valueUnit="deg" />
-        <PreviewSlider title="Shine Fade" :min="0" :max="60" :step="1" v-model="shineFade" valueUnit="deg" />
-        <PreviewSlider title="Thickness" :min="0.5" :max="5" :step="0.1" v-model="thickness" valueUnit="px" />
-        <PreviewSlider title="Speed" :min="0" :max="2" :step="0.05" v-model="speed" />
-        <PreviewSlider title="Proximity" :min="50" :max="500" :step="10" v-model="proximity" valueUnit="px" />
-        <PreviewSwitch title="Follow Mouse" v-model="followMouse" />
-        <PreviewSwitch title="Auto Animate" v-model="autoAnimate" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewSelect
+            title="Preset"
+            :options="PRESET_OPTIONS"
+            :model-value="props.preset"
+            @update:model-value="applyPreset"
+          />
+          <PreviewColorPickerCustom
+            title="Light"
+            :color="shown.lineColor"
+            @change="value => updateProp('lineColor', value)"
+          />
+          <PreviewColorPickerCustom
+            title="Edge"
+            :color="shown.baseColor"
+            @change="value => updateProp('baseColor', value)"
+          />
+          <PreviewColorPickerCustom title="Tint" :color="shown.tint" @change="value => updateProp('tint', value)" />
+          <PreviewColorPickerCustom
+            title="Text"
+            :color="shown.textColor"
+            @change="value => updateProp('textColor', value)"
+          />
+          <PreviewSelect
+            title="Size"
+            :options="SIZE_OPTIONS"
+            :model-value="shown.size"
+            @update:model-value="value => updateProp('size', value as SpecularButtonSize)"
+          />
+          <PreviewSlider
+            title="Radius"
+            :min="0"
+            :max="40"
+            :step="1"
+            value-unit="px"
+            :model-value="shown.radius"
+            @update:model-value="value => updateProp('radius', value)"
+          />
+          <PreviewSlider
+            title="Tint Opacity"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="shown.tintOpacity"
+            @update:model-value="value => updateProp('tintOpacity', value)"
+          />
+          <PreviewSlider
+            title="Blur"
+            :min="0"
+            :max="30"
+            :step="1"
+            value-unit="px"
+            :model-value="shown.blur"
+            @update:model-value="value => updateProp('blur', value)"
+          />
+          <PreviewSlider
+            title="Intensity"
+            :min="0"
+            :max="2"
+            :step="0.05"
+            :model-value="shown.intensity"
+            @update:model-value="value => updateProp('intensity', value)"
+          />
+          <PreviewSlider
+            title="Idle Intensity"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="shown.idleIntensity"
+            @update:model-value="value => updateProp('idleIntensity', value)"
+          />
+          <PreviewSlider
+            title="Shine Size"
+            :min="0"
+            :max="45"
+            :step="1"
+            value-unit="°"
+            :model-value="shown.shineSize"
+            @update:model-value="value => updateProp('shineSize', value)"
+          />
+          <PreviewSlider
+            title="Shine Fade"
+            :min="0"
+            :max="90"
+            :step="1"
+            value-unit="°"
+            :model-value="shown.shineFade"
+            @update:model-value="value => updateProp('shineFade', value)"
+          />
+          <PreviewSlider
+            title="Thickness"
+            :min="0.5"
+            :max="4"
+            :step="0.1"
+            value-unit="px"
+            :model-value="shown.thickness"
+            @update:model-value="value => updateProp('thickness', value)"
+          />
+          <PreviewSlider
+            title="Glow"
+            :min="0"
+            :max="2"
+            :step="0.05"
+            :model-value="shown.glow"
+            @update:model-value="value => updateProp('glow', value)"
+          />
+          <PreviewSlider
+            title="Proximity"
+            :min="50"
+            :max="500"
+            :step="10"
+            value-unit="px"
+            :model-value="shown.proximity"
+            @update:model-value="value => updateProp('proximity', value)"
+          />
+          <PreviewSlider
+            title="Speed"
+            :min="0"
+            :max="2"
+            :step="0.05"
+            :model-value="shown.speed"
+            @update:model-value="value => updateProp('speed', value)"
+          />
+          <PreviewSwitch
+            title="Follow Mouse"
+            :model-value="shown.followMouse"
+            @update:model-value="value => updateProp('followMouse', value)"
+          />
+          <PreviewSwitch
+            title="Auto Animate"
+            :model-value="shown.autoAnimate"
+            @update:model-value="value => updateProp('autoAnimate', value)"
+          />
+          <PreviewSwitch
+            title="Disabled"
+            :model-value="shown.disabled"
+            @update:model-value="value => updateProp('disabled', value)"
+          />
+        </Customize>
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+        <PropTable :data="propData" />
+      </template>
 
-    <template #code>
-      <DemoCodeTab slug="specular-button" :usage="specularButton.usage!" :source="specularButtonSource" />
-    </template>
-  </TabsLayout>
+      <template #code>
+        <CodeExample :code-object="specularButton" component-name="SpecularButton" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewColorPickerCustom from '@/components/common/PreviewColorPickerCustom.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
-import { useForceRerender } from '@/composables/useForceRerender';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
+import { useColorModeValue } from '@/composables/useTheme';
 import { specularButton } from '@/constants/code/Components/specularButtonCode';
-import SpecularButton, { type ButtonSize } from '@/content/Components/SpecularButton/SpecularButton.vue';
-import specularButtonSource from '@/content/Components/SpecularButton/SpecularButton.vue?raw';
-import { computed, ref } from 'vue';
+import SpecularButton, { type SpecularButtonSize } from '@/content/Components/SpecularButton/SpecularButton.vue';
 
-const { rerenderKey: key, forceRerender } = useForceRerender();
+type Preset = 'glass' | 'pill' | 'crisp' | 'orbit';
 
-const DEFAULTS = {
-  size: 'lg' as ButtonSize,
+const GLASS = {
   radius: 18,
+  thickness: 1.2,
+  glow: 1,
+  shineSize: 10,
+  shineFade: 34,
+  idleIntensity: 0.35,
+  autoAnimate: false,
+  speed: 0.35
+};
+
+const DEFAULT_PROPS = {
+  preset: 'glass' as Preset,
+  size: 'lg' as SpecularButtonSize,
+  ...GLASS,
   tint: '#ffffff',
-  tintOpacity: 0,
+  tintOpacity: 0.04,
   blur: 0,
   textColor: '#f5f5f5',
   lineColor: '#ffffff',
   baseColor: '#525252',
   intensity: 1,
-  shineSize: 10,
-  shineFade: 40,
-  thickness: 1,
-  speed: 0.35,
   followMouse: true,
   proximity: 250,
-  autoAnimate: false
+  disabled: false
 };
 
-const size = ref(DEFAULTS.size);
-const radius = ref(DEFAULTS.radius);
-const tint = ref(DEFAULTS.tint);
-const tintOpacity = ref(DEFAULTS.tintOpacity);
-const blur = ref(DEFAULTS.blur);
-const textColor = ref(DEFAULTS.textColor);
-const lineColor = ref(DEFAULTS.lineColor);
-const baseColor = ref(DEFAULTS.baseColor);
-const intensity = ref(DEFAULTS.intensity);
-const shineSize = ref(DEFAULTS.shineSize);
-const shineFade = ref(DEFAULTS.shineFade);
-const thickness = ref(DEFAULTS.thickness);
-const speed = ref(DEFAULTS.speed);
-const followMouse = ref(DEFAULTS.followMouse);
-const proximity = ref(DEFAULTS.proximity);
-const autoAnimate = ref(DEFAULTS.autoAnimate);
+const PRESETS: Record<Preset, typeof GLASS> = {
+  glass: GLASS,
+  pill: { ...GLASS, radius: 40, thickness: 1.5, glow: 1.4, shineSize: 14, shineFade: 40 },
+  crisp: { ...GLASS, radius: 12, thickness: 1, glow: 0, shineSize: 6, shineFade: 22, idleIntensity: 0.5 },
+  orbit: { ...GLASS, autoAnimate: true, speed: 0.8 }
+};
+
+const PRESET_OPTIONS = [
+  { value: 'glass', label: 'Glass' },
+  { value: 'pill', label: 'Pill' },
+  { value: 'crisp', label: 'Crisp' },
+  { value: 'orbit', label: 'Orbit' }
+];
 
 const SIZE_OPTIONS = [
   { value: 'sm', label: 'Small' },
@@ -104,126 +231,121 @@ const SIZE_OPTIONS = [
   { value: 'lg', label: 'Large' }
 ];
 
-const specularButtonProps = computed(() => ({
-  size: size.value,
-  radius: radius.value,
-  tint: tint.value,
-  tintOpacity: tintOpacity.value,
-  blur: blur.value,
-  textColor: textColor.value,
-  lineColor: lineColor.value,
-  baseColor: baseColor.value,
-  intensity: intensity.value,
-  shineSize: shineSize.value,
-  shineFade: shineFade.value,
-  thickness: thickness.value,
-  speed: speed.value,
-  followMouse: followMouse.value,
-  proximity: proximity.value,
-  autoAnimate: autoAnimate.value
-}));
+const PAGE = { dark: '#111111', light: '#ffffff' };
 
-const hasChanges = computed(
-  () =>
-    size.value !== DEFAULTS.size ||
-    radius.value !== DEFAULTS.radius ||
-    tint.value !== DEFAULTS.tint ||
-    tintOpacity.value !== DEFAULTS.tintOpacity ||
-    blur.value !== DEFAULTS.blur ||
-    textColor.value !== DEFAULTS.textColor ||
-    lineColor.value !== DEFAULTS.lineColor ||
-    baseColor.value !== DEFAULTS.baseColor ||
-    intensity.value !== DEFAULTS.intensity ||
-    shineSize.value !== DEFAULTS.shineSize ||
-    shineFade.value !== DEFAULTS.shineFade ||
-    thickness.value !== DEFAULTS.thickness ||
-    speed.value !== DEFAULTS.speed ||
-    followMouse.value !== DEFAULTS.followMouse ||
-    proximity.value !== DEFAULTS.proximity ||
-    autoAnimate.value !== DEFAULTS.autoAnimate
-);
+const clampOpacity = (value: unknown) => Math.min(1, Math.max(0, Number(value) || 0));
 
-function reset() {
-  size.value = DEFAULTS.size;
-  radius.value = DEFAULTS.radius;
-  tint.value = DEFAULTS.tint;
-  tintOpacity.value = DEFAULTS.tintOpacity;
-  blur.value = DEFAULTS.blur;
-  textColor.value = DEFAULTS.textColor;
-  lineColor.value = DEFAULTS.lineColor;
-  baseColor.value = DEFAULTS.baseColor;
-  intensity.value = DEFAULTS.intensity;
-  shineSize.value = DEFAULTS.shineSize;
-  shineFade.value = DEFAULTS.shineFade;
-  thickness.value = DEFAULTS.thickness;
-  speed.value = DEFAULTS.speed;
-  followMouse.value = DEFAULTS.followMouse;
-  proximity.value = DEFAULTS.proximity;
-  autoAnimate.value = DEFAULTS.autoAnimate;
-  forceRerender();
-}
+const luminance = (hex: string) => {
+  const value = parseInt(hex.replace('#', '').padEnd(6, '0').slice(0, 6), 16);
+  return (0.2126 * ((value >> 16) & 255) + 0.7152 * ((value >> 8) & 255) + 0.0722 * (value & 255)) / 255;
+};
 
-const props: PropRow[] = [
-  { name: 'children', type: 'slot', default: '"Get Started"', description: 'Button label or any custom content.' },
-  {
-    name: 'size',
-    type: '"sm" | "md" | "lg"',
-    default: '"lg"',
-    description: 'Preset padding and font size of the button.'
-  },
+const propData: PropRow[] = [
+  { name: 'children', type: 'slot', default: "'Get Started'", description: 'Button label or any content.' },
+  { name: 'size', type: "'sm' | 'md' | 'lg'", default: "'lg'", description: 'Padding and font size of the button.' },
   {
     name: 'radius',
     type: 'number',
     default: '18',
-    description: 'Corner radius in pixels; clamps to a pill automatically.'
+    description: 'Corner radius in px. Values past half the height make a pill.'
   },
-  { name: 'tint', type: 'string', default: '"#ffffff"', description: 'Color of the glass background tint.' },
-  { name: 'tintOpacity', type: 'number', default: '0', description: 'Strength of the glass tint.' },
-  { name: 'blur', type: 'number', default: '0', description: 'Backdrop blur in pixels behind the button.' },
-  { name: 'textColor', type: 'string', default: '"#f5f5f5"', description: 'Color of the button label.' },
-  { name: 'lineColor', type: 'string', default: '"#ffffff"', description: 'Color of the moving specular highlight.' },
+  { name: 'tint', type: 'string', default: "'#ffffff'", description: 'Color of the glass body.' },
+  {
+    name: 'tintOpacity',
+    type: 'number',
+    default: '0.04',
+    description: 'How strongly the tint fills the body, from 0 for clear glass to 1 for a solid button.'
+  },
+  { name: 'blur', type: 'number', default: '0', description: 'Blur of whatever sits behind the button, in px.' },
+  { name: 'textColor', type: 'string', default: "'#f5f5f5'", description: 'Color of the label.' },
+  { name: 'lineColor', type: 'string', default: "'#ffffff'", description: 'Color of the light on the edge.' },
   {
     name: 'baseColor',
     type: 'string',
-    default: '"#525252"',
-    description: 'Color of the static edge stroke under the highlight.'
+    default: "'#525252'",
+    description: 'Color of the thin edge line that stays visible under the light.'
   },
-  { name: 'intensity', type: 'number', default: '1', description: 'Brightness of the specular highlight.' },
+  { name: 'intensity', type: 'number', default: '1', description: 'Brightness of the light on the edge.' },
+  {
+    name: 'idleIntensity',
+    type: 'number',
+    default: '0.35',
+    description: 'How much of the light stays on when the cursor is away, from 0 to 1.'
+  },
   {
     name: 'shineSize',
     type: 'number',
     default: '10',
-    description: 'Angular size in degrees of each shine streak along the edge.'
+    description: 'How much of the edge the light covers at full strength, in degrees around the button.'
   },
   {
     name: 'shineFade',
     type: 'number',
-    default: '40',
-    description: 'How gradually each streak fades out at its ends, in degrees.'
+    default: '34',
+    description: 'How far the light fades out past that, in degrees around the button.'
   },
-  { name: 'thickness', type: 'number', default: '1', description: 'Width of the highlight line in pixels.' },
+  { name: 'thickness', type: 'number', default: '1.2', description: 'Width of the lit edge in px.' },
   {
-    name: 'speed',
+    name: 'glow',
     type: 'number',
-    default: '0.35',
-    description: 'Rotation speed of the sweep when autoAnimate is on.'
+    default: '1',
+    description: 'Soft light around the lit edge and inside the glass. 0 keeps only the crisp line.'
   },
-  { name: 'followMouse', type: 'boolean', default: 'true', description: 'Point the light toward the cursor.' },
+  {
+    name: 'followMouse',
+    type: 'boolean',
+    default: 'true',
+    description: 'Moves the light to the part of the edge nearest the cursor.'
+  },
   {
     name: 'proximity',
     type: 'number',
     default: '250',
-    description: 'Distance in pixels within which the shine fades in as the cursor approaches.'
+    description: 'Distance in px at which the light starts to follow the cursor and brighten.'
   },
   {
     name: 'autoAnimate',
     type: 'boolean',
     default: 'false',
-    description: 'Keep the shine always on with a rotating sweep, regardless of cursor distance.'
+    description: 'Keeps the light on and circling the edge whenever the cursor is away.'
   },
-  { name: 'disabled', type: 'boolean', default: 'false', description: 'Disable the button.' },
-  { name: 'onClick', type: 'MouseEventHandler', default: '-', description: 'Standard button click handler.' },
-  { name: 'type', type: '"button" | "submit" | "reset"', default: '"button"', description: 'Native button type.' },
-  { name: 'className', type: 'string', default: '""', description: 'Additional CSS classes for the button.' }
+  { name: 'speed', type: 'number', default: '0.35', description: 'How fast the light circles when autoAnimate is on.' },
+  { name: 'disabled', type: 'boolean', default: 'false', description: 'Disables the button.' },
+  { name: '@click', type: '(event: MouseEvent) => void', default: '-', description: 'Click handler.' },
+  { name: 'type', type: "'button' | 'submit' | 'reset'", default: "'button'", description: 'Native button type.' },
+  { name: 'className', type: 'string', default: "''", description: 'Extra class names for the button.' },
+  { name: 'style', type: 'CSSProperties', default: '-', description: 'Inline styles for the button.' }
 ];
+
+const { props, updateProp, updateProps, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
+const theme = useColorModeValue<'light' | 'dark'>('light', 'dark');
+
+const settings = computed(() => {
+  const { preset: _preset, ...rest } = props.value;
+  return rest;
+});
+
+const themed = computed(() => {
+  const { tint, tintOpacity, textColor, baseColor } = settings.value;
+  const mode = theme.value;
+  const result: Partial<Pick<typeof DEFAULT_PROPS, 'tint' | 'tintOpacity' | 'textColor' | 'baseColor'>> = {};
+  if (mode === 'light' && tint === DEFAULT_PROPS.tint) result.tint = '#161816';
+  if (mode === 'light' && tintOpacity === DEFAULT_PROPS.tintOpacity) result.tintOpacity = 1;
+  const body = luminance(result.tint ?? tint);
+  const opacity = clampOpacity(result.tintOpacity ?? tintOpacity);
+  const bright = luminance(PAGE[mode]) * (1 - opacity) + body * opacity > 0.5;
+  if (textColor === DEFAULT_PROPS.textColor && (bright || mode === 'light')) {
+    result.textColor = bright ? '#161816' : '#fafafa';
+  }
+  if (baseColor === DEFAULT_PROPS.baseColor && (bright || mode === 'light')) {
+    result.baseColor = bright ? '#a1a5a1' : '#3f433f';
+  }
+  return result;
+});
+
+const shown = computed(() => ({ ...settings.value, ...themed.value }));
+
+const applyPreset = (value: string | number) => {
+  updateProps({ ...PRESETS[value as Preset], preset: value as Preset });
+};
 </script>

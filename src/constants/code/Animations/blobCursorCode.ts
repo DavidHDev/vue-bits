@@ -2,26 +2,15 @@ import code from '@/content/Animations/BlobCursor/BlobCursor.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const blobCursor = createCodeObject(code, 'Animations/BlobCursor', {
-  installation: `npm install gsap`,
+  installation: `npm install three @types/three`,
   usage: `<template>
-  <BlobCursor
-    blob-type="circle"
-    fill-color="#27FF64"
-    :trail-count="3"
-    :sizes="[60, 125, 75]"
-    :inner-sizes="[20, 35, 25]"
-    inner-color="rgba(255,255,255,0.8)"
-    :opacities="[0.6, 0.6, 0.6]"
-    shadow-color="rgba(0,0,0,0.75)"
-    :shadow-blur="5"
-    :shadow-offset-x="10"
-    :shadow-offset-y="10"
-    :filter-std-deviation="30"
-    :use-filter="true"
-    :fast-duration="0.1"
-    :slow-duration="0.5"
-    :z-index="100"
-  />
+  <div style="position: relative; height: 500px">
+    <BlobCursor
+      material="chrome"
+      color="#3B82F6"
+      :size="140"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">

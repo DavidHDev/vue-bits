@@ -2,36 +2,24 @@ import code from '@/content/Animations/GradualBlur/GradualBlur.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const gradualBlur = createCodeObject(code, 'Animations/GradualBlur', {
-  installation: `npm install mathjs`,
-  usage: `// Component added by Ansh - github.com/ansh-dhanani
+  dependencies: '',
+  usage: `<!-- Component added by Ansh - github.com/ansh-dhanani -->
 
 <template>
-  <section
-    style="
-      position: relative;
-      height: 500px;
-      overflow: hidden;
-    "
-  >
-    <div
-      style="
-        height: 100%;
-        overflow-y: auto;
-        padding: 6rem 2rem;
-      "
-    >
-      <!-- Content Here - such as an image or text -->
+  <section style="position: relative; height: 500px; overflow: hidden">
+    <div style="height: 100%; overflow-y: auto">
+      <!-- Scrolling content -->
     </div>
 
     <GradualBlur
-      target="parent"
       position="bottom"
       height="6rem"
       :strength="2"
-      :div-count="5"
-      curve="bezier"
+      :layers="8"
+      curve="linear"
       :exponential="true"
-      :opacity="1"
+      tint="rgba(17, 17, 17, 0.6)"
+      :auto-hide="true"
     />
   </section>
 </template>

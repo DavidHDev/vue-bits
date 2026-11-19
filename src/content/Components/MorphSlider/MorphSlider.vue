@@ -1,7 +1,6 @@
-<script setup lang="ts">
+<script lang="ts">
 import { gsap } from 'gsap';
 import { Mesh, Program, Renderer, Texture, Triangle } from 'ogl';
-import { computed, onMounted, onUnmounted, ref, watch, type CSSProperties } from 'vue';
 
 export type MorphTransition = 'melt' | 'ripple' | 'shear' | 'swirl';
 
@@ -10,7 +9,7 @@ export interface MorphItem {
   caption?: string;
 }
 
-interface MorphSliderProps {
+export interface MorphSliderProps {
   items?: MorphItem[];
   startIndex?: number;
   transition?: MorphTransition;
@@ -28,6 +27,7 @@ interface MorphSliderProps {
   showCaptions?: boolean;
   showControls?: boolean;
   showIndicators?: boolean;
+  className?: string;
 }
 
 interface EngineOptions {
@@ -45,6 +45,24 @@ interface EngineOptions {
 type GL = Renderer['gl'];
 
 const TRANSITIONS: Record<MorphTransition, number> = { melt: 0, ripple: 1, shear: 2, swirl: 3 };
+export const DEFAULT_ITEMS: MorphItem[] = [
+  {
+    image: 'https://images.unsplash.com/photo-1782977389500-dd7adad33ebe?q=80&w=1600&auto=format&fit=crop',
+    caption: 'One'
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1781499455083-6ccc3beb20cd?q=80&w=1600&auto=format&fit=crop',
+    caption: 'Two'
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1776394254711-4a0d7345269a?q=80&w=1600&auto=format&fit=crop',
+    caption: 'Three'
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1781242629922-6f39cc3671cd?q=80&w=1600&auto=format&fit=crop',
+    caption: 'Four'
+  }
+];
 
 const vertexShader = `
 attribute vec2 position;
@@ -242,38 +260,6 @@ interface EngineConfig {
   dprCap: number;
 }
 
-interface ScalarUniform {
-  value: number;
-}
-interface Vec2Uniform {
-  value: number[];
-}
-interface Vec3Uniform {
-  value: number[];
-}
-interface TextureUniform {
-  value: Texture;
-}
-
-interface MorphUniforms {
-  tCurrent: TextureUniform;
-  tNext: TextureUniform;
-  uResolution: Vec2Uniform;
-  uCurrentSize: Vec2Uniform;
-  uNextSize: Vec2Uniform;
-  uProgress: ScalarUniform;
-  uDir: ScalarUniform;
-  uMode: ScalarUniform;
-  uIntensity: ScalarUniform;
-  uScale: ScalarUniform;
-  uAberration: ScalarUniform;
-  uDrift: ScalarUniform;
-  uTime: ScalarUniform;
-  uReduce: ScalarUniform;
-  uPointer: Vec2Uniform;
-  uOverlay: Vec3Uniform;
-}
-
 class MorphEngine {
   private container: HTMLElement;
   private items: MorphItem[];
@@ -293,7 +279,6 @@ class MorphEngine {
   private canvas: HTMLCanvasElement;
   private geometry: Triangle;
   private program: Program;
-  private u: MorphUniforms;
   private mesh: Mesh;
   private textures: Texture[];
   private sizes: [number, number][];
@@ -320,7 +305,7 @@ class MorphEngine {
     this.gl.clearColor(0.05, 0.05, 0.06, 1);
 
     this.canvas = this.gl.canvas as HTMLCanvasElement;
-    this.canvas.className = 'block w-full h-full';
+    this.canvas.className = 'morph-slider-canvas';
     container.appendChild(this.canvas);
 
     this.geometry = new Triangle(this.gl);
@@ -351,7 +336,6 @@ class MorphEngine {
         uOverlay: { value: hexToRgb(opts.overlayColor) }
       }
     });
-    this.u = this.program.uniforms as unknown as MorphUniforms;
 
     this.mesh = new Mesh(this.gl, { geometry: this.geometry, program: this.program });
 
@@ -379,8 +363,8 @@ class MorphEngine {
         this.textures[index] = texture;
         this.sizes[index] = [img.naturalWidth || 1, img.naturalHeight || 1];
         if (index === this.current) {
-          this.u.tCurrent.value = texture;
-          this.u.uCurrentSize.value = this.sizes[index];
+          this.program.uniforms.tCurrent.value = texture;
+          this.program.uniforms.uCurrentSize.value = this.sizes[index];
         }
       };
       img.onerror = () => {};
@@ -392,21 +376,22 @@ class MorphEngine {
     const w = Math.max(rect.width, 1);
     const h = Math.max(rect.height, 1);
     this.renderer.setSize(w, h);
-    this.u.uResolution.value = [this.gl.canvas.width, this.gl.canvas.height];
+    this.program.uniforms.uResolution.value = [this.gl.canvas.width, this.gl.canvas.height];
+    this.renderer.render({ scene: this.mesh });
   }
 
   private syncOptions(): void {
     const opts = this.getOptions();
-    this.u.uMode.value = TRANSITIONS[opts.transition] ?? 0;
-    this.u.uIntensity.value = opts.intensity;
-    this.u.uScale.value = opts.scale;
-    this.u.uAberration.value = opts.aberration;
-    this.u.uDrift.value = opts.drift;
-    this.u.uOverlay.value = hexToRgb(opts.overlayColor);
+    this.program.uniforms.uMode.value = TRANSITIONS[opts.transition] ?? 0;
+    this.program.uniforms.uIntensity.value = opts.intensity;
+    this.program.uniforms.uScale.value = opts.scale;
+    this.program.uniforms.uAberration.value = opts.aberration;
+    this.program.uniforms.uDrift.value = opts.drift;
+    this.program.uniforms.uOverlay.value = hexToRgb(opts.overlayColor);
   }
 
   private loop(t: number): void {
-    this.u.uTime.value = t * 0.001;
+    this.program.uniforms.uTime.value = t * 0.001;
     if (!this.dragging && !this.animating) this.syncOptions();
     this.renderer.render({ scene: this.mesh });
     this.raf = requestAnimationFrame(this.boundLoop);
@@ -419,11 +404,11 @@ class MorphEngine {
 
   private prepareNext(dir: number): number {
     const target = this.wrap(this.current + dir);
-    this.u.tCurrent.value = this.textures[this.current];
-    this.u.uCurrentSize.value = this.sizes[this.current];
-    this.u.tNext.value = this.textures[target];
-    this.u.uNextSize.value = this.sizes[target];
-    this.u.uDir.value = dir;
+    this.program.uniforms.tCurrent.value = this.textures[this.current];
+    this.program.uniforms.uCurrentSize.value = this.sizes[this.current];
+    this.program.uniforms.tNext.value = this.textures[target];
+    this.program.uniforms.uNextSize.value = this.sizes[target];
+    this.program.uniforms.uDir.value = dir;
     return target;
   }
 
@@ -440,7 +425,7 @@ class MorphEngine {
     this.announce(target);
     const duration = this.reducedMotion ? Math.min(opts.duration, 0.4) : opts.duration;
     this.tween = gsap.fromTo(
-      this.u.uProgress,
+      this.program.uniforms.uProgress,
       { value: 0 },
       {
         value: 1,
@@ -459,9 +444,9 @@ class MorphEngine {
 
   private commit(target: number): void {
     this.current = target;
-    this.u.tCurrent.value = this.textures[target];
-    this.u.uCurrentSize.value = this.sizes[target];
-    this.u.uProgress.value = 0;
+    this.program.uniforms.tCurrent.value = this.textures[target];
+    this.program.uniforms.uCurrentSize.value = this.sizes[target];
+    this.program.uniforms.uProgress.value = 0;
     this.animating = false;
     this.tween = null;
     this.announce(target);
@@ -476,7 +461,7 @@ class MorphEngine {
   }
 
   setPointer(x: number, y: number): void {
-    this.u.uPointer.value = [x, y];
+    this.program.uniforms.uPointer.value = [x, y];
   }
 
   beginDrag(): boolean {
@@ -494,7 +479,7 @@ class MorphEngine {
     if (!opts.loop) {
       const raw = this.current + dir;
       if (raw < 0 || raw > this.items.length - 1) {
-        this.u.uProgress.value = 0;
+        this.program.uniforms.uProgress.value = 0;
         return;
       }
     }
@@ -503,21 +488,21 @@ class MorphEngine {
       this.prepareNext(dir);
     }
     const progress = Math.min(Math.abs(ndx), 1);
-    this.u.uProgress.value = progress;
+    this.program.uniforms.uProgress.value = progress;
     this.announce(progress > 0.5 ? this.wrap(this.current + dir) : this.current);
   }
 
   endDrag(): void {
     if (!this.dragging) return;
     this.dragging = false;
-    const p = this.u.uProgress.value;
+    const p = this.program.uniforms.uProgress.value as number;
     if (this.dragDir === 0) return;
     const target = this.wrap(this.current + this.dragDir);
     const duration = this.reducedMotion ? 0.3 : 0.5;
     this.animating = true;
     if (p > 0.4) {
       this.announce(target);
-      this.tween = gsap.to(this.u.uProgress, {
+      this.tween = gsap.to(this.program.uniforms.uProgress, {
         value: 1,
         duration,
         ease: 'power2.out',
@@ -525,7 +510,7 @@ class MorphEngine {
       });
     } else {
       this.announce(this.current);
-      this.tween = gsap.to(this.u.uProgress, {
+      this.tween = gsap.to(this.program.uniforms.uProgress, {
         value: 0,
         duration,
         ease: 'power2.out',
@@ -556,26 +541,13 @@ class MorphEngine {
     if (this.canvas.parentNode) this.canvas.parentNode.removeChild(this.canvas);
   }
 }
+</script>
+
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref, watch, type CSSProperties } from 'vue';
 
 const props = withDefaults(defineProps<MorphSliderProps>(), {
-  items: () => [
-    {
-      image: 'https://images.unsplash.com/photo-1782977389500-dd7adad33ebe?q=80&w=1600&auto=format&fit=crop',
-      caption: 'One'
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1781499455083-6ccc3beb20cd?q=80&w=1600&auto=format&fit=crop',
-      caption: 'Two'
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1776394254711-4a0d7345269a?q=80&w=1600&auto=format&fit=crop',
-      caption: 'Three'
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1781242629922-6f39cc3671cd?q=80&w=1600&auto=format&fit=crop',
-      caption: 'Four'
-    }
-  ],
+  items: () => DEFAULT_ITEMS,
   startIndex: 0,
   transition: 'melt',
   duration: 1.1,
@@ -591,7 +563,8 @@ const props = withDefaults(defineProps<MorphSliderProps>(), {
   overlayColor: '#000000',
   showCaptions: true,
   showControls: true,
-  showIndicators: true
+  showIndicators: true,
+  className: ''
 });
 
 const containerRef = ref<HTMLDivElement | null>(null);
@@ -612,11 +585,15 @@ const getOptions = (): EngineOptions => ({
   loop: props.loop
 });
 
+const destroyEngine = () => {
+  engine?.destroy();
+  engine = null;
+};
+
 const setupEngine = () => {
   const container = containerRef.value;
   if (!container) return;
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
   engine = new MorphEngine(container, {
     items: props.items,
     startIndex: props.startIndex,
@@ -630,27 +607,20 @@ const setupEngine = () => {
   index.value = props.startIndex;
 };
 
-onMounted(() => {
-  setupEngine();
-});
-
-onUnmounted(() => {
-  engine?.destroy();
-  engine = null;
-});
-
 watch(
   () => [props.items, props.startIndex],
   () => {
-    engine?.destroy();
-    engine = null;
+    destroyEngine();
     setupEngine();
   }
 );
 
+const handleNext = () => engine?.next();
+const handlePrev = () => engine?.prev();
+
 watch(
   () => [props.autoplay, props.autoplayDelay, hovering.value, index.value],
-  (_value, _oldValue, onCleanup) => {
+  (_value, _old, onCleanup) => {
     if (!props.autoplay || hovering.value) return;
     const id = window.setTimeout(() => engine?.next(), Math.max(props.autoplayDelay, 1) * 1000);
     onCleanup(() => window.clearTimeout(id));
@@ -658,27 +628,11 @@ watch(
   { immediate: true }
 );
 
-const handleNext = () => engine?.next();
-const handlePrev = () => engine?.prev();
-
-const onKeyDown = (e: KeyboardEvent) => {
-  if (e.key === 'ArrowRight') {
-    e.preventDefault();
-    handleNext();
-  } else if (e.key === 'ArrowLeft') {
-    e.preventDefault();
-    handlePrev();
-  }
-};
-
-const handleIndicatorClick = (i: number) => {
-  if (!engine || i === index.value) return;
-  engine.goTo(i > index.value ? 1 : -1);
-};
-
-let removeDragListeners: (() => void) | null = null;
+let removePointer: (() => void) | null = null;
 
 onMounted(() => {
+  setupEngine();
+
   const el = containerRef.value;
   if (!el) return;
   let startX = 0;
@@ -696,9 +650,7 @@ onMounted(() => {
     if (active && el.setPointerCapture) {
       try {
         el.setPointerCapture(e.pointerId);
-      } catch {
-        /* pointer capture unsupported for this input type */
-      }
+      } catch {}
     }
   };
   const onMove = (e: PointerEvent) => {
@@ -717,7 +669,7 @@ onMounted(() => {
   el.addEventListener('pointerup', onUp);
   el.addEventListener('pointercancel', onUp);
 
-  removeDragListeners = () => {
+  removePointer = () => {
     el.removeEventListener('pointerdown', onDown);
     el.removeEventListener('pointermove', onMove);
     el.removeEventListener('pointerup', onUp);
@@ -725,33 +677,49 @@ onMounted(() => {
   };
 });
 
-onUnmounted(() => {
-  removeDragListeners?.();
+onBeforeUnmount(() => {
+  removePointer?.();
+  removePointer = null;
+  destroyEngine();
 });
+
+const onKeyDown = (e: KeyboardEvent) => {
+  if (e.key === 'ArrowRight') {
+    e.preventDefault();
+    handleNext();
+  } else if (e.key === 'ArrowLeft') {
+    e.preventDefault();
+    handlePrev();
+  }
+};
+
+const goToIndex = (i: number) => {
+  if (!engine || i === index.value) return;
+  engine.goTo(i > index.value ? 1 : -1);
+};
 
 const hasCaptions = computed(() => props.items.some(item => item.caption));
 
-const rootStyle = computed<CSSProperties>(
+const rootStyle = computed(
   () =>
     ({
       borderRadius: `${props.radius}px`,
       '--ms-swap': `${(props.duration * 0.66).toFixed(3)}s`,
-      '--ms-dot': `${(props.duration * 0.45).toFixed(3)}s`,
-      touchAction: 'pan-y'
+      '--ms-dot': `${(props.duration * 0.45).toFixed(3)}s`
     }) as CSSProperties
 );
 </script>
 
 <template>
   <div
-    class="relative bg-[#0c0c0e] w-full h-full overflow-hidden select-none"
+    :class="`morph-slider ${className}`.trim()"
     :style="rootStyle"
     @mouseenter="hovering = true"
     @mouseleave="hovering = false"
   >
     <div
       ref="containerRef"
-      class="absolute inset-0 focus-visible:shadow-[inset_0_0_0_2px_rgba(255,255,255,0.7)] outline-none cursor-grab active:cursor-grabbing"
+      class="morph-slider-stage"
       role="group"
       aria-roledescription="carousel"
       aria-label="Image morph slider"
@@ -759,37 +727,20 @@ const rootStyle = computed<CSSProperties>(
       @keydown="onKeyDown"
     />
 
-    <div
-      v-if="showCaptions && hasCaptions"
-      class="bottom-5.5 left-5.5 z-2 absolute grid max-w-[70%] pointer-events-none"
-      aria-live="polite"
-    >
+    <div v-if="showCaptions && hasCaptions" class="morph-slider-caption" aria-live="polite">
       <template v-for="(item, i) in items" :key="i">
         <span
           v-if="item.caption"
           :aria-hidden="i === index ? undefined : true"
-          class="inline-block bg-[rgba(10,10,12,0.42)] backdrop-blur-sm [transition:opacity_var(--ms-swap)_cubic-bezier(0.16,1,0.3,1),transform_var(--ms-swap)_cubic-bezier(0.16,1,0.3,1),filter_var(--ms-swap)_cubic-bezier(0.16,1,0.3,1)] px-3.5 py-2 rounded-[10px] font-semibold text-[15px] text-white tracking-[0.01em] pointer-events-none [grid-area:1/1] [justify-self:start]"
-          :class="
-            i === index
-              ? 'opacity-100 transform-[translateY(0)] filter-[blur(0)]'
-              : 'opacity-0 transform-[translateY(12px)] filter-[blur(6px)]'
-          "
+          :class="`morph-slider-caption-text ${i === index ? 'is-active' : ''}`"
         >
           {{ item.caption }}
         </span>
       </template>
     </div>
 
-    <div
-      v-if="showControls"
-      class="top-1/2 right-0 left-0 z-3 absolute flex justify-between px-4 -translate-y-1/2 pointer-events-none"
-    >
-      <button
-        type="button"
-        class="inline-flex justify-center items-center bg-[rgba(12,12,14,0.4)] hover:bg-[rgba(24,24,28,0.6)] backdrop-blur-md border border-white/20 rounded-full focus-visible:outline-2 focus-visible:outline-white/80 focus-visible:outline-offset-2 w-10 h-10 text-white hover:scale-105 active:scale-95 transition-transform duration-200 cursor-pointer pointer-events-auto"
-        aria-label="Previous slide"
-        @click="handlePrev"
-      >
+    <div v-if="showControls" class="morph-slider-controls">
+      <button type="button" class="morph-slider-btn" aria-label="Previous slide" @click="handlePrev">
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
           <path
             d="M15 5l-7 7 7 7"
@@ -801,12 +752,7 @@ const rootStyle = computed<CSSProperties>(
           />
         </svg>
       </button>
-      <button
-        type="button"
-        class="inline-flex justify-center items-center bg-[rgba(12,12,14,0.4)] hover:bg-[rgba(24,24,28,0.6)] backdrop-blur-md border border-white/20 rounded-full focus-visible:outline-2 focus-visible:outline-white/80 focus-visible:outline-offset-2 w-10 h-10 text-white hover:scale-105 active:scale-95 transition-transform duration-200 cursor-pointer pointer-events-auto"
-        aria-label="Next slide"
-        @click="handleNext"
-      >
+      <button type="button" class="morph-slider-btn" aria-label="Next slide" @click="handleNext">
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
           <path
             d="M9 5l7 7-7 7"
@@ -820,12 +766,7 @@ const rootStyle = computed<CSSProperties>(
       </button>
     </div>
 
-    <div
-      v-if="showIndicators"
-      class="right-0 bottom-4.5 left-0 z-3 absolute flex justify-center items-center gap-2"
-      role="tablist"
-      aria-label="Slides"
-    >
+    <div v-if="showIndicators" class="morph-slider-indicators" role="tablist" aria-label="Slides">
       <button
         v-for="(item, i) in items"
         :key="i"
@@ -833,10 +774,183 @@ const rootStyle = computed<CSSProperties>(
         role="tab"
         :aria-selected="i === index"
         :aria-label="`Go to slide ${i + 1}`"
-        class="[transition:width_var(--ms-dot)_cubic-bezier(0.16,1,0.3,1),background-color_var(--ms-dot)_ease] rounded-full focus-visible:outline-2 focus-visible:outline-white/80 focus-visible:outline-offset-2 h-2 cursor-pointer"
-        :class="i === index ? 'w-5.5 bg-white/95' : 'w-2 bg-white/35'"
-        @click="handleIndicatorClick(i)"
+        :class="`morph-slider-dot ${i === index ? 'is-active' : ''}`"
+        @click="goToIndex(i)"
       />
     </div>
   </div>
 </template>
+
+<style>
+.morph-slider {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0c0c0e;
+  user-select: none;
+  touch-action: pan-y;
+}
+
+.morph-slider-stage {
+  position: absolute;
+  inset: 0;
+  cursor: grab;
+  outline: none;
+}
+
+.morph-slider-stage:active {
+  cursor: grabbing;
+}
+
+.morph-slider-stage:focus-visible {
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.7);
+}
+
+.morph-slider-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.morph-slider-caption {
+  position: absolute;
+  left: 22px;
+  bottom: 22px;
+  z-index: 2;
+  max-width: 70%;
+  pointer-events: none;
+  display: grid;
+}
+
+.morph-slider-caption-text {
+  grid-area: 1 / 1;
+  justify-self: start;
+  display: inline-block;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #fff;
+  background: rgba(10, 10, 12, 0.42);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  transform: translateY(12px);
+  filter: blur(6px);
+  transition:
+    opacity var(--ms-swap) cubic-bezier(0.16, 1, 0.3, 1),
+    transform var(--ms-swap) cubic-bezier(0.16, 1, 0.3, 1),
+    filter var(--ms-swap) cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.morph-slider-caption-text.is-active {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+.morph-slider-controls {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 16px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.morph-slider-btn {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(12, 12, 14, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition:
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.morph-slider-btn:hover {
+  background: rgba(24, 24, 28, 0.6);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.06);
+}
+
+.morph-slider-btn:active {
+  transform: scale(0.96);
+}
+
+.morph-slider-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 2px;
+}
+
+.morph-slider-indicators {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  z-index: 3;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.morph-slider-dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  transition:
+    width var(--ms-dot) cubic-bezier(0.16, 1, 0.3, 1),
+    background var(--ms-dot) ease;
+}
+
+.morph-slider-dot.is-active {
+  width: 22px;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.morph-slider-dot:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 2px;
+}
+
+@media (max-width: 420px) {
+  .morph-slider-btn {
+    width: 34px;
+    height: 34px;
+  }
+
+  .morph-slider-caption-text {
+    font-size: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .morph-slider-caption-text,
+  .morph-slider-btn,
+  .morph-slider-dot {
+    animation: none;
+    transition: none;
+  }
+}
+</style>

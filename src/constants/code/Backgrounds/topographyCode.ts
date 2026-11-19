@@ -2,35 +2,28 @@ import code from '@/content/Backgrounds/Topography/Topography.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const topography = createCodeObject(code, 'Backgrounds/Topography', {
-  usage: `<script setup>
-import Topography from './Topography.vue'
-</script>
+  dependencies: '',
+  usage: `<template>
+  <div style="width: 100%; height: 600px; position: relative">
+    <Topography
+      color="#4f7cff"
+      :line-count="22"
+      :line-width="1.2"
+      :elevation="1"
+      :foreground="0.2"
+      :tilt="32"
+      :speed="0.25"
+      direction="forward"
+      :glow="0.6"
+      :depth-of-field="0.4"
+      :fog="0.35"
+      hover-effect="lift"
+      click-effect="pulse"
+    />
+  </div>
+</template>
 
-<template>
-<div :style="{ width: '100%', height: '600px', position: 'relative' }">
-  <Topography
-    lowColor="#5227FF"
-    midColor="#FF9FFC"
-    highColor="#FFFFFF"
-    :speed="0.35"
-    :morphAmount="3.0"
-    :morphSpeed="0.05"
-    :bands="2.0"
-    :thickness="0.01"
-    :scale="1.0"
-    :pixelSize="1.0"
-    :glow="0.5"
-    colorMode="elevation"
-    :contrast="3.0"
-    :brightness="1.0"
-    :fillBands="false"
-    :opacity="1.0"
-    :grain="true"
-    :grainIntensity="0.05"
-    :mouseInteraction="true"
-    :mouseRadius="0.3"
-    :mouseStrength="0.4"
-  />
-</div>
-</template>`
+<script setup lang="ts">
+import Topography from './Topography.vue';
+</script>`
 });

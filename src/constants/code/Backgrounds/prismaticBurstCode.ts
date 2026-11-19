@@ -2,26 +2,20 @@ import code from '@/content/Backgrounds/PrismaticBurst/PrismaticBurst.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const prismaticBurst = createCodeObject(code, 'Backgrounds/PrismaticBurst', {
-  installation: `npm install ogl`,
+  dependencies: '',
   usage: `<template>
-  <div
-    style="
-      width: 100%;
-      height: 600px;
-      position: relative;
-    "
-  >
+  <div style="width: 100%; height: 600px; position: relative">
     <PrismaticBurst
+      :colors="['#7cff67', '#42b883', '#66c2a4']"
       animation-type="rotate3d"
       :intensity="2"
       :speed="0.5"
-      :distort="1.0"
-      :paused="false"
-      :offset="{ x: 0, y: 0 }"
-      :hover-dampness="0.25"
-      :ray-count="24"
-      mix-blend-mode="lighten"
-      :colors="['#ff007a', '#4d3dff', '#ffffff']"
+      :zoom="1"
+      :ray-width="1"
+      :twist="0"
+      :mouse-interaction="true"
+      :click-burst="true"
+      :intro="true"
     />
   </div>
 </template>

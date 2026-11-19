@@ -1,32 +1,20 @@
-<script setup lang="ts" generic="T extends ShredderItem">
-import { computed, nextTick, onBeforeUnmount, onMounted, onUpdated, ref, watch, type CSSProperties } from 'vue';
+<script lang="ts">
+const FOLLOW = 30;
+const SETTLE = 16;
+const TUG = 2.4;
+const TUG_DECAY = 0.14;
+const SLIT = 6;
+const OVER = 40;
+const SLIVER = 2;
+const STACK_K = 320;
+const STACK_C = 22;
+const STAGGER = 0.035;
+const ENTER = 22;
+const HYSTERESIS = 8;
+const DEG = Math.PI / 180;
 
 export interface ShredderItem {
   id: string | number;
-}
-
-interface ShredderProps<T extends ShredderItem> {
-  items?: T[];
-  width?: number;
-  height?: number;
-  inset?: number;
-  gap?: number;
-  slitHeight?: number;
-  fallHeight?: number;
-  feedSpeed?: number;
-  bite?: number;
-  autoFeed?: boolean;
-  stripWidth?: number;
-  curl?: number;
-  autoAnimate?: boolean;
-  loop?: boolean;
-  loopAfterDelete?: boolean;
-  dragTilt?: number;
-  lift?: number;
-  slitColor?: string;
-  color?: string;
-  disabled?: boolean;
-  className?: string;
 }
 
 interface Metrics {
@@ -43,9 +31,9 @@ interface Texture {
   scale: number;
 }
 
-interface Drag<T> {
+interface Drag {
   key: string | number;
-  item: T;
+  item: ShredderItem;
   el: HTMLDivElement;
   slot: HTMLLIElement;
   W: number;
@@ -73,9 +61,9 @@ interface Drag<T> {
   fill: string;
 }
 
-interface Feed<T> {
+interface Feed {
   key: string | number;
-  item: T;
+  item: ShredderItem;
   el: HTMLDivElement;
   slot: HTMLLIElement;
   W: number;
@@ -93,8 +81,8 @@ interface Feed<T> {
   strips: number;
 }
 
-interface Strip<T> {
-  feed: Feed<T>;
+interface Strip {
+  feed: Feed;
   x: number;
   w: number;
   H: number;
@@ -128,13 +116,13 @@ interface Shift {
   item: HTMLDivElement | null;
 }
 
-interface Sim<T> {
+interface Sim {
   raf: number;
   last: number;
   t: number;
-  drag: Drag<T> | null;
-  feeds: Feed<T>[];
-  strips: Strip<T>[];
+  drag: Drag | null;
+  feeds: Feed[];
+  strips: Strip[];
   shifts: Map<HTMLLIElement, Shift>;
   tops: Map<HTMLLIElement, number>;
   timers: Set<ReturnType<typeof setTimeout>>;
@@ -142,20 +130,6 @@ interface Sim<T> {
   cw: number;
   ch: number;
 }
-
-const FOLLOW = 30;
-const SETTLE = 16;
-const TUG = 2.4;
-const TUG_DECAY = 0.14;
-const SLIT = 6;
-const OVER = 40;
-const SLIVER = 2;
-const STACK_K = 320;
-const STACK_C = 22;
-const STAGGER = 0.035;
-const ENTER = 22;
-const HYSTERESIS = 8;
-const DEG = Math.PI / 180;
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 const ease = (from: number, to: number, dt: number, tau: number) => from + (to - from) * (1 - Math.exp(-dt / tau));
@@ -263,7 +237,7 @@ const flat = (W: number, H: number, fill: string): Texture => {
   return { tex, scale: 1 };
 };
 
-const shape = <T,>(st: Strip<T>, len: number, time: number, tear: number) => {
+const shape = (st: Strip, len: number, time: number, tear: number) => {
   const pts = st.pts;
   pts.length = 0;
   let x = st.ax;
@@ -288,7 +262,7 @@ const middle = (pts: number[]) => {
   return (y * 3) / pts.length;
 };
 
-const paintStrip = <T,>(ctx: CanvasRenderingContext2D, st: Strip<T>, len: number, dpr: number) => {
+const paintStrip = (ctx: CanvasRenderingContext2D, st: Strip, len: number, dpr: number) => {
   const { tex, ts } = st.feed;
   if (!tex) return;
   const pts = st.pts;
@@ -308,6 +282,34 @@ const paintStrip = <T,>(ctx: CanvasRenderingContext2D, st: Strip<T>, len: number
   }
   ctx.globalAlpha = 1;
 };
+</script>
+
+<script setup lang="ts" generic="T extends ShredderItem">
+import { computed, onBeforeUnmount, onMounted, onUpdated, ref, useTemplateRef, watch, type CSSProperties } from 'vue';
+
+interface ShredderProps<I> {
+  items?: I[];
+  width?: number;
+  height?: number;
+  inset?: number;
+  gap?: number;
+  slitHeight?: number;
+  fallHeight?: number;
+  feedSpeed?: number;
+  bite?: number;
+  autoFeed?: boolean;
+  stripWidth?: number;
+  curl?: number;
+  autoAnimate?: boolean;
+  loop?: boolean;
+  loopAfterDelete?: boolean;
+  dragTilt?: number;
+  lift?: number;
+  slitColor?: string;
+  color?: string;
+  disabled?: boolean;
+  className?: string;
+}
 
 const props = withDefaults(defineProps<ShredderProps<T>>(), {
   items: () => [],
@@ -327,54 +329,55 @@ const props = withDefaults(defineProps<ShredderProps<T>>(), {
   loopAfterDelete: false,
   dragTilt: 6,
   lift: 1.02,
-  slitColor: '#3f3f46',
+  slitColor: '#3d403d',
   color: '#f5f5f5',
   disabled: false,
   className: ''
 });
 
-const emit = defineEmits<{ shred: [item: T]; reorder: [items: T[]] }>();
-defineSlots<{ default(props: { item: T; index: number }): unknown }>();
+const emit = defineEmits<{
+  shred: [item: T];
+  reorder: [items: T[]];
+}>();
+
+defineSlots<{
+  renderItem(props: { item: T; index: number }): unknown;
+}>();
 
 const order = ref<(string | number)[]>(props.items.map(item => item.id));
-const sorted = computed<T[]>(() => {
+const sorted = computed(() => {
   const rank = new Map<string | number, number>(order.value.map((id, i) => [id, i]));
   const weight = (item: T) => rank.get(item.id) ?? order.value.length + props.items.indexOf(item);
   return [...props.items].sort((a, b) => weight(a) - weight(b));
 });
 
-const rootRef = ref<HTMLDivElement | null>(null);
-const slitRef = ref<HTMLDivElement | null>(null);
-const canvasRef = ref<HTMLCanvasElement | null>(null);
+const rootRef = useTemplateRef<HTMLDivElement>('rootRef');
+const listRef = useTemplateRef<HTMLUListElement>('listRef');
+const slitRef = useTemplateRef<HTMLDivElement>('slitRef');
+const canvasRef = useTemplateRef<HTMLCanvasElement>('canvasRef');
 const slotEls = new Map<string | number, HTMLLIElement>();
 const itemEls = new Map<string | number, HTMLDivElement>();
 
-const cfg = {
-  get current() {
-    return {
-      items: sorted.value,
-      height: props.height,
-      inset: props.inset,
-      gap: props.gap,
-      slitHeight: props.slitHeight,
-      fallHeight: props.fallHeight,
-      feedSpeed: props.feedSpeed,
-      bite: props.bite,
-      autoFeed: props.autoFeed,
-      stripWidth: props.stripWidth,
-      curl: props.curl,
-      loop: props.loop,
-      loopAfterDelete: props.loopAfterDelete,
-      dragTilt: props.dragTilt,
-      lift: props.lift,
-      disabled: props.disabled,
-      onShred: (item: T) => emit('shred', item),
-      onReorder: (items: T[]) => emit('reorder', items)
-    };
-  }
-};
+const cfg = () => ({
+  items: sorted.value,
+  height: props.height,
+  inset: props.inset,
+  gap: props.gap,
+  slitHeight: props.slitHeight,
+  fallHeight: props.fallHeight,
+  feedSpeed: props.feedSpeed,
+  bite: props.bite,
+  autoFeed: props.autoFeed,
+  stripWidth: props.stripWidth,
+  curl: props.curl,
+  loop: props.loop,
+  loopAfterDelete: props.loopAfterDelete,
+  dragTilt: props.dragTilt,
+  lift: props.lift,
+  disabled: props.disabled
+});
 
-const sim: Sim<T> = {
+const sim: Sim = {
   raf: 0,
   last: 0,
   t: 0,
@@ -390,7 +393,7 @@ const sim: Sim<T> = {
 };
 
 const metrics = (): Metrics => {
-  const c = cfg.current;
+  const c = cfg();
   const root = rootRef.value!;
   const r = root.getBoundingClientRect();
   const k = r.width / root.offsetWidth || 1;
@@ -407,17 +410,19 @@ const local = (e: { clientX: number; clientY: number }, m: Metrics) => ({
 });
 
 const run = () => {
-  if (sim.raf) return;
-  sim.last = performance.now();
-  sim.raf = requestAnimationFrame(step);
+  const s = sim;
+  if (s.raf) return;
+  s.last = performance.now();
+  s.raf = requestAnimationFrame(step);
 };
 
 const later = (ms: number, fn: () => void) => {
+  const s = sim;
   const id = setTimeout(() => {
-    sim.timers.delete(id);
+    s.timers.delete(id);
     fn();
   }, ms);
-  sim.timers.add(id);
+  s.timers.add(id);
 };
 
 const slotOf = (key: string | number) => slotEls.get(key);
@@ -425,42 +430,48 @@ const isLive = (key: string | number) => {
   const slot = slotOf(key);
   return !!slot && slot.dataset.gone === undefined;
 };
-const liveKeys = () => cfg.current.items.map(item => item.id).filter(isLive);
+const liveKeys = () =>
+  cfg()
+    .items.map(item => item.id)
+    .filter(isLive);
 const goneKeys = () =>
-  cfg.current.items
-    .map(item => item.id)
+  cfg()
+    .items.map(item => item.id)
     .filter(key => {
       const slot = slotOf(key);
       return !!slot && slot.dataset.gone !== undefined;
     });
 
 const shiftOf = (slot: HTMLLIElement): Shift => {
-  let sh = sim.shifts.get(slot);
+  const s = sim;
+  let sh = s.shifts.get(slot);
   if (!sh) {
     sh = { el: slot, y: 0, v: 0, target: 0, delay: 0, item: null };
-    sim.shifts.set(slot, sh);
+    s.shifts.set(slot, sh);
   }
   return sh;
 };
 
 const settle = (origin: HTMLLIElement | null, entering: Set<HTMLLIElement> | null) => {
+  const s = sim;
   if (!rootRef.value) return;
   const m = metrics();
   const next = new Map<HTMLLIElement, number>();
   const still = reduced();
-  const active = sim.drag ? sim.drag.slot : null;
-  const slots = cfg.current.items.map(item => slotOf(item.id));
+  const active = s.drag ? s.drag.slot : null;
+  const items = cfg().items;
+  const slots = items.map(item => slotOf(item.id));
   const from = origin ? slots.indexOf(origin) : -1;
   let born = 0;
-  cfg.current.items.forEach((item, idx) => {
+  items.forEach((item, idx) => {
     const slot = slots[idx];
     if (!slot) return;
-    const sh = sim.shifts.get(slot);
+    const sh = s.shifts.get(slot);
     const top = at(slot, m).y - (sh ? sh.y : 0);
-    const prev = sim.tops.get(slot);
+    const prev = s.tops.get(slot);
     next.set(slot, top);
     if (slot === active || still) return;
-    const fresh = (entering && entering.has(slot)) || (prev === undefined && sim.tops.size > 0);
+    const fresh = (entering && entering.has(slot)) || (prev === undefined && s.tops.size > 0);
     if (fresh) {
       const rec = shiftOf(slot);
       const el = itemEls.get(item.id) || null;
@@ -482,17 +493,19 @@ const settle = (origin: HTMLLIElement | null, entering: Set<HTMLLIElement> | nul
     if (from >= 0) rec.delay = Math.max(0, from - 1 - idx) * STAGGER;
     slot.style.transform = `translateY(${rec.y}px)`;
   });
-  sim.tops = next;
+  s.tops = next;
   run();
 };
 
 const reflow = (mutate: () => void, origin?: HTMLLIElement | null, entering?: Set<HTMLLIElement> | null) => {
   mutate();
-  nextTick(() => settle(origin || null, entering || null));
+  settle(origin || null, entering || null);
 };
 
 const arrange = (key: string | number, index: number) => {
-  const ids = cfg.current.items.map(item => item.id).filter(id => id !== key);
+  const ids = cfg()
+    .items.map(item => item.id)
+    .filter(id => id !== key);
   const live = ids.filter(isLive);
   let anchor = 0;
   if (index < live.length) anchor = ids.indexOf(live[index]);
@@ -501,15 +514,30 @@ const arrange = (key: string | number, index: number) => {
   return ids;
 };
 
+const placeSlots = () => {
+  const list = listRef.value;
+  if (!list) return;
+  const nodes = cfg()
+    .items.map(item => slotOf(item.id))
+    .filter((node): node is HTMLLIElement => !!node && node.parentNode === list);
+  if (!nodes.length) return;
+  const anchor = list.lastElementChild ? list.lastElementChild.nextSibling : null;
+  nodes.forEach(node => list.insertBefore(node, anchor));
+};
+
 const commit = (ids: (string | number)[]) => {
-  const same = ids.every((id, i) => id === cfg.current.items[i]?.id);
+  const items = cfg().items;
+  const same = ids.every((id, i) => id === items[i]?.id);
   if (same) return false;
   order.value = ids;
+  placeSlots();
+  settle(null, null);
   return true;
 };
 
 const revive = (keys: (string | number)[], index?: number) => {
-  if (sim.drag) {
+  const s = sim;
+  if (s.drag) {
     later(300, () => revive(keys, index));
     return;
   }
@@ -538,7 +566,7 @@ const revive = (keys: (string | number)[], index?: number) => {
 };
 
 const afterShred = (key: string | number) => {
-  const c = cfg.current;
+  const c = cfg();
   if (c.loopAfterDelete) {
     later(700, () => revive([key], Math.floor(Math.random() * (liveKeys().length + 1))));
   } else if (c.loop && liveKeys().length === 0) {
@@ -546,11 +574,11 @@ const afterShred = (key: string | number) => {
   }
 };
 
-const collapse = (f: Feed<T>) => {
+const collapse = (f: Feed, s: Sim) => {
   f.consumed = true;
   f.el.style.visibility = 'hidden';
   delete f.slot.dataset.active;
-  sim.shifts.forEach(sh => {
+  s.shifts.forEach(sh => {
     sh.target = 0;
   });
   reflow(() => {
@@ -558,12 +586,13 @@ const collapse = (f: Feed<T>) => {
     f.slot.style.height = '0px';
     f.slot.style.marginBottom = '0px';
   }, f.slot);
-  cfg.current.onShred(f.item);
+  emit('shred', f.item as T);
   afterShred(f.key);
 };
 
-const consumeNow = (key: string | number, item: T, el: HTMLDivElement, slot: HTMLLIElement) => {
-  const f: Feed<T> = {
+const consumeNow = (key: string | number, item: ShredderItem, el: HTMLDivElement, slot: HTMLLIElement) => {
+  const s = sim;
+  const f: Feed = {
     key,
     item,
     el,
@@ -582,14 +611,15 @@ const consumeNow = (key: string | number, item: T, el: HTMLDivElement, slot: HTM
     consumed: false,
     strips: 0
   };
-  collapse(f);
+  collapse(f, s);
   run();
 };
 
-const grab = (d: Drag<T>, m: Metrics) => {
-  const c = cfg.current;
-  sim.drag = null;
-  sim.shifts.forEach(sh => {
+const grab = (d: Drag, m: Metrics) => {
+  const s = sim;
+  const c = cfg();
+  s.drag = null;
+  s.shifts.forEach(sh => {
     sh.target = 0;
   });
   if (reduced()) {
@@ -602,7 +632,7 @@ const grab = (d: Drag<T>, m: Metrics) => {
   const hi = m.rw - c.inset + SLIT - d.W;
   const n = Math.max(1, Math.round(d.W / Math.max(4, c.stripWidth)));
   const sw = Math.floor(d.W / n);
-  const f: Feed<T> = {
+  const f: Feed = {
     key: d.key,
     item: d.item,
     el: d.el,
@@ -632,9 +662,9 @@ const grab = (d: Drag<T>, m: Metrics) => {
   d.snap.then(use, () => use(flat(d.W, d.H, d.fill)));
   setTimeout(() => use(flat(d.W, d.H, d.fill)), 400);
   d.el.dataset.state = 'feed';
-  sim.feeds.push(f);
+  s.feeds.push(f);
   for (let i = 0; i < n; i += 1) {
-    sim.strips.push({
+    s.strips.push({
       feed: f,
       x: i * sw,
       w: i === n - 1 ? d.W - sw * (n - 1) : sw,
@@ -662,18 +692,19 @@ const grab = (d: Drag<T>, m: Metrics) => {
   }
 };
 
-const place = (d: Drag<T>, sp: { x: number; y: number }) => {
+const place = (d: Drag, sp: { x: number; y: number }) => {
   d.el.style.transform = `translate(${d.rx - sp.x}px, ${d.ry - sp.y}px) rotate(${d.tilt}deg) scale(${d.lift})`;
 };
 
-const aim = (d: Drag<T>, m: Metrics) => {
-  const c = cfg.current;
+const aim = (d: Drag, m: Metrics) => {
+  const s = sim;
+  const c = cfg();
   const rows: { slot: HTMLLIElement; mid: number }[] = [];
   c.items.forEach(item => {
     if (item.id === d.key) return;
     const slot = slotOf(item.id);
     if (!slot || slot.dataset.gone !== undefined) return;
-    const top = sim.tops.get(slot);
+    const top = s.tops.get(slot);
     if (top === undefined) return;
     rows.push({ slot, mid: top + slot.offsetHeight / 2 });
   });
@@ -697,11 +728,11 @@ const aim = (d: Drag<T>, m: Metrics) => {
   });
 };
 
-const drop = (d: Drag<T>) => {
-  const c = cfg.current;
+const drop = (d: Drag) => {
+  const s = sim;
   const live = liveKeys().filter(key => key !== d.key);
   const index = clamp(d.j >= 0 ? d.j : d.from, 0, live.length);
-  sim.shifts.forEach(sh => {
+  s.shifts.forEach(sh => {
     sh.target = 0;
   });
   let changed = false;
@@ -711,25 +742,26 @@ const drop = (d: Drag<T>) => {
     d.slot.style.marginBottom = '';
   });
   d.phase = 'return';
-  if (changed) c.onReorder(cfg.current.items);
+  if (changed) emit('reorder', cfg().items);
 };
 
 const tick = (now: number) => {
-  const c = cfg.current;
+  const s = sim;
+  const c = cfg();
   const root = rootRef.value;
   const canvas = canvasRef.value;
   if (!root || !canvas) {
-    sim.raf = 0;
+    s.raf = 0;
     return;
   }
-  const dt = clamp((now - sim.last) / 1000, 0, 0.05);
-  sim.last = now;
-  sim.t += dt;
+  const dt = clamp((now - s.last) / 1000, 0, 0.05);
+  s.last = now;
+  s.t += dt;
   const m = metrics();
-  const d = sim.drag;
+  const d = s.drag;
   if (d) {
     if (!d.el.isConnected) {
-      sim.drag = null;
+      s.drag = null;
     } else {
       const sp = at(d.slot, m);
       const ceiling = m.lip + c.bite - d.H;
@@ -764,17 +796,17 @@ const tick = (now: number) => {
           delete d.el.dataset.state;
           delete d.slot.dataset.active;
           d.slot.style.height = '';
-          sim.drag = null;
+          s.drag = null;
         }
       }
     }
   }
   let pulling = false;
-  for (let i = sim.feeds.length - 1; i >= 0; i -= 1) {
-    const f = sim.feeds[i];
+  for (let i = s.feeds.length - 1; i >= 0; i -= 1) {
+    const f = s.feeds[i];
     if (!f.consumed) {
       if (!f.el.isConnected) {
-        sim.feeds.splice(i, 1);
+        s.feeds.splice(i, 1);
         continue;
       }
       pulling = true;
@@ -788,20 +820,20 @@ const tick = (now: number) => {
       f.tilt = ease(f.tilt, 0, dt, 0.08);
       f.lift = ease(f.lift, 1, dt, 0.1);
       if (f.ry >= m.lip) {
-        collapse(f);
+        collapse(f, s);
       } else {
-        const jitter = Math.sin(sim.t * 150) * 0.5;
+        const jitter = Math.sin(s.t * 150) * 0.5;
         f.el.style.transform = `translate(${f.rx - sp.x + jitter}px, ${f.ry - sp.y}px) rotate(${f.tilt}deg) scale(${f.lift})`;
       }
     } else {
       f.ry += f.v * dt;
-      if (f.strips === 0) sim.feeds.splice(i, 1);
+      if (f.strips === 0) s.feeds.splice(i, 1);
     }
   }
   let moving = false;
-  sim.shifts.forEach((sh, el) => {
+  s.shifts.forEach((sh, el) => {
     if (!el.isConnected) {
-      sim.shifts.delete(el);
+      s.shifts.delete(el);
       return;
     }
     if (sh.delay > 0) {
@@ -829,7 +861,7 @@ const tick = (now: number) => {
       sh.v = 0;
       if (sh.target === 0) {
         el.style.transform = '';
-        sim.shifts.delete(el);
+        s.shifts.delete(el);
       } else {
         el.style.transform = `translateY(${sh.y}px)`;
       }
@@ -839,13 +871,13 @@ const tick = (now: number) => {
     }
   });
   const ctx = canvas.getContext('2d')!;
-  const dpr = sim.dpr;
-  if (sim.strips.length) {
+  const dpr = s.dpr;
+  if (s.strips.length) {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
-  for (let i = sim.strips.length - 1; i >= 0; i -= 1) {
-    const st = sim.strips[i];
+  for (let i = s.strips.length - 1; i >= 0; i -= 1) {
+    const st = s.strips[i];
     const f = st.feed;
     let len = st.H;
     if (st.phase === 'attached') {
@@ -856,7 +888,7 @@ const tick = (now: number) => {
         continue;
       }
       st.ax = f.rx + st.x + st.w / 2;
-      st.th = Math.sin(sim.t * 6 + st.wave) * 0.03 * smooth(st.hang / 40);
+      st.th = Math.sin(s.t * 6 + st.wave) * 0.03 * smooth(st.hang / 40);
       if (top >= 0) {
         st.phase = 'free';
         st.ay = top;
@@ -873,22 +905,22 @@ const tick = (now: number) => {
     }
     if (st.phase === 'free') {
       const tear = Math.pow(clamp(middle(st.pts) / c.fallHeight, 0, 1), 1.2);
-      const breath = 0.85 + 0.15 * Math.sin(sim.t * (1 + st.rB * 2) + st.rA * 6.2832);
+      const breath = 0.85 + 0.15 * Math.sin(s.t * (1 + st.rB * 2) + st.rA * 6.2832);
       st.vy = ease(st.vy, st.speed * breath, dt, 0.25);
       st.vx = ease(st.vx, st.splay * tear + (st.ax - m.rw / 2) * 0.25, dt, 0.4);
       st.ax += st.vx * dt;
       st.ay += st.vy * dt;
       st.th = ease(st.th, st.rest, dt, 0.5);
       st.core = 1 - smooth(tear / 0.85) * (0.8 - st.rA * 0.16);
-      shape(st, st.H, sim.t, tear);
+      shape(st, st.H, s.t, tear);
       st.alpha = 1 - smooth((tear - 0.6) / 0.4);
       if (st.alpha <= 0.01 || st.pts[1] > c.fallHeight) {
-        sim.strips.splice(i, 1);
+        s.strips.splice(i, 1);
         continue;
       }
     } else {
       st.core = 1;
-      shape(st, len, sim.t, 0);
+      shape(st, len, s.t, 0);
       st.alpha = 1;
     }
     paintStrip(ctx, st, len, dpr);
@@ -896,33 +928,33 @@ const tick = (now: number) => {
   }
   const slit = slitRef.value;
   if (slit) {
-    slit.style.transform = pulling
-      ? `translate(${Math.sin(sim.t * 140) * 0.5}px, ${Math.cos(sim.t * 97) * 0.35}px)`
-      : '';
+    slit.style.transform = pulling ? `translate(${Math.sin(s.t * 140) * 0.5}px, ${Math.cos(s.t * 97) * 0.35}px)` : '';
   }
-  if (sim.drag || sim.feeds.length || moving) {
-    sim.raf = requestAnimationFrame(step);
+  if (s.drag || s.feeds.length || moving) {
+    s.raf = requestAnimationFrame(step);
   } else {
-    sim.raf = 0;
+    s.raf = 0;
   }
 };
 
-const step = (now: number) => {
+function step(now: number) {
+  const s = sim;
   try {
     tick(now);
   } catch (err) {
-    sim.raf = 0;
+    s.raf = 0;
     throw err;
   }
-};
+}
 
-const begin = (item: T, phase: Drag<T>['phase'], e: PointerEvent | null) => {
-  const c = cfg.current;
+const begin = (item: T, phase: Drag['phase'], e: PointerEvent | null) => {
+  const s = sim;
+  const c = cfg();
   const key = item.id;
   const el = itemEls.get(key);
   const slot = slotOf(key);
-  if (c.disabled || sim.drag || !el || !slot || slot.dataset.gone !== undefined) return;
-  if (sim.feeds.some(f => f.key === key)) return;
+  if (c.disabled || s.drag || !el || !slot || slot.dataset.gone !== undefined) return;
+  if (s.feeds.some(f => f.key === key)) return;
   const m = metrics();
   const sp = at(slot, m);
   const W = slot.offsetWidth;
@@ -937,7 +969,7 @@ const begin = (item: T, phase: Drag<T>['phase'], e: PointerEvent | null) => {
     snap = Promise.reject(new Error('snapshot'));
   }
   snap.catch(() => {});
-  const d: Drag<T> = {
+  const d: Drag = {
     key,
     item,
     el,
@@ -966,8 +998,8 @@ const begin = (item: T, phase: Drag<T>['phase'], e: PointerEvent | null) => {
     snap,
     fill: fill === 'rgba(0, 0, 0, 0)' || fill === 'transparent' ? 'rgba(127, 127, 127, 0.35)' : fill
   };
-  sim.drag = d;
-  sim.shifts.delete(slot);
+  s.drag = d;
+  s.shifts.delete(slot);
   slot.style.transform = '';
   reflow(() => {
     slot.dataset.active = '';
@@ -984,7 +1016,7 @@ const onDown = (e: PointerEvent, item: T) => {
   try {
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   } catch {
-    // capture unavailable
+    void 0;
   }
   begin(item, 'drag', e);
 };
@@ -999,11 +1031,11 @@ const onUp = (e: PointerEvent) => {
   const d = sim.drag;
   if (!d || d.id !== e.pointerId) return;
   d.id = null;
-  const el = e.currentTarget as HTMLElement;
+  const target = e.currentTarget as HTMLElement;
   try {
-    if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+    if (target.hasPointerCapture(e.pointerId)) target.releasePointerCapture(e.pointerId);
   } catch {
-    // already released
+    void 0;
   }
   const m = metrics();
   if (d.ry + d.H > m.lip + 0.5) {
@@ -1021,8 +1053,8 @@ const onKey = (e: KeyboardEvent, item: T) => {
   if (reduced()) {
     const el = itemEls.get(key);
     const slot = slotOf(key);
-    if (cfg.current.disabled || !el || !slot || slot.dataset.gone !== undefined || sim.feeds.some(f => f.key === key))
-      return;
+    const s = sim;
+    if (cfg().disabled || !el || !slot || slot.dataset.gone !== undefined || s.feeds.some(f => f.key === key)) return;
     consumeNow(key, item, el, slot);
     return;
   }
@@ -1038,64 +1070,72 @@ const keepItem = (key: string | number) => (el: unknown) => {
   else itemEls.delete(key);
 };
 
-onMounted(() => settle(null, null));
-onUpdated(() => settle(null, null));
-
 let ro: ResizeObserver | null = null;
 const fit = () => {
+  const s = sim;
   const root = rootRef.value;
   const canvas = canvasRef.value;
   if (!root || !canvas) return;
   const dpr = Math.min(3, window.devicePixelRatio || 1);
   const cw = root.offsetWidth + OVER * 2;
-  const ch = props.fallHeight;
-  if (cw === sim.cw && ch === sim.ch && dpr === sim.dpr) return;
-  if (sim.cw) sim.tops = new Map();
-  sim.cw = cw;
-  sim.ch = ch;
-  sim.dpr = dpr;
+  const ch = cfg().fallHeight;
+  if (cw === s.cw && ch === s.ch && dpr === s.dpr) return;
+  if (s.cw) s.tops = new Map();
+  s.cw = cw;
+  s.ch = ch;
+  s.dpr = dpr;
   canvas.width = Math.ceil(cw * dpr);
   canvas.height = Math.ceil(ch * dpr);
 };
+
 onMounted(() => {
+  settle(null, null);
   const root = rootRef.value;
   if (!root) return;
   ro = new ResizeObserver(fit);
   ro.observe(root);
   fit();
 });
-watch(() => props.fallHeight, fit);
 
-let prefetchTimer: ReturnType<typeof setTimeout> | undefined;
+onUpdated(() => {
+  settle(null, null);
+});
+
+watch(
+  () => props.fallHeight,
+  () => fit(),
+  { flush: 'post' }
+);
+
 watch(
   () => props.items,
-  () => {
-    clearTimeout(prefetchTimer);
-    prefetchTimer = setTimeout(() => {
+  (_items, _prev, onCleanup) => {
+    const timer = setTimeout(() => {
       itemEls.forEach(el => {
         el.querySelectorAll('img').forEach(img => {
           dataUrl(img.currentSrc || img.src).catch(() => {});
         });
       });
     }, 300);
+    onCleanup(() => clearTimeout(timer));
   },
-  { immediate: true, deep: true }
+  { immediate: true, flush: 'post' }
 );
-onBeforeUnmount(() => clearTimeout(prefetchTimer));
 
 watch(
   () => props.autoAnimate,
-  (on, _o, onCleanup) => {
+  (on, _prev, onCleanup) => {
     if (!on) return;
+    const s = sim;
     let alive = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const wait = (ms: number) =>
       new Promise(resolve => {
         timer = setTimeout(resolve, ms);
       });
-    const idle = () => !sim.drag && sim.feeds.length === 0 && sim.strips.length === 0 && sim.shifts.size === 0;
+    const idle = () => !s.drag && s.feeds.length === 0 && s.strips.length === 0 && s.shifts.size === 0;
     const pickNext = () => {
-      const list = cfg.current.items;
+      const list = cfg().items;
       for (let i = list.length - 1; i >= 0; i -= 1) {
         if (isLive(list[i].id)) return list[i];
       }
@@ -1114,7 +1154,7 @@ watch(
           await wait(1200);
           continue;
         }
-        if (!cfg.current.disabled) begin(item, 'carry', null);
+        if (!cfg().disabled) begin(item, 'carry', null);
         await wait(700);
       }
     };
@@ -1128,11 +1168,13 @@ watch(
 );
 
 onBeforeUnmount(() => {
-  cancelAnimationFrame(sim.raf);
-  sim.raf = 0;
+  const s = sim;
   ro?.disconnect();
-  sim.timers.forEach(id => clearTimeout(id));
-  sim.timers.clear();
+  ro = null;
+  cancelAnimationFrame(s.raf);
+  s.raf = 0;
+  s.timers.forEach(id => clearTimeout(id));
+  s.timers.clear();
 });
 
 const rootStyle = computed(
@@ -1155,23 +1197,15 @@ const rootStyle = computed(
 <template>
   <div
     ref="rootRef"
-    class="group relative data-[disabled]:opacity-60 [-webkit-touch-callout:none] [width:min(var(--sh-w),100%)] [height:var(--sh-h)] [color:var(--sh-ink)] [-webkit-tap-highlight-color:transparent]"
-    :class="className"
+    :class="`shredder${className ? ` ${className}` : ''}`"
     :data-disabled="disabled ? '' : undefined"
     :style="rootStyle"
   >
-    <ul
-      class="right-0 left-0 z-[1] absolute m-0 list-none [bottom:calc(var(--sh-fall)+var(--sh-slit-h))] [padding:0_var(--sh-inset)] [clip-path:inset(-9999px_-9999px_0_-9999px)]"
-    >
-      <li
-        v-for="(item, index) in sorted"
-        :key="item.id"
-        :ref="keepSlot(item.id)"
-        class="group/slot data-[active]:z-[2] relative data-[gone]:pointer-events-none [margin-bottom:var(--sh-gap)]"
-      >
+    <ul ref="listRef" class="shredder__list">
+      <li v-for="(item, index) in sorted" :key="item.id" :ref="keepSlot(item.id)" class="shredder__slot">
         <div
           :ref="keepItem(item.id)"
-          class="group-data-[active]/slot:top-0 group-data-[active]/slot:right-0 group-data-[active]/slot:left-0 group-data-[active]/slot:absolute relative outline-none origin-center touch-none cursor-grab data-[state=drag]:cursor-grabbing data-[state=feed]:cursor-default group-data-[disabled]:cursor-default data-[state=feed]:pointer-events-none select-none [-webkit-user-select:none] group-data-[active]/slot:[will-change:transform,filter] group-data-[active]/slot:[filter:drop-shadow(0_0_0_rgba(0,0,0,0))] group-data-[active]/slot:[transition:filter_240ms_ease] data-[state=drag]:[filter:drop-shadow(0_14px_22px_rgba(0,0,0,0.22))]! motion-reduce:group-data-[active]/slot:[transition:none]"
+          class="shredder__item"
           :tabindex="disabled ? -1 : 0"
           :aria-disabled="disabled || undefined"
           @pointerdown="onDown($event, item)"
@@ -1182,20 +1216,124 @@ const rootStyle = computed(
           @keydown="onKey($event, item)"
           @dragstart.prevent
         >
-          <slot :item="item" :index="index" />
+          <slot name="renderItem" :item="item" :index="index" />
         </div>
       </li>
     </ul>
-    <div
-      ref="slitRef"
-      class="z-[3] absolute rounded-full will-change-transform [right:var(--sh-slit-inset)] [bottom:var(--sh-fall)] [left:var(--sh-slit-inset)] [height:var(--sh-slit-h)] [background:var(--sh-slit)]"
-      aria-hidden="true"
-    />
-    <div class="right-0 bottom-0 left-0 z-[2] absolute pointer-events-none [height:var(--sh-fall)]" aria-hidden="true">
-      <canvas
-        ref="canvasRef"
-        class="block top-0 absolute h-full [left:calc(-1*var(--sh-over))] [width:calc(100%+var(--sh-over)*2)]"
-      />
+    <div ref="slitRef" class="shredder__slit" aria-hidden="true" />
+    <div class="shredder__fall" aria-hidden="true">
+      <canvas ref="canvasRef" class="shredder__canvas" />
     </div>
   </div>
 </template>
+
+<style>
+.shredder {
+  position: relative;
+  width: min(var(--sh-w), 100%);
+  height: var(--sh-h);
+  color: var(--sh-ink);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+.shredder[data-disabled] {
+  opacity: 0.6;
+}
+
+.shredder__list {
+  position: absolute;
+  right: 0;
+  bottom: calc(var(--sh-fall) + var(--sh-slit-h));
+  left: 0;
+  z-index: 1;
+  margin: 0;
+  padding: 0 var(--sh-inset);
+  list-style: none;
+  clip-path: inset(-9999px -9999px 0 -9999px);
+}
+
+.shredder__slot {
+  position: relative;
+  margin-bottom: var(--sh-gap);
+}
+
+.shredder__slot[data-active] {
+  z-index: 2;
+}
+
+.shredder__slot[data-gone] {
+  pointer-events: none;
+}
+
+.shredder__item {
+  position: relative;
+  outline: none;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transform-origin: 50% 50%;
+}
+
+.shredder__slot[data-active] .shredder__item {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  will-change: transform, filter;
+  filter: drop-shadow(0 0 0 rgba(0, 0, 0, 0));
+  transition: filter 240ms ease;
+}
+
+.shredder__item[data-state='drag'] {
+  cursor: grabbing;
+  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.22));
+}
+
+.shredder__item[data-state='feed'] {
+  cursor: default;
+  pointer-events: none;
+}
+
+.shredder[data-disabled] .shredder__item {
+  cursor: default;
+}
+
+.shredder__slit {
+  position: absolute;
+  right: var(--sh-slit-inset);
+  bottom: var(--sh-fall);
+  left: var(--sh-slit-inset);
+  z-index: 3;
+  height: var(--sh-slit-h);
+  border-radius: 999px;
+  background: var(--sh-slit);
+  will-change: transform;
+}
+
+.shredder__fall {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  height: var(--sh-fall);
+  pointer-events: none;
+}
+
+.shredder__canvas {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: calc(-1 * var(--sh-over));
+  width: calc(100% + var(--sh-over) * 2);
+  height: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shredder__slot[data-active] .shredder__item {
+    transition: none;
+  }
+}
+</style>

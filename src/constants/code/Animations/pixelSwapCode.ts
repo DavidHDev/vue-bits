@@ -2,36 +2,39 @@ import code from '@/content/Animations/PixelSwap/PixelSwap.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const pixelSwap = createCodeObject(code, 'Animations/PixelSwap', {
-  usage: `<script setup>
-import PixelSwap from './PixelSwap.vue'
-</script>
+  dependencies: '',
+  usage: `<template>
+  <div style="width: 560px">
+    <PixelSwap
+      pattern="pointer"
+      :pixel-size="48"
+      :pixel-radius="0"
+      :duration="400"
+      :pixel-duration="350"
+      :randomness="0.2"
+      :bounce="0.3"
+      trigger="hover"
+      :style="{ borderRadius: '18px' }"
+    >
+      <template #firstContent>
+        <img
+          src="/assets/demo/day-sky.webp"
+          alt=""
+          style="width: 100%; height: 100%; object-fit: cover"
+        />
+      </template>
+      <template #secondContent>
+        <img
+          src="/assets/demo/night-sky.webp"
+          alt=""
+          style="width: 100%; height: 100%; object-fit: cover"
+        />
+      </template>
+    </PixelSwap>
+  </div>
+</template>
 
-<template>
-<div :style="{ position: 'relative', width: '100%', height: '500px', background: '#050610' }">
-  <PixelSwap
-    :pixelSize="64"
-    :gap="0"
-    :pixelRadius="0"
-    :pixelSpin="0"
-    :pixelScale="0.35"
-    :duration="1400"
-    :pixelDuration="450"
-    pattern="random"
-    :randomness="0"
-    fade
-    trigger="click"
-  >
-    <template #first>
-      <div class="click-prompt">
-        <span>Click me</span>
-      </div>
-    </template>
-    <template #second>
-      <div class="found-message">
-        <span>You found me</span>
-      </div>
-    </template>
-  </PixelSwap>
-</div>
-</template>`
+<script setup lang="ts">
+import PixelSwap from './PixelSwap.vue'
+</script>`
 });

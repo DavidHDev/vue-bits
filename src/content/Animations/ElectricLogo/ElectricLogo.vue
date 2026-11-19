@@ -1,20 +1,8 @@
-<script setup lang="ts">
-import { Mesh, Program, Renderer, Texture, Triangle } from 'ogl';
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+<script lang="ts">
+import type { CSSProperties } from 'vue';
+import { Renderer, Program, Mesh, Triangle, Texture } from 'ogl';
 
-const BOLT = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><path d="M39 3 12 37h17l-4 24 27-34H35z" fill="#fff"/></svg>'
-)}`;
-const RASTER = 560;
-const CELL = 4;
-const FAR = 1e20;
-const ARCS = 5;
-const PULSES = 3;
-const PIXEL_BUDGET = 4e6;
-
-type Rgb = [number, number, number];
-
-interface ElectricLogoProps {
+export interface ElectricLogoProps {
   src?: string;
   color?: string;
   glowColor?: string;
@@ -33,10 +21,24 @@ interface ElectricLogoProps {
   cursorIntensity?: number;
   cursorRadius?: number;
   theme?: 'dark' | 'light';
+  onRender?: (canvas: HTMLCanvasElement) => void;
   className?: string;
+  style?: CSSProperties;
 }
 
-type Settings = Required<Omit<ElectricLogoProps, 'src' | 'className'>>;
+const BOLT = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><path d="M39 3 12 37h17l-4 24 27-34H35z" fill="#fff"/></svg>'
+)}`;
+const RASTER = 560;
+const CELL = 4;
+const FAR = 1e20;
+const ARCS = 5;
+const PULSES = 3;
+const PIXEL_BUDGET = 4e6;
+
+type Rgb = [number, number, number];
+type Settings = Required<Omit<ElectricLogoProps, 'src' | 'className' | 'style' | 'onRender'>> &
+  Pick<ElectricLogoProps, 'onRender'>;
 
 interface Shape {
   field: Float32Array;
@@ -647,11 +649,15 @@ void main() {
   fragColor = vec4(clamp(color + grain, 0.0, alpha), alpha);
 }
 `;
+</script>
+
+<script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref, watch, watchEffect } from 'vue';
 
 const props = withDefaults(defineProps<ElectricLogoProps>(), {
-  src: undefined,
-  color: '#ecc7ff',
-  glowColor: '#ad6dff',
+  src: BOLT,
+  color: '#dcffd5',
+  glowColor: '#7cff67',
   scale: 0.7,
   intensity: 1,
   glow: 1,
@@ -667,82 +673,66 @@ const props = withDefaults(defineProps<ElectricLogoProps>(), {
   cursorIntensity: 0.75,
   cursorRadius: 100,
   theme: 'dark',
-  className: ''
+  onRender: undefined,
+  className: '',
+  style: undefined
 });
 
 const containerRef = ref<HTMLDivElement | null>(null);
-let settings: Settings | null = null;
-let currentShape: Shape | null = null;
+const settingsRef: { current: Settings | null } = { current: null };
+const shapeRef: { current: Shape | null } = { current: null };
+let teardown: (() => void) | null = null;
+
+watchEffect(() => {
+  settingsRef.current = {
+    color: props.color,
+    glowColor: props.glowColor,
+    scale: props.scale,
+    intensity: props.intensity,
+    glow: props.glow,
+    thickness: props.thickness,
+    strands: props.strands,
+    bend: props.bend,
+    crackle: props.crackle,
+    arcs: props.arcs,
+    flicker: props.flicker,
+    fill: props.fill,
+    speed: props.speed,
+    interactive: props.interactive,
+    cursorIntensity: props.cursorIntensity,
+    cursorRadius: props.cursorRadius,
+    theme: props.theme,
+    onRender: props.onRender
+  };
+});
 
 watch(
-  () => [
-    props.color,
-    props.glowColor,
-    props.scale,
-    props.intensity,
-    props.glow,
-    props.thickness,
-    props.strands,
-    props.bend,
-    props.crackle,
-    props.arcs,
-    props.flicker,
-    props.fill,
-    props.speed,
-    props.interactive,
-    props.cursorIntensity,
-    props.cursorRadius,
-    props.theme
-  ],
-  () => {
-    settings = {
-      color: props.color,
-      glowColor: props.glowColor,
-      scale: props.scale,
-      intensity: props.intensity,
-      glow: props.glow,
-      thickness: props.thickness,
-      strands: props.strands,
-      bend: props.bend,
-      crackle: props.crackle,
-      arcs: props.arcs,
-      flicker: props.flicker,
-      fill: props.fill,
-      speed: props.speed,
-      interactive: props.interactive,
-      cursorIntensity: props.cursorIntensity,
-      cursorRadius: props.cursorRadius,
-      theme: props.theme
+  () => props.src,
+  (src, _previous, onCleanup) => {
+    let alive = true;
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    image.decoding = 'async';
+    image.onload = () => {
+      if (!alive) return;
+      let traced: Shape | null = null;
+      try {
+        traced = traceShape(image);
+      } catch {
+        traced = null;
+      }
+      if (traced) shapeRef.current = traced;
     };
+    image.src = src || BOLT;
+    onCleanup(() => {
+      alive = false;
+      image.onload = null;
+    });
   },
   { immediate: true }
 );
 
-let loadToken = 0;
-const loadImage = (src: string | undefined) => {
-  const token = ++loadToken;
-  const image = new Image();
-  image.crossOrigin = 'anonymous';
-  image.decoding = 'async';
-  image.onload = () => {
-    if (token !== loadToken) return;
-    try {
-      const traced = traceShape(image);
-      if (traced) currentShape = traced;
-    } catch {
-      // tracing failed; keep the previous shape
-    }
-  };
-  image.src = src || BOLT;
-};
-watch(() => props.src, loadImage, { immediate: true });
-
-let disposeScene: (() => void) | undefined;
-
-const mountScene = () => {
-  const container = containerRef.value;
-  if (!container) return;
-
+const setup = (container: HTMLDivElement): (() => void) | undefined => {
   const renderer = new Renderer({
     dpr: Math.min(window.devicePixelRatio || 1, 2),
     alpha: true,
@@ -879,7 +869,8 @@ const mountScene = () => {
     };
   };
 
-  const resize = () => {
+  let resizePending = false;
+  const applyResize = () => {
     width = Math.max(1, container.clientWidth);
     height = Math.max(1, container.clientHeight);
     renderer.dpr = Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(PIXEL_BUDGET / (width * height)));
@@ -887,13 +878,22 @@ const mountScene = () => {
     uniforms.uResolution.value = [width, height];
   };
 
+  const resize = () => {
+    resizePending = true;
+    start();
+  };
+
   const frame = (now: number) => {
     raf = 0;
-    const s = settings;
+    if (resizePending) {
+      resizePending = false;
+      applyResize();
+    }
+    const s = settingsRef.current;
     const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
     last = now;
 
-    const incoming = currentShape;
+    const incoming = shapeRef.current;
     if (incoming && incoming !== slots[target].shape) pending = incoming;
     if (pending && morph >= 1) {
       if (slots[target].shape) {
@@ -1035,6 +1035,7 @@ const mountScene = () => {
       uniforms.uFill.value = s.fill;
       uniforms.uInk.value = ink;
       renderer.render({ scene: mesh });
+      s.onRender?.(canvas);
     }
 
     if (visible) raf = requestAnimationFrame(frame);
@@ -1054,7 +1055,7 @@ const mountScene = () => {
   };
   const onDown = (e: PointerEvent) => {
     onMove(e);
-    if (!settings?.interactive || reducedMotion) return;
+    if (!settingsRef.current?.interactive || reducedMotion) return;
     pulses.push({ x: pointer.x, y: pointer.y, born: performance.now() });
     if (pulses.length > PULSES) pulses.shift();
     burst = { x: pointer.x, y: pointer.y };
@@ -1078,7 +1079,7 @@ const mountScene = () => {
   resize();
   start();
 
-  disposeScene = () => {
+  return () => {
     visible = false;
     cancelAnimationFrame(raf);
     resizeObserver.disconnect();
@@ -1092,10 +1093,25 @@ const mountScene = () => {
   };
 };
 
-onMounted(mountScene);
-onBeforeUnmount(() => disposeScene?.());
+onMounted(() => {
+  if (containerRef.value) teardown = setup(containerRef.value) ?? null;
+});
+
+onBeforeUnmount(() => {
+  teardown?.();
+  teardown = null;
+});
 </script>
 
 <template>
-  <div ref="containerRef" class="relative w-full h-full overflow-hidden" :class="className" />
+  <div ref="containerRef" :class="['electric-logo', className]" :style="style" />
 </template>
+
+<style>
+.electric-logo {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+</style>

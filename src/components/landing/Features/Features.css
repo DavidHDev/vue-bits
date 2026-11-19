@@ -1,12 +1,8 @@
-/* ══════════════════════════════════════════════
-   Features Section
-   ══════════════════════════════════════════════ */
-
 .ln-features-section {
   position: relative;
   width: 100%;
   padding: 80px 0 100px;
-  background: var(--bg-body);
+  background: #111111;
   z-index: 4;
 }
 
@@ -16,19 +12,15 @@
   padding: 0 24px;
 }
 
-/* ─── Title ─── */
-
 .ln-features-title {
-  font-family: 'Geist Pixel Line', sans-serif;
+  font-family: 'Geist', sans-serif;
   font-size: clamp(28px, 4vw, 42px);
   font-weight: 500;
   line-height: 1.1;
-  letter-spacing: -0.02em;
+  letter-spacing: -2px;
   color: #fff;
   margin: 0 0 40px;
 }
-
-/* ─── Grid ─── */
 
 .ln-features-grid {
   display: grid;
@@ -49,56 +41,41 @@
   grid-column: span 3;
 }
 
-/* ─── Card ─── */
-
 .ln-features-card {
-  background: rgba(18, 15, 23, 0.45);
-  backdrop-filter: blur(32px) saturate(1.3);
-  -webkit-backdrop-filter: blur(32px) saturate(1.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
+  padding: 5px;
+  background: var(--surface-ghost-track);
+  border: 1px solid transparent;
+  border-radius: 16px;
   display: flex;
   flex-direction: column;
-  box-shadow:
-    0 4px 32px rgba(0, 0, 0, 0.25),
-    inset 0 0.5px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: var(--surface-ghost-highlight);
   transition:
-    border-color 0.3s ease,
-    translate 0.3s ease,
-    opacity 0.5s ease,
-    transform 0.5s ease;
+    background-color 0.3s ease,
+    translate 0.3s ease;
   overflow: hidden;
-  opacity: 0;
-  transform: translateY(24px);
 }
 
-.ln-features-card.is-visible {
-  opacity: 1;
-  transform: translateY(0);
+@media (hover: hover) and (pointer: fine) {
+  .ln-features-card:hover {
+    background-color: var(--surface-ghost);
+    translate: 0 -2px;
+  }
 }
-
-.ln-features-card:hover {
-  border-color: rgba(255, 255, 255, 0.15);
-  translate: 0 -2px;
-}
-
-/* ─── Card Visual ─── */
 
 .ln-features-card-visual {
-  height: 180px;
+  height: 172px;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
+  border-radius: 11px;
+  background: rgba(8, 9, 8, 0.5);
 }
 
-/* ─── Card Body ─── */
-
 .ln-features-card-body {
-  padding: 18px 22px 22px;
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 16px 17px 15px;
 }
 
 .ln-features-card-body h3 {
@@ -117,10 +94,6 @@
   color: rgba(255, 255, 255, 0.5);
   margin: 0;
 }
-
-/* ═══════════════════════════════════════
-   1. Component Marquee
-   ═══════════════════════════════════════ */
 
 .ln-feat-marquee {
   width: 100%;
@@ -169,29 +142,31 @@
 }
 
 .ln-feat-pill {
-  font-family: 'Geist Mono', monospace;
+  font-family: 'Geist', sans-serif;
   font-size: 12px;
   color: rgba(255, 255, 255, 0.5);
   text-decoration: none;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 7px;
+  background: var(--surface-ghost-track);
+  border: 1px solid transparent;
+  border-radius: 6px;
   padding: 5px 12px;
   white-space: nowrap;
   flex-shrink: 0;
   transition:
-    border-color 0.2s,
-    color 0.2s;
+    background 0.2s,
+    color 0.2s,
+    transform var(--dur-press) var(--ease-out);
 }
 
 .ln-feat-pill:hover {
-  border-color: rgba(255, 255, 255, 0.15);
+  background: var(--surface-ghost);
+  box-shadow: var(--surface-ghost-highlight);
   color: rgba(255, 255, 255, 0.85);
 }
 
-/* ═══════════════════════════════════════
-   2. Category Orbits
-   ═══════════════════════════════════════ */
+.ln-feat-pill:active {
+  transform: scale(0.96);
+}
 
 .ln-feat-orbit {
   position: relative;
@@ -207,21 +182,20 @@
   width: 54px;
   height: 54px;
   border-radius: 50%;
-  background: rgba(26, 21, 32, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 24px rgba(255, 138, 76, 0.06);
+  background: #1c1f1c;
+  box-shadow:
+    var(--surface-ghost-highlight),
+    0 6px 18px rgba(0, 0, 0, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 3;
-  overflow: hidden;
 }
 
 .ln-feat-orbit-center img {
-  width: auto;
-  height: 22px;
-  opacity: 0.9;
-  display: block;
+  width: 28px;
+  height: 28px;
+  opacity: 0.7;
 }
 
 .ln-feat-orbit-ring {
@@ -251,8 +225,10 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: var(--bg-card);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #1c1f1c;
+  box-shadow:
+    var(--surface-ghost-highlight),
+    0 4px 14px rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -260,7 +236,6 @@
   z-index: 2;
 }
 
-/* Ring 1 icon positions */
 .ln-feat-orbit-ring--1 .ln-feat-orbit-node--top {
   top: -21px;
   left: calc(50% - 21px);
@@ -281,12 +256,10 @@
   top: calc(50% - 21px);
 }
 
-/* Ring 1 spins CW → icons counter-rotate CCW */
 .ln-feat-orbit-ring--1 .ln-feat-orbit-node svg {
   animation: spinCCW 20s linear infinite;
 }
 
-/* Ring 2 icon positions — 8 nodes at 45° intervals */
 .ln-feat-orbit-ring--2 .ln-feat-orbit-node--top {
   top: -21px;
   left: calc(50% - 21px);
@@ -327,7 +300,6 @@
   left: calc(14.65% - 21px);
 }
 
-/* Ring 2 spins CCW → icons counter-rotate CW */
 .ln-feat-orbit-ring--2 .ln-feat-orbit-node svg {
   animation: spinCW 30s linear infinite;
 }
@@ -350,14 +322,61 @@
   }
 }
 
-/* ═══════════════════════════════════════
-   3. AI Chat
-   ═══════════════════════════════════════ */
+.ln-feat-vrows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+  padding: 14px;
+  box-sizing: border-box;
+}
+
+.ln-feat-vrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: var(--surface-ghost-highlight);
+  flex: 1;
+}
+
+.ln-feat-vrow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ln-feat-vrow-label {
+  font-family: 'Geist', sans-serif;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 80px;
+}
+
+.ln-feat-vrow-bars {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
+}
+
+.ln-feat-vrow-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.06);
+}
 
 .ln-feat-aichat {
   width: 100%;
   height: 100%;
-  padding: 14px;
+  padding: 10px;
   box-sizing: border-box;
 }
 
@@ -366,29 +385,17 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.005);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: var(--surface-ghost-highlight);
   border-radius: 10px;
   overflow: hidden;
-  animation: aichatFade 0.3s ease;
 }
 
-@keyframes aichatFade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Header bar */
 .ln-feat-aichat-head {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 9px 12px 4px;
   flex-shrink: 0;
 }
 
@@ -407,29 +414,30 @@
 .ln-feat-aichat-title {
   font-family: 'Geist', sans-serif;
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.35);
   letter-spacing: 0.03em;
 }
 
-/* Prompt row */
 .ln-feat-aichat-prompt-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  margin: 4px 6px 0;
+  padding: 9px 8px;
+  border-radius: 7px;
+  background: rgba(8, 9, 8, 0.45);
   flex-shrink: 0;
 }
 
 .ln-feat-aichat-chevron {
-  font-family: 'Geist Mono', monospace;
+  font-family: 'Geist', sans-serif;
   font-size: 11px;
   color: rgba(255, 255, 255, 0.35);
   flex-shrink: 0;
 }
 
 .ln-feat-aichat-prompt {
-  font-family: 'Geist Mono', monospace;
+  font-family: 'Geist', sans-serif;
   font-size: 11px;
   color: rgba(255, 255, 255, 0.45);
   white-space: nowrap;
@@ -445,7 +453,6 @@
   animation: cursorBlink 0.8s ease-in-out infinite;
 }
 
-/* Thinking dots */
 .ln-feat-aichat-thinking {
   display: flex;
   align-items: center;
@@ -482,11 +489,10 @@
   }
 }
 
-/* Code block */
 .ln-feat-aichat-code-block {
   display: flex;
   flex-direction: column;
-  padding: 8px 0;
+  padding: 6px 0 12px;
   flex: 1;
   min-height: 0;
 }
@@ -495,24 +501,12 @@
   display: flex;
   align-items: center;
   gap: 0;
-  padding: 3px 12px;
+  padding: 2px 12px;
   font-family: 'Geist Mono', monospace;
   font-size: 11px;
-  line-height: 1.6;
-  min-height: 22px;
+  line-height: 1.5;
+  min-height: 21px;
   white-space: pre;
-  animation: codeLineIn 0.2s ease both;
-}
-
-@keyframes codeLineIn {
-  from {
-    opacity: 0;
-    transform: translateX(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
 }
 
 .ln-feat-aichat-ln {
@@ -524,7 +518,6 @@
   font-size: 10px;
 }
 
-/* Syntax tokens */
 .ac-kw {
   color: rgba(255, 255, 255, 0.5);
 }
@@ -557,10 +550,6 @@
   }
 }
 
-/* ═══════════════════════════════════════
-   4. Star Card
-   ═══════════════════════════════════════ */
-
 .ln-feat-stars {
   width: 100%;
   height: 100%;
@@ -578,8 +567,9 @@
 }
 
 .ln-feat-stars-count {
-  font-family: 'Geist Pixel Line', sans-serif;
+  font-family: 'Geist', sans-serif;
   font-size: 52px;
+  font-weight: 500;
   color: rgba(255, 255, 255, 0.45);
   letter-spacing: -0.03em;
   line-height: 1.15;
@@ -602,23 +592,6 @@
   display: block;
 }
 
-.ln-feat-stars-line {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  pathlength: 1;
-  animation: starsLineDraw 2s ease-out forwards;
-}
-
-@keyframes starsLineDraw {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-/* ═══════════════════════════════════════
-   Responsive
-   ═══════════════════════════════════════ */
-
 @media (max-width: 1024px) {
   .ln-features-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -630,11 +603,18 @@
   .ln-features-card--span-3 {
     grid-column: span 1;
   }
+  .ln-features-card:last-child {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 640px) {
   .ln-features-grid {
     grid-template-columns: 1fr;
+  }
+
+  .ln-features-card:last-child {
+    grid-column: auto;
   }
 
   .ln-features-section {
@@ -647,5 +627,172 @@
 
   .ln-features-title {
     font-size: 22px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ln-feat-marquee-scroll,
+  .ln-feat-marquee-scroll--rev,
+  .ln-feat-orbit-ring--1,
+  .ln-feat-orbit-ring--2,
+  .ln-feat-orbit-ring--1 .ln-feat-orbit-node svg,
+  .ln-feat-orbit-ring--2 .ln-feat-orbit-node svg,
+  .ln-feat-aichat-cursor,
+  .ln-feat-aichat-thinking span {
+    animation: none;
+  }
+
+  .ln-features-card:hover {
+    translate: none;
+  }
+
+  .ln-feat-pill:active {
+    transform: none;
+  }
+}
+
+:root[data-theme='light'] .ln-features-section {
+  background: #fff;
+}
+
+:root[data-theme='light'] .ln-features-title {
+  color: #161816;
+}
+
+:root[data-theme='light'] .ln-features-card {
+  border-color: var(--border-subtle);
+  background: #fff;
+  box-shadow: none;
+}
+
+:root[data-theme='light'] .ln-features-card-visual {
+  background: #f6f8f6;
+}
+
+:root[data-theme='light'] .ln-features-card-body h3 {
+  color: #161816;
+}
+
+:root[data-theme='light'] .ln-features-card-body p {
+  color: #6c736d;
+}
+
+:root[data-theme='light'] .ln-feat-pill {
+  background: #fff;
+  color: #4f5550;
+  box-shadow: 0 1px 2px rgba(22, 24, 22, 0.08);
+}
+
+:root[data-theme='light'] .ln-feat-pill:hover {
+  background: #fff;
+  color: #161816;
+  box-shadow: 0 4px 14px rgba(22, 24, 22, 0.08);
+}
+
+:root[data-theme='light'] .ln-feat-orbit-center,
+:root[data-theme='light'] .ln-feat-orbit-node {
+  background: #fff;
+  color: #4f5550;
+  box-shadow:
+    0 1px 2px rgba(22, 24, 22, 0.08),
+    0 4px 14px rgba(22, 24, 22, 0.06);
+}
+
+:root[data-theme='light'] .ln-feat-orbit-center img {
+  filter: invert(1);
+  opacity: 0.68;
+}
+
+:root[data-theme='light'] .ln-feat-orbit-ring {
+  border-color: rgba(22, 24, 22, 0.09);
+}
+
+:root[data-theme='light'] .ln-feat-vrow {
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(22, 24, 22, 0.08);
+}
+
+:root[data-theme='light'] .ln-feat-vrow-dot {
+  background: #9ea59f !important;
+}
+
+:root[data-theme='light'] .ln-feat-vrow-label {
+  color: #3a3f3b;
+}
+
+:root[data-theme='light'] .ln-feat-vrow-bar {
+  background: #e3e6e3;
+}
+
+:root[data-theme='light'] .ln-feat-aichat-inner {
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(22, 24, 22, 0.08);
+}
+
+:root[data-theme='light'] .ln-feat-aichat-prompt-row {
+  background: #f6f8f6;
+}
+
+:root[data-theme='light'] .ln-feat-aichat-dots span {
+  background: #d3d7d3;
+}
+
+:root[data-theme='light'] .ln-feat-aichat-title,
+:root[data-theme='light'] .ln-feat-aichat-chevron,
+:root[data-theme='light'] .ln-feat-aichat-ln {
+  color: #9ea59f;
+}
+
+:root[data-theme='light'] .ln-feat-aichat-prompt {
+  color: #3a3f3b;
+}
+
+:root[data-theme='light'] .ln-feat-aichat-cursor,
+:root[data-theme='light'] .ln-feat-aichat-thinking span {
+  background: #6c736d;
+}
+
+:root[data-theme='light'] .ln-feat-aichat-code-line .ac-kw,
+:root[data-theme='light'] .ln-feat-aichat-code-line .ac-punc {
+  color: #6c736d;
+}
+
+:root[data-theme='light'] .ln-feat-aichat-code-line .ac-comp,
+:root[data-theme='light'] .ln-feat-aichat-code-line .ac-tag {
+  color: #3a3f3b;
+}
+
+:root[data-theme='light'] .ln-feat-aichat-code-line .ac-attr,
+:root[data-theme='light'] .ln-feat-aichat-code-line .ac-str,
+:root[data-theme='light'] .ln-feat-aichat-code-line .ac-num {
+  color: #4f5550;
+}
+
+:root[data-theme='light'] .ln-feat-stars-label {
+  color: #6c736d;
+}
+
+:root[data-theme='light'] .ln-feat-stars-count {
+  color: #252825;
+  background: linear-gradient(to bottom, #252825 28%, #9ea59f 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+:root[data-theme='light'] .ln-feat-stars-chart stop:first-child {
+  stop-color: #6c736d;
+  stop-opacity: 0.1;
+}
+
+:root[data-theme='light'] .ln-feat-stars-chart stop:last-child {
+  stop-color: #9ea59f;
+}
+
+:root[data-theme='light'] .ln-feat-stars-chart path:last-of-type {
+  stroke: #6c736d;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :root[data-theme='light'] .ln-features-card:hover {
+    border-color: #d3d7d3;
   }
 }

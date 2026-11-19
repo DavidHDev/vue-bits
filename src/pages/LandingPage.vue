@@ -1,75 +1,112 @@
 <template>
-  <main>
-    <LandingLoader v-if="!loaded" :hiding="hiding" />
-
-    <section :class="['landing-wrapper no-side-fades', revealed ? 'ln-loaded' : 'ln-loading']">
-      <Hero />
-      <Navbar />
-      <Features />
-      <LiveDemo />
-      <QuickStart />
-      <Ownership />
-      <CTA />
-      <Footer />
-    </section>
-  </main>
+  <LandingLoader v-if="!ready" :hiding="hidingLoader" />
+  <section
+    :class="['landing-wrapper no-side-fades', phase === 'loading' ? 'ln-loading' : 'ln-loaded']"
+    :inert="!ready || undefined"
+  >
+    <Navbar />
+    <Hero />
+    <Features />
+    <LiveDemo />
+    <HowItWorks />
+    <ProSpotlight />
+    <Tools />
+    <FAQ />
+    <Footer>
+      <template #lead>
+        <CTA />
+      </template>
+    </Footer>
+  </section>
 </template>
 
 <script setup lang="ts">
 import CTA from '@/components/landing/CTA/CTA.vue';
+import FAQ from '@/components/landing/FAQ/FAQ.vue';
 import Features from '@/components/landing/Features/Features.vue';
 import Footer from '@/components/landing/Footer/Footer.vue';
 import Hero from '@/components/landing/Hero/Hero.vue';
+import HowItWorks from '@/components/landing/HowItWorks/HowItWorks.vue';
 import LandingLoader from '@/components/landing/LandingLoader/LandingLoader.vue';
 import LiveDemo from '@/components/landing/LiveDemo/LiveDemo.vue';
 import Navbar from '@/components/landing/Navbar/Navbar.vue';
-import Ownership from '@/components/landing/Ownership/Ownership.vue';
-import QuickStart from '@/components/landing/QuickStart/QuickStart.vue';
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import ProSpotlight from '@/components/landing/ProSpotlight/ProSpotlight.vue';
+import Tools from '@/components/landing/Tools/Tools.vue';
+import { usePauseOffscreenAnimations } from '@/composables/usePauseOffscreenAnimations';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 const MIN_LOADER_MS = 800;
+const MAX_FONT_WAIT_MS = 2500;
+const LOADER_FADE_MS = 600;
 
-const loaded = ref(false);
-const hiding = ref(false);
-const revealed = ref(false);
+const phase = ref<'loading' | 'revealing' | 'ready'>('loading');
+const hidingLoader = ref(false);
+const ready = computed(() => phase.value === 'ready');
 
-function reveal() {
-  hiding.value = true;
-  revealed.value = true;
-  setTimeout(() => {
-    loaded.value = true;
-  }, 600);
-}
+usePauseOffscreenAnimations(() => phase.value !== 'loading');
+
+let cancelled = false;
+let minimumTimer = 0;
+let fontTimer = 0;
+let firstFrame = 0;
+let secondFrame = 0;
+let fadeTimer = 0;
 
 watch(
-  loaded,
-  value => {
-    if (value) {
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
-    } else {
-      document.documentElement.style.overflow = 'hidden';
-      document.body.style.overflow = 'hidden';
-    }
+  ready,
+  isReady => {
+    if (typeof document === 'undefined') return;
+    if (isReady) document.documentElement.removeAttribute('data-vb-landing-loading');
+    else document.documentElement.setAttribute('data-vb-landing-loading', '');
   },
   { immediate: true }
 );
 
-onMounted(() => {
-  const start = Date.now();
-
-  const fontsReady = 'fonts' in document ? document.fonts.ready : Promise.resolve();
-
-  fontsReady.then(() => {
-    const elapsed = Date.now() - start;
-    const remaining = Math.max(0, MIN_LOADER_MS - elapsed);
-
-    setTimeout(reveal, remaining);
+watch(phase, value => {
+  if (value !== 'revealing') return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    phase.value = 'ready';
+    return;
+  }
+  firstFrame = requestAnimationFrame(() => {
+    secondFrame = requestAnimationFrame(() => {
+      hidingLoader.value = true;
+      fadeTimer = window.setTimeout(() => {
+        phase.value = 'ready';
+      }, LOADER_FADE_MS);
+    });
   });
 });
 
-onUnmounted(() => {
-  document.documentElement.style.overflow = '';
-  document.body.style.overflow = '';
+onMounted(() => {
+  window.scrollTo(0, 0);
+  const started = performance.now();
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fontDeadline = new Promise<void>(resolve => {
+    fontTimer = window.setTimeout(resolve, MAX_FONT_WAIT_MS);
+  });
+  const reveal = () => {
+    phase.value = reducedMotion ? 'ready' : 'revealing';
+  };
+
+  Promise.race([document.fonts?.ready ?? Promise.resolve(), fontDeadline])
+    .catch(() => {})
+    .then(() => {
+      window.clearTimeout(fontTimer);
+      if (cancelled) return;
+      const remaining = reducedMotion ? 0 : Math.max(0, MIN_LOADER_MS - (performance.now() - started));
+      if (remaining > 0) minimumTimer = window.setTimeout(reveal, remaining);
+      else reveal();
+    });
+});
+
+onBeforeUnmount(() => {
+  cancelled = true;
+  window.clearTimeout(minimumTimer);
+  window.clearTimeout(fontTimer);
+  window.clearTimeout(fadeTimer);
+  cancelAnimationFrame(firstFrame);
+  cancelAnimationFrame(secondFrame);
+  document.documentElement.removeAttribute('data-vb-landing-loading');
 });
 </script>

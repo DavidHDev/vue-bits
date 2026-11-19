@@ -1,206 +1,309 @@
 <template>
-  <h1 class="sub-category">Lightfall</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="lightfall.usage"
-    :source="lightfallSource"
-    component-name="Lightfall"
-    :props-table="props"
+    :demo-only-props="['preset']"
   >
-    <template #preview>
-      <div class="relative p-0 h-[500px] overflow-hidden demo-container" style="background: #000">
-        <Lightfall
-          :colors="colors"
-          :background-color="backgroundColor"
-          :speed="speed"
-          :streak-count="streakCount"
-          :streak-width="streakWidth"
-          :streak-length="streakLength"
-          :glow="glow"
-          :density="density"
-          :twinkle="twinkle"
-          :zoom="zoom"
-          :background-glow="backgroundGlow"
-          :mouse-interaction="mouseInteraction"
-          :mouse-strength="mouseStrength"
-          :mouse-radius="mouseRadius"
-        />
-        <BackgroundContent pill-text="New Background" headline="Let the light rain down" />
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 500px; padding: 0">
+          <Lightfall :key="rerenderKey" v-bind="settings" />
+          <BackgroundContent headline="Let the light rain down" />
+          <RefreshButton @click="forceRerender" />
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewColorPicker title="Color 1" v-model="color1" />
-        <PreviewColorPicker title="Color 2" v-model="color2" />
-        <PreviewColorPicker title="Color 3" v-model="color3" />
-        <PreviewColorPicker title="Background" v-model="backgroundColor" />
-        <PreviewSwitch title="Cursor Light" v-model="mouseInteraction" />
-        <PreviewSlider title="Speed" :min="0" :max="4" :step="0.1" v-model="speed" />
-        <PreviewSlider title="Streak Count" :min="1" :max="16" :step="1" v-model="streakCount" />
-        <PreviewSlider title="Streak Width" :min="0.2" :max="4" :step="0.1" v-model="streakWidth" />
-        <PreviewSlider title="Streak Length" :min="0.3" :max="3" :step="0.1" v-model="streakLength" />
-        <PreviewSlider title="Density" :min="0.3" :max="3" :step="0.1" v-model="density" />
-        <PreviewSlider title="Twinkle" :min="0" :max="1" :step="0.05" v-model="twinkle" />
-        <PreviewSlider title="Glow" :min="0.2" :max="3" :step="0.1" v-model="glow" />
-        <PreviewSlider title="Background Glow" :min="0" :max="3" :step="0.1" v-model="backgroundGlow" />
-        <PreviewSlider title="Zoom" :min="1" :max="5" :step="0.1" v-model="zoom" />
-        <PreviewSlider title="Cursor Strength" :min="0" :max="3" :step="0.1" v-model="mouseStrength" />
-        <PreviewSlider title="Cursor Radius" :min="0.1" :max="2" :step="0.05" v-model="mouseRadius" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewColorList
+            title="Colors"
+            :min="1"
+            :model-value="settings.colors"
+            @update:model-value="(value: string[]) => updateProp('colors', value)"
+          />
+          <PreviewSelect
+            title="Preset"
+            :options="PRESET_OPTIONS"
+            :model-value="props.preset"
+            @update:model-value="value => applyPreset(String(value))"
+          />
+          <PreviewColorPickerCustom
+            title="Background"
+            :color="settings.backgroundColor"
+            @change="(value: string) => updateProp('backgroundColor', value)"
+          />
+          <PreviewSlider
+            title="Speed"
+            :min="0"
+            :max="3"
+            :step="0.05"
+            :model-value="settings.speed"
+            @update:model-value="value => updateProp('speed', value)"
+          />
+          <PreviewSlider
+            title="Streak Count"
+            :min="1"
+            :max="16"
+            :step="1"
+            :model-value="settings.streakCount"
+            @update:model-value="value => updateProp('streakCount', value)"
+          />
+          <PreviewSlider
+            title="Streak Width"
+            :min="0.2"
+            :max="4"
+            :step="0.1"
+            :model-value="settings.streakWidth"
+            @update:model-value="value => updateProp('streakWidth', value)"
+          />
+          <PreviewSlider
+            title="Streak Length"
+            :min="0.3"
+            :max="3"
+            :step="0.1"
+            :model-value="settings.streakLength"
+            @update:model-value="value => updateProp('streakLength', value)"
+          />
+          <PreviewSlider
+            title="Density"
+            :min="0.3"
+            :max="3"
+            :step="0.1"
+            :model-value="settings.density"
+            @update:model-value="value => updateProp('density', value)"
+          />
+          <PreviewSlider
+            title="Twinkle"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.twinkle"
+            @update:model-value="value => updateProp('twinkle', value)"
+          />
+          <PreviewSlider
+            title="Glow"
+            :min="0.2"
+            :max="3"
+            :step="0.05"
+            :model-value="settings.glow"
+            @update:model-value="value => updateProp('glow', value)"
+          />
+          <PreviewSlider
+            title="Background Glow"
+            :min="0"
+            :max="1.5"
+            :step="0.02"
+            :model-value="settings.backgroundGlow"
+            @update:model-value="value => updateProp('backgroundGlow', value)"
+          />
+          <PreviewSlider
+            title="Head Glow"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.headGlow"
+            @update:model-value="value => updateProp('headGlow', value)"
+          />
+          <PreviewSlider
+            title="Depth"
+            :min="0"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.depth"
+            @update:model-value="value => updateProp('depth', value)"
+          />
+          <PreviewSlider
+            title="Bloom"
+            :min="0"
+            :max="1.5"
+            :step="0.05"
+            :model-value="settings.bloom"
+            @update:model-value="value => updateProp('bloom', value)"
+          />
+          <PreviewSlider
+            title="Zoom"
+            :min="1"
+            :max="5"
+            :step="0.1"
+            :model-value="settings.zoom"
+            @update:model-value="value => updateProp('zoom', value)"
+          />
+          <PreviewSlider
+            title="Cursor Strength"
+            :min="0"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.mouseStrength"
+            @update:model-value="value => updateProp('mouseStrength', value)"
+          />
+          <PreviewSlider
+            title="Cursor Radius"
+            :min="0.1"
+            :max="1.5"
+            :step="0.05"
+            :model-value="settings.mouseRadius"
+            @update:model-value="value => updateProp('mouseRadius', value)"
+          />
+          <PreviewSlider
+            title="Lens"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.lens"
+            @update:model-value="value => updateProp('lens', value)"
+          />
+          <PreviewSlider
+            title="Fade"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.fade"
+            @update:model-value="value => updateProp('fade', value)"
+          />
+          <PreviewSwitch
+            title="Cursor"
+            :model-value="settings.mouseInteraction"
+            @update:model-value="value => updateProp('mouseInteraction', value)"
+          />
+          <PreviewSwitch
+            title="Hold To Warp"
+            :model-value="settings.holdToWarp"
+            @update:model-value="value => updateProp('holdToWarp', value)"
+          />
+          <PreviewSwitch title="Intro" :model-value="settings.intro" @update:model-value="setIntro" />
+          <PreviewSwitch
+            title="Light Mode"
+            :model-value="settings.lightMode"
+            @update:model-value="value => updateProp('lightMode', value)"
+          />
+        </Customize>
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+        <PropTable :data="propData" />
+      </template>
 
-    <template #code>
-      <DemoCodeTab slug="lightfall" :usage="lightfall.usage!" :source="lightfallSource" />
-    </template>
-  </TabsLayout>
+      <template #code>
+        <CodeExample :code-object="lightfall" component-name="Lightfall" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewColorList from '@/components/common/PreviewColorList.vue';
+import PreviewColorPickerCustom from '@/components/common/PreviewColorPickerCustom.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
 import { useForceRerender } from '@/composables/useForceRerender';
 import { lightfall } from '@/constants/code/Backgrounds/lightfallCode';
 import Lightfall from '@/content/Backgrounds/Lightfall/Lightfall.vue';
-import lightfallSource from '@/content/Backgrounds/Lightfall/Lightfall.vue?raw';
-import { computed, ref } from 'vue';
+import { DEFAULT_PROPS, PRESET_OPTIONS, presetProps } from './presets/Lightfall';
 
-const { forceRerender } = useForceRerender();
+const { rerenderKey, forceRerender } = useForceRerender();
+const { props, defaultProps, updateProp, updateProps, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
 
-const DEFAULTS = {
-  color1: '#A8FFB6',
-  color2: '#27FF64',
-  color3: '#7CFF67',
-  backgroundColor: '#0A4A2A',
-  speed: 0.5,
-  streakCount: 2,
-  streakWidth: 1,
-  streakLength: 1,
-  glow: 1,
-  density: 0.6,
-  twinkle: 1,
-  zoom: 3,
-  backgroundGlow: 0.5,
-  mouseInteraction: true,
-  mouseStrength: 0.5,
-  mouseRadius: 1
+const settings = computed(() => {
+  const { preset: _preset, ...rest } = props.value;
+  void _preset;
+  return rest;
+});
+
+const applyPreset = (value: string) => {
+  updateProps({ ...presetProps(value, { defaults: defaultProps.value }), preset: value });
 };
 
-const color1 = ref(DEFAULTS.color1);
-const color2 = ref(DEFAULTS.color2);
-const color3 = ref(DEFAULTS.color3);
-const backgroundColor = ref(DEFAULTS.backgroundColor);
-const speed = ref(DEFAULTS.speed);
-const streakCount = ref(DEFAULTS.streakCount);
-const streakWidth = ref(DEFAULTS.streakWidth);
-const streakLength = ref(DEFAULTS.streakLength);
-const glow = ref(DEFAULTS.glow);
-const density = ref(DEFAULTS.density);
-const twinkle = ref(DEFAULTS.twinkle);
-const zoom = ref(DEFAULTS.zoom);
-const backgroundGlow = ref(DEFAULTS.backgroundGlow);
-const mouseInteraction = ref(DEFAULTS.mouseInteraction);
-const mouseStrength = ref(DEFAULTS.mouseStrength);
-const mouseRadius = ref(DEFAULTS.mouseRadius);
-
-const colors = computed(() => [color1.value, color2.value, color3.value]);
-
-const hasChanges = computed(
-  () =>
-    color1.value !== DEFAULTS.color1 ||
-    color2.value !== DEFAULTS.color2 ||
-    color3.value !== DEFAULTS.color3 ||
-    backgroundColor.value !== DEFAULTS.backgroundColor ||
-    speed.value !== DEFAULTS.speed ||
-    streakCount.value !== DEFAULTS.streakCount ||
-    streakWidth.value !== DEFAULTS.streakWidth ||
-    streakLength.value !== DEFAULTS.streakLength ||
-    glow.value !== DEFAULTS.glow ||
-    density.value !== DEFAULTS.density ||
-    twinkle.value !== DEFAULTS.twinkle ||
-    zoom.value !== DEFAULTS.zoom ||
-    backgroundGlow.value !== DEFAULTS.backgroundGlow ||
-    mouseInteraction.value !== DEFAULTS.mouseInteraction ||
-    mouseStrength.value !== DEFAULTS.mouseStrength ||
-    mouseRadius.value !== DEFAULTS.mouseRadius
-);
-
-function reset() {
-  color1.value = DEFAULTS.color1;
-  color2.value = DEFAULTS.color2;
-  color3.value = DEFAULTS.color3;
-  backgroundColor.value = DEFAULTS.backgroundColor;
-  speed.value = DEFAULTS.speed;
-  streakCount.value = DEFAULTS.streakCount;
-  streakWidth.value = DEFAULTS.streakWidth;
-  streakLength.value = DEFAULTS.streakLength;
-  glow.value = DEFAULTS.glow;
-  density.value = DEFAULTS.density;
-  twinkle.value = DEFAULTS.twinkle;
-  zoom.value = DEFAULTS.zoom;
-  backgroundGlow.value = DEFAULTS.backgroundGlow;
-  mouseInteraction.value = DEFAULTS.mouseInteraction;
-  mouseStrength.value = DEFAULTS.mouseStrength;
-  mouseRadius.value = DEFAULTS.mouseRadius;
+const setIntro = (value: boolean) => {
+  updateProp('intro', value);
   forceRerender();
-}
+};
 
-const props: PropRow[] = [
+const propData: PropRow[] = [
   {
     name: 'colors',
     type: 'string[]',
-    default: "['#A8FFB6', '#27FF64', '#7CFF67']",
-    description:
-      'Array of hex colors (up to 8) used to tint the falling light streaks. Each streak is randomly but evenly assigned one of the colors; a single color makes the whole effect uniform.'
+    default: "['#ffffff']",
+    description: 'Colors of the falling streaks, up to 8. Each streak picks one.'
   },
   {
     name: 'backgroundColor',
     type: 'string',
-    default: "'#0A4A2A'",
-    description: 'Hex color of the soft ambient glow behind the streaks.'
+    default: "'#94a3b8'",
+    description: 'Color of the soft light glowing at the top, where the streaks come from.'
   },
-  { name: 'speed', type: 'number', default: '0.5', description: 'Multiplier for how fast the light streaks fall.' },
+  {
+    name: 'speed',
+    type: 'number',
+    default: '0.3',
+    description: 'How fast the streaks fall.'
+  },
   {
     name: 'streakCount',
     type: 'number',
     default: '2',
-    description: 'Number of streak layers rendered per cell (1–16). Higher = busier.'
+    description: 'Layers of streaks, from 1 to 16. More layers fill the tunnel.'
   },
-  { name: 'streakWidth', type: 'number', default: '1', description: 'Thickness of each light streak.' },
+  {
+    name: 'streakWidth',
+    type: 'number',
+    default: '0.8',
+    description: 'Thickness of the streaks.'
+  },
   {
     name: 'streakLength',
     type: 'number',
     default: '1',
-    description: 'Length of the glowing tail trailing each streak.'
-  },
-  {
-    name: 'glow',
-    type: 'number',
-    default: '1',
-    description: 'Overall brightness multiplier applied before tone mapping.'
+    description: 'Length of the glowing tails.'
   },
   {
     name: 'density',
     type: 'number',
     default: '0.6',
-    description: 'Vertical frequency of streaks. Higher values pack more streaks into view.'
+    description: 'How closely the streaks follow each other down the tunnel.'
   },
   {
     name: 'twinkle',
     type: 'number',
+    default: '0.3',
+    description: 'How much the streaks flicker, from 0 to 1.'
+  },
+  {
+    name: 'glow',
+    type: 'number',
     default: '1',
-    description: 'Amount of per-streak brightness flicker. 0 = constant brightness.'
+    description: 'Overall brightness.'
+  },
+  {
+    name: 'backgroundGlow',
+    type: 'number',
+    default: '0.1',
+    description: 'Brightness of the soft light at the top. 0 turns it off.'
+  },
+  {
+    name: 'headGlow',
+    type: 'number',
+    default: '0.6',
+    description: 'How white-hot the leading tips burn, from 0 to 1.'
+  },
+  {
+    name: 'depth',
+    type: 'number',
+    default: '0.5',
+    description: 'Dims streaks deep in the tunnel so the near ones stand out.'
+  },
+  {
+    name: 'bloom',
+    type: 'number',
+    default: '0.35',
+    description: 'Soft glow around the brightest tips.'
   },
   {
     name: 'zoom',
@@ -208,40 +311,95 @@ const props: PropRow[] = [
     default: '3',
     description: 'Field of view into the tunnel. Higher values zoom further in.'
   },
-  { name: 'backgroundGlow', type: 'number', default: '0.5', description: 'Intensity of the ambient background glow.' },
-  { name: 'opacity', type: 'number', default: '1', description: 'Overall alpha of the rendered canvas.' },
+  {
+    name: 'opacity',
+    type: 'number',
+    default: '1',
+    description: 'Opacity of the whole effect.'
+  },
   {
     name: 'mouseInteraction',
     type: 'boolean',
     default: 'true',
-    description: 'Enables a soft light that follows the cursor and flares nearby streaks (no warping).'
+    description: 'The cursor bends the falling light like a lens and brightens the streaks near it.'
   },
-  { name: 'mouseStrength', type: 'number', default: '0.5', description: 'Intensity of the cursor light.' },
-  { name: 'mouseRadius', type: 'number', default: '1', description: 'Falloff radius of the cursor light.' },
+  {
+    name: 'mouseStrength',
+    type: 'number',
+    default: '0.4',
+    description: 'How much the cursor brightens nearby streaks.'
+  },
+  {
+    name: 'mouseRadius',
+    type: 'number',
+    default: '0.45',
+    description: 'Reach of the cursor light.'
+  },
   {
     name: 'mouseDampening',
     type: 'number',
     default: '0.15',
-    description: 'Easing time constant (seconds) for the cursor light to follow the pointer. 0 = immediate.'
+    description: 'How long the cursor light takes to catch up, in seconds. 0 follows instantly.'
+  },
+  {
+    name: 'lens',
+    type: 'number',
+    default: '0.5',
+    description: 'How strongly the cursor bends the streaks.'
+  },
+  {
+    name: 'holdToWarp',
+    type: 'boolean',
+    default: 'true',
+    description: 'Holding the pointer down speeds the streaks up into warp trails.'
+  },
+  {
+    name: 'intro',
+    type: 'boolean',
+    default: 'true',
+    description: 'The light arrives at warp speed and slows to a steady fall.'
+  },
+  {
+    name: 'fade',
+    type: 'number',
+    default: '0',
+    description: 'Fades the edges into the page, from 0 to 1.'
+  },
+  {
+    name: 'lightMode',
+    type: 'boolean',
+    default: 'false',
+    description: 'Draws the streaks as colored light on a white background.'
   },
   {
     name: 'mixBlendMode',
     type: 'string',
     default: 'undefined',
-    description: "CSS mix-blend-mode applied to the canvas (e.g. 'screen', 'lighten')."
+    description: 'CSS blend mode for the canvas, such as screen or lighten.'
   },
   {
     name: 'paused',
     type: 'boolean',
     default: 'false',
-    description: 'If true, stops rendering updates (freezing the current frame).'
+    description: 'Freezes the animation.'
   },
   {
     name: 'dpr',
     type: 'number',
-    default: 'window.devicePixelRatio',
-    description: 'Overrides device pixel ratio; lower for performance, higher for sharpness.'
+    default: 'auto',
+    description: 'Maximum device pixel ratio, capped at 2.'
   },
-  { name: 'className', type: 'string', default: '""', description: 'Additional class names for the root container.' }
+  {
+    name: 'className',
+    type: 'string',
+    default: "''",
+    description: 'Extra class names for the container.'
+  },
+  {
+    name: 'style',
+    type: 'CSSProperties',
+    default: '-',
+    description: 'Inline styles for the container.'
+  }
 ];
 </script>

@@ -1,30 +1,17 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, type CSSProperties, type ComponentPublicInstance } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch, type CSSProperties } from 'vue';
 
 export type Direction = 'right' | 'left' | 'up' | 'down' | 'diagonal';
 export type Mode = 'entrance' | 'pointer' | 'both';
+export type Trail = 'pointer' | 'auto' | 'scroll';
 export type Ease = 'linear' | 'ease-out' | 'ease-in-out' | 'snappy';
+export type EchoStyle = 'solid' | 'outline';
 
-interface Vector {
-  x: number;
-  y: number;
-}
-interface Position {
-  x: number;
-  y: number;
-}
+type Vector = { x: number; y: number };
 
-interface AnimationState {
-  targetX: number;
-  targetY: number;
-  lastTargetX: number;
-  lastTargetY: number;
-  activity: number;
-  positions: Position[];
-  startTime: number;
-}
+type Burst = { start: number; x: number; y: number; nodes: HTMLElement[] };
 
-interface EchoTextProps {
+export interface EchoTextProps {
   text?: string;
   echoes?: number;
   lag?: number;
@@ -33,16 +20,48 @@ interface EchoTextProps {
   fade?: number;
   blur?: number;
   tint?: string | false;
+  echoColors?: [string, string];
+  echoStyle?: EchoStyle;
+  echoScale?: number;
   mode?: Mode;
+  trail?: Trail;
+  clickBurst?: boolean;
   cursorRadius?: number;
   duration?: number;
   ease?: Ease;
   fontSize?: string | number;
   fontWeight?: string | number;
   color?: string;
+  className?: string;
+  style?: CSSProperties;
 }
 
-const clamp = (value: number, min: number, max: number): number => Math.min(Math.max(value, min), max);
+const props = withDefaults(defineProps<EchoTextProps>(), {
+  text: 'Motion Echo',
+  echoes: 12,
+  lag: 0.24,
+  offset: 36,
+  direction: 'right',
+  fade: 0.72,
+  blur: 3,
+  tint: '#7dd3fc',
+  echoColors: undefined,
+  echoStyle: 'solid',
+  echoScale: 1,
+  mode: 'both',
+  trail: 'pointer',
+  clickBurst: true,
+  cursorRadius: 320,
+  duration: 900,
+  ease: 'ease-out',
+  fontSize: 'clamp(3rem, 9vw, 7rem)',
+  fontWeight: 800,
+  color: 'currentColor',
+  className: '',
+  style: undefined
+});
+
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
 const directionVectors: Record<Direction, Vector> = {
   right: { x: 1, y: 0 },
@@ -59,97 +78,267 @@ const easing: Record<Ease, (t: number) => number> = {
   snappy: t => 1 - Math.pow(1 - t, 5)
 };
 
-const props = withDefaults(defineProps<EchoTextProps>(), {
-  text: 'Motion Echo',
-  echoes: 12,
-  lag: 0.24,
-  offset: 36,
-  direction: 'right',
-  fade: 0.72,
-  blur: 3,
-  tint: '#7dd3fc',
-  mode: 'both',
-  cursorRadius: 320,
-  duration: 900,
-  ease: 'ease-out',
-  fontSize: 'clamp(3rem, 9vw, 7rem)',
-  fontWeight: 800,
-  color: '#f8fafc'
-});
+const DRIFT_PERIOD = 7200;
+const DRIFT_IDLE = 2600;
+const BURST_LIFE = 1100;
+const BURST_GAP = 80;
+
+const readScroll = (target: Document | Element): [number, number] =>
+  target instanceof Element ? [target.scrollLeft || 0, target.scrollTop || 0] : [window.scrollX, window.scrollY];
 
 const rootRef = ref<HTMLSpanElement | null>(null);
-const copyRefs = ref<(HTMLSpanElement | null)[]>([]);
-
-const setCopyRef = (el: Element | ComponentPublicInstance | null, index: number) => {
-  copyRefs.value[index] = el as HTMLSpanElement | null;
-};
-
+const burstRef = ref<HTMLSpanElement | null>(null);
+const copyRefs: Array<HTMLSpanElement | null> = [];
 const prefersReducedMotion = ref(false);
 
 const echoCount = computed(() => (prefersReducedMotion.value ? 0 : clamp(Math.round(props.echoes), 0, 24)));
-const copyIndexes = computed(() => Array.from({ length: echoCount.value + 1 }, (_, index) => index));
-const reversedEchoIndexes = computed(() => copyIndexes.value.slice(1).reverse());
+const echoIndexes = computed(() => Array.from({ length: echoCount.value }, (_, index) => echoCount.value - index));
+const ramp = computed(() => (Array.isArray(props.echoColors) && props.echoColors.length ? props.echoColors : null));
+const canBurst = computed(() => props.clickBurst && echoCount.value > 0);
+
+const echoColor = (index: number) => {
+  const colors = ramp.value;
+  if (colors) {
+    const depth = echoCount.value > 1 ? (index - 1) / (echoCount.value - 1) : 0;
+    return `color-mix(in srgb, ${colors[colors.length - 1]} ${Math.round(depth * 100)}%, ${colors[0]})`;
+  }
+  return props.tint ? `color-mix(in srgb, ${props.tint} ${Math.min(72, 18 + index * 5)}%, currentColor)` : undefined;
+};
+
+const setCopyRef = (index: number, element: unknown) => {
+  copyRefs[index] = element instanceof HTMLSpanElement ? element : null;
+};
 
 const rootStyle = computed<CSSProperties>(() => ({
-  fontSize: props.fontSize,
+  fontSize: typeof props.fontSize === 'number' ? `${props.fontSize}px` : props.fontSize,
   fontWeight: props.fontWeight,
-  color: props.color
+  color: props.color,
+  cursor: canBurst.value ? 'pointer' : undefined,
+  ...props.style
 }));
 
-let frame: number | null = null;
-let state: AnimationState | null = null;
-let stopAnimation: (() => void) | null = null;
-let media: MediaQueryList | null = null;
-let updateMotionPreference: (() => void) | null = null;
+const echoClassName = computed(() =>
+  props.echoStyle === 'outline' ? 'echo-text__echo echo-text__echo--outline' : 'echo-text__echo'
+);
 
-const setupAnimation = () => {
+let media: MediaQueryList | null = null;
+const updateMotionPreference = () => {
+  prefersReducedMotion.value = Boolean(media?.matches);
+};
+
+let teardown: (() => void) | null = null;
+
+const setup = () => {
+  teardown?.();
+  teardown = null;
+
   const root = rootRef.value;
   if (!root || prefersReducedMotion.value) return;
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+
+  const count = echoCount.value;
+  const { offset, cursorRadius, lag, fade, blur, echoScale, duration, ease, mode, trail, clickBurst } = props;
 
   const vector = directionVectors[props.direction] || directionVectors.right;
-  const safeOffset = clamp(Number(props.offset) || 0, 0, 120);
-  const safeCursorRadius = clamp(Number(props.cursorRadius) || 320, 40, 1200);
-  const safeLag = clamp(Number(props.lag) || 0.16, 0.02, 0.5);
-  const safeFade = clamp(Number(props.fade) || 0.64, 0.1, 0.95);
-  const safeBlur = clamp(Number(props.blur) || 0, 0, 16);
-  const safeDuration = Math.max(0, Number(props.duration) || 0);
-  const easeFn = easing[props.ease] || easing['ease-out'];
-  const entranceEnabled = props.mode === 'entrance' || props.mode === 'both';
-  const pointerEnabled = props.mode === 'pointer' || props.mode === 'both';
-  const positions = Array.from({ length: echoCount.value + 1 }, (_, index) => {
-    const entranceAmount = entranceEnabled ? safeOffset * (index + 0.35) : 0;
-    return { x: vector.x * entranceAmount, y: vector.y * entranceAmount };
-  });
+  const safeOffset = clamp(Number(offset) || 0, 0, 120);
+  const safeCursorRadius = clamp(Number(cursorRadius) || 320, 40, 1200);
+  const safeLag = clamp(Number(lag) || 0.16, 0.02, 0.5);
+  const safeFade = clamp(Number(fade) || 0.64, 0.1, 0.95);
+  const safeBlur = clamp(Number(blur) || 0, 0, 16);
+  const safeScale = clamp(Number(echoScale) || 1, 0.25, 2.5);
+  const safeDuration = Math.max(0, Number(duration) || 0);
+  const easeFn = easing[ease] || easing['ease-out'];
+  const entranceEnabled = mode === 'entrance' || mode === 'both';
+  const liveEnabled = mode === 'pointer' || mode === 'both';
+  const canHover = Boolean(window.matchMedia?.('(hover: hover) and (pointer: fine)').matches);
+  const drifting = liveEnabled && trail === 'auto';
+  const scrolling = liveEnabled && trail === 'scroll';
+  const following = liveEnabled && canHover && !scrolling;
+  const driftSpacing = 0.12 + safeLag * 1.1;
+  const burstReach = clamp(safeOffset / 36, 0.35, 2.5);
+  const shiftLimit = safeOffset * 4;
 
-  const animState: AnimationState = {
+  const state = {
     targetX: 0,
     targetY: 0,
     lastTargetX: 0,
     lastTargetY: 0,
     activity: entranceEnabled ? 1 : 0,
-    positions,
-    startTime: performance.now()
+    positions: Array.from({ length: count + 1 }, (_, index) => {
+      const entranceAmount = entranceEnabled ? safeOffset * (index + 0.35) : 0;
+      return { x: vector.x * entranceAmount, y: vector.y * entranceAmount };
+    }),
+    bends: Array.from({ length: count + 1 }, () => ({ x: 0, y: 0 })),
+    startTime: performance.now(),
+    lastTime: 0,
+    drift: 0,
+    phase: 0,
+    pointerNear: false,
+    pointerTime: -Infinity,
+    visible: true,
+    pushX: 0,
+    pushY: 0,
+    velocityX: 0,
+    velocityY: 0,
+    bursts: [] as Burst[]
   };
-  state = animState;
+  let frame = 0;
 
-  let canHover = false;
-  let cleanupPointer = () => {};
-
-  if (pointerEnabled && window.matchMedia) {
-    const hoverMedia = window.matchMedia('(hover: hover) and (pointer: fine)');
-    canHover = hoverMedia.matches;
+  for (let index = 1; index <= count; index += 1) {
+    const copy = copyRefs[index];
+    if (copy) copy.style.filter = safeBlur > 0 ? `blur(${((safeBlur * index) / count).toFixed(2)}px)` : 'none';
   }
 
-  const handlePointerMove = (event: PointerEvent) => {
-    if (!state) return;
+  const renderBursts = (now: number) => {
+    state.bursts = state.bursts.filter(burst => {
+      const age = now - burst.start;
+      let alive = false;
 
+      burst.nodes.forEach((node, index) => {
+        const local = (age - index * BURST_GAP) / BURST_LIFE;
+        if (local < 1) alive = true;
+
+        const progress = clamp(local, 0, 1);
+        const spread = 1 - Math.pow(1 - progress, 3);
+        const scale = 1 + spread * 0.34 * burstReach;
+        const peak = 0.75 * Math.pow(safeFade, index * 0.5);
+        const opacity = local <= 0 ? 0 : Math.min(1, progress * 8) * Math.pow(1 - progress, 1.5) * peak;
+
+        node.style.transform = `translate3d(${burst.x.toFixed(2)}px, ${burst.y.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`;
+        node.style.opacity = opacity.toFixed(3);
+        node.style.filter = safeBlur > 0 ? `blur(${(safeBlur * 0.3 * spread).toFixed(2)}px)` : 'none';
+      });
+
+      if (!alive) burst.nodes.forEach(node => node.remove());
+      return alive;
+    });
+  };
+
+  const renderFrame = (now: number) => {
+    frame = 0;
+
+    const dt = state.lastTime ? clamp(now - state.lastTime, 0, 64) : 16.67;
+    const step = dt / 16.67;
+    state.lastTime = now;
+
+    const elapsed = now - state.startTime;
+    const entranceProgress = entranceEnabled && safeDuration > 0 ? clamp(elapsed / safeDuration, 0, 1) : 1;
+    const entranceRest = entranceEnabled ? 1 - easeFn(entranceProgress) : 0;
+    const targetVelocity = Math.hypot(state.targetX - state.lastTargetX, state.targetY - state.lastTargetY);
+
+    state.lastTargetX = state.targetX;
+    state.lastTargetY = state.targetY;
+
+    if (drifting) {
+      const away = !following || !state.pointerNear || now - state.pointerTime > DRIFT_IDLE;
+      state.drift += ((away ? 1 : 0) - state.drift) * (1 - Math.pow(0.965, step));
+      state.phase += (dt / DRIFT_PERIOD) * Math.PI * 2;
+    }
+
+    if (scrolling) {
+      const blend = 1 - Math.pow(0.7, step);
+      state.velocityX += (state.pushX / Math.max(step, 0.25) - state.velocityX) * blend;
+      state.velocityY += (state.pushY / Math.max(step, 0.25) - state.velocityY) * blend;
+      state.pushX = 0;
+      state.pushY = 0;
+    }
+
+    const speed = Math.hypot(state.velocityX, state.velocityY);
+    const shiftX = clamp(-state.velocityX * 3.2, -shiftLimit, shiftLimit);
+    const shiftY = clamp(-state.velocityY * 3.2, -shiftLimit, shiftLimit);
+    const followX = state.targetX * (1 - state.drift);
+    const followY = state.targetY * (1 - state.drift);
+
+    let maxSeparation = 0;
+    let maxGap = 0;
+
+    for (let index = 0; index <= count; index += 1) {
+      const copy = copyRefs[index];
+      const current = state.positions[index];
+      const bend = state.bends[index];
+      if (!copy || !current || !bend) continue;
+
+      const depth = count ? index / count : 0;
+      const entranceAmount = entranceRest * safeOffset * (index + 0.35);
+      let desiredX = followX + vector.x * entranceAmount;
+      let desiredY = followY + vector.y * entranceAmount;
+
+      if (state.drift > 0.0005) {
+        const phase = state.phase - index * driftSpacing;
+        const swing = safeOffset * state.drift * (0.25 + 0.75 * depth);
+        desiredX += Math.sin(phase) * swing;
+        desiredY += Math.sin(phase) * Math.cos(phase) * swing * 1.3;
+      }
+
+      const lerp = 1 - Math.pow(1 - clamp(0.34 / (1 + index * safeLag * 4.2), 0.018, 0.36), step);
+      const bendLerp = 1 - Math.pow(1 - 0.3 / (1 + depth * (1 + safeLag * 8)), step);
+
+      current.x += (desiredX - current.x) * lerp;
+      current.y += (desiredY - current.y) * lerp;
+      bend.x += (shiftX * depth - bend.x) * bendLerp;
+      bend.y += (shiftY * depth - bend.y) * bendLerp;
+      maxGap = Math.max(
+        maxGap,
+        Math.abs(desiredX - current.x),
+        Math.abs(desiredY - current.y),
+        Math.abs(shiftX * depth - bend.x),
+        Math.abs(shiftY * depth - bend.y)
+      );
+
+      const x = current.x + bend.x;
+      const y = current.y + bend.y;
+      const scale = 1 + (safeScale - 1) * depth;
+      copy.style.transform = `translate3d(${x.toFixed(3)}px, ${y.toFixed(3)}px, 0) scale(${scale.toFixed(4)})`;
+
+      if (index > 0) {
+        const front = state.positions[0];
+        maxSeparation = Math.max(maxSeparation, Math.hypot(x - front.x, y - front.y));
+      }
+    }
+
+    const separationActivity = safeOffset > 0 ? clamp(maxSeparation / (safeOffset * 2.25), 0, 1) : 0;
+    const targetActivity = safeOffset > 0 ? clamp(targetVelocity / (safeOffset * 0.35), 0, 1) : 0;
+    const nextActivity = Math.max(
+      entranceRest,
+      separationActivity,
+      targetActivity,
+      state.drift * 0.9,
+      clamp(speed / 5, 0, 1)
+    );
+    state.activity += (nextActivity - state.activity) * (1 - Math.pow(0.82, step));
+
+    renderBursts(now);
+
+    const running =
+      entranceProgress < 1 ||
+      state.activity > 0.002 ||
+      maxGap > 0.05 ||
+      speed > 0.02 ||
+      state.bursts.length > 0 ||
+      (drifting && state.visible);
+    if (!running) state.activity = 0;
+
+    for (let index = 1; index <= count; index += 1) {
+      const copy = copyRefs[index];
+      if (copy) copy.style.opacity = String(Math.pow(safeFade, index) * state.activity);
+    }
+
+    if (running) frame = requestAnimationFrame(renderFrame);
+  };
+
+  const wake = () => {
+    if (!frame) {
+      state.lastTime = 0;
+      frame = requestAnimationFrame(renderFrame);
+    }
+  };
+
+  const handlePointerMove = (event: PointerEvent) => {
     const rect = root.getBoundingClientRect();
     if (!rect.width || !rect.height) return;
 
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const deltaX = event.clientX - centerX;
-    const deltaY = event.clientY - centerY;
+    const deltaX = event.clientX - (rect.left + rect.width / 2);
+    const deltaY = event.clientY - (rect.top + rect.height / 2);
     const distance = Math.hypot(deltaX, deltaY);
     const reach = distance > 0 ? clamp(distance / safeCursorRadius, 0, 1) : 0;
     const dirX = distance > 0 ? deltaX / distance : 0;
@@ -157,163 +346,205 @@ const setupAnimation = () => {
 
     state.targetX = dirX * reach * safeOffset;
     state.targetY = dirY * reach * safeOffset * 0.72;
+    state.pointerNear = distance <= safeCursorRadius;
+    state.pointerTime = performance.now();
+    wake();
   };
 
-  const handlePointerLeave = () => {
-    if (!state) return;
+  const handlePointerOut = (event: PointerEvent) => {
+    if (event.relatedTarget) return;
     state.targetX = 0;
     state.targetY = 0;
+    state.pointerNear = false;
+    wake();
   };
 
-  if (canHover) {
+  const scrollMemory = new WeakMap<Document | Element, [number, number]>();
+
+  const handleScroll = (event: Event) => {
+    const target = event.target;
+    if (!(target instanceof Document) && !(target instanceof Element && target.contains(root))) return;
+
+    const [x, y] = readScroll(target);
+    const last = scrollMemory.get(target);
+    scrollMemory.set(target, [x, y]);
+    if (!last) return;
+
+    state.pushX -= x - last[0];
+    state.pushY -= y - last[1];
+    wake();
+  };
+
+  const handleClick = (event: MouseEvent) => {
+    const layer = burstRef.value;
+    const rect = root.getBoundingClientRect();
+    if (!layer || !count || !rect.width || !rect.height) return;
+
+    const originX = clamp((event.clientX - rect.left) / rect.width, 0, 1) * 100;
+    const originY = clamp((event.clientY - rect.top) / rect.height, 0, 1) * 100;
+    const burstCount = clamp(Math.round(count / 3) + 2, 3, 6);
+    const front = state.positions[0];
+    const nodes: HTMLElement[] = [];
+
+    for (let index = 0; index < burstCount; index += 1) {
+      const source = copyRefs[1 + Math.round((index / Math.max(1, burstCount - 1)) * (count - 1))];
+      if (!source) continue;
+      const node = source.cloneNode(true) as HTMLSpanElement;
+      node.removeAttribute('data-echo-index');
+      node.style.transformOrigin = `${originX.toFixed(1)}% ${originY.toFixed(1)}%`;
+      node.style.opacity = '0';
+      layer.appendChild(node);
+      nodes.push(node);
+    }
+
+    state.bursts.push({ start: performance.now(), x: front?.x || 0, y: front?.y || 0, nodes });
+    while (state.bursts.length > 4) state.bursts.shift()?.nodes.forEach(node => node.remove());
+    wake();
+  };
+
+  if (following) {
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
-    document.addEventListener('pointerleave', handlePointerLeave);
-    cleanupPointer = () => {
-      window.removeEventListener('pointermove', handlePointerMove);
-      document.removeEventListener('pointerleave', handlePointerLeave);
-    };
+    document.addEventListener('pointerout', handlePointerOut);
   }
 
-  const renderFrame = (now: number) => {
-    if (!state) return;
+  if (scrolling) {
+    scrollMemory.set(document, readScroll(document));
+    for (let node = root.parentElement; node; node = node.parentElement) scrollMemory.set(node, readScroll(node));
+    document.addEventListener('scroll', handleScroll, { capture: true, passive: true });
+  }
 
-    const elapsed = now - state.startTime;
-    const entranceProgress = entranceEnabled && safeDuration > 0 ? clamp(elapsed / safeDuration, 0, 1) : 1;
-    const easedEntrance = easeFn(entranceProgress);
-    const entranceRest = entranceEnabled ? 1 - easedEntrance : 0;
-    const targetVelocity = Math.hypot(state.targetX - state.lastTargetX, state.targetY - state.lastTargetY);
+  if (clickBurst) root.addEventListener('click', handleClick);
 
-    state.lastTargetX = state.targetX;
-    state.lastTargetY = state.targetY;
+  let observer: IntersectionObserver | undefined;
+  if (drifting && typeof IntersectionObserver !== 'undefined') {
+    observer = new IntersectionObserver(entries => {
+      state.visible = entries[entries.length - 1].isIntersecting;
+      if (state.visible) wake();
+    });
+    observer.observe(root);
+  }
 
-    let maxSeparation = 0;
+  renderFrame(state.startTime);
 
-    for (let index = 0; index <= echoCount.value; index += 1) {
-      const copy = copyRefs.value[index];
-      const current = state.positions[index];
-      if (!copy || !current) continue;
-
-      const entranceAmount = entranceRest * safeOffset * (index + 0.35);
-      const desiredX = state.targetX + vector.x * entranceAmount;
-      const desiredY = state.targetY + vector.y * entranceAmount;
-      const lerp = clamp(0.34 / (1 + index * safeLag * 4.2), 0.018, 0.36);
-
-      current.x += (desiredX - current.x) * lerp;
-      current.y += (desiredY - current.y) * lerp;
-
-      copy.style.transform = `translate3d(${current.x.toFixed(3)}px, ${current.y.toFixed(3)}px, 0)`;
-
-      if (index > 0) {
-        const front = state.positions[0];
-        const separation = front ? Math.hypot(current.x - front.x, current.y - front.y) : 0;
-        maxSeparation = Math.max(maxSeparation, separation);
-        const depth = echoCount.value ? index / echoCount.value : 0;
-        copy.style.filter = safeBlur > 0 ? `blur(${(safeBlur * depth).toFixed(2)}px)` : 'none';
-      }
-    }
-
-    const separationActivity = safeOffset > 0 ? clamp(maxSeparation / (safeOffset * 2.25), 0, 1) : 0;
-    const targetActivity = safeOffset > 0 ? clamp(targetVelocity / (safeOffset * 0.35), 0, 1) : 0;
-    const nextActivity = Math.max(entranceRest, separationActivity, targetActivity);
-    state.activity += (nextActivity - state.activity) * 0.18;
-
-    for (let index = 1; index <= echoCount.value; index += 1) {
-      const copy = copyRefs.value[index];
-      if (!copy) continue;
-      copy.style.opacity = String(Math.pow(safeFade, index) * state.activity);
-    }
-
-    const stillMoving =
-      state.activity > 0.002 ||
-      Math.abs(state.targetX) > 0.01 ||
-      Math.abs(state.targetY) > 0.01 ||
-      entranceProgress < 1 ||
-      canHover;
-
-    if (stillMoving) {
-      frame = requestAnimationFrame(renderFrame);
-    } else {
-      frame = null;
-    }
-  };
-
-  frame = requestAnimationFrame(renderFrame);
-
-  stopAnimation = () => {
-    cleanupPointer();
-    if (frame) cancelAnimationFrame(frame);
-    frame = null;
-    state = null;
+  teardown = () => {
+    cancelAnimationFrame(frame);
+    window.removeEventListener('pointermove', handlePointerMove);
+    document.removeEventListener('pointerout', handlePointerOut);
+    document.removeEventListener('scroll', handleScroll, { capture: true });
+    root.removeEventListener('click', handleClick);
+    observer?.disconnect();
+    state.bursts.forEach(burst => burst.nodes.forEach(node => node.remove()));
   };
 };
 
 onMounted(() => {
-  if (typeof window !== 'undefined' && window.matchMedia) {
+  if (window.matchMedia) {
     media = window.matchMedia('(prefers-reduced-motion: reduce)');
-    updateMotionPreference = () => {
-      prefersReducedMotion.value = media!.matches;
-    };
     updateMotionPreference();
     media.addEventListener?.('change', updateMotionPreference);
   }
-
-  setupAnimation();
-});
-
-onUnmounted(() => {
-  stopAnimation?.();
-  stopAnimation = null;
-  if (media && updateMotionPreference) media.removeEventListener?.('change', updateMotionPreference);
+  setup();
 });
 
 watch(
   () => [
     props.blur,
+    props.clickBurst,
     props.cursorRadius,
     props.direction,
     props.duration,
     props.ease,
     echoCount.value,
+    props.echoScale,
     props.fade,
     props.lag,
     props.mode,
     props.offset,
-    prefersReducedMotion.value
+    prefersReducedMotion.value,
+    props.trail
   ],
-  () => {
-    stopAnimation?.();
-    stopAnimation = null;
-    setupAnimation();
-  }
+  setup,
+  { flush: 'post' }
 );
+
+onBeforeUnmount(() => {
+  media?.removeEventListener?.('change', updateMotionPreference);
+  teardown?.();
+  teardown = null;
+});
 </script>
 
 <template>
-  <span
-    ref="rootRef"
-    class="inline-block relative leading-[0.9] tracking-[-0.04em] whitespace-nowrap select-none contain-[layout_style] [font-kerning:normal] [text-rendering:geometricPrecision]"
-    :style="rootStyle"
-  >
+  <span ref="rootRef" :class="`echo-text ${className}`.trim()" :style="rootStyle">
     <span
-      v-for="index in reversedEchoIndexes"
+      v-for="index in echoIndexes"
       :key="`echo-${index}`"
-      :ref="(el: Element | ComponentPublicInstance | null) => setCopyRef(el, index)"
+      :ref="element => setCopyRef(index, element)"
       aria-hidden="true"
-      class="block absolute inset-0 transform-gpu origin-center backface-hidden pointer-events-none will-change-[transform,opacity]"
+      :class="echoClassName"
       :data-echo-index="index"
-      :style="{
-        color: tint ? `color-mix(in srgb, ${tint} ${Math.min(72, 18 + index * 5)}%, ${color})` : color,
-        opacity: 0
-      }"
+      :style="{ color: echoColor(index) }"
     >
       {{ text }}
     </span>
-    <span
-      :ref="(el: Element | ComponentPublicInstance | null) => setCopyRef(el, 0)"
-      class="block z-2 relative text-shadow-[0_0.035em_0_rgba(255,255,255,0.04)] transform-gpu pointer-events-none will-change-transform"
-      data-echo-index="0"
-    >
+    <span ref="burstRef" aria-hidden="true" class="echo-text__bursts" />
+    <span :ref="element => setCopyRef(0, element)" class="echo-text__echo echo-text__echo--front" data-echo-index="0">
       {{ text }}
     </span>
   </span>
 </template>
+
+<style>
+.echo-text {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  user-select: none;
+  contain: layout style;
+  font-kerning: normal;
+  text-rendering: geometricPrecision;
+}
+
+.echo-text__echo {
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+  transform: translate3d(0, 0, 0);
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.echo-text__bursts {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.echo-text__echo--outline {
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: max(1px, 0.014em) currentColor;
+}
+
+.echo-text__echo--front {
+  position: relative;
+  z-index: 2;
+  opacity: 1;
+  filter: none;
+  text-shadow: 0 0.035em 0 rgba(255, 255, 255, 0.04);
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .echo-text__echo:not(.echo-text__echo--front) {
+    display: none;
+  }
+
+  .echo-text__echo--front {
+    transform: none !important;
+  }
+}
+</style>

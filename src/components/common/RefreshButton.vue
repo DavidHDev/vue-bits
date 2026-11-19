@@ -1,40 +1,28 @@
 <template>
-  <button type="button" class="replay-button" :aria-label="label" :title="label" @click="$emit('click')">
-    <i class="pi pi-refresh"></i>
+  <Teleport v-if="stage?.hasControls.value && stage.controls.value" :to="stage.controls.value">
+    <button type="button" class="docs-refresh" :aria-label="label" @click="emit('click')">
+      <HugeiconsIcon :icon="ReloadIcon" :size="16" :stroke-width="1.6" aria-hidden="true" />
+    </button>
+  </Teleport>
+  <button
+    v-else-if="!stage?.hasControls.value"
+    type="button"
+    class="docs-refresh"
+    :aria-label="label"
+    @click="emit('click')"
+  >
+    <HugeiconsIcon :icon="ReloadIcon" :size="16" :stroke-width="1.6" aria-hidden="true" />
   </button>
 </template>
 
 <script setup lang="ts">
-const { label = 'Replay animation' } = defineProps<{ label?: string }>();
-defineEmits<{ click: [] }>();
+import { HugeiconsIcon } from '@hugeicons/vue';
+import { ReloadIcon } from '@hugeicons/core-free-icons';
+import { usePreviewStage } from './previewStage';
+
+withDefaults(defineProps<{ label?: string }>(), { label: 'Refresh animation' });
+
+const emit = defineEmits<{ click: [] }>();
+
+const stage = usePreviewStage();
 </script>
-
-<style scoped>
-.replay-button {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  z-index: 10;
-  display: inline-flex;
-  width: 34px;
-  height: 34px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  border: 1px solid var(--border-primary);
-  background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
-  color: var(--text-primary);
-  cursor: pointer;
-  backdrop-filter: blur(12px);
-  transition:
-    background var(--transition-fast),
-    border-color var(--transition-fast),
-    color var(--transition-fast);
-}
-
-.replay-button:hover {
-  border-color: #333;
-  background: #222;
-  color: #fff;
-}
-</style>

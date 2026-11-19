@@ -2,27 +2,28 @@ import code from '@/content/Animations/CursorGrid/CursorGrid.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const cursorGrid = createCodeObject(code, 'Animations/CursorGrid', {
+  dependencies: '',
   usage: `<template>
-  <div class="relative h-150 w-full">
+  <div style="width: 100%; height: 600px; position: relative">
     <CursorGrid
-      :cell-size="70"
-      color="#D946EF"
+      :cell-size="60"
+      color="#ffffff"
+      highlight="area"
+      grid-style="lines"
       :radius="140"
-      falloff="smooth"
       :hold-time="400"
       :fade-duration="800"
-      :line-width="1.2"
-      :max-opacity="1"
-      :fill-opacity="0"
-      :grid-opacity="0"
-      :cell-radius="0"
-      :click-pulse="true"
-      :pulse-speed="600"
-    />
+      :fill-opacity="0.06"
+      :grid-opacity="0.08"
+      :spotlight="0.6"
+      click-pulse
+    >
+      <!-- Your content here -->
+    </CursorGrid>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import CursorGrid from './CursorGrid.vue'
 </script>`
 });

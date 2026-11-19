@@ -1,9 +1,5 @@
 <template>
-  <div
-    ref="containerRef"
-    :class="`w-full h-full relative overflow-hidden ${props.className ?? ''}`"
-    :style="props.style"
-  />
+  <div ref="containerRef" :class="['color-bends-container', className]" :style="style" />
 </template>
 
 <script setup lang="ts">
@@ -30,6 +26,8 @@ interface ColorBendsProps {
 }
 
 const props = withDefaults(defineProps<ColorBendsProps>(), {
+  className: undefined,
+  style: undefined,
   rotation: 90,
   speed: 0.2,
   colors: () => [],
@@ -60,7 +58,7 @@ uniform int uTransparent;
 uniform float uScale;
 uniform float uFrequency;
 uniform float uWarpStrength;
-uniform vec2 uPointer; // in NDC [-1,1]
+uniform vec2 uPointer;
 uniform float uMouseInfluence;
 uniform float uParallax;
 uniform float uNoise;
@@ -78,6 +76,7 @@ void main() {
   q /= max(uScale, 0.0001);
   q /= 0.5 + 0.2 * dot(q, q);
   q += 0.2 * cos(t) - 7.56;
+  vec2 shift = vec2(0.2 * cos(t) - 7.56);
   vec2 toward = (uPointer - rp);
   q += toward * uMouseInfluence * 0.2;
 
@@ -85,6 +84,7 @@ void main() {
       if (j >= uIterations - 1) break;
       vec2 rr = sin(1.5 * (q.yx * uFrequency) + 2.0 * cos(q * uFrequency));
       q += (rr - q) * 0.15;
+      shift *= 0.85;
     }
 
     vec3 col = vec3(0.0);
@@ -100,10 +100,12 @@ void main() {
             vec2 r = sin(1.5 * (s.yx * uFrequency) + 2.0 * cos(s * uFrequency));
             float m0 = length(r + sin(5.0 * r.y * uFrequency - 3.0 * t + float(i)) / 4.0);
             float kBelow = clamp(uWarpStrength, 0.0, 1.0);
-            float kMix = pow(kBelow, 0.3); // strong response across 0..1
-            float gain = 1.0 + max(uWarpStrength - 1.0, 0.0); // allow >1 to amplify displacement
+            float kMix = pow(kBelow, 0.3);
+            float gain = 1.0 + max(uWarpStrength - 1.0, 0.0);
             vec2 disp = (r - s) * kBelow;
             vec2 warped = s + disp * gain;
+            float spare = 1.0 - kBelow * gain;
+            if (spare != 0.0) warped -= shift * spare;
             float m1 = length(warped + sin(5.0 * warped.y * uFrequency - 3.0 * t + float(i)) / 4.0);
             float m = mix(m0, m1, kMix);
             float w = 1.0 - exp(-uBandWidth / exp(uBandWidth * m));
@@ -123,6 +125,8 @@ void main() {
             float gain = 1.0 + max(uWarpStrength - 1.0, 0.0);
             vec2 disp = (r - s) * kBelow;
             vec2 warped = s + disp * gain;
+            float spare = 1.0 - kBelow * gain;
+            if (spare != 0.0) warped -= shift * spare;
             float m1 = length(warped + sin(5.0 * warped.y * uFrequency - 3.0 * t + float(k)) / 4.0);
             float m = mix(m0, m1, kMix);
             col[k] = 1.0 - exp(-uBandWidth / exp(uBandWidth * m));
@@ -152,25 +156,62 @@ void main() {
 `;
 
 const containerRef = ref<HTMLDivElement | null>(null);
-const rendererRef = ref<THREE.WebGLRenderer | null>(null);
-const rafRef = ref<number | null>(null);
-const materialRef = ref<THREE.ShaderMaterial | null>(null);
-const resizeObserverRef = ref<ResizeObserver | null>(null);
-const rotationRef = ref<number>(props.rotation);
-const autoRotateRef = ref<number>(props.autoRotate);
-const pointerTargetRef = ref<THREE.Vector2>(new THREE.Vector2(0, 0));
-const pointerCurrentRef = ref<THREE.Vector2>(new THREE.Vector2(0, 0));
-const pointerSmoothRef = ref<number>(8);
-
+let renderer: THREE.WebGLRenderer | null = null;
+let material: THREE.ShaderMaterial | null = null;
+let rafId: number | null = null;
+let rotationValue = props.rotation;
+let autoRotateValue = props.autoRotate;
+const pointerTarget = new THREE.Vector2(0, 0);
+const pointerCurrent = new THREE.Vector2(0, 0);
+const pointerSmooth = 8;
 let cleanup: (() => void) | null = null;
-const init = () => {
-  const container = containerRef.value!;
+
+const toVec3 = (hex: string) => {
+  const h = hex.replace('#', '').trim();
+  const v =
+    h.length === 3
+      ? [parseInt(h[0] + h[0], 16), parseInt(h[1] + h[1], 16), parseInt(h[2] + h[2], 16)]
+      : [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  return new THREE.Vector3(v[0] / 255, v[1] / 255, v[2] / 255);
+};
+
+const applySettings = () => {
+  if (!material) return;
+
+  rotationValue = props.rotation;
+  autoRotateValue = props.autoRotate;
+  material.uniforms.uSpeed.value = props.speed;
+  material.uniforms.uScale.value = props.scale;
+  material.uniforms.uFrequency.value = props.frequency;
+  material.uniforms.uWarpStrength.value = props.warpStrength;
+  material.uniforms.uMouseInfluence.value = props.mouseInfluence;
+  material.uniforms.uParallax.value = props.parallax;
+  material.uniforms.uNoise.value = props.noise;
+  material.uniforms.uIterations.value = props.iterations;
+  material.uniforms.uIntensity.value = props.intensity;
+  material.uniforms.uBandWidth.value = props.bandWidth;
+
+  const arr = (props.colors || []).filter(Boolean).slice(0, MAX_COLORS).map(toVec3);
+  for (let i = 0; i < MAX_COLORS; i++) {
+    const vec = (material.uniforms.uColors.value as THREE.Vector3[])[i];
+    if (i < arr.length) vec.copy(arr[i]);
+    else vec.set(0, 0, 0);
+  }
+  material.uniforms.uColorCount.value = arr.length;
+
+  material.uniforms.uTransparent.value = props.transparent ? 1 : 0;
+  if (renderer) renderer.setClearColor(0x000000, props.transparent ? 0 : 1);
+};
+
+onMounted(() => {
+  const container = containerRef.value;
+  if (!container) return;
   const scene = new THREE.Scene();
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
   const geometry = new THREE.PlaneGeometry(2, 2);
   const uColorsArray = Array.from({ length: MAX_COLORS }, () => new THREE.Vector3(0, 0, 0));
-  const material = new THREE.ShaderMaterial({
+  const mat = new THREE.ShaderMaterial({
     vertexShader: vert,
     fragmentShader: frag,
     uniforms: {
@@ -195,135 +236,125 @@ const init = () => {
     premultipliedAlpha: true,
     transparent: true
   });
-  materialRef.value = material;
+  material = mat;
 
-  const mesh = new THREE.Mesh(geometry, material);
+  const mesh = new THREE.Mesh(geometry, mat);
   scene.add(mesh);
 
-  const renderer = new THREE.WebGLRenderer({
+  const gl = new THREE.WebGLRenderer({
     antialias: false,
     powerPreference: 'high-performance',
     alpha: true
   });
-  rendererRef.value = renderer;
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  renderer.setClearColor(0x000000, props.transparent ? 0 : 1);
-  renderer.domElement.style.width = '100%';
-  renderer.domElement.style.height = '100%';
-  renderer.domElement.style.display = 'block';
-  container.appendChild(renderer.domElement);
+  renderer = gl;
+  gl.outputColorSpace = THREE.SRGBColorSpace;
+  gl.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  gl.setClearColor(0x000000, props.transparent ? 0 : 1);
+  gl.domElement.style.width = '100%';
+  gl.domElement.style.height = '100%';
+  gl.domElement.style.display = 'block';
+  container.appendChild(gl.domElement);
+
+  applySettings();
 
   const clock = new THREE.Clock();
 
   const handleResize = () => {
     const w = container.clientWidth || 1;
     const h = container.clientHeight || 1;
-    renderer.setSize(w, h, false);
-    (material.uniforms.uCanvas.value as THREE.Vector2).set(w, h);
+    gl.setSize(w, h, false);
+    (mat.uniforms.uCanvas.value as THREE.Vector2).set(w, h);
+    gl.render(scene, camera);
   };
 
   handleResize();
 
+  let resizeObserver: ResizeObserver | null = null;
   if ('ResizeObserver' in window) {
-    const ro = new ResizeObserver(handleResize);
-    ro.observe(container);
-    resizeObserverRef.value = ro;
+    resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(container);
   } else {
     (window as Window).addEventListener('resize', handleResize);
   }
 
-  const loop = () => {
-    const dt = clock.getDelta();
-    const elapsed = clock.elapsedTime;
-    material.uniforms.uTime.value = elapsed;
+  let elapsed = 0;
+  let visible = true;
+  let resumed = false;
 
-    const deg = (rotationRef.value % 360) + autoRotateRef.value * elapsed;
+  const loop = () => {
+    rafId = null;
+    if (!visible || document.hidden) return;
+    const delta = clock.getDelta();
+    const dt = resumed ? 0 : delta;
+    resumed = false;
+    elapsed += dt;
+    mat.uniforms.uTime.value = elapsed;
+
+    const deg = (rotationValue % 360) + autoRotateValue * elapsed;
     const rad = (deg * Math.PI) / 180;
     const c = Math.cos(rad);
     const s = Math.sin(rad);
-    (material.uniforms.uRot.value as THREE.Vector2).set(c, s);
+    (mat.uniforms.uRot.value as THREE.Vector2).set(c, s);
 
-    const cur = pointerCurrentRef.value;
-    const tgt = pointerTargetRef.value;
-    const amt = Math.min(1, dt * pointerSmoothRef.value);
-    cur.lerp(tgt, amt);
-    (material.uniforms.uPointer.value as THREE.Vector2).copy(cur);
-    renderer.render(scene, camera);
-    rafRef.value = requestAnimationFrame(loop);
+    const amt = Math.min(1, dt * pointerSmooth);
+    pointerCurrent.lerp(pointerTarget, amt);
+    (mat.uniforms.uPointer.value as THREE.Vector2).copy(pointerCurrent);
+    gl.render(scene, camera);
+    rafId = requestAnimationFrame(loop);
   };
-  rafRef.value = requestAnimationFrame(loop);
+
+  const wake = () => {
+    if (rafId !== null || !visible || document.hidden) return;
+    resumed = true;
+    rafId = requestAnimationFrame(loop);
+  };
+
+  const handleVisibility = () => {
+    if (document.hidden) return;
+    resumed = true;
+    wake();
+  };
+
+  const visibility = new IntersectionObserver(entries => {
+    visible = entries.some(entry => entry.isIntersecting);
+    wake();
+  });
+  visibility.observe(container);
+  document.addEventListener('visibilitychange', handleVisibility);
+  rafId = requestAnimationFrame(loop);
 
   const handlePointerMove = (e: PointerEvent) => {
     const rect = container.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / (rect.width || 1)) * 2 - 1;
     const y = -(((e.clientY - rect.top) / (rect.height || 1)) * 2 - 1);
-    pointerTargetRef.value.set(x, y);
+    pointerTarget.set(x, y);
   };
 
   container.addEventListener('pointermove', handlePointerMove);
 
   cleanup = () => {
-    if (rafRef.value !== null) cancelAnimationFrame(rafRef.value);
-    if (resizeObserverRef.value) resizeObserverRef.value.disconnect();
+    if (rafId !== null) cancelAnimationFrame(rafId);
+    rafId = null;
+    visibility.disconnect();
+    document.removeEventListener('visibilitychange', handleVisibility);
+    container.removeEventListener('pointermove', handlePointerMove);
+    if (resizeObserver) resizeObserver.disconnect();
     else (window as Window).removeEventListener('resize', handleResize);
     geometry.dispose();
-    material.dispose();
-    renderer.dispose();
-    renderer.forceContextLoss();
-    if (renderer.domElement && renderer.domElement.parentElement === container) {
-      container.removeChild(renderer.domElement);
+    mat.dispose();
+    gl.dispose();
+    gl.forceContextLoss();
+    if (gl.domElement && gl.domElement.parentElement === container) {
+      container.removeChild(gl.domElement);
     }
-    container.removeEventListener('pointermove', handlePointerMove);
+    material = null;
+    renderer = null;
   };
-};
-
-const applyProps = () => {
-  const material = materialRef.value;
-  const renderer = rendererRef.value;
-  if (!material) return;
-
-  rotationRef.value = props.rotation;
-  autoRotateRef.value = props.autoRotate;
-  material.uniforms.uSpeed.value = props.speed;
-  material.uniforms.uScale.value = props.scale;
-  material.uniforms.uFrequency.value = props.frequency;
-  material.uniforms.uWarpStrength.value = props.warpStrength;
-  material.uniforms.uMouseInfluence.value = props.mouseInfluence;
-  material.uniforms.uParallax.value = props.parallax;
-  material.uniforms.uNoise.value = props.noise;
-  material.uniforms.uIterations.value = props.iterations;
-  material.uniforms.uIntensity.value = props.intensity;
-  material.uniforms.uBandWidth.value = props.bandWidth;
-
-  const toVec3 = (hex: string) => {
-    const h = hex.replace('#', '').trim();
-    const v =
-      h.length === 3
-        ? [parseInt(h[0] + h[0], 16), parseInt(h[1] + h[1], 16), parseInt(h[2] + h[2], 16)]
-        : [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
-    return new THREE.Vector3(v[0] / 255, v[1] / 255, v[2] / 255);
-  };
-
-  const arr = (props.colors || []).filter(Boolean).slice(0, MAX_COLORS).map(toVec3);
-  for (let i = 0; i < MAX_COLORS; i++) {
-    const vec = (material.uniforms.uColors.value as THREE.Vector3[])[i];
-    if (i < arr.length) vec.copy(arr[i]);
-    else vec.set(0, 0, 0);
-  }
-  material.uniforms.uColorCount.value = arr.length;
-
-  material.uniforms.uTransparent.value = props.transparent ? 1 : 0;
-  if (renderer) renderer.setClearColor(0x000000, props.transparent ? 0 : 1);
-};
-
-onMounted(() => {
-  init();
-  applyProps();
 });
 
 onBeforeUnmount(() => {
   cleanup?.();
+  cleanup = null;
 });
 
 watch(
@@ -343,9 +374,16 @@ watch(
     props.colors,
     props.transparent
   ],
-  () => {
-    applyProps();
-  },
+  applySettings,
   { deep: true }
 );
 </script>
+
+<style>
+.color-bends-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+</style>

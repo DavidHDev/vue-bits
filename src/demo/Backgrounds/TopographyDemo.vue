@@ -1,336 +1,448 @@
 <template>
-  <h1 class="sub-category">Topography</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="topography.usage"
-    :source="topographySource"
-    componentName="Topography"
-    :props-table="props"
+    :demo-only-props="['preset']"
   >
-    <template #preview>
-      <div class="relative bg-[#14110e] rounded-2xl w-full h-125 overflow-hidden demo-container">
-        <Topography :key="key" v-bind="topographyProps" />
-        <BackgroundContent pillText="New Background" headline="A living topographic contour map." />
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 500px; padding: 0">
+          <Topography :key="rerenderKey" v-bind="settings" />
+          <BackgroundContent headline="Terrain that rises to meet your cursor." />
+          <RefreshButton @click="forceRerender" />
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewColorPicker title="Low Color" v-model="lowColor" />
-        <PreviewColorPicker title="Mid Color" v-model="midColor" />
-        <PreviewColorPicker title="High Color" v-model="highColor" />
-        <PreviewSlider title="Speed" :min="0" :max="2" :step="0.05" v-model="speed" />
-        <PreviewSlider title="Morph Amount" :min="0.5" :max="6" :step="0.1" v-model="morphAmount" />
-        <PreviewSlider title="Morph Speed" :min="0.01" :max="0.2" :step="0.01" v-model="morphSpeed" />
-        <PreviewSlider title="Bands" :min="1" :max="12" :step="0.5" v-model="bands" />
-        <PreviewSlider title="Thickness" :min="0.01" :max="0.25" :step="0.01" v-model="thickness" />
-        <PreviewSlider title="Scale" :min="0.3" :max="3" :step="0.05" v-model="scale" />
-        <PreviewSlider title="Pixel Size" :min="1" :max="40" :step="1" v-model="pixelSize" />
-        <PreviewSlider title="Glow" :min="0" :max="1.5" :step="0.05" v-model="glow" />
-        <PreviewSelect
-          title="Color Mode"
-          name="topography-color-mode"
-          :width="140"
-          v-model="colorMode"
-          :options="[
-            { label: 'Elevation', value: 'elevation' },
-            { label: 'Uniform', value: 'uniform' },
-            { label: 'Alternating', value: 'alternating' }
-          ]"
-        />
-        <PreviewSlider title="Contrast" :min="0.2" :max="3" :step="0.05" v-model="contrast" />
-        <PreviewSlider title="Brightness" :min="0" :max="2" :step="0.05" v-model="brightness" />
-        <PreviewSwitch title="Fill Bands" v-model="fillBands" />
-        <PreviewSwitch title="Grain" v-model="grain" />
-        <PreviewSlider title="Grain Intensity" :min="0" :max="0.3" :step="0.01" v-model="grainIntensity" />
-        <PreviewSlider title="Opacity" :min="0" :max="1" :step="0.05" v-model="opacity" />
-        <PreviewSwitch title="Cursor Elevation" v-model="mouseInteraction" />
-        <PreviewSlider title="Cursor Radius" :min="0.05" :max="1" :step="0.01" v-model="mouseRadius" />
-        <PreviewSlider title="Cursor Strength" :min="0" :max="1.5" :step="0.05" v-model="mouseStrength" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewSelect
+            title="Preset"
+            :options="PRESET_OPTIONS"
+            :model-value="props.preset"
+            @update:model-value="(value: string | number) => applyPreset(String(value))"
+          />
+          <PreviewColorPickerCustom
+            title="Color"
+            :color="settings.color"
+            @change="(value: string) => updateProp('color', value)"
+          />
+          <PreviewSelect
+            title="Direction"
+            :options="DIRECTION_OPTIONS"
+            :model-value="settings.direction"
+            @update:model-value="(value: string | number) => updateProp('direction', value as TopographyDirection)"
+          />
+          <PreviewSelect
+            title="Hover Effect"
+            :options="HOVER_OPTIONS"
+            :model-value="settings.hoverEffect"
+            @update:model-value="(value: string | number) => updateProp('hoverEffect', value as TopographyHoverEffect)"
+          />
+          <PreviewSelect
+            title="Click Effect"
+            :options="CLICK_OPTIONS"
+            :model-value="settings.clickEffect"
+            @update:model-value="(value: string | number) => updateProp('clickEffect', value as TopographyClickEffect)"
+          />
+          <PreviewSelect
+            title="Markers"
+            :options="MARKER_OPTIONS"
+            :model-value="settings.markers"
+            @update:model-value="(value: string | number) => updateProp('markers', value as TopographyMarkers)"
+          />
+          <PreviewSlider
+            title="Lines"
+            :min="6"
+            :max="60"
+            :step="1"
+            :model-value="settings.lineCount"
+            @update:model-value="(value: number) => updateProp('lineCount', value)"
+          />
+          <PreviewSlider
+            title="Line Width"
+            :min="0.5"
+            :max="3"
+            :step="0.1"
+            value-unit="px"
+            :model-value="settings.lineWidth"
+            @update:model-value="(value: number) => updateProp('lineWidth', value)"
+          />
+          <PreviewSlider
+            title="Elevation"
+            :min="0"
+            :max="2.5"
+            :step="0.05"
+            :model-value="settings.elevation"
+            @update:model-value="(value: number) => updateProp('elevation', value)"
+          />
+          <PreviewSlider
+            title="Foreground"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="settings.foreground"
+            @update:model-value="(value: number) => updateProp('foreground', value)"
+          />
+          <PreviewSlider
+            title="Scale"
+            :min="0.4"
+            :max="3"
+            :step="0.05"
+            :model-value="settings.scale"
+            @update:model-value="(value: number) => updateProp('scale', value)"
+          />
+          <PreviewSlider
+            title="Detail"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="settings.detail"
+            @update:model-value="(value: number) => updateProp('detail', value)"
+          />
+          <PreviewSlider
+            title="Tilt"
+            :min="15"
+            :max="90"
+            :step="1"
+            value-unit="°"
+            :model-value="settings.tilt"
+            @update:model-value="(value: number) => updateProp('tilt', value)"
+          />
+          <PreviewSlider
+            title="Speed"
+            :min="0"
+            :max="1.5"
+            :step="0.01"
+            :model-value="settings.speed"
+            @update:model-value="(value: number) => updateProp('speed', value)"
+          />
+          <PreviewSlider
+            title="Morph"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="settings.morph"
+            @update:model-value="(value: number) => updateProp('morph', value)"
+          />
+          <PreviewSlider
+            title="Glow"
+            :min="0"
+            :max="1.5"
+            :step="0.05"
+            :model-value="settings.glow"
+            @update:model-value="(value: number) => updateProp('glow', value)"
+          />
+          <PreviewSlider
+            title="Depth of Field"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="settings.depthOfField"
+            @update:model-value="(value: number) => updateProp('depthOfField', value)"
+          />
+          <PreviewSlider
+            title="Fog"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="settings.fog"
+            @update:model-value="(value: number) => updateProp('fog', value)"
+          />
+          <PreviewSlider
+            title="Brightness"
+            :min="0.2"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.brightness"
+            @update:model-value="(value: number) => updateProp('brightness', value)"
+          />
+          <PreviewSlider
+            title="Glitch"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="settings.glitch"
+            @update:model-value="(value: number) => updateProp('glitch', value)"
+          />
+          <PreviewSlider
+            title="Mouse Radius"
+            :min="0.3"
+            :max="2.5"
+            :step="0.05"
+            :is-disabled="!settings.mouseInteraction"
+            :model-value="settings.mouseRadius"
+            @update:model-value="(value: number) => updateProp('mouseRadius', value)"
+          />
+          <PreviewSlider
+            title="Mouse Strength"
+            :min="0"
+            :max="1.5"
+            :step="0.05"
+            :is-disabled="!settings.mouseInteraction"
+            :model-value="settings.mouseStrength"
+            @update:model-value="(value: number) => updateProp('mouseStrength', value)"
+          />
+          <PreviewSlider
+            title="Trail"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :is-disabled="!settings.mouseInteraction || settings.hoverEffect !== 'lift'"
+            :model-value="settings.trail"
+            @update:model-value="(value: number) => updateProp('trail', value)"
+          />
+          <PreviewSlider
+            title="Parallax"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :is-disabled="!settings.mouseInteraction"
+            :model-value="settings.parallax"
+            @update:model-value="(value: number) => updateProp('parallax', value)"
+          />
+          <PreviewSwitch
+            title="Major Lines"
+            :model-value="settings.majorLines"
+            @update:model-value="(value: boolean) => updateProp('majorLines', value)"
+          />
+          <PreviewSwitch
+            title="Mouse Interaction"
+            :model-value="settings.mouseInteraction"
+            @update:model-value="(value: boolean) => updateProp('mouseInteraction', value)"
+          />
+          <PreviewSwitch title="Intro" :model-value="settings.intro" @update:model-value="setIntro" />
+        </Customize>
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+        <PropTable :data="propData" />
+      </template>
 
-    <template #code>
-      <DemoCodeTab slug="topography" :usage="topography.usage!" :source="topographySource" />
-    </template>
-  </TabsLayout>
+      <template #code>
+        <CodeExample :code-object="topography" component-name="Topography" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewColorPickerCustom from '@/components/common/PreviewColorPickerCustom.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
 import { useForceRerender } from '@/composables/useForceRerender';
+import { useColorMode } from '@/composables/useTheme';
 import { topography } from '@/constants/code/Backgrounds/topographyCode';
-import Topography, { type ColorMode } from '@/content/Backgrounds/Topography/Topography.vue';
-import topographySource from '@/content/Backgrounds/Topography/Topography.vue?raw';
-import { computed, ref } from 'vue';
+import Topography from '@/content/Backgrounds/Topography/Topography.vue';
+import {
+  DEFAULT_PROPS,
+  PRESET_OPTIONS,
+  presetProps,
+  type TopographyClickEffect,
+  type TopographyDirection,
+  type TopographyHoverEffect,
+  type TopographyMarkers
+} from './presets/Topography';
 
-const { rerenderKey: key, forceRerender } = useForceRerender();
+const DIRECTION_OPTIONS = [
+  { value: 'forward', label: 'Forward' },
+  { value: 'backward', label: 'Backward' },
+  { value: 'left', label: 'Left' },
+  { value: 'right', label: 'Right' }
+];
 
-const DEFAULTS = {
-  lowColor: '#27ff41',
-  midColor: '#9ffffd',
-  highColor: '#FFFFFF',
-  speed: 0.35,
-  morphAmount: 3.0,
-  morphSpeed: 0.05,
-  bands: 2.0,
-  thickness: 0.01,
-  scale: 2.0,
-  pixelSize: 1.0,
-  glow: 0.5,
-  colorMode: 'elevation' as ColorMode,
-  contrast: 3.0,
-  brightness: 1.0,
-  fillBands: false,
-  opacity: 1.0,
-  grain: true,
-  grainIntensity: 0.05,
-  mouseInteraction: true,
-  mouseRadius: 0.3,
-  mouseStrength: 0.4
+const HOVER_OPTIONS = [
+  { value: 'lift', label: 'Lift' },
+  { value: 'trace', label: 'Trace' },
+  { value: 'light', label: 'Light' }
+];
+
+const MARKER_OPTIONS = [
+  { value: 'none', label: 'None' },
+  { value: 'plus', label: 'Plus' },
+  { value: 'dots', label: 'Dots' }
+];
+
+const CLICK_OPTIONS = [
+  { value: 'pulse', label: 'Pulse' },
+  { value: 'peak', label: 'Peak' },
+  { value: 'none', label: 'None' }
+];
+
+const { rerenderKey, forceRerender } = useForceRerender();
+const { isLight } = useColorMode();
+const { props, defaultProps, updateProp, updateProps, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
+
+const settings = computed(() => {
+  const { preset: _preset, ...rest } = props.value;
+  void _preset;
+  return rest;
+});
+
+const applyPreset = (value: string) => {
+  updateProps({ ...presetProps(value, { light: isLight.value, defaults: defaultProps.value }), preset: value });
 };
 
-const lowColor = ref(DEFAULTS.lowColor);
-const midColor = ref(DEFAULTS.midColor);
-const highColor = ref(DEFAULTS.highColor);
-const speed = ref(DEFAULTS.speed);
-const morphAmount = ref(DEFAULTS.morphAmount);
-const morphSpeed = ref(DEFAULTS.morphSpeed);
-const bands = ref(DEFAULTS.bands);
-const thickness = ref(DEFAULTS.thickness);
-const scale = ref(DEFAULTS.scale);
-const pixelSize = ref(DEFAULTS.pixelSize);
-const glow = ref(DEFAULTS.glow);
-const colorMode = ref(DEFAULTS.colorMode);
-const contrast = ref(DEFAULTS.contrast);
-const brightness = ref(DEFAULTS.brightness);
-const fillBands = ref(DEFAULTS.fillBands);
-const opacity = ref(DEFAULTS.opacity);
-const grain = ref(DEFAULTS.grain);
-const grainIntensity = ref(DEFAULTS.grainIntensity);
-const mouseInteraction = ref(DEFAULTS.mouseInteraction);
-const mouseRadius = ref(DEFAULTS.mouseRadius);
-const mouseStrength = ref(DEFAULTS.mouseStrength);
-
-const topographyProps = computed(() => ({
-  lowColor: lowColor.value,
-  midColor: midColor.value,
-  highColor: highColor.value,
-  speed: speed.value,
-  morphAmount: morphAmount.value,
-  morphSpeed: morphSpeed.value,
-  bands: bands.value,
-  thickness: thickness.value,
-  scale: scale.value,
-  pixelSize: pixelSize.value,
-  glow: glow.value,
-  colorMode: colorMode.value,
-  contrast: contrast.value,
-  brightness: brightness.value,
-  fillBands: fillBands.value,
-  opacity: opacity.value,
-  grain: grain.value,
-  grainIntensity: grainIntensity.value,
-  mouseInteraction: mouseInteraction.value,
-  mouseRadius: mouseRadius.value,
-  mouseStrength: mouseStrength.value
-}));
-
-const hasChanges = computed(
-  () =>
-    lowColor.value !== DEFAULTS.lowColor ||
-    midColor.value !== DEFAULTS.midColor ||
-    highColor.value !== DEFAULTS.highColor ||
-    speed.value !== DEFAULTS.speed ||
-    morphAmount.value !== DEFAULTS.morphAmount ||
-    morphSpeed.value !== DEFAULTS.morphSpeed ||
-    bands.value !== DEFAULTS.bands ||
-    thickness.value !== DEFAULTS.thickness ||
-    scale.value !== DEFAULTS.scale ||
-    pixelSize.value !== DEFAULTS.pixelSize ||
-    glow.value !== DEFAULTS.glow ||
-    colorMode.value !== DEFAULTS.colorMode ||
-    contrast.value !== DEFAULTS.contrast ||
-    brightness.value !== DEFAULTS.brightness ||
-    fillBands.value !== DEFAULTS.fillBands ||
-    opacity.value !== DEFAULTS.opacity ||
-    grain.value !== DEFAULTS.grain ||
-    grainIntensity.value !== DEFAULTS.grainIntensity ||
-    mouseInteraction.value !== DEFAULTS.mouseInteraction ||
-    mouseRadius.value !== DEFAULTS.mouseRadius ||
-    mouseStrength.value !== DEFAULTS.mouseStrength
-);
-
-function reset() {
-  lowColor.value = DEFAULTS.lowColor;
-  midColor.value = DEFAULTS.midColor;
-  highColor.value = DEFAULTS.highColor;
-  speed.value = DEFAULTS.speed;
-  morphAmount.value = DEFAULTS.morphAmount;
-  morphSpeed.value = DEFAULTS.morphSpeed;
-  bands.value = DEFAULTS.bands;
-  thickness.value = DEFAULTS.thickness;
-  scale.value = DEFAULTS.scale;
-  pixelSize.value = DEFAULTS.pixelSize;
-  glow.value = DEFAULTS.glow;
-  colorMode.value = DEFAULTS.colorMode;
-  contrast.value = DEFAULTS.contrast;
-  brightness.value = DEFAULTS.brightness;
-  fillBands.value = DEFAULTS.fillBands;
-  opacity.value = DEFAULTS.opacity;
-  grain.value = DEFAULTS.grain;
-  grainIntensity.value = DEFAULTS.grainIntensity;
-  mouseInteraction.value = DEFAULTS.mouseInteraction;
-  mouseRadius.value = DEFAULTS.mouseRadius;
-  mouseStrength.value = DEFAULTS.mouseStrength;
+const setIntro = (value: boolean) => {
+  updateProp('intro', value);
   forceRerender();
-}
+};
 
-const props: PropRow[] = [
+const propData: PropRow[] = [
   {
-    name: 'lowColor',
+    name: 'color',
     type: 'string',
-    default: "'#27ff41'",
-    description: 'Color used for the lowest elevation bands.'
+    default: "'#4f7cff'",
+    description: 'Color of the contour lines. The brightest lines glow toward white.'
   },
   {
-    name: 'midColor',
-    type: 'string',
-    default: "'#9ffffd'",
-    description: 'Color used for the mid elevation bands.'
-  },
-  {
-    name: 'highColor',
-    type: 'string',
-    default: "'#FFFFFF'",
-    description: 'Color used for the highest ridge lines.'
-  },
-  {
-    name: 'speed',
+    name: 'lineCount',
     type: 'number',
-    default: '0.35',
-    description: 'Animation speed of the morphing elevation field.'
+    default: '22',
+    description: 'How many contour lines stack up the tallest mountain.'
   },
   {
-    name: 'morphAmount',
+    name: 'lineWidth',
     type: 'number',
-    default: '3.0',
-    description: 'Amplitude of the field morphing (how much the terrain shifts).'
+    default: '1.2',
+    description: 'Width of the lines in px. Nearer lines draw a little thicker.'
   },
   {
-    name: 'morphSpeed',
-    type: 'number',
-    default: '0.05',
-    description: 'How differently each control point animates over time.'
+    name: 'majorLines',
+    type: 'boolean',
+    default: 'true',
+    description: 'Draws every fifth line bolder and brighter, like the index lines on a map.'
   },
   {
-    name: 'bands',
+    name: 'elevation',
     type: 'number',
-    default: '2.0',
-    description: 'Contour line density (number of elevation bands).'
+    default: '1',
+    description: 'How tall the mountains rise. 0 lays the map flat.'
   },
   {
-    name: 'thickness',
+    name: 'foreground',
     type: 'number',
-    default: '0.01',
-    description: 'Thickness of the contour lines.'
+    default: '0.2',
+    description:
+      'How much height the land keeps as it reaches the camera. Low values settle it flat so the view stays clear.'
   },
   {
     name: 'scale',
     type: 'number',
-    default: '1.0',
-    description: 'Zoom level of the topographic field.'
+    default: '1',
+    description: 'Size of the landforms. Larger values give broader mountains.'
   },
   {
-    name: 'pixelSize',
+    name: 'detail',
     type: 'number',
-    default: '1.0',
-    description: 'Retro pixelation step (1 = smooth, higher = chunkier).'
+    default: '0.35',
+    description: 'Fine wobble in the lines and small rings on the plains, from 0 to 1.'
   },
   {
-    name: 'glow',
+    name: 'tilt',
     type: 'number',
-    default: '0.5',
-    description: 'Soft bloom radius around the contour lines.'
+    default: '32',
+    description: 'Camera angle in degrees, from a low view across the land to 90 for straight down.'
+  },
+  { name: 'speed', type: 'number', default: '0.25', description: 'How fast the camera glides over the land.' },
+  {
+    name: 'direction',
+    type: "'forward' | 'backward' | 'left' | 'right'",
+    default: "'forward'",
+    description: 'Which way the camera travels.'
   },
   {
-    name: 'colorMode',
-    type: 'string',
-    default: "'elevation'",
-    description: "Line coloring mode: 'elevation', 'uniform', or 'alternating'."
-  },
-  {
-    name: 'contrast',
+    name: 'morph',
     type: 'number',
-    default: '3.0',
-    description: 'Contrast of the line coverage (sharpens or softens lines).'
+    default: '0.2',
+    description: 'How quickly the landforms reshape over time. 0 keeps the terrain still.'
   },
+  { name: 'glow', type: 'number', default: '0.6', description: 'Soft bloom around the lit lines.' },
   {
-    name: 'brightness',
+    name: 'depthOfField',
     type: 'number',
-    default: '1.0',
-    description: 'Overall brightness of the contour lines.'
+    default: '0.4',
+    description: 'Softens lines away from the focus point, which follows the cursor.'
   },
   {
-    name: 'fillBands',
-    type: 'boolean',
-    default: 'false',
-    description: 'Softly tint the areas between contour lines by elevation.'
-  },
-  {
-    name: 'opacity',
+    name: 'fog',
     type: 'number',
-    default: '1.0',
-    description: 'Overall opacity of the effect.'
+    default: '0.35',
+    description: 'How quickly the land fades into the distance. 1 leaves only the foreground.'
   },
-  {
-    name: 'grain',
-    type: 'boolean',
-    default: 'true',
-    description: 'Whisper-subtle animated film grain over the effect.'
-  },
-  {
-    name: 'grainIntensity',
-    type: 'number',
-    default: '0.05',
-    description: 'Amplitude of the grain overlay. 0 disables it entirely.'
-  },
+  { name: 'brightness', type: 'number', default: '1', description: 'Overall brightness of the lines.' },
+  { name: 'opacity', type: 'number', default: '1', description: 'Overall opacity of the effect.' },
   {
     name: 'mouseInteraction',
     type: 'boolean',
     default: 'true',
-    description: 'Lift the elevation field gently around the cursor.'
+    description: 'Lets the cursor light and shape the terrain, and tilts the camera toward it.'
   },
   {
-    name: 'mouseRadius',
-    type: 'number',
-    default: '0.3',
-    description: 'Radius of the cursor elevation bump.'
+    name: 'hoverEffect',
+    type: "'lift' | 'trace' | 'light'",
+    default: "'lift'",
+    description: 'Lift raises the land under the cursor, trace lights the contour at its height, light only lights it.'
   },
+  { name: 'mouseRadius', type: 'number', default: '1', description: 'Size of the area the cursor affects.' },
   {
     name: 'mouseStrength',
     type: 'number',
-    default: '0.4',
-    description: 'Strength of the cursor elevation bump.'
+    default: '0.6',
+    description: 'How high the land lifts and how brightly it lights.'
   },
   {
-    name: 'className',
-    type: 'string',
-    default: "''",
-    description: 'Additional CSS classes applied to the container.'
-  }
+    name: 'trail',
+    type: 'number',
+    default: '0.3',
+    description: 'How long the lifted land takes to settle back, from 0 to 1.'
+  },
+  {
+    name: 'parallax',
+    type: 'number',
+    default: '0.5',
+    description: 'How far the camera leans toward the cursor, from 0 to 1.'
+  },
+  {
+    name: 'clickEffect',
+    type: "'pulse' | 'peak' | 'none'",
+    default: "'pulse'",
+    description: 'Pulse sends a ring of light rolling out over the land, peak raises a new mountain.'
+  },
+  {
+    name: 'markers',
+    type: "'none' | 'plus' | 'dots'",
+    default: "'none'",
+    description:
+      'Survey markers on a grid across the land. A few blink, and the ones near the cursor get a target frame.'
+  },
+  {
+    name: 'glitch',
+    type: 'number',
+    default: '0',
+    description: 'How often brief data glitches slice through the lines, from 0 to 1. Clicks set one off too.'
+  },
+  {
+    name: 'intro',
+    type: 'boolean',
+    default: 'true',
+    description: 'The map fades in flat and rises into mountains on mount.'
+  },
+  {
+    name: 'lightMode',
+    type: 'boolean',
+    default: 'false',
+    description: 'Draws the lines as crisp ink for light backgrounds instead of glowing light.'
+  },
+  { name: 'dpr', type: 'number', default: 'auto', description: 'Maximum device pixel ratio, capped at 2.' },
+  { name: 'className', type: 'string', default: "''", description: 'Extra class names for the container.' },
+  { name: 'style', type: 'CSSProperties', default: '-', description: 'Inline styles for the container.' }
 ];
 </script>

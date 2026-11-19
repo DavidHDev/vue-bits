@@ -2,30 +2,36 @@ import code from '@/content/TextAnimations/ParticleText/ParticleText.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const particleText = createCodeObject(code, 'TextAnimations/ParticleText', {
-  usage: `<script setup>
-import ParticleText from './ParticleText.vue'
-</script>
+  dependencies: '',
+  usage: `<template>
+  <div :style="{ width: '100%', height: '360px' }">
+    <ParticleText
+      text="Launch Faster"
+      :particle-size="2"
+      :density="4"
+      color="currentColor"
+      highlight-color="#ff5a36"
+      highlight-mode="motion"
+      shape="circle"
+      intro="gather"
+      :scatter="180"
+      :gather-duration="1600"
+      :stagger="420"
+      :click-burst="true"
+      :burst-strength="1"
+      :pointer-repel="40"
+      :repel-radius="120"
+      :idle-drift="0.7"
+      trigger="hover"
+      font-size="clamp(3rem, 12vw, 8rem)"
+      :font-weight="800"
+      font-family="inherit"
+      :glow="true"
+    />
+  </div>
+</template>
 
-<template>
-<div :style="{ width: '100%', height: 360, background: '#09090f' }">
-  <ParticleText
-    text="Launch Faster"
-    :particleSize="2"
-    :density="4"
-    color="#ffffff"
-    highlightColor="#8b5cf6"
-    :scatter="180"
-    :gatherDuration="1600"
-    :stagger="420"
-    :pointerRepel="40"
-    :repelRadius="120"
-    :idleDrift="0.7"
-    trigger="hover"
-    fontSize="clamp(3rem, 12vw, 8rem)"
-    :fontWeight="800"
-    fontFamily="inherit"
-    glow
-  />
-</div>
-</template>`
+<script setup lang="ts">
+import ParticleText from './ParticleText.vue'
+</script>`
 });

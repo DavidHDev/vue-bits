@@ -1,135 +1,432 @@
 <script setup lang="ts">
-import { Motion, useAnimationFrame, useMotionValue, useTransform } from 'motion-v';
-import { computed, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch, type CSSProperties } from 'vue';
+
+type Easing = 'smooth' | 'linear' | 'snappy';
+type Trigger = 'loop' | 'hover' | 'view';
 
 interface ShinyTextProps {
-  text: string;
-  disabled?: boolean;
-  speed?: number;
-  className?: string;
+  text?: string;
   color?: string;
   shineColor?: string;
-  spread?: number;
-  yoyo?: boolean;
-  pauseOnHover?: boolean;
-  direction?: 'left' | 'right';
+  speed?: number;
   delay?: number;
+  angle?: number;
+  shineWidth?: number;
+  softness?: number;
+  bands?: number;
+  glow?: number;
+  direction?: 'left' | 'right';
+  easing?: Easing;
+  trigger?: Trigger;
+  yoyo?: boolean;
+  followPointer?: boolean;
+  pauseOnHover?: boolean;
+  disabled?: boolean;
+  className?: string;
+  style?: CSSProperties;
+}
+
+interface Settings {
+  color: string;
+  shineColor: string;
+  speed: number;
+  delay: number;
+  angle: number;
+  shineWidth: number;
+  softness: number;
+  bands: number;
+  glow: number;
+  sign: number;
+  ease: (t: number) => number;
+  trigger: Trigger;
+  yoyo: boolean;
+  followPointer: boolean;
+  pauseOnHover: boolean;
+  disabled: boolean;
 }
 
 const props = withDefaults(defineProps<ShinyTextProps>(), {
-  disabled: false,
-  speed: 2,
-  className: '',
+  text: undefined,
   color: '#b5b5b5',
   shineColor: '#ffffff',
-  spread: 120,
-  yoyo: false,
-  pauseOnHover: false,
+  speed: 2,
+  delay: 0,
+  angle: 120,
+  shineWidth: 40,
+  softness: 0.8,
+  bands: 1,
+  glow: 0,
   direction: 'left',
-  delay: 0
+  easing: 'smooth',
+  trigger: 'loop',
+  yoyo: false,
+  followPointer: false,
+  pauseOnHover: false,
+  disabled: false,
+  className: '',
+  style: undefined
 });
 
-const isPaused = ref(false);
-const progress = useMotionValue(0);
-const elapsedRef = ref(0);
-const lastTimeRef = ref<number | null>(null);
-const directionRef = ref(props.direction === 'left' ? 1 : -1);
+const EASINGS: Record<Easing, (t: number) => number> = {
+  linear: t => t,
+  smooth: t => 0.5 - Math.cos(Math.PI * t) / 2,
+  snappy: t => (t < 0.5 ? 16 * Math.pow(t, 5) : 1 - Math.pow(-2 * t + 2, 5) / 2)
+};
+const TRIGGERS: Trigger[] = ['loop', 'hover', 'view'];
+const FALLOFF = [0, 0.2, 0.4, 0.6, 0.8, 1];
 
-const animationDuration = computed(() => props.speed * 1000);
-const delayDuration = computed(() => props.delay * 1000);
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
-useAnimationFrame(time => {
-  if (props.disabled || isPaused.value) {
-    lastTimeRef.value = null;
-    return;
+let paint: CanvasRenderingContext2D | null = null;
+
+const parseColor = (value: string): number[] | null => {
+  if (typeof document === 'undefined') return null;
+  if (!paint) paint = document.createElement('canvas').getContext('2d');
+  if (!paint) return null;
+  paint.fillStyle = '#000000';
+  paint.fillStyle = value;
+  const resolved = String(paint.fillStyle);
+  if (resolved.startsWith('#')) {
+    return [1, 3, 5].map(i => parseInt(resolved.slice(i, i + 2), 16)).concat(1);
   }
+  const parts = resolved.match(/[\d.]+/g);
+  if (!parts || parts.length < 3) return null;
+  return [Number(parts[0]), Number(parts[1]), Number(parts[2]), parts.length > 3 ? Number(parts[3]) : 1];
+};
 
-  if (lastTimeRef.value === null) {
-    lastTimeRef.value = time;
-    return;
-  }
+const blend = (from: number[], to: number[], amount: number) => {
+  const channel = (a: number, b: number) =>
+    Math.round(Math.pow(Math.pow(a / 255, 2.2) * (1 - amount) + Math.pow(b / 255, 2.2) * amount, 1 / 2.2) * 255);
+  const alpha = from[3] * (1 - amount) + to[3] * amount;
+  if (alpha <= 0) return 'rgba(0, 0, 0, 0)';
+  const weigh = (a: number, b: number) => (a * from[3] * (1 - amount) + b * to[3] * amount) / alpha;
+  const r = from[3] === to[3] ? channel(from[0], to[0]) : Math.round(weigh(from[0], to[0]));
+  const g = from[3] === to[3] ? channel(from[1], to[1]) : Math.round(weigh(from[1], to[1]));
+  const b = from[3] === to[3] ? channel(from[2], to[2]) : Math.round(weigh(from[2], to[2]));
+  return `rgba(${r}, ${g}, ${b}, ${Math.round(alpha * 1000) / 1000})`;
+};
 
-  const deltaTime = time - lastTimeRef.value;
-  lastTimeRef.value = time;
+const rootRef = useTemplateRef<HTMLSpanElement>('rootRef');
+const glowRef = useTemplateRef<HTMLSpanElement>('glowRef');
+const syncRef = ref<(() => void) | null>(null);
 
-  elapsedRef.value += deltaTime;
+const settings = computed<Settings>(() => ({
+  color: props.color,
+  shineColor: props.shineColor,
+  speed: Math.max(0.1, props.speed),
+  delay: Math.max(0, props.delay),
+  angle: props.angle,
+  shineWidth: clamp(props.shineWidth, 2, 200),
+  softness: clamp(props.softness, 0, 1),
+  bands: clamp(Math.round(props.bands), 1, 3),
+  glow: clamp(props.glow, 0, 1),
+  sign: props.direction === 'right' ? 1 : -1,
+  ease: EASINGS[props.easing as Easing] ?? EASINGS.smooth,
+  trigger: TRIGGERS.includes(props.trigger as Trigger) ? (props.trigger as Trigger) : 'loop',
+  yoyo: props.yoyo,
+  followPointer: props.followPointer,
+  pauseOnHover: props.pauseOnHover,
+  disabled: props.disabled
+}));
 
-  // Animation goes from 0 to 100
-  if (props.yoyo) {
-    const cycleDuration = animationDuration.value + delayDuration.value;
-    const fullCycle = cycleDuration * 2;
-    const cycleTime = elapsedRef.value % fullCycle;
-
-    if (cycleTime < animationDuration.value) {
-      // Forward animation: 0 -> 100
-      const p = (cycleTime / animationDuration.value) * 100;
-      progress.set(directionRef.value === 1 ? p : 100 - p);
-    } else if (cycleTime < cycleDuration) {
-      // Delay at end
-      progress.set(directionRef.value === 1 ? 100 : 0);
-    } else if (cycleTime < cycleDuration + animationDuration.value) {
-      // Reverse animation: 100 -> 0
-      const reverseTime = cycleTime - cycleDuration;
-      const p = 100 - (reverseTime / animationDuration.value) * 100;
-      progress.set(directionRef.value === 1 ? p : 100 - p);
-    } else {
-      // Delay at start
-      progress.set(directionRef.value === 1 ? 0 : 100);
-    }
-  } else {
-    const cycleDuration = animationDuration.value + delayDuration.value;
-    const cycleTime = elapsedRef.value % cycleDuration;
-
-    if (cycleTime < animationDuration.value) {
-      // Animation phase: 0 -> 100
-      const p = (cycleTime / animationDuration.value) * 100;
-      progress.set(directionRef.value === 1 ? p : 100 - p);
-    } else {
-      // Delay phase - hold at end (shine off-screen)
-      progress.set(directionRef.value === 1 ? 100 : 0);
-    }
-  }
-});
+const rootClass = computed(() => `shiny-text${props.className ? ` ${props.className}` : ''}`);
+const rootStyle = computed(() => [{ backgroundImage: `linear-gradient(${props.color}, ${props.color})` }, props.style]);
 
 watch(
-  () => props.direction,
+  settings,
   () => {
-    directionRef.value = props.direction === 'left' ? 1 : -1;
-    elapsedRef.value = 0;
-    progress.set(0);
+    syncRef.value?.();
   },
-  {
-    immediate: true
-  }
+  { flush: 'post' }
 );
 
-const backgroundPosition = useTransform(progress, p => `${150 - p * 2}% center`);
+let cleanup: (() => void) | null = null;
 
-const handleMouseEnter = () => {
-  if (props.pauseOnHover) isPaused.value = true;
-};
+onMounted(() => {
+  const root = rootRef.value;
+  if (!root) return;
 
-const handleMouseLeave = () => {
-  if (props.pauseOnHover) isPaused.value = false;
-};
+  const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  const state = {
+    pos: null as number | null,
+    vel: 0,
+    phase: 'idle',
+    from: 0,
+    to: 0,
+    start: 0,
+    duration: 1,
+    resume: 0,
+    flip: false,
+    inside: false,
+    target: 0,
+    visible: true,
+    seen: false,
+    colors: ''
+  };
+  let base: number[] | null = null;
+  let shine: number[] | null = null;
+  let clear: number[] | null = null;
+  let raf = 0;
+  let timer = 0;
+  let last = 0;
+  let alive = true;
 
-const gradientStyle = computed(() => ({
-  backgroundImage: `linear-gradient(${props.spread}deg, ${props.color} 0%, ${props.color} 35%, ${props.shineColor} 50%, ${props.color} 65%, ${props.color} 100%)`,
-  backgroundSize: '200% auto',
-  WebkitBackgroundClip: 'text',
-  backgroundClip: 'text',
-  WebkitTextFillColor: 'transparent'
-}));
+  const extent = () => {
+    const s = settings.value;
+    return s.shineWidth / 2 + (s.bands - 1) * s.shineWidth * 1.3 + 2;
+  };
+  const entry = () => (settings.value.sign > 0 ? -extent() : 100 + extent());
+  const exit = () => (settings.value.sign > 0 ? 100 + extent() : -extent());
+  const nearest = () => (state.target < 50 ? -extent() : 100 + extent());
+
+  const gradient = (pos: number, fill: number[]) => {
+    const s = settings.value;
+    const half = s.shineWidth / 2;
+    const core = half * (1 - s.softness);
+    const fade = half - core;
+    const stops: [number, number][] = [];
+    for (let band = 0; band < s.bands; band++) {
+      const center = pos - s.sign * band * s.shineWidth * 1.3;
+      const strength = 1 - band * 0.28;
+      for (const side of [-1, 1]) {
+        for (const f of FALLOFF) {
+          const at = center + side * (core + fade * (1 - f));
+          const amount = f * f * (3 - 2 * f) * strength;
+          stops.push([at, amount]);
+        }
+      }
+    }
+    stops.sort((a, b) => a[0] - b[0]);
+    const list = stops.map(([at, amount]) => `${blend(fill, shine!, amount)} ${at.toFixed(2)}%`);
+    return `linear-gradient(${s.angle}deg, ${blend(fill, shine!, 0)} 0%, ${list.join(', ')}, ${blend(fill, shine!, 0)} 100%)`;
+  };
+
+  const draw = () => {
+    const s = settings.value;
+    const key = `${s.color}|${s.shineColor}`;
+    if (key !== state.colors) {
+      state.colors = key;
+      base = parseColor(s.color);
+      shine = parseColor(s.shineColor);
+      clear = shine ? [shine[0], shine[1], shine[2], 0] : null;
+    }
+    if (!base || !shine) {
+      root.style.backgroundImage = `linear-gradient(${s.color}, ${s.color})`;
+      return;
+    }
+    if (state.pos === null || s.disabled) {
+      root.style.backgroundImage = `linear-gradient(${s.color}, ${s.color})`;
+      if (glowRef.value) glowRef.value.style.backgroundImage = 'none';
+      return;
+    }
+    root.style.backgroundImage = gradient(state.pos, base!);
+    if (glowRef.value) {
+      glowRef.value.style.backgroundImage = gradient(state.pos, clear!);
+      glowRef.value.style.opacity = String(s.glow);
+    }
+  };
+
+  const sweep = (from: number, to: number, now: number) => {
+    const s = settings.value;
+    const span = Math.abs(exit() - entry()) || 1;
+    state.phase = 'sweep';
+    state.from = from;
+    state.to = to;
+    state.start = now;
+    state.duration = s.speed * 1000 * Math.max(0.15, Math.abs(to - from) / span);
+  };
+
+  const wake = () => {
+    if (raf || !alive) return;
+    window.clearTimeout(timer);
+    timer = 0;
+    last = performance.now();
+    raf = requestAnimationFrame(tick);
+  };
+
+  const tick = (now: number) => {
+    raf = 0;
+    if (!alive) return;
+    const s = settings.value;
+    const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
+    last = now;
+    if (s.disabled) {
+      state.pos = null;
+      state.phase = 'idle';
+      draw();
+      return;
+    }
+    const following = s.followPointer && state.inside;
+    if (following) {
+      if (state.pos === null) state.pos = nearest();
+      const stiffness = 220;
+      state.vel += ((state.target - state.pos) * stiffness - state.vel * 2 * Math.sqrt(stiffness)) * dt;
+      state.pos += state.vel * dt;
+      state.phase = 'follow';
+      draw();
+      raf = requestAnimationFrame(tick);
+      return;
+    }
+    if (state.phase === 'follow') {
+      state.vel = 0;
+      sweep(state.pos ?? nearest(), nearest(), now);
+    }
+    if (state.phase === 'sweep') {
+      if (s.pauseOnHover && state.inside) {
+        state.start += dt * 1000;
+        raf = requestAnimationFrame(tick);
+        return;
+      }
+      const t = clamp((now - state.start) / state.duration, 0, 1);
+      state.pos = state.from + (state.to - state.from) * s.ease(t);
+      draw();
+      if (t < 1) {
+        raf = requestAnimationFrame(tick);
+        return;
+      }
+      if (s.trigger !== 'loop' || reduce) {
+        state.phase = 'idle';
+        state.pos = null;
+        draw();
+        return;
+      }
+      state.phase = 'wait';
+      state.resume = now + s.delay * 1000;
+    }
+    if (state.phase === 'wait') {
+      if (!state.visible) return;
+      if (now < state.resume) {
+        window.clearTimeout(timer);
+        timer = window.setTimeout(wake, state.resume - now);
+        return;
+      }
+      if (s.yoyo) {
+        state.flip = !state.flip;
+        sweep(state.flip ? exit() : entry(), state.flip ? entry() : exit(), now);
+      } else {
+        sweep(entry(), exit(), now);
+      }
+      raf = requestAnimationFrame(tick);
+      return;
+    }
+    if (state.phase === 'idle' && s.trigger === 'loop' && !reduce && state.visible) {
+      state.flip = false;
+      sweep(entry(), exit(), now);
+      raf = requestAnimationFrame(tick);
+    }
+  };
+
+  const locate = (event: PointerEvent) => {
+    const s = settings.value;
+    const rect = root.getBoundingClientRect();
+    const radians = (s.angle * Math.PI) / 180;
+    const dx = Math.sin(radians);
+    const dy = -Math.cos(radians);
+    const length = Math.abs(rect.width * dx) + Math.abs(rect.height * dy) || 1;
+    const along = (event.clientX - rect.left - rect.width / 2) * dx + (event.clientY - rect.top - rect.height / 2) * dy;
+    return 50 + (along / length) * 100;
+  };
+
+  const onEnter = (event: PointerEvent) => {
+    const s = settings.value;
+    state.inside = true;
+    state.target = locate(event);
+    if (s.disabled) return;
+    if (s.followPointer) {
+      if (state.pos === null) state.pos = nearest();
+    } else if (s.trigger === 'hover' && state.phase === 'idle' && !reduce) {
+      sweep(entry(), exit(), performance.now());
+    }
+    wake();
+  };
+  const onMove = (event: PointerEvent) => {
+    state.target = locate(event);
+    if (settings.value.followPointer) wake();
+  };
+  const onLeave = () => {
+    state.inside = false;
+    wake();
+  };
+
+  const observer = new IntersectionObserver(entries => {
+    const visible = entries.some(item => item.isIntersecting);
+    state.visible = visible;
+    const s = settings.value;
+    if (!visible) return;
+    if (s.trigger === 'view' && !state.seen && !reduce && !s.disabled) {
+      state.seen = true;
+      sweep(entry(), exit(), performance.now());
+    }
+    wake();
+  });
+  observer.observe(root);
+
+  root.addEventListener('pointerenter', onEnter);
+  root.addEventListener('pointermove', onMove);
+  root.addEventListener('pointerleave', onLeave);
+
+  syncRef.value = () => {
+    const s = settings.value;
+    if (s.disabled) {
+      state.pos = null;
+      state.phase = 'idle';
+    } else if (s.trigger !== 'loop' && state.phase === 'wait') {
+      state.phase = 'idle';
+      state.pos = null;
+    }
+    draw();
+    wake();
+  };
+  draw();
+  wake();
+
+  cleanup = () => {
+    alive = false;
+    cancelAnimationFrame(raf);
+    window.clearTimeout(timer);
+    observer.disconnect();
+    root.removeEventListener('pointerenter', onEnter);
+    root.removeEventListener('pointermove', onMove);
+    root.removeEventListener('pointerleave', onLeave);
+    syncRef.value = null;
+  };
+});
+
+onBeforeUnmount(() => {
+  cleanup?.();
+  cleanup = null;
+});
 </script>
 
 <template>
-  <Motion
-    tag="span"
-    :class="['inline-block', className]"
-    :style="{ ...gradientStyle, backgroundPosition }"
-    @mouseenter="handleMouseEnter"
-    @mouseleave="handleMouseLeave"
-  >
-    {{ text }}
-  </Motion>
+  <span ref="rootRef" :class="rootClass" :style="rootStyle">
+    <slot>{{ text }}</slot>
+    <span v-if="glow > 0" ref="glowRef" class="shiny-text__glow" aria-hidden="true">
+      <slot>{{ text }}</slot>
+    </span>
+  </span>
 </template>
+
+<style>
+.shiny-text {
+  position: relative;
+  display: inline-block;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.shiny-text__glow {
+  position: absolute;
+  inset: 0;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: blur(0.14em);
+  pointer-events: none;
+  user-select: none;
+}
+</style>

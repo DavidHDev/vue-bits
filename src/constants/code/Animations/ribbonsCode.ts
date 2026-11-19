@@ -2,22 +2,13 @@ import code from '@/content/Animations/Ribbons/Ribbons.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const ribbons = createCodeObject(code, 'Animations/Ribbons', {
-  installation: `npm install ogl`,
+  dependencies: '',
   usage: `<template>
-  <div
-    style="
-      height: 500px;
-      position: relative;
-      overflow: hidden;
-    "
-  >
+  <div style="height: 500px; position: relative; overflow: hidden">
     <Ribbons
-      :base-thickness="30"
-      :colors="['#ffffff']"
-      :speed-multiplier="0.5"
-      :max-age="500"
-      :enable-fade="false"
-      :enable-shader-effect="true"
+      :colors="['#42b883', '#7cff67', '#a0ffbc']"
+      :thickness="30"
+      :length="1.4"
     />
   </div>
 </template>

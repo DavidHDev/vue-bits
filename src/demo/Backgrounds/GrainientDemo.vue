@@ -1,335 +1,361 @@
 <template>
-  <h1 class="sub-category">Grainient</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="grainient.usage"
-    :source="grainientSource"
-    component-name="Grainient"
-    :props-table="props"
+    :demo-only-props="['preset']"
   >
-    <template #preview>
-      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
-        <Grainient
-          :key="rerenderKey"
-          :color1="color1"
-          :color2="color2"
-          :color3="color3"
-          :time-speed="timeSpeed"
-          :color-balance="colorBalance"
-          :warp-strength="warpStrength"
-          :warp-frequency="warpFrequency"
-          :warp-speed="warpSpeed"
-          :warp-amplitude="warpAmplitude"
-          :blend-angle="blendAngle"
-          :blend-softness="blendSoftness"
-          :rotation-amount="rotationAmount"
-          :noise-scale="noiseScale"
-          :grain-amount="grainAmount"
-          :grain-scale="grainScale"
-          :grain-animated="grainAnimated"
-          :contrast="contrast"
-          :gamma="gamma"
-          :saturation="saturation"
-          :centerX="centerX"
-          :centerY="centerY"
-          :zoom="zoom"
-        />
-        <BackgroundContent pill-text="New Background" headline="Grainy gradient colors with soft motion." />
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 500px; padding: 0">
+          <Grainient :key="rerenderKey" v-bind="settings" />
+          <BackgroundContent headline="Grainy gradients that flow with you." />
+          <RefreshButton @click="forceRerender" />
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewColorPicker title="Color 1" v-model="color1" />
-        <PreviewColorPicker title="Color 2" v-model="color2" />
-        <PreviewColorPicker title="Color 3" v-model="color3" />
-        <PreviewSlider title="Time Speed" :min="0" :max="5" :step="0.05" v-model="timeSpeed" />
-        <PreviewSlider title="Color Balance" :min="-1" :max="1" :step="0.01" v-model="colorBalance" />
-        <PreviewSlider title="Warp Strength" :min="0" :max="4" :step="0.05" v-model="warpStrength" />
-        <PreviewSlider title="Warp Frequency" :min="0" :max="12" :step="0.1" v-model="warpFrequency" />
-        <PreviewSlider title="Warp Speed" :min="0" :max="6" :step="0.1" v-model="warpSpeed" />
-        <PreviewSlider title="Warp Amplitude" :min="5" :max="80" :step="1" v-model="warpAmplitude" />
-        <PreviewSlider title="Blend Angle" :min="-180" :max="180" :step="1" v-model="blendAngle" />
-        <PreviewSlider title="Blend Softness" :min="0" :max="1" :step="0.01" v-model="blendSoftness" />
-        <PreviewSlider title="Rotation Amount" :min="0" :max="1440" :step="10" v-model="rotationAmount" />
-        <PreviewSlider title="Noise Scale" :min="0" :max="4" :step="0.05" v-model="noiseScale" />
-        <PreviewSlider title="Grain Amount" :min="0" :max="0.4" :step="0.01" v-model="grainAmount" />
-        <PreviewSlider title="Grain Scale" :min="0.2" :max="8" :step="0.1" v-model="grainScale" />
-        <PreviewSwitch title="Grain Animated" v-model="grainAnimated" />
-        <PreviewSlider title="Contrast" :min="0" :max="2.5" :step="0.05" v-model="contrast" />
-        <PreviewSlider title="Gamma" :min="0.4" :max="2.5" :step="0.05" v-model="gamma" />
-        <PreviewSlider title="Saturation" :min="0" :max="2.5" :step="0.05" v-model="saturation" />
-        <PreviewSlider title="Center Offset X" :min="-1" :max="1" :step="0.01" v-model="centerX" />
-        <PreviewSlider title="Center Offset Y" :min="-1" :max="1" :step="0.01" v-model="centerY" />
-        <PreviewSlider title="Zoom" :min="0.3" :max="3" :step="0.05" v-model="zoom" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewColorList
+            title="Colors"
+            :min="2"
+            :max="8"
+            :model-value="settings.colors"
+            @update:model-value="(value: string[]) => updateProp('colors', value)"
+          />
+          <PreviewSelect
+            title="Preset"
+            :options="PRESET_OPTIONS"
+            :model-value="props.preset"
+            @update:model-value="(value: string | number) => applyPreset(String(value))"
+          />
+          <PreviewSelect
+            title="Type"
+            :options="TYPE_OPTIONS"
+            :model-value="settings.type"
+            @update:model-value="(value: string | number) => updateProp('type', value as 'linear' | 'radial')"
+          />
+          <PreviewSlider
+            title="Angle"
+            :min="0"
+            :max="360"
+            :step="1"
+            value-unit="°"
+            :is-disabled="settings.type === 'radial'"
+            :model-value="settings.angle"
+            @update:model-value="(value: number) => updateProp('angle', value)"
+          />
+          <PreviewSlider
+            title="Bands"
+            :min="1"
+            :max="6"
+            :step="1"
+            :model-value="settings.bands"
+            @update:model-value="(value: number) => updateProp('bands', value)"
+          />
+          <PreviewSlider
+            title="Softness"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="settings.softness"
+            @update:model-value="(value: number) => updateProp('softness', value)"
+          />
+          <PreviewSlider
+            title="Flow"
+            :min="0"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.flow"
+            @update:model-value="(value: number) => updateProp('flow', value)"
+          />
+          <PreviewSlider
+            title="Scale"
+            :min="0.25"
+            :max="3"
+            :step="0.05"
+            :model-value="settings.scale"
+            @update:model-value="(value: number) => updateProp('scale', value)"
+          />
+          <PreviewSlider
+            title="Speed"
+            :min="0"
+            :max="3"
+            :step="0.05"
+            :model-value="settings.speed"
+            @update:model-value="(value: number) => updateProp('speed', value)"
+          />
+          <PreviewSlider
+            title="Silk"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="settings.silk"
+            @update:model-value="(value: number) => updateProp('silk', value)"
+          />
+          <PreviewSlider
+            title="Grain Amount"
+            :min="0"
+            :max="0.3"
+            :step="0.01"
+            :model-value="settings.grainAmount"
+            @update:model-value="(value: number) => updateProp('grainAmount', value)"
+          />
+          <PreviewSlider
+            title="Grain Size"
+            :min="0.5"
+            :max="4"
+            :step="0.1"
+            value-unit="px"
+            :model-value="settings.grainSize"
+            @update:model-value="(value: number) => updateProp('grainSize', value)"
+          />
+          <PreviewSlider
+            title="Contrast"
+            :min="0.5"
+            :max="1.6"
+            :step="0.01"
+            :model-value="settings.contrast"
+            @update:model-value="(value: number) => updateProp('contrast', value)"
+          />
+          <PreviewSlider
+            title="Saturation"
+            :min="0"
+            :max="2"
+            :step="0.01"
+            :model-value="settings.saturation"
+            @update:model-value="(value: number) => updateProp('saturation', value)"
+          />
+          <PreviewSlider
+            title="Variation"
+            :min="0"
+            :max="20"
+            :step="1"
+            :model-value="settings.variation"
+            @update:model-value="(value: number) => updateProp('variation', value)"
+          />
+          <PreviewSlider
+            title="Stir"
+            :min="0"
+            :max="2"
+            :step="0.05"
+            :is-disabled="!settings.interactive"
+            :model-value="settings.stir"
+            @update:model-value="(value: number) => updateProp('stir', value)"
+          />
+          <PreviewSwitch
+            title="Animated Grain"
+            :model-value="settings.grainAnimated"
+            @update:model-value="(value: boolean) => updateProp('grainAnimated', value)"
+          />
+          <PreviewSwitch
+            title="Interactive"
+            :model-value="settings.interactive"
+            @update:model-value="(value: boolean) => updateProp('interactive', value)"
+          />
+          <PreviewSwitch
+            title="Click Swirl"
+            :model-value="settings.clickSwirl"
+            @update:model-value="(value: boolean) => updateProp('clickSwirl', value)"
+          />
+          <PreviewSwitch
+            title="Intro"
+            :model-value="settings.intro"
+            @update:model-value="(value: boolean) => updateProp('intro', value)"
+          />
+          <PreviewSwitch
+            title="Light Mode"
+            :model-value="settings.lightMode"
+            @update:model-value="(value: boolean) => updateProp('lightMode', value)"
+          />
+        </Customize>
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+        <PropTable :data="propData" />
+      </template>
 
-    <template #code>
-      <DemoCodeTab slug="grainient" :usage="grainient.usage!" :source="grainientSource" />
-    </template>
-  </TabsLayout>
+      <template #code>
+        <CodeExample :code-object="grainient" component-name="Grainient" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewColorList from '@/components/common/PreviewColorList.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
 import { useForceRerender } from '@/composables/useForceRerender';
 import { grainient } from '@/constants/code/Backgrounds/grainientCode';
 import Grainient from '@/content/Backgrounds/Grainient/Grainient.vue';
-import grainientSource from '@/content/Backgrounds/Grainient/Grainient.vue?raw';
-import { computed, ref } from 'vue';
+import { DEFAULT_PROPS, PRESET_OPTIONS, presetProps } from './presets/Grainient';
 
-const { rerenderKey, forceRerender } = useForceRerender();
+const TYPE_OPTIONS = [
+  { value: 'linear', label: 'Linear' },
+  { value: 'radial', label: 'Radial' }
+];
 
-const DEFAULTS = {
-  color1: '#48FF28',
-  color2: '#2c3d32',
-  color3: '#65a865',
-  timeSpeed: 0.25,
-  colorBalance: 0.0,
-  warpStrength: 1.0,
-  warpFrequency: 5.0,
-  warpSpeed: 2.0,
-  warpAmplitude: 50.0,
-  blendAngle: 0.0,
-  blendSoftness: 0.05,
-  rotationAmount: 500.0,
-  noiseScale: 2.0,
-  grainAmount: 0.1,
-  grainScale: 2.0,
-  grainAnimated: false,
-  contrast: 1.5,
-  gamma: 1.0,
-  saturation: 1.0,
-  centerX: 0.0,
-  centerY: 0.0,
-  zoom: 0.9
-};
-
-const color1 = ref(DEFAULTS.color1);
-const color2 = ref(DEFAULTS.color2);
-const color3 = ref(DEFAULTS.color3);
-const timeSpeed = ref(DEFAULTS.timeSpeed);
-const colorBalance = ref(DEFAULTS.colorBalance);
-const warpStrength = ref(DEFAULTS.warpStrength);
-const warpFrequency = ref(DEFAULTS.warpFrequency);
-const warpSpeed = ref(DEFAULTS.warpSpeed);
-const warpAmplitude = ref(DEFAULTS.warpAmplitude);
-const blendAngle = ref(DEFAULTS.blendAngle);
-const blendSoftness = ref(DEFAULTS.blendSoftness);
-const rotationAmount = ref(DEFAULTS.rotationAmount);
-const noiseScale = ref(DEFAULTS.noiseScale);
-const grainAmount = ref(DEFAULTS.grainAmount);
-const grainScale = ref(DEFAULTS.grainScale);
-const grainAnimated = ref(DEFAULTS.grainAnimated);
-const contrast = ref(DEFAULTS.contrast);
-const gamma = ref(DEFAULTS.gamma);
-const saturation = ref(DEFAULTS.saturation);
-const centerX = ref(DEFAULTS.centerX);
-const centerY = ref(DEFAULTS.centerY);
-const zoom = ref(DEFAULTS.zoom);
-
-const hasChanges = computed(
-  () =>
-    color1.value !== DEFAULTS.color1 ||
-    color2.value !== DEFAULTS.color2 ||
-    color3.value !== DEFAULTS.color3 ||
-    timeSpeed.value !== DEFAULTS.timeSpeed ||
-    colorBalance.value !== DEFAULTS.colorBalance ||
-    warpStrength.value !== DEFAULTS.warpStrength ||
-    warpFrequency.value !== DEFAULTS.warpFrequency ||
-    warpSpeed.value !== DEFAULTS.warpSpeed ||
-    warpAmplitude.value !== DEFAULTS.warpAmplitude ||
-    blendAngle.value !== DEFAULTS.blendAngle ||
-    blendSoftness.value !== DEFAULTS.blendSoftness ||
-    rotationAmount.value !== DEFAULTS.rotationAmount ||
-    noiseScale.value !== DEFAULTS.noiseScale ||
-    grainAmount.value !== DEFAULTS.grainAmount ||
-    grainScale.value !== DEFAULTS.grainScale ||
-    grainAnimated.value !== DEFAULTS.grainAnimated ||
-    contrast.value !== DEFAULTS.contrast ||
-    gamma.value !== DEFAULTS.gamma ||
-    saturation.value !== DEFAULTS.saturation ||
-    centerX.value !== DEFAULTS.centerX ||
-    centerY.value !== DEFAULTS.centerY ||
-    zoom.value !== DEFAULTS.zoom
-);
-
-function reset() {
-  color1.value = DEFAULTS.color1;
-  color2.value = DEFAULTS.color2;
-  color3.value = DEFAULTS.color3;
-  timeSpeed.value = DEFAULTS.timeSpeed;
-  colorBalance.value = DEFAULTS.colorBalance;
-  warpStrength.value = DEFAULTS.warpStrength;
-  warpFrequency.value = DEFAULTS.warpFrequency;
-  warpSpeed.value = DEFAULTS.warpSpeed;
-  warpAmplitude.value = DEFAULTS.warpAmplitude;
-  blendAngle.value = DEFAULTS.blendAngle;
-  blendSoftness.value = DEFAULTS.blendSoftness;
-  rotationAmount.value = DEFAULTS.rotationAmount;
-  noiseScale.value = DEFAULTS.noiseScale;
-  grainAmount.value = DEFAULTS.grainAmount;
-  grainScale.value = DEFAULTS.grainScale;
-  grainAnimated.value = DEFAULTS.grainAnimated;
-  contrast.value = DEFAULTS.contrast;
-  gamma.value = DEFAULTS.gamma;
-  saturation.value = DEFAULTS.saturation;
-  centerX.value = DEFAULTS.centerX;
-  centerY.value = DEFAULTS.centerY;
-  zoom.value = DEFAULTS.zoom;
-  forceRerender();
-}
-
-const props: PropRow[] = [
+const propData: PropRow[] = [
   {
-    name: 'color1',
-    type: 'string',
-    default: "'#48FF28'",
-    description: 'Primary light color used in the gradient blend.'
+    name: 'colors',
+    type: 'string[]',
+    default: "['#111111', '#2a0f0a', '#9a3412', '#f97316', '#fed7aa']",
+    description:
+      'Two to eight colors, from the base to the highlight. Use your page background as the first color so the edges blend in.'
   },
   {
-    name: 'color2',
-    type: 'string',
-    default: "'#2c3d32'",
-    description: 'Secondary accent color used in the gradient blend.'
+    name: 'type',
+    type: "'linear' | 'radial'",
+    default: "'linear'",
+    description: 'Linear runs the colors across the container. Radial puts the last color in the middle.'
   },
   {
-    name: 'color3',
-    type: 'string',
-    default: "'#65a865'",
-    description: 'Deep base color used in the gradient blend.'
-  },
-  {
-    name: 'timeSpeed',
+    name: 'angle',
     type: 'number',
-    default: '0.25',
-    description: 'Animation speed multiplier for the gradient motion.'
+    default: '55',
+    description: 'Direction of a linear gradient in degrees, like CSS: 0 runs bottom to top, 90 left to right.'
   },
   {
-    name: 'colorBalance',
+    name: 'bands',
     type: 'number',
-    default: '0.0',
-    description: 'Shifts the palette balance toward dark or lighter tones.'
+    default: '1',
+    description: 'How many times the colors repeat back and forth, from 1 to 8. Higher values make stripes or rings.'
   },
   {
-    name: 'warpStrength',
+    name: 'softness',
     type: 'number',
-    default: '1.0',
-    description: 'Strength of the wave warp distortion (0 = none).'
+    default: '1',
+    description: 'Blend between colors, from 0 (crisp, poster-like edges) to 1 (smooth).'
   },
   {
-    name: 'warpFrequency',
+    name: 'flow',
     type: 'number',
-    default: '5.0',
-    description: 'Frequency of the wave warp.'
+    default: '0.8',
+    description: 'How much the gradient bends into waves, from 0 (straight) to 3. Above 1 it starts to marble.'
   },
   {
-    name: 'warpSpeed',
+    name: 'scale',
     type: 'number',
-    default: '2.0',
-    description: 'Speed multiplier for the warp animation.'
+    default: '1',
+    description: 'Size of the waves, from 0.25 to 3.'
   },
   {
-    name: 'warpAmplitude',
+    name: 'speed',
     type: 'number',
-    default: '50.0',
-    description: 'Base amplitude for the warp distortion.'
+    default: '1',
+    description: 'Speed of the drifting waves. 0 holds them still.'
   },
   {
-    name: 'blendAngle',
+    name: 'silk',
     type: 'number',
-    default: '0.0',
-    description: 'Rotation angle for the color blend axis (degrees).'
-  },
-  {
-    name: 'blendSoftness',
-    type: 'number',
-    default: '0.05',
-    description: 'Softens the blend edges between color layers.'
-  },
-  {
-    name: 'rotationAmount',
-    type: 'number',
-    default: '500.0',
-    description: 'Rotation amount driven by noise.'
-  },
-  {
-    name: 'noiseScale',
-    type: 'number',
-    default: '2.0',
-    description: 'Scales the noise frequency that drives rotation.'
+    default: '0.35',
+    description: 'Satin shading on the folds, from 0 to 1. Combine with bands for glossy ribbons.'
   },
   {
     name: 'grainAmount',
     type: 'number',
-    default: '0.1',
-    description: 'Amount of film grain applied to the gradient.'
+    default: '0.08',
+    description: 'Strength of the film grain, from 0 to 0.5.'
   },
   {
-    name: 'grainScale',
+    name: 'grainSize',
     type: 'number',
-    default: '2.0',
-    description: 'Scale of the grain pattern.'
+    default: '1.2',
+    description: 'Size of the grain in pixels, from 0.5 to 4.'
   },
   {
     name: 'grainAnimated',
     type: 'boolean',
-    default: 'false',
-    description: 'Animate grain over time.'
+    default: 'true',
+    description: 'Shifts the grain every frame like film. When off, the grain stays fixed.'
   },
   {
     name: 'contrast',
     type: 'number',
-    default: '1.5',
-    description: 'Overall contrast applied to the final color.'
-  },
-  {
-    name: 'gamma',
-    type: 'number',
-    default: '1.0',
-    description: 'Gamma correction for the final color.'
+    default: '1',
+    description: 'Contrast of the colors, from 0.2 to 2.'
   },
   {
     name: 'saturation',
     type: 'number',
-    default: '1.0',
-    description: 'Saturation amount for the final color.'
+    default: '1',
+    description: 'Saturation of the colors, from 0 (grayscale) to 2.'
   },
   {
-    name: 'centerX',
+    name: 'variation',
     type: 'number',
-    default: '0.0',
-    description: 'Horizontal offset of the gradient center.'
+    default: '0',
+    description: 'Picks a different pattern of waves.'
   },
   {
-    name: 'centerY',
-    type: 'number',
-    default: '0.0',
-    description: 'Vertical offset of the gradient center.'
+    name: 'interactive',
+    type: 'boolean',
+    default: 'true',
+    description: 'Lets the cursor drag the colors around like paint. The trail settles back after a moment.'
   },
   {
-    name: 'zoom',
+    name: 'stir',
     type: 'number',
-    default: '0.9',
-    description: 'Zoom level for the gradient field.'
+    default: '1',
+    description: 'How far the cursor drags the colors, from 0 to 2.'
+  },
+  {
+    name: 'clickSwirl',
+    type: 'boolean',
+    default: 'true',
+    description: 'Clicking twists the colors into a swirl that slowly unwinds.'
+  },
+  {
+    name: 'intro',
+    type: 'boolean',
+    default: 'true',
+    description: 'Blooms the colors out from the middle on mount.'
+  },
+  {
+    name: 'lightMode',
+    type: 'boolean',
+    default: 'false',
+    description:
+      'Builds a light version of the palette: the first color becomes white and the others run in reverse, deepest last.'
+  },
+  {
+    name: 'dpr',
+    type: 'number',
+    default: 'auto',
+    description: 'Maximum device pixel ratio, capped at 2.'
   },
   {
     name: 'className',
     type: 'string',
     default: "''",
-    description: 'Additional CSS classes applied to the container.'
+    description: 'Extra class names for the container.'
+  },
+  {
+    name: 'style',
+    type: 'CSSProperties',
+    default: '-',
+    description: 'Inline styles for the container.'
   }
 ];
+
+const { rerenderKey, forceRerender } = useForceRerender();
+const { props, defaultProps, updateProp, updateProps, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
+
+const settings = computed(() => {
+  const { preset: _preset, ...rest } = props.value;
+  void _preset;
+  return rest;
+});
+
+const applyPreset = (value: string) => {
+  updateProps({ ...presetProps(value, { defaults: defaultProps.value }), preset: value });
+};
 </script>

@@ -2,31 +2,32 @@ import code from '@/content/Components/TiltedCard/TiltedCard.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const tiltedCard = createCodeObject(code, 'Components/TiltedCard', {
-  installation: `npm install motion-v`,
+  dependencies: '',
   usage: `<template>
   <TiltedCard
-    image-src="https://i.scdn.co/image/ab67616d0000b273d9985092cd88bffd97653b58"
-    alt-text="Kendrick Lamar - GNX Album Cover"
-    caption-text="Kendrick Lamar - GNX"
-    container-height="300px"
-    container-width="300px"
-    image-height="300px"
-    image-width="300px"
+    image-src="https://images.unsplash.com/photo-1778849097774-0ab2a873a858?w=900&q=80&auto=format&fit=crop"
+    alt-text="Sunset clouds"
+    caption-text="Afterglow"
+    container-height="320px"
+    container-width="320px"
+    image-height="320px"
+    image-width="320px"
     :rotate-amplitude="12"
-    :scale-on-hover="1.2"
-    :show-mobile-warning="false"
-    :show-tooltip="true"
-    :display-overlay-content="true"
+    :scale-on-hover="1.05"
+    :glare="0.5"
+    :shadow="0.5"
   >
-    <template #overlay>
-      <p class="tilted-card-demo-text">
-        Kendrick Lamar - GNX
-      </p>
+    <TiltedCardLayer :depth="30">
+      <h3 style="position: absolute; left: 20px; bottom: 16px; color: #fff">Afterglow</h3>
+    </TiltedCardLayer>
+
+    <template #back>
+      <p style="padding: 20px">The back of the card</p>
     </template>
   </TiltedCard>
 </template>
 
-<script setup>
-import TiltedCard from './TiltedCard.vue'
+<script setup lang="ts">
+import TiltedCard, { TiltedCardLayer } from './TiltedCard.vue'
 </script>`
 });

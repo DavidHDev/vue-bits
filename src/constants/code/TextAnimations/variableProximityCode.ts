@@ -2,28 +2,30 @@ import code from '@/content/TextAnimations/VariableProximity/VariableProximity.v
 import { createCodeObject } from '@/types/code';
 
 export const variableProximity = createCodeObject(code, 'TextAnimations/VariableProximity', {
-  installation: `npm install motion-v`,
+  dependencies: '',
   usage: `<template>
-  <div
-    ref="containerRef"
-    style="position: relative;"
-  >
+  <div ref="containerRef" style="position: relative">
     <VariableProximity
-      label="Hover me! And then star React Bits on GitHub, or else..."
-      class="variable-proximity-demo"
+      label="Hover me! And then star Vue Bits on GitHub, or else..."
+      class-name="variable-proximity-demo"
       from-font-variation-settings="'wght' 400, 'opsz' 9"
       to-font-variation-settings="'wght' 1000, 'opsz' 40"
       :container-ref="containerRef"
       :radius="100"
       falloff="linear"
+      :smoothing="0.2"
+      :scale="1"
+      :lift="0"
+      :idle-wave="false"
+      :font-size="64"
     />
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import VariableProximity from './VariableProximity.vue'
 
-const containerRef = ref(null)
+const containerRef = ref<HTMLElement | null>(null)
 </script>`
 });

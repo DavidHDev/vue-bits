@@ -1,2857 +1,3265 @@
 {
-  "$schema": "https://ui.shadcn.com/schema/registry.json",
-  "name": "@vue-bits",
-  "homepage": "https://vue-bits.dev",
-  "items": [
-    {
-      "name": "AccordionGallery",
-      "title": "AccordionGallery",
-      "description": "Panels expand on hover or focus, revealing parallax imagery and captions.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "AccordionGallery/AccordionGallery.vue"
-        }
-      ]
-    },
-    {
-      "name": "AcidSquares",
-      "title": "AcidSquares",
-      "description": "A crystalline corridor of stacked squares receding into depth.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "AcidSquares/AcidSquares.vue"
-        }
-      ]
-    },
-    {
-      "name": "AeroShards",
-      "title": "AeroShards",
-      "description": "A GPU-driven wind sculpture of folded foil shards with crisp detail, content-safe placements, and responsive pointer interactions.",
-      "type": "registry:component",
-      "dependencies": ["vgpu@^0.5.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "AeroShards/AeroShards.vue"
-        }
-      ]
-    },
-    {
-      "name": "AnimatedContent",
-      "title": "AnimatedContent",
-      "description": "Wrapper that animates any children on scroll or mount with configurable direction, distance, duration, easing and disappear options.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "AnimatedContent/AnimatedContent.vue"
-        }
-      ]
-    },
-    {
-      "name": "AnimatedList",
-      "title": "AnimatedList",
-      "description": "List items enter with staggered motion variants for polished reveals.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "AnimatedList/AnimatedList.vue"
-        }
-      ]
-    },
-    {
-      "name": "Antigravity",
-      "title": "Antigravity",
-      "description": "3D antigravity particle field that repels from the cursor with smooth motion.",
-      "type": "registry:component",
-      "dependencies": ["three@^0.178.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Antigravity/Antigravity.vue"
-        }
-      ]
-    },
-    {
-      "name": "ASCIIText",
-      "title": "ASCIIText",
-      "description": "Renders text with an animated ASCII background for a retro feel.",
-      "type": "registry:component",
-      "dependencies": ["three@^0.178.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ASCIIText/ASCIIText.vue"
-        }
-      ]
-    },
-    {
-      "name": "Aurora",
-      "title": "Aurora",
-      "description": "Flowing aurora gradient background.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Aurora/Aurora.vue"
-        }
-      ]
-    },
-    {
-      "name": "Balatro",
-      "title": "Balatro",
-      "description": "The balatro shader, fully customizalbe and interactive.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Balatro/Balatro.vue"
-        }
-      ]
-    },
-    {
-      "name": "Ballpit",
-      "title": "Ballpit",
-      "description": "Physics ball pit simulation with bouncing colorful spheres.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0", "three@^0.178.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Ballpit/Ballpit.vue"
-        }
-      ]
-    },
-    {
-      "name": "Beams",
-      "title": "Beams",
-      "description": "Crossing animated ribbons with customizable properties.",
-      "type": "registry:component",
-      "dependencies": ["three@^0.178.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Beams/Beams.vue"
-        }
-      ]
-    },
-    {
-      "name": "BellToggle",
-      "title": "BellToggle",
-      "description": "Pill toggle that answers a press at three tempos: the bell rings on damped keyframes, the label blur-crossfades, and the pill unfurls to the longer label through a clip-path on a critically damped spring. The pressed state is the receipt.",
-      "type": "registry:component",
-      "dependencies": ["@hugeicons/core-free-icons@4.3.3", "@hugeicons/vue@^1.0.8", "motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "BellToggle/BellToggle.vue"
-        }
-      ]
-    },
-    {
-      "name": "BlobCursor",
-      "title": "BlobCursor",
-      "description": "Organic blob cursor that smoothly follows the pointer with inertia and elastic morphing.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "BlobCursor/BlobCursor.vue"
-        }
-      ]
-    },
-    {
-      "name": "BlurText",
-      "title": "BlurText",
-      "description": "Text starts blurred then crisply resolves for a soft-focus reveal effect.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "BlurText/BlurText.vue"
-        }
-      ]
-    },
-    {
-      "name": "BorderGlow",
-      "title": "BorderGlow",
-      "description": "Glowing mesh-gradient border that follows cursor direction and intensifies near edges.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "BorderGlow/BorderGlow.vue"
-        }
-      ]
-    },
-    {
-      "name": "BounceCards",
-      "title": "BounceCards",
-      "description": "Cards bounce that bounce in on mount.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "BounceCards/BounceCards.vue"
-        }
-      ]
-    },
-    {
-      "name": "BranchedMenu",
-      "title": "BranchedMenu",
-      "description": "Collapsible menu whose sections unfold into a trunk with a curved branch to each child, and an accent line that travels down the trunk and around the curve to whatever you pick, while a marker glides to the open section.",
-      "type": "registry:component",
-      "dependencies": ["@hugeicons/core-free-icons@4.3.3", "@hugeicons/vue@^1.0.8"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "BranchedMenu/BranchedMenu.vue"
-        }
-      ]
-    },
-    {
-      "name": "BubbleMenu",
-      "title": "BubbleMenu",
-      "description": "Floating circular expanding menu with staggered item reveal.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "BubbleMenu/BubbleMenu.vue"
-        }
-      ]
-    },
-    {
-      "name": "CallChip",
-      "title": "CallChip",
-      "description": "Inline tool-call chip whose fill wipes across while a live ms counter ticks, completing with a green wash on success or stopping short and shaking red with a retry glyph on error.",
-      "type": "registry:component",
-      "dependencies": ["@hugeicons/core-free-icons@4.3.3", "@hugeicons/vue@^1.0.8"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "CallChip/CallChip.vue"
-        }
-      ]
-    },
-    {
-      "name": "CardNav",
-      "title": "CardNav",
-      "description": "Expandable navigation bar with card panels revealing nested links.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "CardNav/CardNav.vue"
-        }
-      ]
-    },
-    {
-      "name": "CardSwap",
-      "title": "CardSwap",
-      "description": "Cards animate position swapping with smooth layout transitions.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "CardSwap/CardSwap.vue"
-        }
-      ]
-    },
-    {
-      "name": "Carousel",
-      "title": "Carousel",
-      "description": "Responsive carousel with touch gestures, looping and transitions.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Carousel/Carousel.vue"
-        }
-      ]
-    },
-    {
-      "name": "ChromaGrid",
-      "title": "ChromaGrid",
-      "description": "A responsive grid of grayscale tiles. Hovering the grid reaveals their colors.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ChromaGrid/ChromaGrid.vue"
-        }
-      ]
-    },
-    {
-      "name": "CircularGallery",
-      "title": "CircularGallery",
-      "description": "Circular orbit gallery rotating images.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "CircularGallery/CircularGallery.vue"
-        }
-      ]
-    },
-    {
-      "name": "CircularText",
-      "title": "CircularText",
-      "description": "Layouts characters around a circle with optional rotation animation.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "CircularText/CircularText.vue"
-        }
-      ]
-    },
-    {
-      "name": "ClickSpark",
-      "title": "ClickSpark",
-      "description": "Creates particle spark bursts at click position.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ClickSpark/ClickSpark.vue"
-        }
-      ]
-    },
-    {
-      "name": "CodeSlots",
-      "title": "CodeSlots",
-      "description": "One-time-code input where a hidden overlay input owns focus, paste and SMS autofill while each slot lands its digit on one spring: the fill swells from the centre, the digit rises and the caret glides; a wrong code drains the slots in a cascade, a right one merges them into a single accent wash.",
-      "type": "registry:component",
-      "dependencies": ["@hugeicons/core-free-icons@4.3.3", "@hugeicons/vue@^1.0.8", "motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "CodeSlots/CodeSlots.vue"
-        }
-      ]
-    },
-    {
-      "name": "ColorBends",
-      "title": "ColorBends",
-      "description": "Vibrant color bends with smooth flowing animation.",
-      "type": "registry:component",
-      "dependencies": ["three@^0.178.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ColorBends/ColorBends.vue"
-        }
-      ]
-    },
-    {
-      "name": "CometDial",
-      "title": "CometDial",
-      "description": "Tick-ring dial you flick by angle: the reading launches on a spring and a velocity-driven comet streaks behind the lit head, trailing the direction of travel and vanishing at rest.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "CometDial/CometDial.vue"
-        }
-      ]
-    },
-    {
-      "name": "Counter",
-      "title": "Counter",
-      "description": "Flexible animated counter supporting increments + easing.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Counter/Counter.vue"
-        }
-      ]
-    },
-    {
-      "name": "CountUp",
-      "title": "CountUp",
-      "description": "Animated number counter supporting formatting and decimals.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "CountUp/CountUp.vue"
-        }
-      ]
-    },
-    {
-      "name": "Crosshair",
-      "title": "Crosshair",
-      "description": "Custom crosshair cursor with tracking, and link hover effects.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Crosshair/Crosshair.vue"
-        }
-      ]
-    },
-    {
-      "name": "CRTWarp",
-      "title": "CRTWarp",
-      "description": "Full-canvas CRT plasma with curved distortion, scanlines, bloom and pointer interaction.",
-      "type": "registry:component",
-      "dependencies": ["three@^0.178.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "CRTWarp/CRTWarp.vue"
-        }
-      ]
-    },
-    {
-      "name": "Cubes",
-      "title": "Cubes",
-      "description": "3D rotating cube cluster. Supports auto-rotation or hover interaction.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Cubes/Cubes.vue"
-        }
-      ]
-    },
-    {
-      "name": "CursorGrid",
-      "title": "CursorGrid",
-      "description": "Canvas grid whose cells light up around the cursor with configurable radius, falloff and click pulses.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "CursorGrid/CursorGrid.vue"
-        }
-      ]
-    },
-    {
-      "name": "CurvedInput",
-      "title": "CurvedInput",
-      "description": "Arc-bent input bar with text, caret and submit button all following the curve.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "CurvedInput/CurvedInput.vue"
-        }
-      ]
-    },
-    {
-      "name": "CurvedLoop",
-      "title": "CurvedLoop",
-      "description": "Flowing looping text path along a customizable curve with drag interaction.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "CurvedLoop/CurvedLoop.vue"
-        }
-      ]
-    },
-    {
-      "name": "DarkVeil",
-      "title": "DarkVeil",
-      "description": "Subtle dark background with a smooth animation and postprocessing.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "DarkVeil/DarkVeil.vue"
-        }
-      ]
-    },
-    {
-      "name": "DecayCard",
-      "title": "DecayCard",
-      "description": "Hover parallax effect that disintegrates the content of a card.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "DecayCard/DecayCard.vue"
-        }
-      ]
-    },
-    {
-      "name": "DecryptedText",
-      "title": "DecryptedText",
-      "description": "Hacker-style decryption cycling random glyphs until resolving to real text.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "DecryptedText/DecryptedText.vue"
-        }
-      ]
-    },
-    {
-      "name": "DepthCarousel",
-      "title": "DepthCarousel",
-      "description": "Cards recede into depth on a 3D rail, with drag, keyboard and auto-advance.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "DepthCarousel/DepthCarousel.vue"
-        }
-      ]
-    },
-    {
-      "name": "DepthText",
-      "title": "DepthText",
-      "description": "Layered extruded type with parallax that shifts against the pointer.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "DepthText/DepthText.vue"
-        }
-      ]
-    },
-    {
-      "name": "Dither",
-      "title": "Dither",
-      "description": "Retro dithered noise shader background.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Dither/Dither.vue"
-        }
-      ]
-    },
-    {
-      "name": "DitherVeil",
-      "title": "DitherVeil",
-      "description": "A photo printed as a 1-bit dither that the cursor burns through to full colour, leaving a trail that knits back cell by cell.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "DitherVeil/DitherVeil.vue"
-        }
-      ]
-    },
-    {
-      "name": "Dock",
-      "title": "Dock",
-      "description": "macOS style magnifying dock with proximity scaling of icons.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Dock/Dock.vue"
-        }
-      ]
-    },
-    {
-      "name": "DodgeField",
-      "title": "DodgeField",
-      "description": "Wrapper that makes any child flee the pointer inside a bounded field, dodges once per approach, then relents after a few tries and glides home.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "DodgeField/DodgeField.vue"
-        }
-      ]
-    },
-    {
-      "name": "DomeGallery",
-      "title": "DomeGallery",
-      "description": "Immersive 3D dome gallery projecting images on a hemispheric surface.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "DomeGallery/DomeGallery.vue"
-        }
-      ]
-    },
-    {
-      "name": "DotField",
-      "title": "DotField",
-      "description": "Interactive dot grid with cursor bulge, glow, sparkle, and wave effects.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "DotField/DotField.vue"
-        }
-      ]
-    },
-    {
-      "name": "DotGrid",
-      "title": "DotGrid",
-      "description": "Animated dot grid with cursor interactions.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "DotGrid/DotGrid.vue"
-        }
-      ]
-    },
-    {
-      "name": "DriftWall",
-      "title": "DriftWall",
-      "description": "An endless perspective wall of tiles drifting past, lifting on hover.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "DriftWall/DriftWall.vue"
-        }
-      ]
-    },
-    {
-      "name": "EchoText",
-      "title": "EchoText",
-      "description": "Ghosted copies trail behind the text and settle into a single word.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "EchoText/EchoText.vue"
-        }
-      ]
-    },
-    {
-      "name": "ElasticMesh",
-      "title": "ElasticMesh",
-      "description": "Spring-mesh surface that stretches under the pointer and settles back with damped physics.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ElasticMesh/ElasticMesh.vue"
-        }
-      ]
-    },
-    {
-      "name": "ElasticSlider",
-      "title": "ElasticSlider",
-      "description": "Slider handle stretches elastically then snaps with spring physics.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ElasticSlider/ElasticSlider.vue"
-        }
-      ]
-    },
-    {
-      "name": "ElectricBorder",
-      "title": "ElectricBorder",
-      "description": "Jittery electric energy border with animated arcs, glow and adjustable intensity.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ElectricBorder/ElectricBorder.vue"
-        }
-      ]
-    },
-    {
-      "name": "ElectricLogo",
-      "title": "ElectricLogo",
-      "description": "Turns any SVG or PNG into a living lightning outline, with flowing strands, arcs that leap off the edges and a charge that follows the cursor.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ElectricLogo/ElectricLogo.vue"
-        }
-      ]
-    },
-    {
-      "name": "EvilEye",
-      "title": "EvilEye",
-      "description": "Procedural evil eye shader with animated iris, slit pupil, and fiery outer glow.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "EvilEye/EvilEye.vue"
-        }
-      ]
-    },
-    {
-      "name": "FadeContent",
-      "title": "FadeContent",
-      "description": "Simple directional fade / slide entrance / exit wrapper with threshold-based activation.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "FadeContent/FadeContent.vue"
-        }
-      ]
-    },
-    {
-      "name": "FallingText",
-      "title": "FallingText",
-      "description": "Characters fall with gravity + bounce creating a playful entrance.",
-      "type": "registry:component",
-      "dependencies": ["matter-js@^0.20.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "FallingText/FallingText.vue"
-        }
-      ]
-    },
-    {
-      "name": "FaultyTerminal",
-      "title": "FaultyTerminal",
-      "description": "Terminal CRT scanline squares effect with flicker + noise.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "FaultyTerminal/FaultyTerminal.vue"
-        }
-      ]
-    },
-    {
-      "name": "Ferrofluid",
-      "title": "Ferrofluid",
-      "description": "A churning magnetic fluid traced by glowing contour lines, with a cursor magnet.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Ferrofluid/Ferrofluid.vue"
-        }
-      ]
-    },
-    {
-      "name": "FlexCarousel",
-      "title": "FlexCarousel",
-      "description": "An infinite image row that flows through invisible liquid glass at its edges, with four bend presets, five entrances, a speed squeeze and click to focus.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "FlexCarousel/FlexCarousel.vue"
-        }
-      ]
-    },
-    {
-      "name": "FlipCard",
-      "title": "FlipCard",
-      "description": "Two-faced card that flips in 3D on a click, a drag or a flick, settling on a spring that carries your release velocity, with an optional cursor tilt, a sheen that follows the pointer and a shadow that narrows as it turns edge on.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "FlipCard/FlipCard.vue"
-        }
-      ]
-    },
-    {
-      "name": "FloatingLines",
-      "title": "FloatingLines",
-      "description": "3D floating lines that react to cursor movement.",
-      "type": "registry:component",
-      "dependencies": ["three@^0.178.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "FloatingLines/FloatingLines.vue"
-        }
-      ]
-    },
-    {
-      "name": "FlowingMenu",
-      "title": "FlowingMenu",
-      "description": "Liquid flowing active indicator glides between menu items.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "FlowingMenu/FlowingMenu.vue"
-        }
-      ]
-    },
-    {
-      "name": "FlyingPosters",
-      "title": "FlyingPosters",
-      "description": "3D posters rotate on scroll infinitely.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "FlyingPosters/FlyingPosters.vue"
-        }
-      ]
-    },
-    {
-      "name": "Folder",
-      "title": "Folder",
-      "description": "Interactive folder opens to reveal nested content smooth motion.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Folder/Folder.vue"
-        }
-      ]
-    },
-    {
-      "name": "FolderFloat",
-      "title": "FolderFloat",
-      "description": "Folder that opens on hover or press: the flap tilts toward you, a paper edge rises, and its notes spring out from behind the flap into a floating cloud to pick from, then sink back when the folder closes.",
-      "type": "registry:component",
-      "dependencies": ["matter-js@^0.20.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "FolderFloat/FolderFloat.vue"
-        }
-      ]
-    },
-    {
-      "name": "FoldText",
-      "title": "FoldText",
-      "description": "Lines unfold into place like creased paper opening flat.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "FoldText/FoldText.vue"
-        }
-      ]
-    },
-    {
-      "name": "FuseButton",
-      "title": "FuseButton",
-      "description": "Action button whose done state carries its own undo on a burning fuse: press, the label crossfades to Undo, a hairline burns for the undo window, and Undo or Escape runs it back.",
-      "type": "registry:component",
-      "dependencies": ["@hugeicons/core-free-icons@4.3.3", "@hugeicons/vue@^1.0.8"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "FuseButton/FuseButton.vue"
-        }
-      ]
-    },
-    {
-      "name": "FuzzyText",
-      "title": "FuzzyText",
-      "description": "Vibrating fuzzy text with controllable hover intensity.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "FuzzyText/FuzzyText.vue"
-        }
-      ]
-    },
-    {
-      "name": "Galaxy",
-      "title": "Galaxy",
-      "description": "Parallax realistic starfield with pointer interactions.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Galaxy/Galaxy.vue"
-        }
-      ]
-    },
-    {
-      "name": "GhostCursor",
-      "title": "GhostCursor",
-      "description": "Semi-transparent ghost cursor that smoothly follows the real cursor with a trailing effect.",
-      "type": "registry:component",
-      "dependencies": ["three@^0.178.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "GhostCursor/GhostCursor.vue"
-        }
-      ]
-    },
-    {
-      "name": "GhostFibers",
-      "title": "GhostFibers",
-      "description": "A deep-blue recursive fiber field with luminous bands, radial twisting and soft atmospheric glow.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "GhostFibers/GhostFibers.vue"
-        }
-      ]
-    },
-    {
-      "name": "GlareHover",
-      "title": "GlareHover",
-      "description": "Adds a realistic moving glare highlight on hover over any element.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "GlareHover/GlareHover.vue"
-        }
-      ]
-    },
-    {
-      "name": "GlassIcons",
-      "title": "GlassIcons",
-      "description": "Icon set styled with frosted glass blur.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "GlassIcons/GlassIcons.vue"
-        }
-      ]
-    },
-    {
-      "name": "GlassSurface",
-      "title": "GlassSurface",
-      "description": "Advanced Apple-style glass surface with real-time distortion + lighting.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "GlassSurface/GlassSurface.vue"
-        }
-      ]
-    },
-    {
-      "name": "GlideSelect",
-      "title": "GlideSelect",
-      "description": "Select chip whose menu pops out of its own corner and whose single hover highlight glides between rows, remembering where you left it so re-entry slides from there instead of blinking in.",
-      "type": "registry:component",
-      "dependencies": ["@hugeicons/core-free-icons@4.3.3", "@hugeicons/vue@^1.0.8"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "GlideSelect/GlideSelect.vue"
-        }
-      ]
-    },
-    {
-      "name": "GlitchText",
-      "title": "GlitchText",
-      "description": "RGB split and distortion glitch effect with jitter effects.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "GlitchText/GlitchText.vue"
-        }
-      ]
-    },
-    {
-      "name": "GlowCursor",
-      "title": "GlowCursor",
-      "description": "Shader-powered light trail that smoothly follows the pointer with customizable glow, color, taper and pulse.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "GlowCursor/GlowCursor.vue"
-        }
-      ]
-    },
-    {
-      "name": "GooeyNav",
-      "title": "GooeyNav",
-      "description": "Navigation indicator morphs with gooey blob transitions between items.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "GooeyNav/GooeyNav.vue"
-        }
-      ]
-    },
-    {
-      "name": "GradientBlinds",
-      "title": "GradientBlinds",
-      "description": "Layered gradient blinds with spotlight and noise distortion.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "GradientBlinds/GradientBlinds.vue"
-        }
-      ]
-    },
-    {
-      "name": "GradientText",
-      "title": "GradientText",
-      "description": "Animated gradient sweep across live text with speed and color control.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "GradientText/GradientText.vue"
-        }
-      ]
-    },
-    {
-      "name": "GradientWaves",
-      "title": "GradientWaves",
-      "description": "Raymarched sine waves rolling toward a soft, hazy horizon.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "GradientWaves/GradientWaves.vue"
-        }
-      ]
-    },
-    {
-      "name": "GradualBlur",
-      "title": "GradualBlur",
-      "description": "Progressively un-blurs content based on scroll or trigger creating a cinematic reveal.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "GradualBlur/GradualBlur.vue"
-        }
-      ]
-    },
-    {
-      "name": "Grainient",
-      "title": "Grainient",
-      "description": "Grainy gradient swirls with soft wave distortion.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Grainient/Grainient.vue"
-        }
-      ]
-    },
-    {
-      "name": "GridDistortion",
-      "title": "GridDistortion",
-      "description": "Warped grid mesh distorts smoothly reacting to cursor.",
-      "type": "registry:component",
-      "dependencies": ["three@^0.178.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "GridDistortion/GridDistortion.vue"
-        }
-      ]
-    },
-    {
-      "name": "GridMotion",
-      "title": "GridMotion",
-      "description": "Perspective moving grid lines based on cusror position.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "GridMotion/GridMotion.vue"
-        }
-      ]
-    },
-    {
-      "name": "GridScan",
-      "title": "GridScan",
-      "description": "Animated grid room 3D scan effect and cool interactions.",
-      "type": "registry:component",
-      "dependencies": ["face-api.js@^0.22.2", "postprocessing@^6.37.6", "three@^0.178.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "GridScan/GridScan.vue"
-        }
-      ]
-    },
-    {
-      "name": "HalftoneReveal",
-      "title": "HalftoneReveal",
-      "description": "Print-style halftone dot matrix that resolves into sharp content around the cursor.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "HalftoneReveal/HalftoneReveal.vue"
-        }
-      ]
-    },
-    {
-      "name": "HoldButton",
-      "title": "HoldButton",
-      "description": "Hold-to-confirm button whose liquid fill rises while pressed, snaps back on an early release and swaps its label through a blur when the hold completes.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "HoldButton/HoldButton.vue"
-        }
-      ]
-    },
-    {
-      "name": "Hyperspeed",
-      "title": "Hyperspeed",
-      "description": "Animated lines continuously moving to simulate hyperspace travel on click hold.",
-      "type": "registry:component",
-      "dependencies": ["three@^0.178.0", "postprocessing@^6.37.6"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Hyperspeed/Hyperspeed.vue"
-        },
-        {
-          "type": "registry:component",
-          "path": "Hyperspeed/HyperspeedPresets.ts"
-        }
-      ]
-    },
-    {
-      "name": "ImageTrail",
-      "title": "ImageTrail",
-      "description": "Cursor-based image trail with several built-in variants.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ImageTrail/ImageTrail.vue"
-        }
-      ]
-    },
-    {
-      "name": "InfiniteMenu",
-      "title": "InfiniteMenu",
-      "description": "Horizontally looping menu effect that scrolls endlessly with seamless wrap.",
-      "type": "registry:component",
-      "dependencies": ["gl-matrix@^3.4.3"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "InfiniteMenu/InfiniteMenu.vue"
-        }
-      ]
-    },
-    {
-      "name": "InfiniteSpiral",
-      "title": "InfiniteSpiral",
-      "description": "An endlessly looping 3D helix of images with customizable motion, depth, spacing and interaction.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "InfiniteSpiral/InfiniteSpiral.vue"
-        }
-      ]
-    },
-    {
-      "name": "Iridescence",
-      "title": "Iridescence",
-      "description": "Slick iridescent shader with shifting waves.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Iridescence/Iridescence.vue"
-        }
-      ]
-    },
-    {
-      "name": "JellyRadio",
-      "title": "JellyRadio",
-      "description": "Radio group of labelled chips where the chosen one swells wide-then-tall on two springs and barges its neighbours outward with a travelling stagger, so a selection reads as a force moving through the row.",
-      "type": "registry:component",
-      "dependencies": ["@hugeicons/vue@^1.0.8", "motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "JellyRadio/JellyRadio.vue"
-        }
-      ]
-    },
-    {
-      "name": "LaserFlow",
-      "title": "LaserFlow",
-      "description": "Dynamic laser light that flows onto a surface, customizable effect.",
-      "type": "registry:component",
-      "dependencies": ["three@^0.178.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "LaserFlow/LaserFlow.vue"
-        }
-      ]
-    },
-    {
-      "name": "LatticeLoader",
-      "title": "LatticeLoader",
-      "description": "Inline agent-status row: a 3x3 or 4x4 lattice whose cells brighten in a phase-offset wave beside a verb and a live stopwatch, resolving into a check or a cross when the task ends.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "LatticeLoader/LatticeLoader.vue"
-        }
-      ]
-    },
-    {
-      "name": "LetterGlitch",
-      "title": "LetterGlitch",
-      "description": "Matrix style letter animation.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "LetterGlitch/LetterGlitch.vue"
-        }
-      ]
-    },
-    {
-      "name": "Lightfall",
-      "title": "Lightfall",
-      "description": "Colorful light streaks raining down a glowing tunnel with a cursor light.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Lightfall/Lightfall.vue"
-        }
-      ]
-    },
-    {
-      "name": "Lightning",
-      "title": "Lightning",
-      "description": "Procedural lightning bolts with branching and glow flicker.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Lightning/Lightning.vue"
-        }
-      ]
-    },
-    {
-      "name": "LightPillar",
-      "title": "LightPillar",
-      "description": "Vertical pillar of light with glow effects.",
-      "type": "registry:component",
-      "dependencies": ["three@^0.178.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "LightPillar/LightPillar.vue"
-        }
-      ]
-    },
-    {
-      "name": "LightRays",
-      "title": "LightRays",
-      "description": "Volumetric light rays/beams with customizable direction.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "LightRays/LightRays.vue"
-        }
-      ]
-    },
-    {
-      "name": "LightTunnel",
-      "title": "LightTunnel",
-      "description": "A radial fibre-optic tunnel with light pulses racing into depth.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "LightTunnel/LightTunnel.vue"
-        }
-      ]
-    },
-    {
-      "name": "LineSidebar",
-      "title": "LineSidebar",
-      "description": "Static list navigation with a cursor-proximity effect that shifts and highlights nearby items.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "LineSidebar/LineSidebar.vue"
-        }
-      ]
-    },
-    {
-      "name": "LineWaves",
-      "title": "LineWaves",
-      "description": "Animated line wave pattern with colorful warped distortion.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "LineWaves/LineWaves.vue"
-        }
-      ]
-    },
-    {
-      "name": "LiquidChrome",
-      "title": "LiquidChrome",
-      "description": "Liquid metallic chrome shader with flowing reflective surface.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "LiquidChrome/LiquidChrome.vue"
-        }
-      ]
-    },
-    {
-      "name": "LiquidEther",
-      "title": "LiquidEther",
-      "description": "Interactive liquid shader with flowing distortion and customizable colors.",
-      "type": "registry:component",
-      "dependencies": ["three@^0.178.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "LiquidEther/LiquidEther.vue"
-        }
-      ]
-    },
-    {
-      "name": "LogoLoop",
-      "title": "LogoLoop",
-      "description": "Continuously looping marquee of brand or tech logos with seamless repeat and hover pause.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "LogoLoop/LogoLoop.vue"
-        }
-      ]
-    },
-    {
-      "name": "MagicBento",
-      "title": "MagicBento",
-      "description": "Interactive bento grid tiles expand + animate with various options.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "MagicBento/MagicBento.vue"
-        }
-      ]
-    },
-    {
-      "name": "MagicRings",
-      "title": "MagicRings",
-      "description": "Interactive magic rings effect with customizable parameters.",
-      "type": "registry:component",
-      "dependencies": ["three@^0.178.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "MagicRings/MagicRings.vue"
-        }
-      ]
-    },
-    {
-      "name": "Magnet",
-      "title": "Magnet",
-      "description": "Elements magnetically ease toward the cursor then settle back with spring physics.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Magnet/Magnet.vue"
-        }
-      ]
-    },
-    {
-      "name": "MagnetLines",
-      "title": "MagnetLines",
-      "description": "Animated field lines bend toward the cursor.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "MagnetLines/MagnetLines.vue"
-        }
-      ]
-    },
-    {
-      "name": "MaskedHeading",
-      "title": "MaskedHeading",
-      "description": "A large headline with a drifting colour mesh or image showing through the glyphs, revealed word by word.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "MaskedHeading/MaskedHeading.vue"
-        }
-      ]
-    },
-    {
-      "name": "Masonry",
-      "title": "Masonry",
-      "description": "Responsive masonry layout with animated reflow + gaps optimization.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Masonry/Masonry.vue"
-        }
-      ]
-    },
-    {
-      "name": "MetaBalls",
-      "title": "MetaBalls",
-      "description": "Liquid metaball blobs that merge and separate with smooth implicit surface animation.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "MetaBalls/MetaBalls.vue"
-        }
-      ]
-    },
-    {
-      "name": "MetallicPaint",
-      "title": "MetallicPaint",
-      "description": "Liquid metallic paint shader which can be applied to SVG elements.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "MetallicPaint/MetallicPaint.vue"
-        }
-      ]
-    },
-    {
-      "name": "MicroSlats",
-      "title": "MicroSlats",
-      "description": "A wall of tiny slats that becomes a rolling sea in perspective, with glinting crests, four presets, a real fluid the cursor stirs and an intro that rolls in from the horizon.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "MicroSlats/MicroSlats.vue"
-        }
-      ]
-    },
-    {
-      "name": "ModelViewer",
-      "title": "ModelViewer",
-      "description": "Interactive 3D model viewer with orbit zoom, parallax, hover rotation and lighting presets.",
-      "type": "registry:component",
-      "dependencies": ["three@^0.178.0", "@tresjs/core@^4.3.6", "@tresjs/cientos@^4.3.1"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ModelViewer/ModelViewer.vue"
-        }
-      ]
-    },
-    {
-      "name": "MoltenMetal",
-      "title": "MoltenMetal",
-      "description": "Swirling caustic plasma filaments with molten, white-hot cores.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "MoltenMetal/MoltenMetal.vue"
-        }
-      ]
-    },
-    {
-      "name": "MorphSlider",
-      "title": "MorphSlider",
-      "description": "WebGL slider that melts between images with a displacement transition.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0", "ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "MorphSlider/MorphSlider.vue"
-        }
-      ]
-    },
-    {
-      "name": "Noise",
-      "title": "Noise",
-      "description": "Animated film grain / noise overlay adding subtle texture and motion.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Noise/Noise.vue"
-        }
-      ]
-    },
-    {
-      "name": "OptionWheel",
-      "title": "OptionWheel",
-      "description": "Curved option picker that spins via scroll, drag, or arrow keys, fading and tilting items away from the selection.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "OptionWheel/OptionWheel.vue"
-        }
-      ]
-    },
-    {
-      "name": "Orb",
-      "title": "Orb",
-      "description": "Floating energy orb with customizable hover effect.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Orb/Orb.vue"
-        }
-      ]
-    },
-    {
-      "name": "OrbitImages",
-      "title": "OrbitImages",
-      "description": "SVG Path customizable orbiting images effect",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "OrbitImages/OrbitImages.vue"
-        }
-      ]
-    },
-    {
-      "name": "PaperCrumple",
-      "title": "PaperCrumple",
-      "description": "An image that crumples into a textured 3D sheet while held and follows the grabbed point as you drag. Release it as a crumpled ball, unfold it flat, or leave the paper creased, with customizable folds, paper grain, lighting and shadows.",
-      "type": "registry:component",
-      "dependencies": ["three@^0.178.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "PaperCrumple/PaperCrumple.vue"
-        }
-      ]
-    },
-    {
-      "name": "Particles",
-      "title": "Particles",
-      "description": "Configurable particle system.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Particles/Particles.vue"
-        }
-      ]
-    },
-    {
-      "name": "ParticleText",
-      "title": "ParticleText",
-      "description": "Text assembles from drifting particles that scatter and reform on demand.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ParticleText/ParticleText.vue"
-        }
-      ]
-    },
-    {
-      "name": "PeekRating",
-      "title": "PeekRating",
-      "description": "Star rating you can try before you commit: sweeping the row lifts a trailing wave of stars up to the pointer while a tip hops along with the label; a click commits with a pop.",
-      "type": "registry:component",
-      "dependencies": ["@hugeicons/core-free-icons@4.3.3", "@hugeicons/vue@^1.0.8"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "PeekRating/PeekRating.vue"
-        }
-      ]
-    },
-    {
-      "name": "PillNav",
-      "title": "PillNav",
-      "description": "Minimal pill nav with sliding active highlight + smooth easing.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "PillNav/PillNav.vue"
-        }
-      ]
-    },
-    {
-      "name": "PixelBlast",
-      "title": "PixelBlast",
-      "description": "Exploding pixel particle bursts with optional liquid postprocessing.",
-      "type": "registry:component",
-      "dependencies": ["postprocessing@^6.37.6", "three@^0.178.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "PixelBlast/PixelBlast.vue"
-        }
-      ]
-    },
-    {
-      "name": "PixelCard",
-      "title": "PixelCard",
-      "description": "Card content revealed through pixel expansion transition.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "PixelCard/PixelCard.vue"
-        }
-      ]
-    },
-    {
-      "name": "PixelSwap",
-      "title": "PixelSwap",
-      "description": "Pixel fragments assemble into a full cover, swap arbitrary content, then dissolve away with reversible colors and triggers.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "PixelSwap/PixelSwap.vue"
-        }
-      ]
-    },
-    {
-      "name": "PixelTrail",
-      "title": "PixelTrail",
-      "description": "Pixelated cursor trail emitting fading squares with retro digital feel.",
-      "type": "registry:component",
-      "dependencies": ["three@^0.178.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "PixelTrail/PixelTrail.vue"
-        }
-      ]
-    },
-    {
-      "name": "PixelTransition",
-      "title": "PixelTransition",
-      "description": "Pixel dissolve transition for content reveal on hover.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "PixelTransition/PixelTransition.vue"
-        }
-      ]
-    },
-    {
-      "name": "Plasma",
-      "title": "Plasma",
-      "description": "Organic plasma gradients swirl + morph with smooth turbulence.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Plasma/Plasma.vue"
-        }
-      ]
-    },
-    {
-      "name": "PlasmaWave",
-      "title": "PlasmaWave",
-      "description": "Raymarched plasma waves with dual-wave interference and OGL.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "PlasmaWave/PlasmaWave.vue"
-        }
-      ]
-    },
-    {
-      "name": "Prism",
-      "title": "Prism",
-      "description": "Rotating prism with configurable intensity, size, and colors.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Prism/Prism.vue"
-        }
-      ]
-    },
-    {
-      "name": "PrismaticBurst",
-      "title": "PrismaticBurst",
-      "description": "Burst of light rays with controllable color, distortion, amount.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "PrismaticBurst/PrismaticBurst.vue"
-        }
-      ]
-    },
-    {
-      "name": "ProfileCard",
-      "title": "ProfileCard",
-      "description": "Animated profile card glare with 3D hover effect.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ProfileCard/ProfileCard.vue"
-        }
-      ]
-    },
-    {
-      "name": "PromptBar",
-      "title": "PromptBar",
-      "description": "Chat composer with an @ sources menu, a / commands menu, a model picker, dictation and attachments, whose send tile charges to ink the moment there is something to send and morphs its arrow into a stop square while busy.",
-      "type": "registry:component",
-      "dependencies": ["@hugeicons/core-free-icons@4.3.3", "@hugeicons/vue@^1.0.8", "motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "PromptBar/PromptBar.vue"
-        }
-      ]
-    },
-    {
-      "name": "PulseHeart",
-      "title": "PulseHeart",
-      "description": "Like button that contracts to a dot, flips colour at its smallest frame and pulses back while the count swaps one glyph.",
-      "type": "registry:component",
-      "dependencies": ["@hugeicons/core-free-icons@4.3.3"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "PulseHeart/PulseHeart.vue"
-        }
-      ]
-    },
-    {
-      "name": "Radar",
-      "title": "Radar",
-      "description": "Radar sweep effect with concentric rings, radial spokes, and a rotating beam.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Radar/Radar.vue"
-        }
-      ]
-    },
-    {
-      "name": "RefineFrame",
-      "title": "RefineFrame",
-      "description": "Reserved-aspect frame that walks any media through queued, generating, refining and complete without layout shift: each stage is one blur, saturate, scale and opacity tween, a soft band sweeps while it works, a chip reports the stage, and an error dims the picture behind a retry pill.",
-      "type": "registry:component",
-      "dependencies": ["@hugeicons/core-free-icons@4.3.3", "@hugeicons/vue@^1.0.8"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "RefineFrame/RefineFrame.vue"
-        }
-      ]
-    },
-    {
-      "name": "ReflectiveCard",
-      "title": "ReflectiveCard",
-      "description": "Metallic card with live webcam reflection and SVG displacement filter.",
-      "type": "registry:component",
-      "dependencies": ["lucide-vue-next@^0.548.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ReflectiveCard/ReflectiveCard.vue"
-        }
-      ]
-    },
-    {
-      "name": "Ribbons",
-      "title": "Ribbons",
-      "description": "Flowing responsive ribbons/cursor trail driven by physics and pointer motion.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Ribbons/Ribbons.vue"
-        }
-      ]
-    },
-    {
-      "name": "RippleDistortion",
-      "title": "RippleDistortion",
-      "description": "Pointer-driven water displacement that warps content and leaves a decaying wake.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "RippleDistortion/RippleDistortion.vue"
-        }
-      ]
-    },
-    {
-      "name": "RippleGrid",
-      "title": "RippleGrid",
-      "description": "A grid that continuously animates with a ripple effect.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "RippleGrid/RippleGrid.vue"
-        }
-      ]
-    },
-    {
-      "name": "RotatingText",
-      "title": "RotatingText",
-      "description": "Cycles through multiple phrases with 3D rotate / flip transitions.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "RotatingText/RotatingText.vue"
-        }
-      ]
-    },
-    {
-      "name": "RubberSegment",
-      "title": "RubberSegment",
-      "description": "Segmented control with a rubber thumb: taps stretch it across the gap and squash it onto the target, and you can grab, drag and flick it between slots.",
-      "type": "registry:component",
-      "dependencies": ["@hugeicons/vue@^1.0.8", "motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "RubberSegment/RubberSegment.vue"
-        }
-      ]
-    },
-    {
-      "name": "Scanner",
-      "title": "Scanner",
-      "description": "Retro CRT scanner background with sweep lines, chromatic aberration, and mouse interaction.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Scanner/Scanner.vue"
-        }
-      ]
-    },
-    {
-      "name": "ScrambleText",
-      "title": "ScrambleText",
-      "description": "Detects cursor position and applies a distortion effect to text.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ScrambleText/ScrambleText.vue"
-        }
-      ]
-    },
-    {
-      "name": "ScrollExpand",
-      "title": "ScrollExpand",
-      "description": "A rounded media frame that grows to full bleed as it scrolls through the viewport.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ScrollExpand/ScrollExpand.vue"
-        }
-      ]
-    },
-    {
-      "name": "ScrollFloat",
-      "title": "ScrollFloat",
-      "description": "Text gently floats / parallax shifts on scroll.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ScrollFloat/ScrollFloat.vue"
-        }
-      ]
-    },
-    {
-      "name": "ScrollReveal",
-      "title": "ScrollReveal",
-      "description": "Text gently unblurs and reveals on scroll.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ScrollReveal/ScrollReveal.vue"
-        }
-      ]
-    },
-    {
-      "name": "ScrollStack",
-      "title": "ScrollStack",
-      "description": "Overlapping card stack reveals on scroll with depth layering.",
-      "type": "registry:component",
-      "dependencies": ["lenis@^1.3.13"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ScrollStack/ScrollStack.vue"
-        }
-      ]
-    },
-    {
-      "name": "ScrollVelocity",
-      "title": "ScrollVelocity",
-      "description": "Text marquee animatio - speed and distortion scale with user's scroll velocity.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ScrollVelocity/ScrollVelocity.vue"
-        }
-      ]
-    },
-    {
-      "name": "ScrubField",
-      "title": "ScrubField",
-      "description": "Number chip you drag to scrub: the value follows the hand, pushes past the range on a rubber band, and a click without moving opens it for typing.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ScrubField/ScrubField.vue"
-        }
-      ]
-    },
-    {
-      "name": "ShapeBlur",
-      "title": "ShapeBlur",
-      "description": "Morphing blurred geometric shape. The effect occurs on hover.",
-      "type": "registry:component",
-      "dependencies": ["three@^0.178.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ShapeBlur/ShapeBlur.vue"
-        }
-      ]
-    },
-    {
-      "name": "ShapeGrid",
-      "title": "ShapeGrid",
-      "description": "Animated grid with shape variants (square, hexagon, circle, triangle) + direction customization.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ShapeGrid/ShapeGrid.vue"
-        }
-      ]
-    },
-    {
-      "name": "ShapeWaves",
-      "title": "ShapeWaves",
-      "description": "A WebGPU field of triangles, circles and squares that brighten and grow along rolling waves, with an optional text cutout the waves flow around.",
-      "type": "registry:component",
-      "dependencies": ["vgpu@^0.5.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ShapeWaves/ShapeWaves.vue"
-        }
-      ]
-    },
-    {
-      "name": "ShinyText",
-      "title": "ShinyText",
-      "description": "Metallic sheen sweeps across text producing a reflective highlight.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ShinyText/ShinyText.vue"
-        }
-      ]
-    },
-    {
-      "name": "Shredder",
-      "title": "Shredder",
-      "description": "A list with a paper shredder at the bottom. Drag a row into the slit and the rollers tug it in, pull it through and cut it into strips that curl out underneath, tumble away and fade out. The rest of the list settles down on a spring and the shredded item is handed to you to delete.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Shredder/Shredder.vue"
-        }
-      ]
-    },
-    {
-      "name": "Shuffle",
-      "title": "Shuffle",
-      "description": "Animated text reveal where characters shuffle before settling.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Shuffle/Shuffle.vue"
-        }
-      ]
-    },
-    {
-      "name": "SideRays",
-      "title": "SideRays",
-      "description": "Animated light rays emanating from the side with customizable colors and speed.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "SideRays/SideRays.vue"
-        }
-      ]
-    },
-    {
-      "name": "SlideCommit",
-      "title": "SlideCommit",
-      "description": "Slide-to-confirm handle that plants with a spinner while your action runs, unfurls into a done pill on success and springs home with a squash and shake on failure.",
-      "type": "registry:component",
-      "dependencies": ["@hugeicons/core-free-icons@4.3.3", "@hugeicons/vue@^1.0.8", "motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "SlideCommit/SlideCommit.vue"
-        }
-      ]
-    },
-    {
-      "name": "SlingButton",
-      "title": "SlingButton",
-      "description": "Send button you pull back like a slingshot: the band stretches, a power arc arms it, and releasing fires the action with the flick's velocity.",
-      "type": "registry:component",
-      "dependencies": ["@hugeicons/core-free-icons@4.3.3", "@hugeicons/vue@^1.0.8", "motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "SlingButton/SlingButton.vue"
-        }
-      ]
-    },
-    {
-      "name": "SloshGauge",
-      "title": "SloshGauge",
-      "description": "Tank gauge whose liquid chases the value with mass, tilts with its own speed and splashes against the top when it slams full; optionally a vertical slider.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "SloshGauge/SloshGauge.vue"
-        }
-      ]
-    },
-    {
-      "name": "SpecularButton",
-      "title": "SpecularButton",
-      "description": "Glass button with a shader-driven specular rim light that sweeps around the edge and follows the cursor.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "SpecularButton/SpecularButton.vue"
-        }
-      ]
-    },
-    {
-      "name": "SplashCursor",
-      "title": "SplashCursor",
-      "description": "Liquid splash burst at cursor with curling ripples and waves.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "SplashCursor/SplashCursor.vue"
-        }
-      ]
-    },
-    {
-      "name": "SplitFlapText",
-      "title": "SplitFlapText",
-      "description": "Mechanical split-flap departure board that clacks through to each new phrase.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "SplitFlapText/SplitFlapText.vue"
-        }
-      ]
-    },
-    {
-      "name": "SplitText",
-      "title": "SplitText",
-      "description": "Splits text into characters / words for staggered entrance animation.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "SplitText/SplitText.vue"
-        }
-      ]
-    },
-    {
-      "name": "SpotlightCard",
-      "title": "SpotlightCard",
-      "description": "Dynamic spotlight follows cursor casting gradient illumination.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "SpotlightCard/SpotlightCard.vue"
-        }
-      ]
-    },
-    {
-      "name": "SpringCheck",
-      "title": "SpringCheck",
-      "description": "Checkbox row where a single spring fills the box, draws the tick, strikes the label and dims the words in one press.",
-      "type": "registry:component",
-      "dependencies": ["@hugeicons/core-free-icons@4.3.3", "motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "SpringCheck/SpringCheck.vue"
-        }
-      ]
-    },
-    {
-      "name": "SquishSwitch",
-      "title": "SquishSwitch",
-      "description": "Drag-scrubbable switch whose thumb stretches by how fast it moves, flips at the midpoint and squashes against the track end on a flick.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "SquishSwitch/SquishSwitch.vue"
-        }
-      ]
-    },
-    {
-      "name": "Stack",
-      "title": "Stack",
-      "description": "Layered stack with swipe animations, autoplay and smooth transitions.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Stack/Stack.vue"
-        }
-      ]
-    },
-    {
-      "name": "StaggeredMenu",
-      "title": "StaggeredMenu",
-      "description": "Menu with staggered item animations and smooth transitions on open/close.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "StaggeredMenu/StaggeredMenu.vue"
-        }
-      ]
-    },
-    {
-      "name": "StarBorder",
-      "title": "StarBorder",
-      "description": "Animated star / sparkle border orbiting content with twinkle pulses.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "StarBorder/StarBorder.vue"
-        }
-      ]
-    },
-    {
-      "name": "StatusMark",
-      "title": "StatusMark",
-      "description": "A 20px status glyph for agent task lists that morphs in place from a dashed idle ring to a spinning or real-progress arc, then draws a check or a cross, with an optional label strike.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "StatusMark/StatusMark.vue"
-        }
-      ]
-    },
-    {
-      "name": "Stepper",
-      "title": "Stepper",
-      "description": "Animated multi-step progress indicator with active state transitions.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Stepper/React to Vue Differences Stepper.vue"
-        },
-        {
-          "type": "registry:component",
-          "path": "Stepper/Stepper.vue"
-        }
-      ]
-    },
-    {
-      "name": "StickerPeel",
-      "title": "StickerPeel",
-      "description": "Sticker corner lift + peel interaction using 3D transform and shadow depth.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "StickerPeel/StickerPeel.vue"
-        }
-      ]
-    },
-    {
-      "name": "Strands",
-      "title": "Strands",
-      "description": "Glowing ribbon-like strands that ripple and weave across a transparent canvas.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Strands/Strands.vue"
-        }
-      ]
-    },
-    {
-      "name": "StrokeText",
-      "title": "StrokeText",
-      "description": "Outlined letterforms draw themselves on, then flood with fill.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "StrokeText/StrokeText.vue"
-        }
-      ]
-    },
-    {
-      "name": "SwarmCursor",
-      "title": "SwarmCursor",
-      "description": "Flocking particle swarm that chases the pointer, jostles for space and drifts apart at rest.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "SwarmCursor/SwarmCursor.vue"
-        }
-      ]
-    },
-    {
-      "name": "SwipeRow",
-      "title": "SwipeRow",
-      "description": "List row that swipes open to reveal actions, snaps by flick velocity, and deletes on a full swipe that stretches the action colour across the row.",
-      "type": "registry:component",
-      "dependencies": ["@hugeicons/core-free-icons@4.3.3", "@hugeicons/vue@^1.0.8", "motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "SwipeRow/SwipeRow.vue"
-        }
-      ]
-    },
-    {
-      "name": "SwipeToast",
-      "title": "SwipeToast",
-      "description": "Single toast that rises through its bottom edge, swipes down to dismiss on a flick or a distance, and burns a thin fuse for exactly its remaining time; hover pauses it and an inline mode keeps it inside any container.",
-      "type": "registry:component",
-      "dependencies": ["@hugeicons/core-free-icons@4.3.3", "@hugeicons/vue@^1.0.8", "motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "SwipeToast/SwipeToast.vue"
-        }
-      ]
-    },
-    {
-      "name": "TargetCursor",
-      "title": "TargetCursor",
-      "description": "A cursor follow animation with 4 corners that lock onto targets.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "TargetCursor/TargetCursor.vue"
-        }
-      ]
-    },
-    {
-      "name": "TearTicket",
-      "title": "TearTicket",
-      "description": "Ticket whose perforated stub tears off by hand: paper bridges stretch into fibres and snap one by one from the far end, the torn edges are jagged and fit each other, the freed stub dangles and drops, and the body is stamped as used. The artwork tilts in 3D with parallax on hover.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "TearTicket/TearTicket.vue"
-        }
-      ]
-    },
-    {
-      "name": "TechText",
-      "title": "TechText",
-      "description": "A wordmark whose letters turn into dashed vector paths under the cursor. Grab any letter to drag it off the baseline and it springs back home.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "TechText/TechText.vue"
-        }
-      ]
-    },
-    {
-      "name": "TextCursor",
-      "title": "TextCursor",
-      "description": "Make any text element follow your cursor, leaving a trail of copies behind it.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "TextCursor/TextCursor.vue"
-        }
-      ]
-    },
-    {
-      "name": "TextLoop",
-      "title": "TextLoop",
-      "description": "A seamless text marquee that flows along curved SVG paths.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "TextLoop/TextLoop.vue"
-        }
-      ]
-    },
-    {
-      "name": "TextPressure",
-      "title": "TextPressure",
-      "description": "Characters scale / warp interactively based on pointer pressure zone.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "TextPressure/TextPressure.vue"
-        }
-      ]
-    },
-    {
-      "name": "TextType",
-      "title": "TextType",
-      "description": "Typewriter effect with blinking cursor and adjustable typing cadence.",
-      "type": "registry:component",
-      "dependencies": ["gsap@^3.13.0"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "TextType/TextType.vue"
-        }
-      ]
-    },
-    {
-      "name": "ThoughtLine",
-      "title": "ThoughtLine",
-      "description": "Reasoning-trace header: a glyph and a label breathe beside a live clock while steps appear beneath, then the line settles on one beat into \"Thought for 4.2s\" through a blur crossfade and the trace folds into it.",
-      "type": "registry:component",
-      "dependencies": ["@hugeicons/core-free-icons@4.3.3", "@hugeicons/vue@^1.0.8", "motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "ThoughtLine/ThoughtLine.vue"
-        }
-      ]
-    },
-    {
-      "name": "TiltedCard",
-      "title": "TiltedCard",
-      "description": "3D perspective tilt card reacting to pointer.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "TiltedCard/TiltedCard.vue"
-        }
-      ]
-    },
-    {
-      "name": "Topography",
-      "title": "Topography",
-      "description": "A living contour map with glowing, elevation-tinted lines.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "Topography/Topography.vue"
-        }
-      ]
-    },
-    {
-      "name": "TrueFocus",
-      "title": "TrueFocus",
-      "description": "Applies dynamic blur / clarity based over a series of words in order.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "TrueFocus/TrueFocus.vue"
-        }
-      ]
-    },
-    {
-      "name": "VariableProximity",
-      "title": "VariableProximity",
-      "description": "Letter styling changes continuously with pointer distance mapping.",
-      "type": "registry:component",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "VariableProximity/VariableProximity.vue"
-        }
-      ]
-    },
-    {
-      "name": "VoicePill",
-      "title": "VoicePill",
-      "description": "Mic button that swells into a tinted capsule of level-driven equalizer bars and an elapsed clock while held or toggled, then relaxes back into the mic on release; simulated voice by default, real microphone as an opt-in.",
-      "type": "registry:component",
-      "dependencies": ["@hugeicons/core-free-icons@4.3.3", "@hugeicons/vue@^1.0.8"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "VoicePill/VoicePill.vue"
-        }
-      ]
-    },
-    {
-      "name": "WakeSlider",
-      "title": "WakeSlider",
-      "description": "Range slider drawn as thin bars with no thumb: drag speed raises a wake that trails behind the handle and flattens again at rest.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "WakeSlider/WakeSlider.vue"
-        }
-      ]
-    },
-    {
-      "name": "WarmTooltip",
-      "title": "WarmTooltip",
-      "description": "Tooltip group with one shared delay: the first label waits and pops from its trigger, then siblings open instantly while the group is warm, with an optional velocity lean.",
-      "type": "registry:component",
-      "dependencies": ["motion-v@^1.10.2"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "WarmTooltip/WarmTooltip.vue"
-        }
-      ]
-    },
-    {
-      "name": "WarpText",
-      "title": "WarpText",
-      "description": "WebGL warp that bends and refracts the text around the pointer.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "WarpText/WarpText.vue"
-        }
-      ]
-    },
-    {
-      "name": "WebThreads",
-      "title": "WebThreads",
-      "description": "Glowing sine threads woven through a luminous convergence point.",
-      "type": "registry:component",
-      "dependencies": ["ogl@^1.0.11"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "type": "registry:component",
-          "path": "WebThreads/WebThreads.vue"
-        }
-      ]
-    }
-  ]
+	"$schema": "https://ui.shadcn.com/schema/registry.json",
+	"name": "@vue-bits",
+	"homepage": "https://vue-bits.dev",
+	"items": [
+		{
+			"name": "AccordionGallery",
+			"title": "AccordionGallery",
+			"description": "Panels expand on hover or focus, revealing parallax imagery and captions.",
+			"type": "registry:component",
+			"dependencies": [
+				"gsap@^3.13.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "AccordionGallery/AccordionGallery.vue"
+				}
+			]
+		},
+		{
+			"name": "AcidSquares",
+			"title": "AcidSquares",
+			"description": "A rolling field of glossy squares that ripples under two drifting colored lights.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "AcidSquares/AcidSquares.vue"
+				}
+			]
+		},
+		{
+			"name": "AeroShards",
+			"title": "AeroShards",
+			"description": "Silk ribbons of thick glass shards streaming on layered depths among survey markers, catching light along their edges.",
+			"type": "registry:component",
+			"dependencies": [
+				"vgpu@^0.5.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "AeroShards/AeroShards.vue"
+				}
+			]
+		},
+		{
+			"name": "AnimatedContent",
+			"title": "AnimatedContent",
+			"description": "Wrapper that reveals its content on scroll with slides, blur, 3D tilts, soft wipes and staggered children.",
+			"type": "registry:component",
+			"dependencies": [
+				"gsap@^3.13.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "AnimatedContent/AnimatedContent.vue"
+				}
+			]
+		},
+		{
+			"name": "AnimatedList",
+			"title": "AnimatedList",
+			"description": "A scrolling list whose rows spring into view, with a gliding selection and arrow keys.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/vue@^1.0.8",
+				"@hugeicons/core-free-icons@4.3.3"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "AnimatedList/AnimatedList.vue"
+				}
+			]
+		},
+		{
+			"name": "Antigravity",
+			"title": "Antigravity",
+			"description": "A field of particles that lifts into a glowing ring around the cursor and bursts outward on click.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Antigravity/Antigravity.vue"
+				}
+			]
+		},
+		{
+			"name": "ASCIIText",
+			"title": "ASCIIText",
+			"description": "Waving ASCII text that tilts toward the pointer, scrambles on hover and ripples on click.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ASCIIText/ASCIIText.vue"
+				}
+			]
+		},
+		{
+			"name": "Aurora",
+			"title": "Aurora",
+			"description": "A soft, calm aurora that flows across the top of the page and drifts toward the cursor.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Aurora/Aurora.vue"
+				}
+			]
+		},
+		{
+			"name": "Balatro",
+			"title": "Balatro",
+			"description": "The swirling Balatro paint shader, with crisp pixels, a cursor that stirs the paint and click whirlpools.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Balatro/Balatro.vue"
+				}
+			]
+		},
+		{
+			"name": "Ballpit",
+			"title": "Ballpit",
+			"description": "A soft-lit pit of physics balls you can shove with the cursor, grab, throw and blast apart.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Ballpit/Ballpit.vue"
+				}
+			]
+		},
+		{
+			"name": "Beams",
+			"title": "Beams",
+			"description": "Glossy ribbons that ripple in the dark and catch the light, which follows your cursor.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Beams/Beams.vue"
+				}
+			]
+		},
+		{
+			"name": "BellToggle",
+			"title": "BellToggle",
+			"description": "Pill toggle where a press rings the bell, crossfades the label and unfurls the pill.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/core-free-icons@4.3.3",
+				"@hugeicons/vue@^1.0.8",
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "BellToggle/BellToggle.vue"
+				}
+			]
+		},
+		{
+			"name": "BlobCursor",
+			"title": "BlobCursor",
+			"description": "Liquid metal blob cursor that stretches, sloshes and bursts into droplets, in chrome, jelly, pearl or ink.",
+			"type": "registry:component",
+			"dependencies": [
+				"three@^0.180.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "BlobCursor/BlobCursor.vue"
+				}
+			]
+		},
+		{
+			"name": "BlurText",
+			"title": "BlurText",
+			"description": "Text starts blurred then crisply resolves for a soft-focus reveal effect.",
+			"type": "registry:component",
+			"dependencies": [
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "BlurText/BlurText.vue"
+				}
+			]
+		},
+		{
+			"name": "BorderGlow",
+			"title": "BorderGlow",
+			"description": "Glowing mesh-gradient border that follows cursor direction and intensifies near edges.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "BorderGlow/BorderGlow.vue"
+				}
+			]
+		},
+		{
+			"name": "BounceCards",
+			"title": "BounceCards",
+			"description": "A fan of photo cards that bounce in, then spread apart and straighten the one you hover.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "BounceCards/BounceCards.vue"
+				}
+			]
+		},
+		{
+			"name": "BranchedMenu",
+			"title": "BranchedMenu",
+			"description": "Collapsible menu that branches each section from a trunk and traces a line to your pick.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/core-free-icons@4.3.3",
+				"@hugeicons/vue@^1.0.8"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "BranchedMenu/BranchedMenu.vue"
+				}
+			]
+		},
+		{
+			"name": "BubbleMenu",
+			"title": "BubbleMenu",
+			"description": "Floating circular expanding menu with staggered item reveal.",
+			"type": "registry:component",
+			"dependencies": [
+				"gsap@^3.13.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "BubbleMenu/BubbleMenu.vue"
+				}
+			]
+		},
+		{
+			"name": "CallChip",
+			"title": "CallChip",
+			"description": "Tool-call chip whose fill wipes across as a live timer ticks, ending green or shaking red.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/core-free-icons@4.3.3",
+				"@hugeicons/vue@^1.0.8"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "CallChip/CallChip.vue"
+				}
+			]
+		},
+		{
+			"name": "CardNav",
+			"title": "CardNav",
+			"description": "A navigation bar that springs open into a row of cards, each with its own links.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/vue@^1.0.8",
+				"@hugeicons/core-free-icons@4.3.3"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "CardNav/CardNav.vue"
+				}
+			]
+		},
+		{
+			"name": "CardSwap",
+			"title": "CardSwap",
+			"description": "A 3D stack of cards that sends the front card to the back on a timer, or when you fling it.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/vue@^1.0.8",
+				"@hugeicons/core-free-icons@4.3.3"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "CardSwap/CardSwap.vue"
+				}
+			]
+		},
+		{
+			"name": "Carousel",
+			"title": "Carousel",
+			"description": "Swipeable cards for feature tours, stories and galleries, with five transitions and an autoplay timer.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/vue@^1.0.8",
+				"@hugeicons/core-free-icons@4.3.3"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Carousel/Carousel.vue"
+				}
+			]
+		},
+		{
+			"name": "ChromaGrid",
+			"title": "ChromaGrid",
+			"description": "A grid of grayscale photo cards where a spotlight follows the cursor and brings back color.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ChromaGrid/ChromaGrid.vue"
+				}
+			]
+		},
+		{
+			"name": "CircularCarousel",
+			"title": "CircularCarousel",
+			"description": "A 3D ring of images with bendable cards, momentum drag, snapping and click to focus.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "CircularCarousel/CircularCarousel.vue"
+				}
+			]
+		},
+		{
+			"name": "CircularGallery",
+			"title": "CircularGallery",
+			"description": "A curved image gallery you can drag, scroll or tab through, with cards that open to the full image.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "CircularGallery/CircularGallery.vue"
+				}
+			]
+		},
+		{
+			"name": "CircularText",
+			"title": "CircularText",
+			"description": "Layouts characters around a circle with optional rotation animation.",
+			"type": "registry:component",
+			"dependencies": [
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "CircularText/CircularText.vue"
+				}
+			]
+		},
+		{
+			"name": "ClickSpark",
+			"title": "ClickSpark",
+			"description": "Bursts of sparks at every click, as dashes, comets, dots or stars, that can spill around buttons.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ClickSpark/ClickSpark.vue"
+				}
+			]
+		},
+		{
+			"name": "CodeSlots",
+			"title": "CodeSlots",
+			"description": "One-time code input whose digits spring into their slots, with paste and SMS autofill.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/core-free-icons@4.3.3",
+				"@hugeicons/vue@^1.0.8",
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "CodeSlots/CodeSlots.vue"
+				}
+			]
+		},
+		{
+			"name": "ColorBends",
+			"title": "ColorBends",
+			"description": "Vibrant color bends with smooth flowing animation.",
+			"type": "registry:component",
+			"dependencies": [
+				"three@^0.180.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ColorBends/ColorBends.vue"
+				}
+			]
+		},
+		{
+			"name": "CometDial",
+			"title": "CometDial",
+			"description": "Tick-ring dial you flick by angle, with a comet that streaks behind the lit head.",
+			"type": "registry:component",
+			"dependencies": [
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "CometDial/CometDial.vue"
+				}
+			]
+		},
+		{
+			"name": "Counter",
+			"title": "Counter",
+			"description": "An odometer-style number whose digits roll to every new value, with currency, separators and locales.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Counter/Counter.vue"
+				}
+			]
+		},
+		{
+			"name": "CountUp",
+			"title": "CountUp",
+			"description": "Animated number counter supporting formatting and decimals.",
+			"type": "registry:component",
+			"dependencies": [
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "CountUp/CountUp.vue"
+				}
+			]
+		},
+		{
+			"name": "Crosshair",
+			"title": "Crosshair",
+			"description": "Crosshair cursor with live coordinates that locks onto links and buttons and measures them.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Crosshair/Crosshair.vue"
+				}
+			]
+		},
+		{
+			"name": "CRTWarp",
+			"title": "CRTWarp",
+			"description": "A blocky plasma glowing on a curved CRT, with real scanlines, a phosphor mask, afterglow and a power-on intro.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "CRTWarp/CRTWarp.vue"
+				}
+			]
+		},
+		{
+			"name": "CrystalizedBall",
+			"title": "CrystalizedBall",
+			"description": "A glass ball with a crackling electric rim and glowing dust that swirls with the cursor.",
+			"type": "registry:component",
+			"dependencies": [
+				"ogl@^1.0.11"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "CrystalizedBall/CrystalizedBall.vue"
+				}
+			]
+		},
+		{
+			"name": "Cubes",
+			"title": "Cubes",
+			"description": "A grid of outlined 3D cubes that turn to face the cursor, spin when swept and ripple on click.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Cubes/Cubes.vue"
+				}
+			]
+		},
+		{
+			"name": "CursorGrid",
+			"title": "CursorGrid",
+			"description": "A crisp grid whose cells light up and fade behind the cursor, with grid styles, tiles and click pulses.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "CursorGrid/CursorGrid.vue"
+				}
+			]
+		},
+		{
+			"name": "CurvedInput",
+			"title": "CurvedInput",
+			"description": "Arc-bent input bar with text, caret and submit button all following the curve.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "CurvedInput/CurvedInput.vue"
+				}
+			]
+		},
+		{
+			"name": "CurvedLoop",
+			"title": "CurvedLoop",
+			"description": "Flowing looping text path along a customizable curve with drag interaction.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "CurvedLoop/CurvedLoop.vue"
+				}
+			]
+		},
+		{
+			"name": "DarkVeil",
+			"title": "DarkVeil",
+			"description": "A silky veil of light that drifts in the dark and bends around the cursor.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "DarkVeil/DarkVeil.vue"
+				}
+			]
+		},
+		{
+			"name": "DecayCard",
+			"title": "DecayCard",
+			"description": "An image card that tears and melts as the pointer moves, then pulls itself back together.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "DecayCard/DecayCard.vue"
+				}
+			]
+		},
+		{
+			"name": "DecryptedText",
+			"title": "DecryptedText",
+			"description": "Hacker-style decryption cycling random glyphs until resolving to real text.",
+			"type": "registry:component",
+			"dependencies": [
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "DecryptedText/DecryptedText.vue"
+				}
+			]
+		},
+		{
+			"name": "DepthCarousel",
+			"title": "DepthCarousel",
+			"description": "Cards recede into depth on a 3D rail, with drag, keyboard and auto-advance.",
+			"type": "registry:component",
+			"dependencies": [
+				"gsap@^3.13.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "DepthCarousel/DepthCarousel.vue"
+				}
+			]
+		},
+		{
+			"name": "DepthText",
+			"title": "DepthText",
+			"description": "Layered extruded type with parallax that shifts against the pointer.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "DepthText/DepthText.vue"
+				}
+			]
+		},
+		{
+			"name": "Dither",
+			"title": "Dither",
+			"description": "Retro dithered waves with Bayer, halftone, line and noise patterns, palettes and cursor trails.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Dither/Dither.vue"
+				}
+			]
+		},
+		{
+			"name": "DitherVeil",
+			"title": "DitherVeil",
+			"description": "A 1-bit dithered photo the cursor burns through to full colour, knitting back cell by cell.",
+			"type": "registry:component",
+			"dependencies": [
+				"ogl@^1.0.11"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "DitherVeil/DitherVeil.vue"
+				}
+			]
+		},
+		{
+			"name": "Dock",
+			"title": "Dock",
+			"description": "macOS style dock with smooth magnification, launch bounce, badges and context menus.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Dock/Dock.vue"
+				}
+			]
+		},
+		{
+			"name": "DodgeField",
+			"title": "DodgeField",
+			"description": "Wrapper that makes any child dodge the pointer until it relents and glides home.",
+			"type": "registry:component",
+			"dependencies": [
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "DodgeField/DodgeField.vue"
+				}
+			]
+		},
+		{
+			"name": "DomeGallery",
+			"title": "DomeGallery",
+			"description": "Immersive 3D dome gallery projecting images on a hemispheric surface.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "DomeGallery/DomeGallery.vue"
+				}
+			]
+		},
+		{
+			"name": "DotField",
+			"title": "DotField",
+			"description": "A gradient dot field seen through a lens that follows the cursor, magnifying, pinching or swirling the dots.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "DotField/DotField.vue"
+				}
+			]
+		},
+		{
+			"name": "DotGrid",
+			"title": "DotGrid",
+			"description": "A springy dot grid that the cursor flicks and drags through like jelly, with click shockwaves.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "DotGrid/DotGrid.vue"
+				}
+			]
+		},
+		{
+			"name": "DriftWall",
+			"title": "DriftWall",
+			"description": "An endless perspective wall of tiles drifting past, lifting on hover.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "DriftWall/DriftWall.vue"
+				}
+			]
+		},
+		{
+			"name": "EchoText",
+			"title": "EchoText",
+			"description": "Ghosted copies trail behind the text and settle into a single word.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "EchoText/EchoText.vue"
+				}
+			]
+		},
+		{
+			"name": "ElasticMesh",
+			"title": "ElasticMesh",
+			"description": "Turns text or any logo into a puffy inflated shape you can press, poke and stretch like jelly.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ElasticMesh/ElasticMesh.vue"
+				}
+			]
+		},
+		{
+			"name": "ElasticSlider",
+			"title": "ElasticSlider",
+			"description": "A slider that grows under your cursor and stretches like rubber when pulled past either end, then springs back.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/vue@^1.0.8",
+				"@hugeicons/core-free-icons@4.3.3"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ElasticSlider/ElasticSlider.vue"
+				}
+			]
+		},
+		{
+			"name": "ElectricBorder",
+			"title": "ElectricBorder",
+			"description": "Wraps any element in crackling strands of current that surge near the cursor and leap off in sparks.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ElectricBorder/ElectricBorder.vue"
+				}
+			]
+		},
+		{
+			"name": "ElectricLogo",
+			"title": "ElectricLogo",
+			"description": "Turns any logo into a living lightning outline, with arcs that leap off its edges.",
+			"type": "registry:component",
+			"dependencies": [
+				"ogl@^1.0.11"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ElectricLogo/ElectricLogo.vue"
+				}
+			]
+		},
+		{
+			"name": "EvilEye",
+			"title": "EvilEye",
+			"description": "Procedural evil eye shader with animated iris, slit pupil, and fiery outer glow.",
+			"type": "registry:component",
+			"dependencies": [
+				"ogl@^1.0.11"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "EvilEye/EvilEye.vue"
+				}
+			]
+		},
+		{
+			"name": "FadeContent",
+			"title": "FadeContent",
+			"description": "Wrapper that fades content in on scroll, plain or out of focus, from washed-out gray, or through grain, mist and pixel blocks.",
+			"type": "registry:component",
+			"dependencies": [
+				"gsap@^3.13.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "FadeContent/FadeContent.vue"
+				}
+			]
+		},
+		{
+			"name": "FallingText",
+			"title": "FallingText",
+			"description": "Text that breaks apart and tumbles into a pile you can drag, throw and swipe, then flies back into place.",
+			"type": "registry:component",
+			"dependencies": [
+				"matter-js@^0.20.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "FallingText/FallingText.vue"
+				}
+			]
+		},
+		{
+			"name": "FaultyTerminal",
+			"title": "FaultyTerminal",
+			"description": "A flickering CRT terminal of glowing glyphs, with phosphor trails under the cursor and glitches on click.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "FaultyTerminal/FaultyTerminal.vue"
+				}
+			]
+		},
+		{
+			"name": "Ferrofluid",
+			"title": "Ferrofluid",
+			"description": "A glossy sea of magnetic fluid where swells of spikes roll in and the cursor raises a crown.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Ferrofluid/Ferrofluid.vue"
+				}
+			]
+		},
+		{
+			"name": "FlexCarousel",
+			"title": "FlexCarousel",
+			"description": "An infinite image row that flows through invisible liquid glass at its edges.",
+			"type": "registry:component",
+			"dependencies": [
+				"ogl@^1.0.11"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "FlexCarousel/FlexCarousel.vue"
+				}
+			]
+		},
+		{
+			"name": "FlipCard",
+			"title": "FlipCard",
+			"description": "Two-faced card that flips in 3D on a click, drag or flick and settles on a spring.",
+			"type": "registry:component",
+			"dependencies": [
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "FlipCard/FlipCard.vue"
+				}
+			]
+		},
+		{
+			"name": "FloatingLines",
+			"title": "FloatingLines",
+			"description": "Ribbons of fine glowing lines that drift in waves, part around the cursor and curl when clicked.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "FloatingLines/FloatingLines.vue"
+				}
+			]
+		},
+		{
+			"name": "FlowingMenu",
+			"title": "FlowingMenu",
+			"description": "A full-height menu with a liquid band that glides between rows and reveals a scrolling marquee of each item.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/vue@^1.0.8",
+				"@hugeicons/core-free-icons@4.3.3"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "FlowingMenu/FlowingMenu.vue"
+				}
+			]
+		},
+		{
+			"name": "FluidGlass",
+			"title": "FluidGlass",
+			"description": "A 3D glass object that refracts your headline, image or video, follows the cursor and melts between shapes.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "FluidGlass/FluidGlass.vue"
+				}
+			]
+		},
+		{
+			"name": "FluxLines",
+			"title": "FluxLines",
+			"description": "Glowing flux lines tracing a churning magnetic fluid. The cursor magnet reveals and curls them.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "FluxLines/FluxLines.vue"
+				}
+			]
+		},
+		{
+			"name": "FlyingPosters",
+			"title": "FlyingPosters",
+			"description": "3D posters that twist and flip as you scroll or drag through an endless column.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "FlyingPosters/FlyingPosters.vue"
+				}
+			]
+		},
+		{
+			"name": "Folder",
+			"title": "Folder",
+			"description": "Folder that drops its flap open or swings open like a book, with pages you can pick.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Folder/Folder.vue"
+				}
+			]
+		},
+		{
+			"name": "FolderFloat",
+			"title": "FolderFloat",
+			"description": "Folder whose notes spring out into a floating cloud when it opens on hover or press.",
+			"type": "registry:component",
+			"dependencies": [
+				"matter-js@^0.20.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "FolderFloat/FolderFloat.vue"
+				}
+			]
+		},
+		{
+			"name": "FoldText",
+			"title": "FoldText",
+			"description": "Lines unfold into place like creased paper opening flat.",
+			"type": "registry:component",
+			"dependencies": [
+				"gsap@^3.13.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "FoldText/FoldText.vue"
+				}
+			]
+		},
+		{
+			"name": "FuseButton",
+			"title": "FuseButton",
+			"description": "Action button whose done state carries an undo on a burning fuse.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/core-free-icons@4.3.3",
+				"@hugeicons/vue@^1.0.8"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "FuseButton/FuseButton.vue"
+				}
+			]
+		},
+		{
+			"name": "FuzzyText",
+			"title": "FuzzyText",
+			"description": "Vibrating fuzzy text with controllable hover intensity.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "FuzzyText/FuzzyText.vue"
+				}
+			]
+		},
+		{
+			"name": "Galaxy",
+			"title": "Galaxy",
+			"description": "Endless flight through a twinkling starfield with warp jumps, cursor repulsion and star palettes.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Galaxy/Galaxy.vue"
+				}
+			]
+		},
+		{
+			"name": "GhostCursor",
+			"title": "GhostCursor",
+			"description": "A ghost of glowing smoke that floats after the cursor and curls away as it rises.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "GhostCursor/GhostCursor.vue"
+				}
+			]
+		},
+		{
+			"name": "GhostFibers",
+			"title": "GhostFibers",
+			"description": "Layered ribbons of fine glowing fibers that twist, fold and drift through soft depth of field.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "GhostFibers/GhostFibers.vue"
+				}
+			]
+		},
+		{
+			"name": "GlareHover",
+			"title": "GlareHover",
+			"description": "A glossy light streak that sweeps across any element in the direction the cursor moves.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "GlareHover/GlareHover.vue"
+				}
+			]
+		},
+		{
+			"name": "GlassIcons",
+			"title": "GlassIcons",
+			"description": "Liquid glass icons that bend the color behind them, for app grids, docks and social links.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "GlassIcons/GlassIcons.vue"
+				}
+			]
+		},
+		{
+			"name": "GlassSurface",
+			"title": "GlassSurface",
+			"description": "Apple-style liquid glass that bends what is behind it, in a rounded panel or any logo shape.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "GlassSurface/GlassSurface.vue"
+				}
+			]
+		},
+		{
+			"name": "GlideSelect",
+			"title": "GlideSelect",
+			"description": "Select chip whose menu pops from its corner and whose highlight glides between rows.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/core-free-icons@4.3.3",
+				"@hugeicons/vue@^1.0.8"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "GlideSelect/GlideSelect.vue"
+				}
+			]
+		},
+		{
+			"name": "GlitchText",
+			"title": "GlitchText",
+			"description": "RGB split and distortion glitch effect with jitter effects.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "GlitchText/GlitchText.vue"
+				}
+			]
+		},
+		{
+			"name": "GlowCursor",
+			"title": "GlowCursor",
+			"description": "Light that pours from the cursor, drifts softly through the air and cools as it fades.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "GlowCursor/GlowCursor.vue"
+				}
+			]
+		},
+		{
+			"name": "GooeyNav",
+			"title": "GooeyNav",
+			"description": "A navigation bar whose active pill breaks into goo that flows over to the item you pick.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "GooeyNav/GooeyNav.vue"
+				}
+			]
+		},
+		{
+			"name": "GradientASCII",
+			"title": "GradientASCII",
+			"description": "Soft gradient glows drawn in ASCII characters that scramble under the cursor.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "GradientASCII/GradientASCII.vue"
+				}
+			]
+		},
+		{
+			"name": "GradientBlinds",
+			"title": "GradientBlinds",
+			"description": "Satin gradient blinds lit by a spotlight that follows the cursor, swaying and turning toward the light.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "GradientBlinds/GradientBlinds.vue"
+				}
+			]
+		},
+		{
+			"name": "GradientText",
+			"title": "GradientText",
+			"description": "Living gradients inside your text: a sliding sweep, a drifting mesh or a swinging conic fan.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "GradientText/GradientText.vue"
+				}
+			]
+		},
+		{
+			"name": "GradientWaves",
+			"title": "GradientWaves",
+			"description": "Lit satin waves rolling in from a hazy horizon, with a light that follows the cursor and swells on click.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "GradientWaves/GradientWaves.vue"
+				}
+			]
+		},
+		{
+			"name": "GradualBlur",
+			"title": "GradualBlur",
+			"description": "Progressive edge blur for headers, footers, captions and carousels, with an optional fade to color that hides at the ends of a scroll.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "GradualBlur/GradualBlur.vue"
+				}
+			]
+		},
+		{
+			"name": "Grainient",
+			"title": "Grainient",
+			"description": "Flowing grainy gradients you can stir with the cursor.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Grainient/Grainient.vue"
+				}
+			]
+		},
+		{
+			"name": "GridDistortion",
+			"title": "GridDistortion",
+			"description": "Image background that breaks into a grid of blocks under the cursor and settles back into place.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "GridDistortion/GridDistortion.vue"
+				}
+			]
+		},
+		{
+			"name": "GridMotion",
+			"title": "GridMotion",
+			"description": "A tilted wall of drifting tiles that slides with the pointer and lights up where it rests.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "GridMotion/GridMotion.vue"
+				}
+			]
+		},
+		{
+			"name": "GridScan",
+			"title": "GridScan",
+			"description": "A 3D grid room swept by a scanning light that follows your view.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "GridScan/GridScan.vue"
+				}
+			]
+		},
+		{
+			"name": "HalftoneReveal",
+			"title": "HalftoneReveal",
+			"description": "A halftone print of an image whose dots swell into the real photo under the cursor.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "HalftoneReveal/HalftoneReveal.vue"
+				}
+			]
+		},
+		{
+			"name": "HoldButton",
+			"title": "HoldButton",
+			"description": "Hold-to-confirm button whose liquid fill rises while pressed and snaps back if you let go.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "HoldButton/HoldButton.vue"
+				}
+			]
+		},
+		{
+			"name": "HoloCard",
+			"title": "HoloCard",
+			"description": "Collectible trading card with a real holographic foil and glitter that sparkles as it tilts.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "HoloCard/HoloCard.vue"
+				}
+			]
+		},
+		{
+			"name": "HoloMosaic",
+			"title": "HoloMosaic",
+			"description": "Holographic tiles that split light into sweeping color as it moves, with glitter, a flip-in intro and click waves.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "HoloMosaic/HoloMosaic.vue"
+				}
+			]
+		},
+		{
+			"name": "Hyperspeed",
+			"title": "Hyperspeed",
+			"description": "Night highway of glowing light trails on a winding road that warps into hyperspace while you hold.",
+			"type": "registry:component",
+			"dependencies": [
+				"three@^0.180.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Hyperspeed/Hyperspeed.vue"
+				}
+			]
+		},
+		{
+			"name": "ImageTrail",
+			"title": "ImageTrail",
+			"description": "Cursor-based image trail with several built-in variants.",
+			"type": "registry:component",
+			"dependencies": [
+				"gsap@^3.13.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ImageTrail/ImageTrail.vue"
+				}
+			]
+		},
+		{
+			"name": "InfiniteMenu",
+			"title": "InfiniteMenu",
+			"description": "A draggable sphere of image tiles that snaps the nearest one forward and shows its title.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "InfiniteMenu/InfiniteMenu.vue"
+				}
+			]
+		},
+		{
+			"name": "InfiniteSpiral",
+			"title": "InfiniteSpiral",
+			"description": "An endlessly looping 3D helix of images with adjustable motion, depth and spacing.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "InfiniteSpiral/InfiniteSpiral.vue"
+				}
+			]
+		},
+		{
+			"name": "Iridescence",
+			"title": "Iridescence",
+			"description": "Liquid iridescent surface with shifting folds that you can stir with the cursor.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Iridescence/Iridescence.vue"
+				}
+			]
+		},
+		{
+			"name": "JellyRadio",
+			"title": "JellyRadio",
+			"description": "Radio group of chips where the chosen one swells and barges its neighbours outward.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/vue@^1.0.8",
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "JellyRadio/JellyRadio.vue"
+				}
+			]
+		},
+		{
+			"name": "Lanyard",
+			"title": "Lanyard",
+			"description": "Swinging 3D badge on a stretchy woven band that you can drag, throw or click to flip.",
+			"type": "registry:component",
+			"dependencies": [
+				"three@^0.180.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Lanyard/Lanyard.vue"
+				}
+			]
+		},
+		{
+			"name": "LaserFlow",
+			"title": "LaserFlow",
+			"description": "A beam of light that splashes onto your content and pours over its corners.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "LaserFlow/LaserFlow.vue"
+				}
+			]
+		},
+		{
+			"name": "LatticeLoader",
+			"title": "LatticeLoader",
+			"description": "Agent status row with a lattice of cells that brighten in a wave beside a live stopwatch.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "LatticeLoader/LatticeLoader.vue"
+				}
+			]
+		},
+		{
+			"name": "LetterGlitch",
+			"title": "LetterGlitch",
+			"description": "A calm field of letters that flicker, scramble and glitch in color, stirred by the cursor and torn by clicks.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "LetterGlitch/LetterGlitch.vue"
+				}
+			]
+		},
+		{
+			"name": "Lightfall",
+			"title": "Lightfall",
+			"description": "Streaks of light falling down a curved tunnel, bending around the cursor and stretching into warp trails on hold.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Lightfall/Lightfall.vue"
+				}
+			]
+		},
+		{
+			"name": "Lightning",
+			"title": "Lightning",
+			"description": "Crackling, branching lightning that bends toward the cursor and strikes wherever you click.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Lightning/Lightning.vue"
+				}
+			]
+		},
+		{
+			"name": "LightPillar",
+			"title": "LightPillar",
+			"description": "A swirling pillar of light that ignites on load, leans toward the cursor and surges on click.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "LightPillar/LightPillar.vue"
+				}
+			]
+		},
+		{
+			"name": "LightRays",
+			"title": "LightRays",
+			"description": "Volumetric light rays from any edge, with source glow and haze. The cursor steers the beam and casts a shadow.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "LightRays/LightRays.vue"
+				}
+			]
+		},
+		{
+			"name": "LightTunnel",
+			"title": "LightTunnel",
+			"description": "A swirling fibre-optic tunnel where comets of light race into depth, steered by the cursor.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "LightTunnel/LightTunnel.vue"
+				}
+			]
+		},
+		{
+			"name": "LineSidebar",
+			"title": "LineSidebar",
+			"description": "Static list navigation with a cursor-proximity effect that shifts and highlights nearby items.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "LineSidebar/LineSidebar.vue"
+				}
+			]
+		},
+		{
+			"name": "LineWaves",
+			"title": "LineWaves",
+			"description": "Fine lines that flow in silky waves while a band of light drifts through them.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "LineWaves/LineWaves.vue"
+				}
+			]
+		},
+		{
+			"name": "LiquidChrome",
+			"title": "LiquidChrome",
+			"description": "Soft ribbons of liquid chrome that swirl through a dark pool, ripple under the cursor and catch the light as it moves.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "LiquidChrome/LiquidChrome.vue"
+				}
+			]
+		},
+		{
+			"name": "LiquidEther",
+			"title": "LiquidEther",
+			"description": "A glowing liquid that swirls under the cursor, colored by how fast it flows.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "LiquidEther/LiquidEther.vue"
+				}
+			]
+		},
+		{
+			"name": "LogoLoop",
+			"title": "LogoLoop",
+			"description": "Continuously looping marquee of brand or tech logos with seamless repeat and hover pause.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "LogoLoop/LogoLoop.vue"
+				}
+			]
+		},
+		{
+			"name": "MagicBento",
+			"title": "MagicBento",
+			"description": "A bento grid of feature cards with live artwork, edge light that follows the cursor and a click wave.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/vue@^1.0.8",
+				"@hugeicons/core-free-icons@4.3.3"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "MagicBento/MagicBento.vue"
+				}
+			]
+		},
+		{
+			"name": "MagicRings",
+			"title": "MagicRings",
+			"description": "Glowing rings that pulse outward in a wave, swell toward the cursor and flare on click.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "MagicRings/MagicRings.vue"
+				}
+			]
+		},
+		{
+			"name": "Magnet",
+			"title": "Magnet",
+			"description": "Elements magnetically ease toward the cursor then settle back with spring physics.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Magnet/Magnet.vue"
+				}
+			]
+		},
+		{
+			"name": "MagnetLines",
+			"title": "MagnetLines",
+			"description": "A field of magnetic lines that swing toward the cursor, ripple outward and spin with every click.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "MagnetLines/MagnetLines.vue"
+				}
+			]
+		},
+		{
+			"name": "MaskedHeading",
+			"title": "MaskedHeading",
+			"description": "A headline with a drifting colour mesh or image showing through, revealed word by word.",
+			"type": "registry:component",
+			"dependencies": [
+				"gsap@^3.13.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "MaskedHeading/MaskedHeading.vue"
+				}
+			]
+		},
+		{
+			"name": "Masonry",
+			"title": "Masonry",
+			"description": "A masonry gallery that springs into place, reflows as it resizes and opens images in a lightbox.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/vue@^1.0.8",
+				"@hugeicons/core-free-icons@4.3.3"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Masonry/Masonry.vue"
+				}
+			]
+		},
+		{
+			"name": "MetaBalls",
+			"title": "MetaBalls",
+			"description": "Liquid metaballs that merge, stretch and pinch apart, with a cursor blob that pushes through them.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "MetaBalls/MetaBalls.vue"
+				}
+			]
+		},
+		{
+			"name": "MetallicPaint",
+			"title": "MetallicPaint",
+			"description": "Liquid chrome that flows over your logo or text, adapted from Paper's Liquid Metal shader.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "MetallicPaint/MetallicPaint.vue"
+				}
+			]
+		},
+		{
+			"name": "MicroSlats",
+			"title": "MicroSlats",
+			"description": "A wall of tiny slats that becomes a rolling sea in perspective, with glinting crests.",
+			"type": "registry:component",
+			"dependencies": [
+				"ogl@^1.0.11"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "MicroSlats/MicroSlats.vue"
+				}
+			]
+		},
+		{
+			"name": "ModelViewer",
+			"title": "ModelViewer",
+			"description": "A product-style 3D model viewer that frames itself and floats over a soft shadow.",
+			"type": "registry:component",
+			"dependencies": [
+				"three@^0.180.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ModelViewer/ModelViewer.vue"
+				}
+			]
+		},
+		{
+			"name": "MoltenMetal",
+			"title": "MoltenMetal",
+			"description": "Swirling caustic filaments with white-hot cores that heat up under the cursor and flare on click.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "MoltenMetal/MoltenMetal.vue"
+				}
+			]
+		},
+		{
+			"name": "MorphSlider",
+			"title": "MorphSlider",
+			"description": "WebGL slider that melts between images with a displacement transition.",
+			"type": "registry:component",
+			"dependencies": [
+				"gsap@^3.13.0",
+				"ogl@^1.0.11"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "MorphSlider/MorphSlider.vue"
+				}
+			]
+		},
+		{
+			"name": "Noise",
+			"title": "Noise",
+			"description": "Film grain overlay for photos and pages, from fine 35mm grain to dust, paper and TV static.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Noise/Noise.vue"
+				}
+			]
+		},
+		{
+			"name": "OptionWheel",
+			"title": "OptionWheel",
+			"description": "Curved option picker that spins with scroll, drag or arrow keys, tilting items away.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "OptionWheel/OptionWheel.vue"
+				}
+			]
+		},
+		{
+			"name": "Orb",
+			"title": "Orb",
+			"description": "A glowing ring of swirling color that breathes, trails an orbiting light and reaches toward the cursor.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Orb/Orb.vue"
+				}
+			]
+		},
+		{
+			"name": "OrbitImages",
+			"title": "OrbitImages",
+			"description": "SVG Path customizable orbiting images effect",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "OrbitImages/OrbitImages.vue"
+				}
+			]
+		},
+		{
+			"name": "PaperCrumple",
+			"title": "PaperCrumple",
+			"description": "An image that crumples into a textured 3D sheet while you hold and drag it.",
+			"type": "registry:component",
+			"dependencies": [
+				"three@^0.180.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "PaperCrumple/PaperCrumple.vue"
+				}
+			]
+		},
+		{
+			"name": "Particles",
+			"title": "Particles",
+			"description": "A drifting 3D field of particles with glow, twinkle, constellation lines and cursor interaction.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Particles/Particles.vue"
+				}
+			]
+		},
+		{
+			"name": "ParticleText",
+			"title": "ParticleText",
+			"description": "Text assembles from drifting particles that scatter and reform on demand.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ParticleText/ParticleText.vue"
+				}
+			]
+		},
+		{
+			"name": "PatternWaves",
+			"title": "PatternWaves",
+			"description": "A lit halftone surface of dots, lines or glyphs that moves like draped silk.",
+			"type": "registry:component",
+			"dependencies": [
+				"ogl@^1.0.11"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "PatternWaves/PatternWaves.vue"
+				}
+			]
+		},
+		{
+			"name": "PeekRating",
+			"title": "PeekRating",
+			"description": "Star rating that lifts a wave of stars up to the pointer, then commits with a pop on click.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/core-free-icons@4.3.3",
+				"@hugeicons/vue@^1.0.8"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "PeekRating/PeekRating.vue"
+				}
+			]
+		},
+		{
+			"name": "PillNav",
+			"title": "PillNav",
+			"description": "A pill navigation bar where a fill rises through each link as its label rolls over, with a sliding active dot.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "PillNav/PillNav.vue"
+				}
+			]
+		},
+		{
+			"name": "PixelBlast",
+			"title": "PixelBlast",
+			"description": "Dithered pixel clouds that drift, shimmer and light up under the cursor, with ripples, shapes and a perspective floor.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "PixelBlast/PixelBlast.vue"
+				}
+			]
+		},
+		{
+			"name": "PixelCard",
+			"title": "PixelCard",
+			"description": "A card that fills with twinkling pixels on hover, rippling out from the center or the cursor.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "PixelCard/PixelCard.vue"
+				}
+			]
+		},
+		{
+			"name": "PixelSnow",
+			"title": "PixelSnow",
+			"description": "Pixel-art snowflakes drifting down in layers of depth, brushed aside by the cursor.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "PixelSnow/PixelSnow.vue"
+				}
+			]
+		},
+		{
+			"name": "PixelSwap",
+			"title": "PixelSwap",
+			"description": "New content builds in pixel by pixel in a springy wave that starts wherever the cursor enters.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "PixelSwap/PixelSwap.vue"
+				}
+			]
+		},
+		{
+			"name": "PixelTrail",
+			"title": "PixelTrail",
+			"description": "Glossy pixels melt into a fluid goo trail behind the cursor, with color shifts and drips.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "PixelTrail/PixelTrail.vue"
+				}
+			]
+		},
+		{
+			"name": "PixelTransition",
+			"title": "PixelTransition",
+			"description": "Retro pixel dissolve that covers a card in solid pixels, swaps the content underneath and clears again.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "PixelTransition/PixelTransition.vue"
+				}
+			]
+		},
+		{
+			"name": "Plasma",
+			"title": "Plasma",
+			"description": "Folds of satin light twisting slowly through the dark, turning to follow the cursor.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Plasma/Plasma.vue"
+				}
+			]
+		},
+		{
+			"name": "PlasmaWave",
+			"title": "PlasmaWave",
+			"description": "Two ribbons of plasma curling through each other, with soft glow and white-hot cores.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "PlasmaWave/PlasmaWave.vue"
+				}
+			]
+		},
+		{
+			"name": "Prism",
+			"title": "Prism",
+			"description": "Rotating prism of glowing spectral light with configurable shape, colors and motion.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Prism/Prism.vue"
+				}
+			]
+		},
+		{
+			"name": "PrismaticBurst",
+			"title": "PrismaticBurst",
+			"description": "A burst of prismatic light rays that leans toward the cursor and sends a wave of light outward on click.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "PrismaticBurst/PrismaticBurst.vue"
+				}
+			]
+		},
+		{
+			"name": "ProfileCard",
+			"title": "ProfileCard",
+			"description": "A framed profile card that tilts toward the cursor, with holographic foil shining through a tiled pattern.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/vue@^1.0.8",
+				"@hugeicons/core-free-icons@4.3.3"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ProfileCard/ProfileCard.vue"
+				}
+			]
+		},
+		{
+			"name": "PromptBar",
+			"title": "PromptBar",
+			"description": "Chat composer with @ sources, / commands, a model picker, dictation and attachments.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/core-free-icons@4.3.3",
+				"@hugeicons/vue@^1.0.8",
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "PromptBar/PromptBar.vue"
+				}
+			]
+		},
+		{
+			"name": "PulseHeart",
+			"title": "PulseHeart",
+			"description": "Like button that contracts to a dot, flips colour and pulses back as the count ticks over.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/core-free-icons@4.3.3"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "PulseHeart/PulseHeart.vue"
+				}
+			]
+		},
+		{
+			"name": "Radar",
+			"title": "Radar",
+			"description": "A radar scope whose sweep leaves a phosphor afterglow and picks up moving contacts.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Radar/Radar.vue"
+				}
+			]
+		},
+		{
+			"name": "RefineFrame",
+			"title": "RefineFrame",
+			"description": "Media frame that steps an image through generation stages without any layout shift.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/core-free-icons@4.3.3",
+				"@hugeicons/vue@^1.0.8"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "RefineFrame/RefineFrame.vue"
+				}
+			]
+		},
+		{
+			"name": "ReflectiveCard",
+			"title": "ReflectiveCard",
+			"description": "A metal ID card that reflects your camera or a looping video and catches the light as it tilts.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/vue@^1.0.8",
+				"@hugeicons/core-free-icons@4.3.3"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ReflectiveCard/ReflectiveCard.vue"
+				}
+			]
+		},
+		{
+			"name": "Ribbons",
+			"title": "Ribbons",
+			"description": "Springy ribbons that trail the cursor, in lens, comet or even shapes with an optional wave.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Ribbons/Ribbons.vue"
+				}
+			]
+		},
+		{
+			"name": "RippleDistortion",
+			"title": "RippleDistortion",
+			"description": "Pointer-driven water displacement that warps content and leaves a decaying wake.",
+			"type": "registry:component",
+			"dependencies": [
+				"ogl@^1.0.11"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "RippleDistortion/RippleDistortion.vue"
+				}
+			]
+		},
+		{
+			"name": "RippleGrid",
+			"title": "RippleGrid",
+			"description": "A crisp grid that ripples like water, bending and lighting up as waves pass through it.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "RippleGrid/RippleGrid.vue"
+				}
+			]
+		},
+		{
+			"name": "RotatingText",
+			"title": "RotatingText",
+			"description": "Cycles through multiple phrases with 3D rotate / flip transitions.",
+			"type": "registry:component",
+			"dependencies": [
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "RotatingText/RotatingText.vue"
+				}
+			]
+		},
+		{
+			"name": "RubberSegment",
+			"title": "RubberSegment",
+			"description": "Segmented control whose rubber thumb stretches across the gap and squashes into place.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/vue@^1.0.8",
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "RubberSegment/RubberSegment.vue"
+				}
+			]
+		},
+		{
+			"name": "Scanner",
+			"title": "Scanner",
+			"description": "Glowing interference lines swept by a scan beam, with a CRT finish, cursor lensing and click pings.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Scanner/Scanner.vue"
+				}
+			]
+		},
+		{
+			"name": "ScrambledText",
+			"title": "ScrambledText",
+			"description": "Detects cursor position and applies a distortion effect to text.",
+			"type": "registry:component",
+			"dependencies": [
+				"gsap@^3.13.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ScrambledText/ScrambledText.vue"
+				}
+			]
+		},
+		{
+			"name": "ScrollExpand",
+			"title": "ScrollExpand",
+			"description": "A rounded media frame that grows to full bleed as it scrolls through the viewport.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ScrollExpand/ScrollExpand.vue"
+				}
+			]
+		},
+		{
+			"name": "ScrollFloat",
+			"title": "ScrollFloat",
+			"description": "Text gently floats / parallax shifts on scroll.",
+			"type": "registry:component",
+			"dependencies": [
+				"gsap@^3.13.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ScrollFloat/ScrollFloat.vue"
+				}
+			]
+		},
+		{
+			"name": "ScrollReveal",
+			"title": "ScrollReveal",
+			"description": "Text gently unblurs and reveals on scroll.",
+			"type": "registry:component",
+			"dependencies": [
+				"gsap@^3.13.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ScrollReveal/ScrollReveal.vue"
+				}
+			]
+		},
+		{
+			"name": "ScrollStack",
+			"title": "ScrollStack",
+			"description": "Cards pin and stack as you scroll, settling back into a dimmed deck with smooth, jitter-free motion.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ScrollStack/ScrollStack.vue"
+				}
+			]
+		},
+		{
+			"name": "ScrollVelocity",
+			"title": "ScrollVelocity",
+			"description": "Text marquee animatio - speed and distortion scale with user's scroll velocity.",
+			"type": "registry:component",
+			"dependencies": [
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ScrollVelocity/ScrollVelocity.vue"
+				}
+			]
+		},
+		{
+			"name": "ScrubField",
+			"title": "ScrubField",
+			"description": "Number chip you drag to scrub, with rubber-band limits and click to type.",
+			"type": "registry:component",
+			"dependencies": [
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ScrubField/ScrubField.vue"
+				}
+			]
+		},
+		{
+			"name": "ShapeBlur",
+			"title": "ShapeBlur",
+			"description": "A crisp logo or shape that drifts out of focus under the pointer like a camera lens.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ShapeBlur/ShapeBlur.vue"
+				}
+			]
+		},
+		{
+			"name": "ShapeGrid",
+			"title": "ShapeGrid",
+			"description": "A drifting grid of shapes that lights up under the cursor, with perspective tilt and rainbow trails.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ShapeGrid/ShapeGrid.vue"
+				}
+			]
+		},
+		{
+			"name": "ShapeWaves",
+			"title": "ShapeWaves",
+			"description": "A field of triangles, circles and squares that brighten and grow along rolling waves.",
+			"type": "registry:component",
+			"dependencies": [
+				"vgpu@^0.5.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ShapeWaves/ShapeWaves.vue"
+				}
+			]
+		},
+		{
+			"name": "ShinyText",
+			"title": "ShinyText",
+			"description": "A sheen of light that sweeps across text, from soft bands to chrome-like reflections.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ShinyText/ShinyText.vue"
+				}
+			]
+		},
+		{
+			"name": "Shredder",
+			"title": "Shredder",
+			"description": "A list with a paper shredder at the bottom that cuts dragged rows into curling strips.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Shredder/Shredder.vue"
+				}
+			]
+		},
+		{
+			"name": "Shuffle",
+			"title": "Shuffle",
+			"description": "Animated text reveal where characters shuffle before settling.",
+			"type": "registry:component",
+			"dependencies": [
+				"gsap@^3.13.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Shuffle/Shuffle.vue"
+				}
+			]
+		},
+		{
+			"name": "SideRays",
+			"title": "SideRays",
+			"description": "Shafts of light that fan in from a corner or side, shimmer slowly and lean toward the cursor.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "SideRays/SideRays.vue"
+				}
+			]
+		},
+		{
+			"name": "Silk",
+			"title": "Silk",
+			"description": "Flowing satin folds with glossy highlights that turn toward the cursor and ripple on click.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Silk/Silk.vue"
+				}
+			]
+		},
+		{
+			"name": "SlicedWaves",
+			"title": "SlicedWaves",
+			"description": "Waves of colored light sliced into glowing bars, seen in depth with a focus that follows the cursor.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "SlicedWaves/SlicedWaves.vue"
+				}
+			]
+		},
+		{
+			"name": "SlideCommit",
+			"title": "SlideCommit",
+			"description": "Slide-to-confirm handle that spins while your action runs and unfurls into a done pill.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/core-free-icons@4.3.3",
+				"@hugeicons/vue@^1.0.8",
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "SlideCommit/SlideCommit.vue"
+				}
+			]
+		},
+		{
+			"name": "SlingButton",
+			"title": "SlingButton",
+			"description": "Send button you pull back like a slingshot and release to fire.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/core-free-icons@4.3.3",
+				"@hugeicons/vue@^1.0.8",
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "SlingButton/SlingButton.vue"
+				}
+			]
+		},
+		{
+			"name": "SloshGauge",
+			"title": "SloshGauge",
+			"description": "Tank gauge whose liquid chases the value, tilts as it moves and splashes when it fills.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "SloshGauge/SloshGauge.vue"
+				}
+			]
+		},
+		{
+			"name": "SoftAurora",
+			"title": "SoftAurora",
+			"description": "Soft aurora borealis shader with 3D Perlin noise and cosine gradient palettes.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "SoftAurora/SoftAurora.vue"
+				}
+			]
+		},
+		{
+			"name": "SpecularButton",
+			"title": "SpecularButton",
+			"description": "Glass button whose edge catches the light, with a highlight that glides toward the cursor.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "SpecularButton/SpecularButton.vue"
+				}
+			]
+		},
+		{
+			"name": "SplashCursor",
+			"title": "SplashCursor",
+			"description": "A fluid simulation that trails the cursor in swirling ink and bursts into a splash on click.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "SplashCursor/SplashCursor.vue"
+				}
+			]
+		},
+		{
+			"name": "SplitFlapText",
+			"title": "SplitFlapText",
+			"description": "Mechanical split-flap departure board that clacks through to each new phrase.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "SplitFlapText/SplitFlapText.vue"
+				}
+			]
+		},
+		{
+			"name": "SplitText",
+			"title": "SplitText",
+			"description": "Splits text into characters / words for staggered entrance animation.",
+			"type": "registry:component",
+			"dependencies": [
+				"gsap@^3.13.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "SplitText/SplitText.vue"
+				}
+			]
+		},
+		{
+			"name": "SpotlightCard",
+			"title": "SpotlightCard",
+			"description": "Card lit by a soft spotlight that follows the pointer, catches its edge and reaches nearby cards.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "SpotlightCard/SpotlightCard.vue"
+				}
+			]
+		},
+		{
+			"name": "SpringCheck",
+			"title": "SpringCheck",
+			"description": "Checkbox row where one spring fills the box, draws the tick and strikes through the label.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/core-free-icons@4.3.3",
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "SpringCheck/SpringCheck.vue"
+				}
+			]
+		},
+		{
+			"name": "SquishSwitch",
+			"title": "SquishSwitch",
+			"description": "Switch whose thumb stretches with speed and squashes against the end when you flick it.",
+			"type": "registry:component",
+			"dependencies": [
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "SquishSwitch/SquishSwitch.vue"
+				}
+			]
+		},
+		{
+			"name": "Stack",
+			"title": "Stack",
+			"description": "Pile of cards you can drag, flick or click through, with thrown cards tucking underneath.",
+			"type": "registry:component",
+			"dependencies": [
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Stack/Stack.vue"
+				}
+			]
+		},
+		{
+			"name": "StaggeredMenu",
+			"title": "StaggeredMenu",
+			"description": "Menu with staggered item animations and smooth transitions on open/close.",
+			"type": "registry:component",
+			"dependencies": [
+				"gsap@^3.13.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "StaggeredMenu/StaggeredMenu.vue"
+				}
+			]
+		},
+		{
+			"name": "StarBorder",
+			"title": "StarBorder",
+			"description": "A twinkling star that travels the exact outline of any button, pill or card, trailing light and stardust.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "StarBorder/StarBorder.vue"
+				}
+			]
+		},
+		{
+			"name": "StatusMark",
+			"title": "StatusMark",
+			"description": "Agent task status glyph that morphs from an idle ring to a progress arc, then a check.",
+			"type": "registry:component",
+			"dependencies": [
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "StatusMark/StatusMark.vue"
+				}
+			]
+		},
+		{
+			"name": "Stepper",
+			"title": "Stepper",
+			"description": "A multi-step flow with a gliding step indicator, spring transitions and horizontal or vertical layouts.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/vue@^1.0.8",
+				"@hugeicons/core-free-icons@4.3.3"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Stepper/Stepper.vue"
+				}
+			]
+		},
+		{
+			"name": "StickerPeel",
+			"title": "StickerPeel",
+			"description": "A die-cut sticker you can peel at any edge, drag, throw and swing, in gloss, matte or holographic finishes.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "StickerPeel/StickerPeel.vue"
+				}
+			]
+		},
+		{
+			"name": "Strands",
+			"title": "Strands",
+			"description": "Spectral strands that twist inside a frosted glass orb and swell into a smooth bulge where they come together, like the new Siri.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Strands/Strands.vue"
+				}
+			]
+		},
+		{
+			"name": "StrokeText",
+			"title": "StrokeText",
+			"description": "Outlined letterforms draw themselves on, then flood with fill.",
+			"type": "registry:component",
+			"dependencies": [
+				"gsap@^3.13.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "StrokeText/StrokeText.vue"
+				}
+			]
+		},
+		{
+			"name": "SwarmCursor",
+			"title": "SwarmCursor",
+			"description": "A liquid swarm of particles that flows after the cursor, curls into eddies and pours around hovered buttons.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "SwarmCursor/SwarmCursor.vue"
+				}
+			]
+		},
+		{
+			"name": "SwipeRow",
+			"title": "SwipeRow",
+			"description": "List row that swipes open to reveal actions and deletes on a full swipe.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/core-free-icons@4.3.3",
+				"@hugeicons/vue@^1.0.8",
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "SwipeRow/SwipeRow.vue"
+				}
+			]
+		},
+		{
+			"name": "SwipeToast",
+			"title": "SwipeToast",
+			"description": "Toast that swipes down to dismiss and burns a thin fuse for its remaining time.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/core-free-icons@4.3.3",
+				"@hugeicons/vue@^1.0.8",
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "SwipeToast/SwipeToast.vue"
+				}
+			]
+		},
+		{
+			"name": "TargetCursor",
+			"title": "TargetCursor",
+			"description": "A reticle cursor whose corner brackets snap around targets, matching their shape.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "TargetCursor/TargetCursor.vue"
+				}
+			]
+		},
+		{
+			"name": "TearTicket",
+			"title": "TearTicket",
+			"description": "Ticket whose perforated stub tears off by hand, fibre by fibre, and drops away.",
+			"type": "registry:component",
+			"dependencies": [
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "TearTicket/TearTicket.vue"
+				}
+			]
+		},
+		{
+			"name": "TechText",
+			"title": "TechText",
+			"description": "A wordmark whose letters turn into dashed vector paths under the cursor.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "TechText/TechText.vue"
+				}
+			]
+		},
+		{
+			"name": "TextCursor",
+			"title": "TextCursor",
+			"description": "Text or emoji that trails your cursor as stamped copies, a following chain or a ribbon of letters.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "TextCursor/TextCursor.vue"
+				}
+			]
+		},
+		{
+			"name": "TextLoop",
+			"title": "TextLoop",
+			"description": "A seamless text marquee that flows along curved SVG paths.",
+			"type": "registry:component",
+			"dependencies": [
+				"gsap@^3.13.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "TextLoop/TextLoop.vue"
+				}
+			]
+		},
+		{
+			"name": "TextPressure",
+			"title": "TextPressure",
+			"description": "Characters scale / warp interactively based on pointer pressure zone.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "TextPressure/TextPressure.vue"
+				}
+			]
+		},
+		{
+			"name": "TextType",
+			"title": "TextType",
+			"description": "Typewriter effect with blinking cursor and adjustable typing cadence.",
+			"type": "registry:component",
+			"dependencies": [
+				"gsap@^3.13.0"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "TextType/TextType.vue"
+				}
+			]
+		},
+		{
+			"name": "ThoughtLine",
+			"title": "ThoughtLine",
+			"description": "Reasoning trace header with a live clock that folds its steps into one line when done.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/core-free-icons@4.3.3",
+				"@hugeicons/vue@^1.0.8",
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "ThoughtLine/ThoughtLine.vue"
+				}
+			]
+		},
+		{
+			"name": "Threads",
+			"title": "Threads",
+			"description": "Flowing threads that fray apart and part around the cursor, from fine silk to contour lines.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Threads/Threads.vue"
+				}
+			]
+		},
+		{
+			"name": "TiltedCard",
+			"title": "TiltedCard",
+			"description": "A 3D card that tilts toward the cursor, with glare, a soft shadow, floating layers and a flip side.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "TiltedCard/TiltedCard.vue"
+				}
+			]
+		},
+		{
+			"name": "Topography",
+			"title": "Topography",
+			"description": "A 3D landscape drawn in glowing contour lines that rises under the cursor, with light pulses on click.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Topography/Topography.vue"
+				}
+			]
+		},
+		{
+			"name": "TrueFocus",
+			"title": "TrueFocus",
+			"description": "Applies dynamic blur / clarity based over a series of words in order.",
+			"type": "registry:component",
+			"dependencies": [
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "TrueFocus/TrueFocus.vue"
+				}
+			]
+		},
+		{
+			"name": "VariableProximity",
+			"title": "VariableProximity",
+			"description": "Letter styling changes continuously with pointer distance mapping.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "VariableProximity/VariableProximity.vue"
+				}
+			]
+		},
+		{
+			"name": "VoicePill",
+			"title": "VoicePill",
+			"description": "Mic button that swells into a capsule of live equalizer bars and a timer while recording.",
+			"type": "registry:component",
+			"dependencies": [
+				"@hugeicons/core-free-icons@4.3.3",
+				"@hugeicons/vue@^1.0.8"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "VoicePill/VoicePill.vue"
+				}
+			]
+		},
+		{
+			"name": "WakeSlider",
+			"title": "WakeSlider",
+			"description": "Thumbless range slider of thin bars where drag speed raises a wake behind the handle.",
+			"type": "registry:component",
+			"dependencies": [
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "WakeSlider/WakeSlider.vue"
+				}
+			]
+		},
+		{
+			"name": "WarmTooltip",
+			"title": "WarmTooltip",
+			"description": "Tooltip group where the first label waits, then its siblings open instantly while warm.",
+			"type": "registry:component",
+			"dependencies": [
+				"motion-v@^1.10.2"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "WarmTooltip/WarmTooltip.vue"
+				}
+			]
+		},
+		{
+			"name": "WarpText",
+			"title": "WarpText",
+			"description": "WebGL warp that bends and refracts the text around the pointer.",
+			"type": "registry:component",
+			"dependencies": [
+				"ogl@^1.0.11"
+			],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "WarpText/WarpText.vue"
+				}
+			]
+		},
+		{
+			"name": "Waves",
+			"title": "Waves",
+			"description": "Dense flowing lines that sway like silk, bend around the cursor and spring back into place.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "Waves/Waves.vue"
+				}
+			]
+		},
+		{
+			"name": "WebThreads",
+			"title": "WebThreads",
+			"description": "Glowing threads woven through luminous pinch points that light up under the cursor and carry light on click.",
+			"type": "registry:component",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"type": "registry:component",
+					"path": "WebThreads/WebThreads.vue"
+				}
+			]
+		}
+	]
 }

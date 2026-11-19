@@ -1,22 +1,20 @@
 <template>
-  <div class="scrubber" ref="rootEl" style="position: relative">
+  <div ref="wrapRef" class="scrubber" style="position: relative">
     <button
       type="button"
       class="scrubber-track scrubber-track--select"
-      aria-haspopup="listbox"
-      :aria-expanded="open"
       :aria-label="title"
       :aria-disabled="isDisabled"
       :data-disabled="isDisabled"
-      :data-active="open"
       :tabindex="isDisabled ? -1 : 0"
-      @click="!isDisabled && (open = !open)"
+      @click="toggle"
     >
       <span class="scrubber-label">{{ title }}</span>
       <span class="scrubber-select-right">
-        <span class="scrubber-value">{{ current?.label ?? modelValue }}</span>
+        <span class="scrubber-value">{{ currentLabel }}</span>
         <svg
-          :class="['scrubber-caret', { 'scrubber-caret--open': open }]"
+          class="scrubber-caret"
+          :class="{ 'scrubber-caret--open': open }"
           width="14"
           height="14"
           viewBox="0 0 16 16"
@@ -33,78 +31,125 @@
       </span>
     </button>
 
-    <div v-if="open" class="scrubber-dropdown" role="listbox">
-      <button
-        v-for="opt in normalized"
-        :key="opt.value"
-        type="button"
-        :class="['scrubber-dropdown-item', { 'scrubber-dropdown-item--active': opt.value === modelValue }]"
-        role="option"
-        :aria-selected="opt.value === modelValue"
-        @click="pick(opt.value)"
-      >
-        {{ opt.label }}
-      </button>
-    </div>
+    <Teleport to="body">
+      <div v-if="open && rect" ref="dropdownRef" class="scrubber-dropdown" :style="dropdownStyle">
+        <button
+          v-for="opt in formattedOptions"
+          :key="String(opt.value)"
+          type="button"
+          class="scrubber-dropdown-item"
+          :class="{ 'scrubber-dropdown-item--active': opt.value === modelValue }"
+          @click="pick(opt.value)"
+        >
+          {{ opt.label }}
+        </button>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onUnmounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
-type Option = { label?: string; value: string | number };
-type NormalizedOption = { label: string; value: string | number };
+type OptionValue = string | number;
+type Option = { label?: string; value: OptionValue; [key: string]: unknown };
 
 const LABEL_OVERRIDES: Record<string, string> = { pingpong: 'Ping Pong', rotate3d: 'Rotate 3D' };
 const formatOptionLabel = (str: string) =>
   LABEL_OVERRIDES[str] ?? str.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
-const {
-  title = '',
-  isDisabled = false,
-  options = []
-} = defineProps<{
-  title?: string;
-  isDisabled?: boolean;
-  options?: (Option | string | number)[];
-}>();
-
-const modelValue = defineModel<string | number>({ default: '' });
-
-const open = ref(false);
-const rootEl = ref<HTMLDivElement | null>(null);
-
-const normalized = computed<NormalizedOption[]>(() =>
-  options.map(o => {
-    if (typeof o === 'string') {
-      return { value: o, label: formatOptionLabel(o) };
-    } else if (typeof o === 'number') {
-      return { value: o, label: String(o) };
-    } else if (typeof o === 'object' && o !== null) {
-      return {
-        ...o,
-        label: o.label != null ? o.label : formatOptionLabel(String(o.value))
-      };
-    }
-    return { value: String(o), label: String(o) };
-  })
+const props = withDefaults(
+  defineProps<{
+    title?: string;
+    options?: (Option | string | number)[];
+    isDisabled?: boolean;
+    width?: number | string;
+  }>(),
+  { title: '', options: () => [], isDisabled: false }
 );
 
-const current = computed(() => normalized.value.find(o => o.value === modelValue.value));
+const modelValue = defineModel<OptionValue>({ default: '' });
 
-function pick(v: string | number) {
-  modelValue.value = v;
+const open = ref(false);
+const rect = ref<DOMRect | null>(null);
+const wrapRef = ref<HTMLDivElement | null>(null);
+const dropdownRef = ref<HTMLDivElement | null>(null);
+
+const formattedOptions = computed(() =>
+  props.options.map(opt =>
+    typeof opt === 'string'
+      ? { value: opt as OptionValue, label: formatOptionLabel(opt) }
+      : typeof opt === 'object' && opt !== null
+        ? { ...opt, label: opt.label != null ? opt.label : formatOptionLabel(String(opt.value)) }
+        : { value: opt as OptionValue, label: String(opt) }
+  )
+);
+
+const currentLabel = computed(() => {
+  const found = formattedOptions.value.find(opt => opt.value === modelValue.value);
+  return found ? found.label : String(modelValue.value ?? '');
+});
+
+function toggle() {
+  if (props.isDisabled) return;
+  open.value = !open.value;
+}
+
+function pick(value: OptionValue) {
+  modelValue.value = value;
   open.value = false;
 }
 
-function onOutsideClick(e: MouseEvent) {
-  if (rootEl.value && !rootEl.value.contains(e.target as Node)) open.value = false;
-}
+const onPointerDown = (e: PointerEvent) => {
+  const target = e.target as Node;
+  const inTrigger = wrapRef.value?.contains(target);
+  const inDropdown = dropdownRef.value?.contains(target);
+  if (!inTrigger && !inDropdown) open.value = false;
+};
 
-watch(open, v => {
-  if (v) document.addEventListener('mousedown', onOutsideClick);
-  else document.removeEventListener('mousedown', onOutsideClick);
+const updatePosition = () => {
+  if (wrapRef.value) rect.value = wrapRef.value.getBoundingClientRect();
+};
+
+const dropdownStyle = computed(() => {
+  const box = rect.value;
+  if (!box) return {};
+  const viewport = typeof window === 'undefined' ? 800 : window.innerHeight;
+  const estimate = formattedOptions.value.length * 35 + 10;
+  const below = viewport - box.bottom - 12;
+  const above = box.top - 12;
+  const flip = below < Math.min(estimate, 240) && above > below;
+  const room = Math.max(120, flip ? above : below);
+  return {
+    position: 'fixed' as const,
+    ...(flip
+      ? { bottom: `${viewport - box.top + 4}px`, transformOrigin: 'bottom center' }
+      : { top: `${box.bottom + 4}px` }),
+    left: `${box.left}px`,
+    right: 'auto',
+    width: `${box.width}px`,
+    maxHeight: `${room}px`,
+    overflowY: 'auto' as const,
+    zIndex: 9999
+  };
 });
 
-onUnmounted(() => document.removeEventListener('mousedown', onOutsideClick));
+const detach = () => {
+  document.removeEventListener('pointerdown', onPointerDown);
+  window.removeEventListener('scroll', updatePosition, true);
+  window.removeEventListener('resize', updatePosition);
+};
+
+watch(open, value => {
+  if (value) {
+    updatePosition();
+    document.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('resize', updatePosition);
+  } else {
+    detach();
+  }
+});
+
+onBeforeUnmount(detach);
 </script>

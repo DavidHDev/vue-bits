@@ -16,7 +16,7 @@ import {
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon, type IconArray } from '@hugeicons/vue';
 import { animate, motionValue, useReducedMotion, type AnimationPlaybackControls } from 'motion-v';
-import { computed, onMounted, onUnmounted, ref, watch, type Component, type CSSProperties } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch, type Component, type CSSProperties } from 'vue';
 
 export interface PromptBarSource {
   key: string;
@@ -44,9 +44,6 @@ export interface PromptBarSendDetail {
   effort?: string;
 }
 
-type AttachResult = string | string[] | void | Promise<string | string[] | void>;
-type DictateResult = string | void | Promise<string | void>;
-
 interface PromptBarProps {
   placeholder?: string;
   sources?: PromptBarSource[];
@@ -56,8 +53,8 @@ interface PromptBarProps {
   efforts?: string[];
   defaultEffort?: string;
   busy?: boolean;
-  onAttach?: () => AttachResult;
-  onDictate?: () => DictateResult;
+  onAttach?: () => string | string[] | void | Promise<string | string[] | void>;
+  onDictate?: () => string | void | Promise<string | void>;
   background?: string;
   color?: string;
   menuBackground?: string;
@@ -127,12 +124,6 @@ const DEFAULT_MODELS: PromptBarModel[] = [
 ];
 const DEFAULT_EFFORTS = ['Low', 'Medium', 'High', 'Extra', 'Max'];
 
-const MUTED = '[color:color-mix(in_srgb,var(--pb-ink)_55%,transparent)]';
-const TOOL_BTN =
-  'inline-flex h-7 flex-none cursor-pointer touch-manipulation items-center gap-1 rounded-lg border-0 bg-transparent px-2 text-[12px] font-medium outline-none select-none [color:color-mix(in_srgb,var(--pb-ink)_70%,transparent)] [font:inherit] [-webkit-tap-highlight-color:transparent] [transition:background-color_150ms_ease,color_150ms_ease] data-[on]:[background:color-mix(in_srgb,var(--pb-ink)_8%,transparent)] data-[on]:[color:var(--pb-ink)] [@media(hover:hover)_and_(pointer:fine)]:hover:[background:color-mix(in_srgb,var(--pb-ink)_8%,transparent)] [@media(hover:hover)_and_(pointer:fine)]:hover:[color:var(--pb-ink)] data-[max]:[color:var(--pb-spark)]!';
-const ICON_BTN =
-  'inline-grid h-7 w-7 flex-none cursor-pointer touch-manipulation place-items-center rounded-lg border-0 bg-transparent p-0 outline-none select-none [color:color-mix(in_srgb,var(--pb-ink)_60%,transparent)] [font:inherit] [-webkit-tap-highlight-color:transparent] [transition:background-color_150ms_ease,color_150ms_ease,transform_160ms_cubic-bezier(0.23,1,0.32,1)] active:[transform:scale(0.94)] data-[on]:[background:color-mix(in_srgb,var(--pb-ink)_8%,transparent)] data-[on]:[color:var(--pb-ink)] motion-reduce:active:[transform:none] [@media(hover:hover)_and_(pointer:fine)]:hover:[background:color-mix(in_srgb,var(--pb-ink)_8%,transparent)] [@media(hover:hover)_and_(pointer:fine)]:hover:[color:var(--pb-ink)]';
-
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 const pathAt = (a: number[], b: number[], t: number) => {
   let d = '';
@@ -142,13 +133,22 @@ const pathAt = (a: number[], b: number[], t: number) => {
   return `${d}Z`;
 };
 
-const parseToken = (text: string): Token | null => {
-  const m = /(^|\s)([@/])([\w-]*)$/.exec(text);
+const parseToken = (draft: string): Token | null => {
+  const m = /(^|\s)([@/])([\w-]*)$/.exec(draft);
   if (!m) return null;
   return { kind: m[2] === '@' ? 'at' : 'slash', query: m[3].toLowerCase(), start: m.index + m[1].length };
 };
 
 const isIconData = (icon: IconArray | Component): icon is IconArray => Array.isArray(icon);
+
+const capture = (el: HTMLElement, id: number) => {
+  try {
+    el.setPointerCapture(id);
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 const props = withDefaults(defineProps<PromptBarProps>(), {
   placeholder: 'Ask anything',
@@ -161,10 +161,10 @@ const props = withDefaults(defineProps<PromptBarProps>(), {
   busy: false,
   onAttach: undefined,
   onDictate: undefined,
-  background: '#27272a',
+  background: '#272a27',
   color: '#f5f5f5',
-  menuBackground: '#323236',
-  sparkColor: '#9dffa4',
+  menuBackground: '#313531',
+  sparkColor: '#a0ffbc',
   sparkBoost: 1,
   width: 400,
   radius: 16,
@@ -192,8 +192,8 @@ const rootRef = ref<HTMLDivElement | null>(null);
 const inputRef = ref<HTMLTextAreaElement | null>(null);
 const glowRef = ref<HTMLSpanElement | null>(null);
 const sparkRef = ref<HTMLCanvasElement | null>(null);
-const sendSvg = ref<SVGSVGElement | null>(null);
-const sendPath = ref<SVGPathElement | null>(null);
+const svgRef = ref<SVGSVGElement | null>(null);
+const pathRef = ref<SVGPathElement | null>(null);
 const typing = { energy: 0, strokes: 0 };
 const rowRefs: (HTMLButtonElement | null)[] = [];
 let lastOpen: string | null = null;
@@ -269,8 +269,8 @@ watch(
   },
   { flush: 'post' }
 );
-watch(open, o => {
-  if (!o) lastOpen = null;
+watch(open, value => {
+  if (!value) lastOpen = null;
 });
 
 watch([plusOpen, modelOpen, effortOpen], (_next, _prev, onCleanup) => {
@@ -292,32 +292,33 @@ const fitInput = () => {
 };
 watch([draft, () => props.maxRows], fitInput, { flush: 'post' });
 
-// the send glyph morphs arrow to square through a motion value written straight to the svg
-const sendT = motionValue(props.busy ? 1 : 0);
-let sendDir = props.busy ? 1 : -1;
-let sendControls: AnimationPlaybackControls | null = null;
-const sendStart = pathAt(ARROW_UP, SQUARE, sendT.get());
-let offSend: (() => void) | undefined;
+const t = motionValue(props.busy ? 1 : 0);
+let dir = props.busy ? 1 : -1;
+let glyphControls: AnimationPlaybackControls | null = null;
+const glyphStart = pathAt(ARROW_UP, SQUARE, t.get());
+let offGlyph: (() => void) | undefined;
 
-const syncSend = () => {
+const syncGlyph = () => {
+  glyphControls?.stop();
+  glyphControls = null;
   const target = props.busy ? 1 : 0;
-  sendDir = props.busy ? 1 : -1;
-  if (sendT.get() === target) return;
-  sendControls?.stop();
-  sendControls = animate(
-    sendT,
+  dir = props.busy ? 1 : -1;
+  if (t.get() === target) return;
+  glyphControls = animate(
+    t,
     target,
     reduce.value ? { duration: 0 } : { duration: props.morphDuration / 1000, ease: EASE_IN_OUT }
   );
 };
-watch([() => props.busy, () => props.morphDuration, reduce], syncSend);
+watch([() => props.busy, () => props.morphDuration, reduce], syncGlyph);
 
-let stopSpark: (() => void) | null = null;
-const startSpark = () => {
+let stopSparks: (() => void) | null = null;
+const startSparks = () => {
   const canvas = sparkRef.value;
-  if (!canvas) return null;
+  if (!maxed.value || reduce.value || !canvas) return null;
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
+  const sparkColor = props.sparkColor;
   typing.strokes = 0;
   let raf = 0;
   let last = performance.now();
@@ -327,6 +328,7 @@ const startSpark = () => {
   let speed = 1;
   let pulse = 0;
   const parts: Spark[] = [];
+  let resizePending = false;
   const resize = () => {
     const rect = canvas.getBoundingClientRect();
     const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -349,6 +351,10 @@ const startSpark = () => {
     });
   };
   const tick = (now: number) => {
+    if (resizePending) {
+      resizePending = false;
+      resize();
+    }
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     const gain = props.sparkBoost;
@@ -366,8 +372,8 @@ const startSpark = () => {
       if (parts.length < 30) spawn(false);
     }
     ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = props.sparkColor;
-    ctx.shadowColor = props.sparkColor;
+    ctx.fillStyle = sparkColor;
+    ctx.shadowColor = sparkColor;
     ctx.shadowBlur = 6 + energy * 10 + pulse * 6;
     for (let i = parts.length - 1; i >= 0; i -= 1) {
       const p = parts[i];
@@ -399,7 +405,9 @@ const startSpark = () => {
   };
   resize();
   for (let i = 0; i < 26; i += 1) spawn(true);
-  const ro = new ResizeObserver(resize);
+  const ro = new ResizeObserver(() => {
+    resizePending = true;
+  });
   ro.observe(canvas);
   raf = requestAnimationFrame(tick);
   return () => {
@@ -408,31 +416,31 @@ const startSpark = () => {
     ctx.clearRect(0, 0, w, h);
   };
 };
-const syncSpark = () => {
-  stopSpark?.();
-  stopSpark = null;
-  if (!maxed.value || reduce.value) return;
-  stopSpark = startSpark();
+const syncSparks = () => {
+  stopSparks?.();
+  stopSparks = startSparks();
 };
-watch([maxed, reduce, () => props.sparkColor], syncSpark, { flush: 'post' });
+watch([maxed, reduce, () => props.sparkColor], syncSparks, { flush: 'post' });
 
 onMounted(() => {
-  offSend = sendT.on('change', v => {
-    sendPath.value?.setAttribute('d', pathAt(ARROW_UP, SQUARE, v));
+  offGlyph = t.on('change', v => {
+    pathRef.value?.setAttribute('d', pathAt(ARROW_UP, SQUARE, v));
     const goo = reduce.value ? 0 : Math.sin(v * Math.PI);
     const sx = 1 - props.squash * goo;
-    if (sendSvg.value) {
-      sendSvg.value.style.transform = goo ? `rotate(${sendDir * props.tilt * goo}deg) scale(${sx}, ${1 / sx})` : '';
+    if (svgRef.value) {
+      svgRef.value.style.transform = goo ? `rotate(${dir * props.tilt * goo}deg) scale(${sx}, ${1 / sx})` : '';
     }
   });
   fitInput();
-  syncSpark();
+  syncSparks();
 });
-onUnmounted(() => {
+
+onBeforeUnmount(() => {
   dictation += 1;
-  stopSpark?.();
-  offSend?.();
-  sendControls?.stop();
+  stopSparks?.();
+  stopSparks = null;
+  offGlyph?.();
+  glyphControls?.stop();
 });
 
 const setEffort = (i: number) => {
@@ -449,11 +457,7 @@ const effortFromPointer = (e: PointerEvent) => {
 const onEffortDown = (e: PointerEvent) => {
   if (e.button !== 0) return;
   const el = e.currentTarget as HTMLElement;
-  try {
-    el.setPointerCapture(e.pointerId);
-  } catch {
-    // capture unavailable
-  }
+  capture(el, e.pointerId);
   el.focus({ preventScroll: true });
   effortFromPointer(e);
 };
@@ -480,7 +484,7 @@ const onEffortKey = (e: KeyboardEvent) => {
 const stepAt = (i: number) =>
   `calc(${EDGE}px + (100% - ${EDGE * 2}px) * ${i / Math.max(1, effortList.value.length - 1)})`;
 const fillAt = (i: number) => (i === effortList.value.length - 1 ? '100%' : `calc(${stepAt(i)} + 7px)`);
-const effortStyle = computed(
+const trackStyle = computed(
   () =>
     ({
       '--pb-effort-x': stepAt(effortIndex.value),
@@ -496,7 +500,7 @@ const pick = (row: Row) => {
     return;
   }
   const head = token.value ? draft.value.slice(0, token.value.start) : draft.value;
-  if ((row as PromptBarSource).attach) {
+  if (row.attach) {
     draft.value = head;
     Promise.resolve(props.onAttach?.()).then(files => {
       if (!files) return;
@@ -514,11 +518,7 @@ const pick = (row: Row) => {
 
 const send = () => {
   if (!canSend.value || props.busy) return;
-  emit('send', draft.value.trim(), {
-    attachments: attachments.value,
-    model: model.value,
-    effort: level.value
-  });
+  emit('send', draft.value.trim(), { attachments: attachments.value, model: model.value, effort: level.value });
   draft.value = '';
   attachments.value = [];
   dismissed.value = false;
@@ -583,14 +583,14 @@ const onKeyDown = (e: KeyboardEvent) => {
   }
 };
 
-const toggleSources = () => {
+const togglePlus = () => {
   modelOpen.value = false;
   effortOpen.value = false;
   active.value = 0;
   plusOpen.value = !plusOpen.value;
   focusInput();
 };
-const toggleModels = () => {
+const toggleModel = () => {
   plusOpen.value = false;
   effortOpen.value = false;
   active.value = Math.max(0, modelList.value.indexOf(model.value));
@@ -603,18 +603,20 @@ const toggleEffort = () => {
   effortOpen.value = !effortOpen.value;
   focusInput();
 };
-const onSendClick = () => {
-  if (props.busy) emit('stop');
-  else send();
-};
-const onBoxDown = (e: PointerEvent) => {
+const onFieldDown = (e: PointerEvent) => {
   if (e.target === e.currentTarget || e.target === inputRef.value) closeMenus();
 };
 const down = (e: PointerEvent) => {
   if (e.button !== 0 || !armed.value) return;
   pressed.value = true;
 };
-const up = () => (pressed.value = false);
+const up = () => {
+  pressed.value = false;
+};
+const onSendClick = () => {
+  if (props.busy) emit('stop');
+  else send();
+};
 
 const rootStyle = computed(
   () =>
@@ -633,33 +635,32 @@ const rootStyle = computed(
 <template>
   <div
     ref="rootRef"
-    class="group relative [color:var(--pb-ink)] [width:min(var(--pb-w),100%)] text-[14px] leading-[22px]"
-    :class="className"
+    :class="['prompt-bar', className]"
     :data-busy="busy ? '' : undefined"
     :data-max="maxed ? '' : undefined"
     :style="rootStyle"
   >
     <div
       v-if="open"
-      class="data-[kind=effort]:right-auto data-[kind=model]:right-auto bottom-[calc(100%+8px)] z-[2] absolute inset-x-0 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.35),0_1px_2px_rgba(0,0,0,0.08)] p-1 data-[kind=effort]:px-3.5 data-[kind=effort]:pt-3 [background:var(--pb-menu)] data-[kind=effort]:pb-3.5 rounded-xl data-[kind=effort]:w-[248px] data-[kind=model]:w-[200px] origin-bottom data-[kind=effort]:origin-bottom-left data-[kind=model]:origin-bottom-left [animation:prompt-bar-pop_180ms_cubic-bezier(0.23,1,0.32,1)_both] motion-reduce:[animation:none]"
+      class="prompt-bar__menu"
       :role="open === 'effort' ? 'dialog' : 'listbox'"
       :aria-label="menuLabel"
       :data-kind="open"
     >
       <template v-if="open === 'effort'">
-        <div class="flex items-center gap-2 text-[13px] leading-[18px]">
-          <span :class="MUTED">Effort</span>
-          <span class="font-medium">{{ level }}</span>
-          <span class="inline-flex ml-auto" :class="MUTED" title="Higher effort thinks longer before answering">
+        <div class="prompt-bar__effort-head">
+          <span class="prompt-bar__effort-title">Effort</span>
+          <span class="prompt-bar__effort-level">{{ level }}</span>
+          <span class="prompt-bar__effort-help" title="Higher effort thinks longer before answering">
             <HugeiconsIcon :icon="HelpCircleIcon as IconArray" :size="14" :stroke-width="1.8" />
           </span>
         </div>
-        <div class="flex justify-between mt-3 text-[12px] leading-4" :class="MUTED">
+        <div class="prompt-bar__effort-ends">
           <span>Faster</span>
           <span>Smarter</span>
         </div>
         <div
-          class="relative mt-2 [background:color-mix(in_srgb,var(--pb-ink)_8%,transparent)] rounded-[11px] outline-none h-[22px] touch-none cursor-pointer select-none"
+          class="prompt-bar__effort-track"
           role="slider"
           tabindex="0"
           aria-label="Effort"
@@ -667,31 +668,23 @@ const rootStyle = computed(
           :aria-valuemax="effortList.length - 1"
           :aria-valuenow="effortIndex"
           :aria-valuetext="level"
-          :style="effortStyle"
+          :style="trackStyle"
           @pointerdown="onEffortDown"
           @pointermove="onEffortMove"
           @keydown="onEffortKey"
         >
-          <span
-            class="left-0 absolute inset-y-0 [background:color-mix(in_srgb,var(--pb-ink)_18%,transparent)] [width:var(--pb-effort-fill)] group-data-[max]:[background:color-mix(in_srgb,var(--pb-spark)_35%,transparent)] rounded-[11px] motion-reduce:[transition:background-color_300ms_ease] [transition:width_220ms_cubic-bezier(0.23,1,0.32,1),background-color_300ms_ease]"
-          />
+          <span class="prompt-bar__effort-fill" />
           <i
-            v-for="(name, i) in effortList"
-            :key="name"
-            class="top-1/2 absolute -mt-0.5 -ml-0.5 [background:color-mix(in_srgb,var(--pb-ink)_30%,transparent)] rounded-full w-1 h-1"
+            v-for="(label, i) in effortList"
+            :key="label"
+            class="prompt-bar__effort-dot"
             :style="{ left: stepAt(i) }"
           />
-          <span
-            class="-top-[3px] absolute shadow-[0_2px_6px_rgba(0,0,0,0.25)] -ml-[7px] [background:var(--pb-ink)] [left:var(--pb-effort-x)] group-data-[max]:[background:var(--pb-spark)] rounded-[7px] w-3.5 h-7 motion-reduce:[transition:background-color_300ms_ease] [transition:left_220ms_cubic-bezier(0.23,1,0.32,1),background-color_300ms_ease]"
-          />
+          <span class="prompt-bar__effort-thumb" />
         </div>
       </template>
       <template v-else>
-        <span
-          ref="glowRef"
-          class="absolute inset-x-1 opacity-0 [background:color-mix(in_srgb,var(--pb-ink)_8%,transparent)] rounded-lg pointer-events-none motion-reduce:[transition:opacity_150ms_ease] [transition:top_220ms_cubic-bezier(0.23,1,0.32,1),height_220ms_cubic-bezier(0.23,1,0.32,1),opacity_150ms_ease]"
-          aria-hidden="true"
-        />
+        <span ref="glowRef" class="prompt-bar__glow" aria-hidden="true" />
         <button
           v-for="(row, i) in list"
           :key="row.key"
@@ -699,61 +692,45 @@ const rootStyle = computed(
           type="button"
           role="option"
           :aria-selected="i === cursor"
-          class="z-[1] relative flex items-center gap-2.5 bg-transparent px-2 border-0 rounded-lg outline-none w-full h-9 text-inherit text-left cursor-pointer [font:inherit] [-webkit-tap-highlight-color:transparent]"
+          class="prompt-bar__row"
           @mousedown.prevent
           @pointerenter="active = i"
           @click="pick(row)"
         >
-          <span
-            v-if="open === 'at' && row.icon"
-            class="inline-flex flex-none justify-center [color:color-mix(in_srgb,var(--pb-ink)_70%,transparent)] w-5"
-          >
-            <HugeiconsIcon v-if="isIconData(row.icon)" :icon="row.icon" :size="15" :stroke-width="1.8" />
-            <component :is="row.icon" v-else />
+          <span v-if="open === 'at'" class="prompt-bar__row-icon">
+            <template v-if="row.icon">
+              <HugeiconsIcon v-if="isIconData(row.icon)" :icon="row.icon" :size="15" :stroke-width="1.8" />
+              <component :is="row.icon" v-else />
+            </template>
           </span>
-          <span class="flex-none font-medium text-[13px]">{{ row.name }}</span>
-          <span v-if="row.description" class="flex-auto min-w-0 text-[12px] truncate" :class="MUTED">
-            {{ row.description }}
-          </span>
+          <span class="prompt-bar__row-name">{{ row.name }}</span>
+          <span v-if="row.description" class="prompt-bar__row-desc">{{ row.description }}</span>
           <template v-if="open === 'model'">
-            <span class="flex-none ml-auto text-[11px]" :class="MUTED">{{ row.tag }}</span>
-            <span
-              class="inline-flex flex-none justify-center opacity-0 data-[on]:opacity-100 w-4"
-              :data-on="row.key === model?.key ? '' : undefined"
-            >
+            <span class="prompt-bar__row-tag">{{ row.tag }}</span>
+            <span class="prompt-bar__row-check" :data-on="row.key === model?.key ? '' : undefined">
               <HugeiconsIcon :icon="Tick02Icon as IconArray" :size="13" :stroke-width="2.5" />
             </span>
           </template>
         </button>
-        <div v-if="list.length === 0" class="flex items-center px-2 h-9 text-[12px]" :class="MUTED">
-          No matches for “{{ query }}”
-        </div>
+        <div v-if="list.length === 0" class="prompt-bar__empty">No matches for “{{ query }}”</div>
       </template>
     </div>
 
     <div
-      class="before:-z-10 isolate before:absolute relative before:inset-0 flex flex-col gap-2 data-[max]:before:opacity-100 before:opacity-0 p-3 [background:var(--pb-bg)] [border-radius:var(--pb-radius)] before:[background:radial-gradient(140%_120%_at_0%_100%,color-mix(in_srgb,var(--pb-spark)_26%,transparent),transparent_62%)] before:rounded-[inherit] before:content-[''] cursor-text before:pointer-events-none before:[transition:opacity_500ms_ease]"
+      class="prompt-bar__field"
       role="presentation"
       :data-max="maxed ? '' : undefined"
-      @pointerdown="onBoxDown"
+      @pointerdown="onFieldDown"
       @click="focusInput"
     >
-      <canvas
-        ref="sparkRef"
-        class="-z-10 absolute inset-0 rounded-[inherit] w-full h-full pointer-events-none"
-        aria-hidden="true"
-      />
-      <div v-if="attachments.length > 0" class="flex flex-wrap gap-1.5">
-        <span
-          v-for="(file, i) in attachments"
-          :key="`${file}-${i}`"
-          class="inline-flex items-center gap-1.5 pr-1 [background:color-mix(in_srgb,var(--pb-ink)_8%,transparent)] pl-2 rounded-lg h-[26px] text-[12px] motion-reduce:[animation:none] [animation:prompt-bar-pop_200ms_cubic-bezier(0.23,1,0.32,1)_both]"
-        >
+      <canvas ref="sparkRef" class="prompt-bar__sparks" aria-hidden="true" />
+      <div v-if="attachments.length > 0" class="prompt-bar__chips">
+        <span v-for="(file, i) in attachments" :key="`${file}-${i}`" class="prompt-bar__chip">
           <HugeiconsIcon :icon="File02Icon as IconArray" :size="12" :stroke-width="2" />
-          <span class="max-w-[144px] truncate">{{ file }}</span>
+          <span class="prompt-bar__chip-name">{{ file }}</span>
           <button
             type="button"
-            class="inline-grid place-items-center bg-transparent opacity-60 hover:opacity-100 p-0 hover:[background:color-mix(in_srgb,var(--pb-ink)_10%,transparent)] border-0 rounded-[5px] outline-none w-[18px] h-[18px] text-inherit cursor-pointer [transition:opacity_120ms_ease,background-color_120ms_ease]"
+            class="prompt-bar__chip-x"
             :aria-label="`Remove ${file}`"
             @click="attachments = attachments.filter((_, j) => j !== i)"
           >
@@ -764,7 +741,7 @@ const rootStyle = computed(
 
       <textarea
         ref="inputRef"
-        class="block bg-transparent p-0 placeholder:[color:color-mix(in_srgb,var(--pb-ink)_45%,transparent)] border-0 outline-none w-full text-[14px] text-inherit [@media(pointer:coarse)]:text-[16px] leading-[22px] resize-none [font:inherit] [overflow-wrap:anywhere]"
+        class="prompt-bar__input"
         rows="1"
         :value="draft"
         :placeholder="listening ? 'Listening…' : placeholder"
@@ -774,27 +751,27 @@ const rootStyle = computed(
         @keydown="onKeyDown"
       />
 
-      <div class="flex items-center gap-1">
+      <div class="prompt-bar__bar">
         <button
           type="button"
-          :class="ICON_BTN"
+          class="prompt-bar__tool"
           aria-label="Add files and sources"
           :aria-expanded="plusOpen"
           :data-on="plusOpen ? '' : undefined"
           @mousedown.prevent
-          @click="toggleSources"
+          @click="togglePlus"
         >
           <HugeiconsIcon :icon="PlusSignIcon as IconArray" :size="16" :stroke-width="2" />
         </button>
         <button
           v-if="modelList.length > 0"
           type="button"
-          :class="TOOL_BTN"
+          class="prompt-bar__pick"
           aria-label="Choose model"
           :aria-expanded="modelOpen"
           :data-on="modelOpen ? '' : undefined"
           @mousedown.prevent
-          @click="toggleModels"
+          @click="toggleModel"
         >
           <span>{{ model.name }}</span>
           <HugeiconsIcon :icon="ArrowDown01Icon as IconArray" :size="12" :stroke-width="2.4" />
@@ -802,7 +779,7 @@ const rootStyle = computed(
         <button
           v-if="effortList.length > 0"
           type="button"
-          :class="TOOL_BTN"
+          class="prompt-bar__pick"
           aria-label="Choose effort"
           :aria-expanded="effortOpen"
           :data-on="effortOpen ? '' : undefined"
@@ -813,22 +790,18 @@ const rootStyle = computed(
           <HugeiconsIcon :icon="SparklesIcon as IconArray" :size="13" :stroke-width="2" />
           <span>{{ level }}</span>
         </button>
-        <span class="flex-auto" />
+        <span class="prompt-bar__spacer" />
         <button
           v-if="hasDictate"
           type="button"
-          :class="ICON_BTN"
+          class="prompt-bar__tool"
           :aria-label="listening ? 'Stop dictation' : 'Dictate'"
           :aria-pressed="listening"
           :data-on="listening ? '' : undefined"
           @mousedown.prevent
           @click="toggleListen"
         >
-          <span
-            v-if="listening"
-            class="[&>i]:block flex items-center gap-[2.5px] [&>i]:bg-current [&>i]:rounded-full [&>i]:w-[2.5px] h-3.5 [&>i]:h-full [&>i]:origin-center [&>i]:[animation:prompt-bar-eq_900ms_ease-in-out_infinite] [&>i:nth-child(2)]:[animation-delay:150ms] [&>i:nth-child(3)]:[animation-delay:300ms]"
-            aria-hidden="true"
-          >
+          <span v-if="listening" class="prompt-bar__eq" aria-hidden="true">
             <i />
             <i />
             <i />
@@ -837,7 +810,7 @@ const rootStyle = computed(
         </button>
         <button
           type="button"
-          class="inline-grid relative flex-none place-items-center p-0 [background:color-mix(in_srgb,var(--pb-ink)_12%,var(--pb-bg))] [color:color-mix(in_srgb,var(--pb-ink)_55%,var(--pb-bg))] data-[armed]:[background:var(--pb-ink)] data-[armed]:[color:var(--pb-bg)] data-[pressed]:[transform:scale(var(--pb-press))] border-0 rounded-lg outline-none w-7 h-7 touch-manipulation cursor-pointer disabled:cursor-default select-none motion-reduce:data-[pressed]:[transform:none] [font:inherit] [-webkit-tap-highlight-color:transparent] [transition:background-color_200ms_ease,color_200ms_ease,transform_160ms_cubic-bezier(0.23,1,0.32,1)]"
+          class="prompt-bar__send"
           :disabled="!armed"
           :aria-label="busy ? 'Stop' : 'Send'"
           :data-armed="armed ? '' : undefined"
@@ -850,8 +823,8 @@ const rootStyle = computed(
           @click="onSendClick"
         >
           <svg
-            ref="sendSvg"
-            class="block w-4 h-4 origin-center"
+            ref="svgRef"
+            class="prompt-bar__glyph"
             viewBox="0 0 24 24"
             aria-hidden="true"
             fill="currentColor"
@@ -859,7 +832,7 @@ const rootStyle = computed(
             stroke-width="2"
             stroke-linejoin="round"
           >
-            <path ref="sendPath" :d="sendStart" />
+            <path ref="pathRef" :d="glyphStart" />
           </svg>
         </button>
       </div>
@@ -868,19 +841,520 @@ const rootStyle = computed(
 </template>
 
 <style>
+.prompt-bar {
+  --pb-bg: #272a27;
+  --pb-ink: #f5f5f5;
+  --pb-menu: #313531;
+  --pb-w: 400px;
+  --pb-radius: 16px;
+  --pb-press: 0.96;
+  --pb-spark: #a0ffbc;
+  --pb-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --pb-muted: color-mix(in srgb, var(--pb-ink) 55%, transparent);
+  --pb-hover: color-mix(in srgb, var(--pb-ink) 8%, transparent);
+
+  position: relative;
+  width: min(var(--pb-w), 100%);
+  color: var(--pb-ink);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.prompt-bar__menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 2;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--pb-menu);
+  box-shadow:
+    0 10px 30px -10px rgba(0, 0, 0, 0.35),
+    0 1px 2px rgba(0, 0, 0, 0.08);
+  transform-origin: bottom center;
+  animation: prompt-bar-pop 180ms var(--pb-ease-out) both;
+}
+
+.prompt-bar__menu[data-kind='model'] {
+  right: auto;
+  width: 200px;
+  transform-origin: bottom left;
+}
+
 @keyframes prompt-bar-pop {
   from {
     opacity: 0;
     transform: translateY(4px) scale(0.98);
   }
 }
+
+.prompt-bar__glow {
+  position: absolute;
+  right: 4px;
+  left: 4px;
+  border-radius: 8px;
+  background: var(--pb-hover);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    top 220ms var(--pb-ease-out),
+    height 220ms var(--pb-ease-out),
+    opacity 150ms ease;
+}
+
+.prompt-bar__row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 36px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.prompt-bar__row-icon {
+  display: inline-flex;
+  flex: none;
+  justify-content: center;
+  width: 20px;
+  color: color-mix(in srgb, var(--pb-ink) 70%, transparent);
+}
+
+.prompt-bar__row-name {
+  flex: none;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.prompt-bar__row-desc {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--pb-muted);
+  font-size: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.prompt-bar__row-tag {
+  flex: none;
+  margin-left: auto;
+  color: var(--pb-muted);
+  font-size: 11px;
+}
+
+.prompt-bar__row-check {
+  display: inline-flex;
+  flex: none;
+  justify-content: center;
+  width: 16px;
+  opacity: 0;
+}
+
+.prompt-bar__row-check[data-on] {
+  opacity: 1;
+}
+
+.prompt-bar__empty {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 8px;
+  color: var(--pb-muted);
+  font-size: 12px;
+}
+
+.prompt-bar__field {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: var(--pb-radius);
+  background: var(--pb-bg);
+  cursor: text;
+}
+
+.prompt-bar__field::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(
+    140% 120% at 0% 100%,
+    color-mix(in srgb, var(--pb-spark) 26%, transparent),
+    transparent 62%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 500ms ease;
+}
+
+.prompt-bar__field[data-max]::before {
+  opacity: 1;
+}
+
+.prompt-bar__sparks {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.prompt-bar__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.prompt-bar__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 4px 0 8px;
+  border-radius: 8px;
+  background: var(--pb-hover);
+  font-size: 12px;
+  animation: prompt-bar-pop 200ms var(--pb-ease-out) both;
+}
+
+.prompt-bar__chip-name {
+  max-width: 144px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.prompt-bar__chip-x {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+  outline: none;
+  transition:
+    opacity 120ms ease,
+    background-color 120ms ease;
+}
+
+.prompt-bar__chip-x:hover {
+  background: color-mix(in srgb, var(--pb-ink) 10%, transparent);
+  opacity: 1;
+}
+
+.prompt-bar__input {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  line-height: 22px;
+  resize: none;
+  outline: none;
+  overflow-wrap: anywhere;
+}
+
+.prompt-bar__input::placeholder {
+  color: color-mix(in srgb, var(--pb-ink) 45%, transparent);
+}
+
+@media (pointer: coarse) {
+  .prompt-bar__input {
+    font-size: 16px;
+  }
+}
+
+.prompt-bar__bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.prompt-bar__spacer {
+  flex: 1 1 auto;
+}
+
+.prompt-bar__tool,
+.prompt-bar__pick,
+.prompt-bar__send {
+  flex: none;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.prompt-bar__tool {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: color-mix(in srgb, var(--pb-ink) 60%, transparent);
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    transform 160ms var(--pb-ease-out);
+}
+
+.prompt-bar__tool:active {
+  transform: scale(0.94);
+}
+
+.prompt-bar__pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 8px;
+  background: transparent;
+  color: color-mix(in srgb, var(--pb-ink) 70%, transparent);
+  font-size: 12px;
+  font-weight: 500;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.prompt-bar__tool[data-on],
+.prompt-bar__pick[data-on] {
+  background: var(--pb-hover);
+  color: var(--pb-ink);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .prompt-bar__tool:hover,
+  .prompt-bar__pick:hover {
+    background: var(--pb-hover);
+    color: var(--pb-ink);
+  }
+}
+
+.prompt-bar__pick[data-max] {
+  color: var(--pb-spark);
+}
+
+.prompt-bar__menu[data-kind='effort'] {
+  right: auto;
+  width: 248px;
+  padding: 12px 14px 14px;
+  transform-origin: bottom left;
+}
+
+.prompt-bar__effort-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.prompt-bar__effort-title {
+  color: var(--pb-muted);
+}
+
+.prompt-bar__effort-level {
+  font-weight: 500;
+}
+
+.prompt-bar__effort-help {
+  display: inline-flex;
+  margin-left: auto;
+  color: var(--pb-muted);
+}
+
+.prompt-bar__effort-ends {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  color: var(--pb-muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.prompt-bar__effort-track {
+  position: relative;
+  height: 22px;
+  margin-top: 8px;
+  border-radius: 11px;
+  background: var(--pb-hover);
+  cursor: pointer;
+  outline: none;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.prompt-bar__effort-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--pb-effort-fill);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--pb-ink) 18%, transparent);
+  transition:
+    width 220ms var(--pb-ease-out),
+    background-color 300ms ease;
+}
+
+.prompt-bar__effort-dot {
+  position: absolute;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--pb-ink) 30%, transparent);
+}
+
+.prompt-bar__effort-thumb {
+  position: absolute;
+  top: -3px;
+  left: var(--pb-effort-x);
+  width: 14px;
+  height: 28px;
+  margin-left: -7px;
+  border-radius: 7px;
+  background: var(--pb-ink);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition:
+    left 220ms var(--pb-ease-out),
+    background-color 300ms ease;
+}
+
+.prompt-bar[data-max] .prompt-bar__effort-fill {
+  background: color-mix(in srgb, var(--pb-spark) 35%, transparent);
+}
+
+.prompt-bar[data-max] .prompt-bar__effort-thumb {
+  background: var(--pb-spark);
+}
+
+.prompt-bar__eq {
+  display: flex;
+  align-items: center;
+  gap: 2.5px;
+  height: 14px;
+}
+
+.prompt-bar__eq i {
+  display: block;
+  width: 2.5px;
+  height: 100%;
+  border-radius: 999px;
+  background: currentColor;
+  transform-origin: center;
+  animation: prompt-bar-eq 900ms ease-in-out infinite;
+}
+
+.prompt-bar__eq i:nth-child(2) {
+  animation-delay: 150ms;
+}
+
+.prompt-bar__eq i:nth-child(3) {
+  animation-delay: 300ms;
+}
+
 @keyframes prompt-bar-eq {
   0%,
   100% {
     transform: scaleY(0.35);
   }
+
   50% {
     transform: scaleY(1);
+  }
+}
+
+.prompt-bar__send {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--pb-ink) 12%, var(--pb-bg));
+  color: color-mix(in srgb, var(--pb-ink) 55%, var(--pb-bg));
+  transition:
+    background-color 200ms ease,
+    color 200ms ease,
+    transform 160ms var(--pb-ease-out);
+}
+
+.prompt-bar__send:disabled {
+  cursor: default;
+}
+
+.prompt-bar__send[data-armed] {
+  background: var(--pb-ink);
+  color: var(--pb-bg);
+}
+
+.prompt-bar__send[data-pressed] {
+  transform: scale(var(--pb-press));
+}
+
+.prompt-bar__glyph {
+  display: block;
+  width: 16px;
+  height: 16px;
+  transform-origin: 50% 50%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prompt-bar__menu,
+  .prompt-bar__chip {
+    animation: none;
+  }
+
+  .prompt-bar__glow {
+    transition: opacity 150ms ease;
+  }
+
+  .prompt-bar__effort-fill,
+  .prompt-bar__effort-thumb {
+    transition: background-color 300ms ease;
+  }
+
+  .prompt-bar__tool:active,
+  .prompt-bar__send[data-pressed] {
+    transform: none;
   }
 }
 </style>

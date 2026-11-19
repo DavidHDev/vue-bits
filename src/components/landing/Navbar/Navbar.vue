@@ -1,24 +1,34 @@
 <script setup lang="ts">
-import SearchDialog from '@/components/common/SearchDialog.vue';
+import DocsMobileMenu from '@/components/navs/DocsMobileMenu.vue';
+import ThemeToggle from '@/components/common/ThemeToggle.vue';
+import { useSearch } from '@/composables/useSearch';
 import { useStars } from '@/composables/useStars';
+import { CATEGORIES } from '@/constants/Categories';
+import { proLinkProps } from '@/utils/pro';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import Logo from '../../../assets/logos/vue-bits-logo.svg';
 import './Navbar.css';
 
-const { showDocs = false, drawerOpen = false } = defineProps<{ showDocs?: boolean; drawerOpen?: boolean }>();
-const emit = defineEmits<{ hamburger: [] }>();
+const { showDocs = false } = defineProps<{ showDocs?: boolean }>();
 
 const GITHUB_URL = 'https://github.com/DavidHDev/vue-bits';
+const DOCS_PRO_LINK = proLinkProps('/', 'docs-navbar');
 
-const NAV_LINKS = [{ label: 'Docs', to: '/get-started/introduction', match: '/get-started' }] as const;
+const DOCS_MATCHES = [
+  ...CATEGORIES.map(category => `/${category.name.replace(/\s+/g, '-').toLowerCase()}`),
+  '/c',
+  '/favorites'
+];
+
+const NAV_LINKS = [{ label: 'Docs', to: '/get-started/introduction', match: DOCS_MATCHES }] as const;
 
 const route = useRoute();
 const stars = useStars();
 
 const scrolled = ref(false);
 const menuOpen = ref(false);
-const searchOpen = ref(false);
+const { toggleSearch } = useSearch();
 
 const navbarInnerEl = ref<HTMLElement | null>(null);
 const linksEl = ref<HTMLElement | null>(null);
@@ -26,12 +36,13 @@ const highlightEl = ref<HTMLElement | null>(null);
 
 // ── stars ─────────────────────────────────────────────────────────────────────
 const formattedStars = computed(() => {
-  const v = stars.value;
-  return v ?? '0';
+  const v = stars.value ?? 0;
+  return v >= 1000 ? `${(v / 1000).toFixed(1).replace(/\.0$/, '')}k` : v;
 });
 
 // ── active ────────────────────────────────────────────────────────────────────
-const isActive = (match: string) => route.path.startsWith(match);
+const isActive = (match: string | readonly string[]) =>
+  (Array.isArray(match) ? match : [match]).some(path => route.path === path || route.path.startsWith(`${path}/`));
 
 // ── highlight ─────────────────────────────────────────────────────────────────
 function positionHighlight(el: HTMLElement | null) {
@@ -75,21 +86,19 @@ function onScroll() {
   scrolled.value = window.scrollY > 50;
 }
 
-// ── search ────────────────────────────────────────────────────────────────────
-function closeSearch() {
-  searchOpen.value = false;
-}
-function toggleSearch() {
-  searchOpen.value = !searchOpen.value;
-}
-
 // ── hamburger ─────────────────────────────────────────────────────────────────
-const isMenuOpen = computed(() => (showDocs ? drawerOpen : menuOpen.value));
+const isMenuOpen = computed(() => menuOpen.value);
 
 function handleHamburger() {
-  if (showDocs) emit('hamburger');
-  else menuOpen.value = !menuOpen.value;
+  menuOpen.value = !menuOpen.value;
 }
+
+watch(
+  () => route.fullPath,
+  () => {
+    menuOpen.value = false;
+  }
+);
 
 // ── body scroll lock ──────────────────────────────────────────────────────────
 watch(menuOpen, open => {
@@ -160,7 +169,7 @@ onUnmounted(() => {
       <!-- Right -->
       <div class="ln-navbar-right">
         <!-- Search -->
-        <button type="button" class="ln-navbar-search" aria-label="Search" @click="toggleSearch">
+        <button v-if="showDocs" type="button" class="ln-navbar-search" aria-label="Search" @click="toggleSearch">
           <svg
             width="14"
             height="14"
@@ -178,6 +187,8 @@ onUnmounted(() => {
           <span>Search</span>
           <kbd>/</kbd>
         </button>
+
+        <ThemeToggle />
 
         <!-- GitHub -->
         <a
@@ -200,6 +211,24 @@ onUnmounted(() => {
             />
           </svg>
           <span>{{ formattedStars }}</span>
+        </a>
+
+        <a v-if="showDocs" class="ln-navbar-pro" v-bind="DOCS_PRO_LINK">
+          React Bits Pro
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M7 17 17 7" />
+            <path d="M7 7h10v10" />
+          </svg>
         </a>
 
         <!-- Hamburger -->
@@ -256,5 +285,5 @@ onUnmounted(() => {
     </div>
   </header>
 
-  <SearchDialog :is-open="searchOpen" @close="closeSearch" @toggle="toggleSearch" />
+  <DocsMobileMenu v-if="menuOpen && showDocs" @close="menuOpen = false" />
 </template>

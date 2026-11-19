@@ -2,26 +2,18 @@ import code from '@/content/Animations/GhostCursor/GhostCursor.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const ghostCursor = createCodeObject(code, 'Animations/GhostCursor', {
-  installation: `npm install three`,
+  dependencies: '',
   usage: `<template>
-  <div
-    style="
-      height: 600px;
-      position: relative;
-    "
-  >
+  <div style="height: 600px; position: relative">
     <GhostCursor
-      color="#B497CF"
-      :brightness="1"
-      :edge-intensity="0"
+      color="#A0FFBC"
+      :size="80"
       :trail-length="50"
       :inertia="0.5"
+      :turbulence="0.5"
+      :drift="0.3"
+      :bloom-strength="0.6"
       :grain-intensity="0.05"
-      :bloom-strength="0.1"
-      :bloom-radius="1.0"
-      :bloom-threshold="0.025"
-      :fade-delay-ms="1000"
-      :fade-duration-ms="1500"
     />
   </div>
 </template>

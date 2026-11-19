@@ -1,219 +1,272 @@
 <template>
-  <h1 class="sub-category">Pixel Snow</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="pixelSnow.usage"
-    :source="pixelSnowSource"
-    component-name="PixelSnow"
-    :props-table="props"
+    :demo-only-props="['preset']"
   >
-    <template #preview>
-      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
-        <PixelSnow
-          :color="color"
-          :flake-size="flakeSize"
-          :min-flake-size="minFlakeSize"
-          :pixel-resolution="pixelResolution"
-          :speed="speed"
-          :depth-fade="depthFade"
-          :far-plane="farPlane"
-          :brightness="brightness"
-          :gamma="gamma"
-          :density="density"
-          :variant="variant"
-          :direction="direction"
-        />
-        <BackgroundContent pill-text="New Background" headline="Oh, the weather outside is frightful!" />
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 500px; padding: 0">
+          <PixelSnow :key="rerenderKey" v-bind="settings" />
+          <BackgroundContent headline="Oh, the weather outside is frightful!" />
+          <RefreshButton @click="forceRerender" />
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewSelect title="Variant" v-model="variant" :options="['square', 'round', 'snowflake']" />
-        <PreviewColorPicker title="Color" v-model="color" />
-        <PreviewSlider title="Pixel Resolution" v-model="pixelResolution" :min="50" :max="500" :step="10" />
-        <PreviewSlider title="Speed" v-model="speed" :min="0" :max="5" :step="0.1" />
-        <PreviewSlider title="Density" v-model="density" :min="0.1" :max="1" :step="0.05" />
-        <PreviewSlider title="Flake Size" v-model="flakeSize" :min="0.001" :max="0.05" :step="0.001" />
-        <PreviewSlider title="Brightness" v-model="brightness" :min="0.1" :max="3" :step="0.1" />
-        <PreviewSlider title="Depth Fade" v-model="depthFade" :min="1" :max="20" :step="0.5" />
-        <PreviewSlider title="Far Plane" v-model="farPlane" :min="5" :max="50" :step="1" />
-        <PreviewSlider title="Direction" v-model="direction" :min="0" :max="360" :step="5" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewSelect
+            title="Preset"
+            :options="PRESET_OPTIONS"
+            :model-value="props.preset"
+            @update:model-value="(value: string | number) => applyPreset(String(value))"
+          />
+          <PreviewColorPickerCustom
+            title="Color"
+            :color="settings.color"
+            @change="(value: string) => updateProp('color', value)"
+          />
+          <PreviewSelect
+            title="Variant"
+            :options="VARIANT_OPTIONS"
+            :model-value="settings.variant"
+            @update:model-value="(value: string | number) => updateProp('variant', value as PixelSnowVariant)"
+          />
+          <PreviewSlider
+            title="Density"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.density"
+            @update:model-value="(value: number) => updateProp('density', value)"
+          />
+          <PreviewSlider
+            title="Speed"
+            :min="-1"
+            :max="3"
+            :step="0.05"
+            :model-value="settings.speed"
+            @update:model-value="(value: number) => updateProp('speed', value)"
+          />
+          <PreviewSlider
+            title="Wind"
+            :min="-2"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.wind"
+            @update:model-value="(value: number) => updateProp('wind', value)"
+          />
+          <PreviewSlider
+            title="Sway"
+            :min="0"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.sway"
+            @update:model-value="(value: number) => updateProp('sway', value)"
+          />
+          <PreviewSlider
+            title="Flake Size"
+            :min="0"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.flakeSize"
+            @update:model-value="(value: number) => updateProp('flakeSize', value)"
+          />
+          <PreviewSlider
+            title="Pixel Size"
+            :min="1"
+            :max="8"
+            :step="1"
+            value-unit="px"
+            :model-value="settings.pixelSize"
+            @update:model-value="(value: number) => updateProp('pixelSize', value)"
+          />
+          <PreviewSlider
+            title="Depth"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.depth"
+            @update:model-value="(value: number) => updateProp('depth', value)"
+          />
+          <PreviewSlider
+            title="Brightness"
+            :min="0.2"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.brightness"
+            @update:model-value="(value: number) => updateProp('brightness', value)"
+          />
+          <PreviewSlider
+            title="Glow"
+            :min="0"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.glow"
+            @update:model-value="(value: number) => updateProp('glow', value)"
+          />
+          <PreviewSlider
+            title="Twinkle"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.twinkle"
+            @update:model-value="(value: number) => updateProp('twinkle', value)"
+          />
+          <PreviewSlider
+            title="Fade"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.fade"
+            @update:model-value="(value: number) => updateProp('fade', value)"
+          />
+          <PreviewSlider
+            title="Opacity"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.opacity"
+            @update:model-value="(value: number) => updateProp('opacity', value)"
+          />
+          <PreviewSwitch
+            title="Accumulate"
+            :model-value="settings.accumulate"
+            @update:model-value="(value: boolean) => updateProp('accumulate', value)"
+          />
+          <PreviewSwitch
+            title="Mouse Interaction"
+            :model-value="settings.mouseInteraction"
+            @update:model-value="(value: boolean) => updateProp('mouseInteraction', value)"
+          />
+          <PreviewSwitch
+            title="Intro"
+            :model-value="settings.intro"
+            @update:model-value="(value: boolean) => updateProp('intro', value)"
+          />
+          <PreviewSwitch
+            title="Light Mode"
+            :model-value="settings.lightMode"
+            @update:model-value="(value: boolean) => updateProp('lightMode', value)"
+          />
+        </Customize>
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+        <PropTable :data="propData" />
+      </template>
 
-    <template #code>
-      <DemoCodeTab slug="pixel-snow" :usage="pixelSnow.usage!" :source="pixelSnowSource" />
-    </template>
-  </TabsLayout>
+      <template #code>
+        <CodeExample :code-object="pixelSnow" component-name="PixelSnow" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewColorPickerCustom from '@/components/common/PreviewColorPickerCustom.vue';
 import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
+import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
 import { useForceRerender } from '@/composables/useForceRerender';
 import { pixelSnow } from '@/constants/code/Backgrounds/pixelSnowCode';
 import PixelSnow from '@/content/Backgrounds/PixelSnow/PixelSnow.vue';
-import pixelSnowSource from '@/content/Backgrounds/PixelSnow/PixelSnow.vue?raw';
-import { computed, ref } from 'vue';
+import { DEFAULT_PROPS, PRESET_OPTIONS, presetProps } from './presets/PixelSnow';
 
-const { forceRerender } = useForceRerender();
+type PixelSnowVariant = 'snowflake' | 'square' | 'round';
 
-const DEFAULTS = {
-  color: '#ffffff',
-  flakeSize: 0.01,
-  minFlakeSize: 1.25,
-  pixelResolution: 200,
-  speed: 1.25,
-  depthFade: 8,
-  farPlane: 20,
-  brightness: 1,
-  gamma: 0.4545,
-  density: 0.3,
-  variant: 'square' as 'square' | 'round' | 'snowflake',
-  direction: 125
-};
+const VARIANT_OPTIONS = [
+  { value: 'snowflake', label: 'Snowflake' },
+  { value: 'square', label: 'Square' },
+  { value: 'round', label: 'Round' }
+];
 
-const color = ref(DEFAULTS.color);
-const flakeSize = ref(DEFAULTS.flakeSize);
-const minFlakeSize = ref(DEFAULTS.minFlakeSize);
-const pixelResolution = ref(DEFAULTS.pixelResolution);
-const speed = ref(DEFAULTS.speed);
-const depthFade = ref(DEFAULTS.depthFade);
-const farPlane = ref(DEFAULTS.farPlane);
-const brightness = ref(DEFAULTS.brightness);
-const gamma = ref(DEFAULTS.gamma);
-const density = ref(DEFAULTS.density);
-const variant = ref<'square' | 'round' | 'snowflake'>(DEFAULTS.variant);
-const direction = ref(DEFAULTS.direction);
-
-const hasChanges = computed(
-  () =>
-    color.value !== DEFAULTS.color ||
-    flakeSize.value !== DEFAULTS.flakeSize ||
-    minFlakeSize.value !== DEFAULTS.minFlakeSize ||
-    pixelResolution.value !== DEFAULTS.pixelResolution ||
-    speed.value !== DEFAULTS.speed ||
-    depthFade.value !== DEFAULTS.depthFade ||
-    farPlane.value !== DEFAULTS.farPlane ||
-    brightness.value !== DEFAULTS.brightness ||
-    gamma.value !== DEFAULTS.gamma ||
-    density.value !== DEFAULTS.density ||
-    variant.value !== DEFAULTS.variant ||
-    direction.value !== DEFAULTS.direction
-);
-
-function reset() {
-  color.value = DEFAULTS.color;
-  flakeSize.value = DEFAULTS.flakeSize;
-  minFlakeSize.value = DEFAULTS.minFlakeSize;
-  pixelResolution.value = DEFAULTS.pixelResolution;
-  speed.value = DEFAULTS.speed;
-  depthFade.value = DEFAULTS.depthFade;
-  farPlane.value = DEFAULTS.farPlane;
-  brightness.value = DEFAULTS.brightness;
-  gamma.value = DEFAULTS.gamma;
-  density.value = DEFAULTS.density;
-  variant.value = DEFAULTS.variant;
-  direction.value = DEFAULTS.direction;
-  forceRerender();
-}
-
-const props: PropRow[] = [
+const propData: PropRow[] = [
+  { name: 'color', type: 'string', default: "'#ffffff'", description: 'Color of the snow.' },
   {
-    name: 'color',
-    type: 'string',
-    default: '"#ffffff"',
-    description: 'Color of the snowflakes (hex or CSS color)'
+    name: 'variant',
+    type: "'snowflake' | 'square' | 'round'",
+    default: "'snowflake'",
+    description: 'Shape of the flakes: pixel crystals, square pixels or round pixels.'
   },
-  {
-    name: 'flakeSize',
-    type: 'number',
-    default: '0.01',
-    description: 'Size of snowflakes in scene units'
-  },
-  {
-    name: 'minFlakeSize',
-    type: 'number',
-    default: '1.25',
-    description: 'Minimum flake size in pixels on screen'
-  },
-  {
-    name: 'pixelResolution',
-    type: 'number',
-    default: '200',
-    description: 'Pixel resolution - lower values create larger pixels for a more retro look'
-  },
+  { name: 'density', type: 'number', default: '0.5', description: 'How much snow is falling, from 0 to 1.' },
   {
     name: 'speed',
     type: 'number',
-    default: '1.25',
-    description: 'Animation speed multiplier'
+    default: '1',
+    description: 'How fast the snow falls. Negative values make it rise.'
   },
   {
-    name: 'depthFade',
+    name: 'wind',
     type: 'number',
-    default: '8',
-    description: 'Depth fade intensity - higher values make distant flakes fade faster'
+    default: '0.25',
+    description: 'Sideways drift. Negative values blow to the left.'
   },
+  { name: 'sway', type: 'number', default: '0.5', description: 'How much each flake swings as it falls.' },
   {
-    name: 'farPlane',
-    type: 'number',
-    default: '20',
-    description: 'Far plane distance for rendering - higher values show more distant flakes'
-  },
-  {
-    name: 'brightness',
+    name: 'flakeSize',
     type: 'number',
     default: '1',
-    description: 'Overall brightness multiplier'
+    description: 'Size of the flakes, from 0 for mostly tiny specks to 2 for mostly large crystals.'
   },
+  { name: 'pixelSize', type: 'number', default: '3', description: 'Size of one snow pixel in px.' },
   {
-    name: 'gamma',
+    name: 'depth',
     type: 'number',
-    default: '0.4545',
-    description: 'Gamma correction value for final color output'
+    default: '0.6',
+    description: 'How strongly far flakes fall slower and dimmer than near ones, from 0 to 1.'
   },
+  { name: 'brightness', type: 'number', default: '1', description: 'Overall brightness of the snow.' },
+  { name: 'glow', type: 'number', default: '0.8', description: 'Strength of the soft light around each flake.' },
   {
-    name: 'density',
+    name: 'twinkle',
     type: 'number',
-    default: '0.3',
-    description: 'Probability of snowflakes appearing (0-1) - lower values = fewer flakes'
+    default: '0.35',
+    description: 'How often flakes catch the light and sparkle, from 0 to 1.'
   },
   {
-    name: 'variant',
-    type: '"square" | "round" | "snowflake"',
-    default: '"square"',
-    description: 'Shape of the snowflakes - square, round, or snowflake pattern'
+    name: 'accumulate',
+    type: 'boolean',
+    default: 'false',
+    description: 'Lets the snow pile up in soft drifts along the bottom edge.'
   },
   {
-    name: 'direction',
-    type: 'number',
-    default: '125',
-    description: 'Wind direction angle in degrees (0-360)'
+    name: 'mouseInteraction',
+    type: 'boolean',
+    default: 'true',
+    description: 'Lets the cursor brush the snow aside and stir it as it moves.'
   },
+  { name: 'intro', type: 'boolean', default: 'true', description: 'Lets the snow drift in from the top on mount.' },
+  { name: 'fade', type: 'number', default: '0', description: 'Fades the edges into the page, from 0 to 1.' },
+  { name: 'opacity', type: 'number', default: '1', description: 'Opacity of the whole effect.' },
   {
-    name: 'className',
-    type: 'string',
-    default: '""',
-    description: 'Additional CSS class name'
+    name: 'lightMode',
+    type: 'boolean',
+    default: 'false',
+    description: 'Draws the snow as colored pixels for light backgrounds.'
   },
-  {
-    name: 'style',
-    type: 'CSSProperties',
-    default: '{}',
-    description: 'Additional inline styles'
-  }
+  { name: 'paused', type: 'boolean', default: 'false', description: 'Freezes the snow in place.' },
+  { name: 'dpr', type: 'number', default: 'auto', description: 'Maximum device pixel ratio, capped at 2.' },
+  { name: 'className', type: 'string', default: "''", description: 'Extra class names for the container.' }
 ];
+
+const { rerenderKey, forceRerender } = useForceRerender();
+const { props, defaultProps, updateProp, updateProps, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
+
+const settings = computed(() => {
+  const { preset: _preset, ...rest } = props.value;
+  void _preset;
+  return rest;
+});
+
+const applyPreset = (value: string) => {
+  updateProps({ ...presetProps(value, { defaults: defaultProps.value }), preset: value });
+};
 </script>

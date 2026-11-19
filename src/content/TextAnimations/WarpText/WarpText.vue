@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Mesh, Program, Renderer, Texture, Triangle, type OGLRenderingContext } from 'ogl';
-import { onMounted, onUnmounted, ref, watch, type CSSProperties } from 'vue';
+import { onBeforeUnmount, onMounted, ref, watch, type CSSProperties } from 'vue';
+
+type WarpTextLens = 'bulge' | 'pinch' | 'swirl';
 
 interface WarpTextProps {
   text?: string;
@@ -11,7 +13,12 @@ interface WarpTextProps {
   pointerInfluence?: number;
   pointerStrength?: number;
   refraction?: number;
+  chromatic?: number;
   ripple?: boolean;
+  clickRipple?: boolean;
+  idleDrift?: number;
+  lens?: WarpTextLens;
+  intro?: boolean;
   fontSize?: string | number;
   fontWeight?: string | number;
   fontFamily?: string;
@@ -35,7 +42,12 @@ interface RuntimeProps {
   pointerInfluence: number;
   pointerStrength: number;
   refraction: number;
+  chromatic: number;
   ripple: boolean;
+  clickRipple: boolean;
+  idleDrift: number;
+  lens: WarpTextLens;
+  intro: boolean;
 }
 
 interface RuntimeContext {
@@ -50,6 +62,16 @@ interface BuildTextCanvasArgs {
   dpr: number;
   props: RuntimeProps;
 }
+
+interface TextRaster {
+  canvas: HTMLCanvasElement;
+  ink: string;
+}
+
+const LENS_MODES: Record<WarpTextLens, number> = { bulge: 0, pinch: 1, swirl: 2 };
+const INTRO_MS = 1600;
+const RIPPLE_LIFE = 1.6;
+const MAX_CLICKS = 4;
 
 const vertex = `#version 300 es
 in vec2 position;
@@ -75,8 +97,14 @@ uniform float uSpeed;
 uniform float uPointerInfluence;
 uniform float uPointerStrength;
 uniform float uRefraction;
+uniform float uChromatic;
 uniform float uRipple;
 uniform float uMotion;
+uniform float uLens;
+uniform float uIntro;
+uniform float uReveal;
+uniform float uBackdrop;
+uniform vec4 uClicks[4];
 
 in vec2 vUv;
 out vec4 fragColor;
@@ -127,7 +155,7 @@ void main() {
   vec2 drift = vec2(time * 0.055, -time * 0.045);
   float n1 = fbm(uv * scale * 3.1 + drift);
   float n2 = fbm((uv + 19.17) * scale * 3.4 - drift.yx);
-  vec2 ambient = (vec2(n1, n2) - 0.5) * uWarpStrength * 0.045 * uMotion;
+  vec2 ambient = (vec2(n1, n2) - 0.5) * (uWarpStrength * 0.045 * uMotion + uIntro * 0.18);
 
   vec2 pointerDelta = uv - uPointer;
   vec2 aspectDelta = vec2(pointerDelta.x * aspect, pointerDelta.y);
@@ -140,27 +168,79 @@ void main() {
 
   float rippleWave = sin(dist * 28.0 - time * 4.2) * 0.5 + 0.5;
   float rippleRing = (rippleWave - 0.5) * uRipple;
-  vec2 pointerWarp = -dir * bulge * uPointerStrength * 0.045;
-  pointerWarp += dir * rippleRing * bulge * uPointerStrength * 0.016;
+  vec2 pointerWarp = dir * rippleRing * bulge * uPointerStrength * 0.016;
 
-  vec2 displaced = uv + ambient + pointerWarp;
-  vec2 splitDir = ambient + pointerWarp;
+  if (uLens > 1.5) {
+    float twist = (1.0 - t) * (1.0 - t) * uPointerActive * uPointerStrength * 2.4;
+    float s = sin(twist);
+    float c = cos(twist);
+    vec2 turned = vec2(aspectDelta.x * c - aspectDelta.y * s, aspectDelta.x * s + aspectDelta.y * c);
+    pointerWarp += vec2(turned.x / aspect, turned.y) - pointerDelta;
+  } else {
+    float side = uLens > 0.5 ? -1.0 : 1.0;
+    pointerWarp -= dir * side * bulge * uPointerStrength * 0.045;
+  }
+
+  vec2 shock = vec2(0.0);
+  float shockLight = 0.0;
+  for (int i = 0; i < 4; i++) {
+    vec4 click = uClicks[i];
+    if (click.w <= 0.0) continue;
+    vec2 clickDelta = uv - click.xy;
+    vec2 clickAspect = vec2(clickDelta.x * aspect, clickDelta.y);
+    float clickDist = length(clickAspect);
+    float age = click.z;
+    float offset = (clickDist - age * 0.9) / (0.06 + age * 0.06);
+    float fade = 1.0 - smoothstep(0.0, 1.6, age);
+    float energy = exp(-offset * offset) * fade * smoothstep(0.0, 0.08, age) * click.w;
+    vec2 clickDir = clickDist > 0.0001 ? vec2(clickAspect.x / aspect, clickAspect.y) / clickDist : vec2(0.0);
+    shock -= clickDir * offset * energy * 0.09;
+    shockLight += energy;
+  }
+
+  vec2 bend = pointerWarp + shock;
+  vec2 rest = uv + ambient;
+  vec2 splitDir = ambient + bend;
   float splitLen = length(splitDir);
   splitDir = splitLen > 0.00001 ? splitDir / splitLen : vec2(0.7071, 0.7071);
-  vec2 split = splitDir * uRefraction * 0.16 * (0.35 + lens * 1.65);
+  vec2 split = splitDir * uRefraction * 0.16 * (0.35 + lens * 1.65 + uIntro * 3.0);
+  float dispersion = uChromatic * 0.5;
 
-  vec4 base = sampleText(displaced);
-  float r = sampleText(displaced + split).r;
-  float g = base.g;
-  float b = sampleText(displaced - split).b;
-  float a = max(max(sampleText(displaced + split).a, base.a), sampleText(displaced - split).a);
-
-  vec3 color = vec3(r, g, b) + lens * base.a * 0.055;
-  fragColor = vec4(color, a);
+  vec3 ink = vec3(0.0);
+  vec3 cover = vec3(0.0);
+  vec3 weight = vec3(0.0);
+  for (int i = 0; i < 7; i++) {
+    float k = 1.0 - float(i) / 3.0;
+    vec4 tap = sampleText(rest + bend * (1.0 + dispersion * k) + split * k);
+    vec3 band = vec3(max(k, 0.0), 1.0 - abs(k), max(-k, 0.0));
+    ink += tap.rgb * band;
+    cover += tap.a * band;
+    weight += band;
+  }
+  ink /= weight;
+  cover /= weight;
+  float a = max(max(cover.r, cover.g), cover.b);
+  vec3 color = ink + (a - cover) * uBackdrop;
+  color = min(color + (lens + shockLight * 0.5) * cover.g * 0.055, vec3(a));
+  fragColor = vec4(color, a) * uReveal;
 }
 `;
 
 const getFontValue = (value: string | number): string => (typeof value === 'number' ? `${value}px` : value);
+
+const smooth = (value: number): number => value * value * (3 - 2 * value);
+
+const getLuminance = (color: string): number => {
+  const probe = document.createElement('canvas');
+  probe.width = 1;
+  probe.height = 1;
+  const ctx = probe.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return 1;
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, 1, 1);
+  const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+};
 
 const measureLine = (ctx: CanvasRenderingContext2D, line: string, letterSpacing: number): number => {
   const chars = Array.from(line);
@@ -178,13 +258,13 @@ const drawLine = (ctx: CanvasRenderingContext2D, line: string, x: number, y: num
   });
 };
 
-const buildTextCanvas = ({ container, width, height, dpr, props }: BuildTextCanvasArgs): HTMLCanvasElement => {
+const buildTextCanvas = ({ container, width, height, dpr, props }: BuildTextCanvasArgs): TextRaster => {
   const canvas = document.createElement('canvas');
   canvas.width = Math.max(1, Math.floor(width * dpr));
   canvas.height = Math.max(1, Math.floor(height * dpr));
 
   const ctx = canvas.getContext('2d');
-  if (!ctx) return canvas;
+  if (!ctx) return { canvas, ink: props.color };
 
   const probe = document.createElement('span');
   probe.textContent = props.text;
@@ -194,6 +274,7 @@ const buildTextCanvas = ({ container, width, height, dpr, props }: BuildTextCanv
     pointerEvents: 'none',
     whiteSpace: 'pre',
     inset: '0 auto auto 0',
+    color: props.color,
     fontFamily: props.fontFamily,
     fontSize: getFontValue(props.fontSize),
     fontWeight: String(props.fontWeight),
@@ -203,6 +284,7 @@ const buildTextCanvas = ({ container, width, height, dpr, props }: BuildTextCanv
   container.appendChild(probe);
   const computed = window.getComputedStyle(probe);
   let fontSizePx = parseFloat(computed.fontSize) || 96;
+  const ink = computed.color || props.color;
   const fontFamily = computed.fontFamily || 'sans-serif';
   const fontWeight = computed.fontWeight || String(props.fontWeight);
   let letterSpacing = computed.letterSpacing === 'normal' ? 0 : parseFloat(computed.letterSpacing) || 0;
@@ -216,7 +298,7 @@ const buildTextCanvas = ({ container, width, height, dpr, props }: BuildTextCanv
   ctx.clearRect(0, 0, width, height);
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = props.color;
+  ctx.fillStyle = ink;
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
 
@@ -242,7 +324,7 @@ const buildTextCanvas = ({ container, width, height, dpr, props }: BuildTextCanv
   const startY = height / 2 - (lineHeight * (lines.length - 1)) / 2;
   lines.forEach((line, index) => drawLine(ctx, line, width / 2, startY + index * lineHeight, letterSpacing));
 
-  return canvas;
+  return { canvas, ink };
 };
 
 const syncUniforms = (program: Program, props: RuntimeProps): void => {
@@ -253,33 +335,39 @@ const syncUniforms = (program: Program, props: RuntimeProps): void => {
   uniforms.uPointerInfluence.value = props.pointerInfluence;
   uniforms.uPointerStrength.value = props.pointerStrength;
   uniforms.uRefraction.value = props.refraction;
+  uniforms.uChromatic.value = props.chromatic;
   uniforms.uRipple.value = props.ripple ? 1 : 0;
+  uniforms.uLens.value = LENS_MODES[props.lens] ?? 0;
 };
 
 const props = withDefaults(defineProps<WarpTextProps>(), {
   text: 'Bend the moment',
-  color: '#f8f5ff',
+  color: 'currentColor',
   warpStrength: 0.08,
   warpScale: 1.7,
   speed: 0.55,
   pointerInfluence: 0.42,
   pointerStrength: 0.38,
   refraction: 0.018,
+  chromatic: 0,
   ripple: true,
+  clickRipple: true,
+  idleDrift: 0.2,
+  lens: 'bulge',
+  intro: true,
   fontSize: 'clamp(3rem, 10vw, 9rem)',
   fontWeight: 800,
   fontFamily: 'inherit',
   letterSpacing: '-0.06em',
   lineHeight: 0.9,
-  className: ''
+  className: '',
+  style: undefined
 });
 
 const containerRef = ref<HTMLDivElement | null>(null);
+const failed = ref(false);
 
-let context: RuntimeContext | null = null;
-let teardown: (() => void) | null = null;
-
-const buildRuntimeProps = (): RuntimeProps => ({
+const readProps = (): RuntimeProps => ({
   text: props.text,
   color: props.color,
   fontSize: props.fontSize,
@@ -293,7 +381,21 @@ const buildRuntimeProps = (): RuntimeProps => ({
   pointerInfluence: props.pointerInfluence,
   pointerStrength: props.pointerStrength,
   refraction: props.refraction,
-  ripple: props.ripple
+  chromatic: props.chromatic,
+  ripple: props.ripple,
+  clickRipple: props.clickRipple,
+  idleDrift: props.idleDrift,
+  lens: props.lens,
+  intro: props.intro
+});
+
+const propsRef: { current: RuntimeProps } = { current: readProps() };
+const contextRef: { current: RuntimeContext | null } = { current: null };
+let teardown: (() => void) | undefined;
+
+watch(readProps, next => {
+  propsRef.current = next;
+  if (contextRef.current) syncUniforms(contextRef.current.program, propsRef.current);
 });
 
 watch(
@@ -304,27 +406,14 @@ watch(
     props.fontWeight,
     props.fontFamily,
     props.letterSpacing,
-    props.lineHeight,
-    props.warpStrength,
-    props.warpScale,
-    props.speed,
-    props.pointerInfluence,
-    props.pointerStrength,
-    props.refraction,
-    props.ripple
+    props.lineHeight
   ],
   () => {
-    if (context) {
-      syncUniforms(context.program, buildRuntimeProps());
-      context.rasterize();
-    }
+    contextRef.current?.rasterize();
   }
 );
 
-onMounted(() => {
-  const container = containerRef.value;
-  if (!container || typeof window === 'undefined') return;
-
+const setup = (container: HTMLDivElement): (() => void) | undefined => {
   let renderer: Renderer;
   let gl: OGLRenderingContext;
   let resizeObserver: ResizeObserver | null = null;
@@ -336,22 +425,30 @@ onMounted(() => {
   let pageVisible = !document.hidden;
   let reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
   let rasterVersion = 0;
+  let textReady = false;
+  let introProgress = propsRef.current.intro && !reduceMotion ? 0 : 1;
+  let lastFrame = 0;
+  let frame = 0;
+  let lastInk = '';
 
   const pointer = { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5, active: 0, activeTarget: 0 };
+  const clicks = Array.from({ length: MAX_CLICKS }, () => [0.5, 0.5, 0, 0]);
+  let clickSlot = 0;
   const startTime = performance.now();
 
   try {
     renderer = new Renderer({
       webgl: 2,
       alpha: true,
-      premultipliedAlpha: false,
+      premultipliedAlpha: true,
       antialias: true,
       dpr: Math.min(window.devicePixelRatio || 1, 2)
     });
     gl = renderer.gl;
   } catch (error) {
     console.warn('WarpText: WebGL could not be initialized.', error);
-    return;
+    failed.value = true;
+    return undefined;
   }
 
   gl.clearColor(0, 0, 0, 0);
@@ -366,6 +463,7 @@ onMounted(() => {
 
   const texture = new Texture(gl, {
     generateMipmaps: false,
+    premultiplyAlpha: true,
     minFilter: gl.LINEAR,
     magFilter: gl.LINEAR,
     wrapS: gl.CLAMP_TO_EDGE,
@@ -385,14 +483,20 @@ onMounted(() => {
       uPointer: { value: new Float32Array([0.5, 0.5]) },
       uPointerActive: { value: 0 },
       uTime: { value: 0 },
-      uWarpStrength: { value: props.warpStrength },
-      uWarpScale: { value: props.warpScale },
-      uSpeed: { value: props.speed },
-      uPointerInfluence: { value: props.pointerInfluence },
-      uPointerStrength: { value: props.pointerStrength },
-      uRefraction: { value: props.refraction },
-      uRipple: { value: props.ripple ? 1 : 0 },
-      uMotion: { value: reduceMotion ? 0 : 1 }
+      uWarpStrength: { value: propsRef.current.warpStrength },
+      uWarpScale: { value: propsRef.current.warpScale },
+      uSpeed: { value: propsRef.current.speed },
+      uPointerInfluence: { value: propsRef.current.pointerInfluence },
+      uPointerStrength: { value: propsRef.current.pointerStrength },
+      uRefraction: { value: propsRef.current.refraction },
+      uChromatic: { value: propsRef.current.chromatic },
+      uRipple: { value: propsRef.current.ripple ? 1 : 0 },
+      uMotion: { value: reduceMotion ? 0 : 1 },
+      uLens: { value: LENS_MODES[propsRef.current.lens] ?? 0 },
+      uIntro: { value: 0 },
+      uReveal: { value: 0 },
+      uBackdrop: { value: 0 },
+      uClicks: { value: clicks }
     }
   });
   const mesh = new Mesh(gl, { geometry, program });
@@ -407,8 +511,8 @@ onMounted(() => {
     if (document.fonts?.ready) {
       try {
         await document.fonts.ready;
-      } catch {
-        /* font loading failed; proceed with whatever is available */
+      } catch (error) {
+        void error;
       }
     }
     if (disposed || contextLost || version !== rasterVersion) return;
@@ -417,15 +521,18 @@ onMounted(() => {
     if (rect.width <= 0 || rect.height <= 0) return;
 
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const textCanvas = buildTextCanvas({
+    lastInk = window.getComputedStyle(container).color;
+    const raster = buildTextCanvas({
       container,
       width: rect.width,
       height: rect.height,
       dpr,
-      props: buildRuntimeProps()
+      props: propsRef.current
     });
-    texture.image = textCanvas;
+    texture.image = raster.canvas;
     texture.needsUpdate = true;
+    program.uniforms.uBackdrop.value = getLuminance(raster.ink) < 0.5 ? 1 : 0;
+    textReady = true;
     renderOnce();
   };
 
@@ -438,6 +545,7 @@ onMounted(() => {
     renderer.setSize(rect.width, rect.height);
     program.uniforms.uResolution.value[0] = gl.drawingBufferWidth;
     program.uniforms.uResolution.value[1] = gl.drawingBufferHeight;
+    renderOnce();
     rasterize();
   };
 
@@ -454,11 +562,24 @@ onMounted(() => {
     pointer.activeTarget = 0;
   };
 
+  const onPointerDown = (event: PointerEvent): void => {
+    if (!propsRef.current.clickRipple) return;
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+    const click = clicks[clickSlot];
+    clickSlot = (clickSlot + 1) % clicks.length;
+    click[0] = (event.clientX - rect.left) / rect.width;
+    click[1] = 1 - (event.clientY - rect.top) / rect.height;
+    click[2] = 0;
+    click[3] = reduceMotion ? 0.35 : 1;
+  };
+
   const onContextLost = (event: Event): void => {
     event.preventDefault();
     contextLost = true;
     if (raf) cancelAnimationFrame(raf);
     raf = 0;
+    failed.value = true;
   };
 
   const onVisibility = (): void => {
@@ -473,6 +594,7 @@ onMounted(() => {
   const mediaQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)');
   const onReducedMotion = (event: MediaQueryListEvent): void => {
     reduceMotion = event.matches;
+    if (reduceMotion) introProgress = 1;
     program.uniforms.uMotion.value = reduceMotion ? 0 : 1;
     renderOnce();
   };
@@ -481,20 +603,37 @@ onMounted(() => {
     if (disposed || contextLost) return;
 
     const elapsed = (now - startTime) * 0.001;
-    const idleX = 0.5 + Math.sin(elapsed * 0.33) * 0.12;
-    const idleY = 0.5 + Math.cos(elapsed * 0.27) * 0.1;
-    const targetX = pointer.activeTarget > 0 ? pointer.tx : idleX;
-    const targetY = pointer.activeTarget > 0 ? pointer.ty : idleY;
-    const damping = pointer.activeTarget > 0 ? 0.12 : 0.035;
+    const delta = lastFrame ? Math.min(now - lastFrame, 50) : 16;
+    lastFrame = now;
+    frame += 1;
 
-    pointer.x += (targetX - pointer.x) * damping;
-    pointer.y += (targetY - pointer.y) * damping;
-    pointer.active += ((pointer.activeTarget > 0 ? 1 : 0.18) - pointer.active) * 0.06;
+    if (textReady && introProgress < 1) introProgress = Math.min(1, introProgress + delta / INTRO_MS);
+    const settle = 1 - introProgress;
+
+    if (textReady && frame % 15 === 0 && window.getComputedStyle(container).color !== lastInk) rasterize();
+
+    const drift = Math.min(Math.max(propsRef.current.idleDrift, 0), 1);
+    const engaged = pointer.activeTarget > 0;
+    const idleX = 0.5 + Math.sin(elapsed * 0.33) * (0.08 + drift * 0.2);
+    const idleY = 0.5 + Math.cos(elapsed * 0.27) * (0.06 + drift * 0.2);
+    const follow = 1 - Math.exp(-delta / (engaged ? 130 : 470));
+
+    pointer.x += ((engaged ? pointer.tx : idleX) - pointer.x) * follow;
+    pointer.y += ((engaged ? pointer.ty : idleY) - pointer.y) * follow;
+    pointer.active += ((engaged ? 1 : drift) - pointer.active) * (1 - Math.exp(-delta / 270));
+
+    clicks.forEach(click => {
+      if (click[3] <= 0) return;
+      click[2] += delta / 1000;
+      if (click[2] > RIPPLE_LIFE) click[3] = 0;
+    });
 
     program.uniforms.uPointer.value[0] = pointer.x;
     program.uniforms.uPointer.value[1] = pointer.y;
     program.uniforms.uPointerActive.value = reduceMotion ? pointer.active * 0.35 : pointer.active;
     program.uniforms.uTime.value = reduceMotion ? 0 : elapsed;
+    program.uniforms.uIntro.value = settle * settle * settle;
+    program.uniforms.uReveal.value = textReady ? smooth(Math.min(1, introProgress / 0.45)) : 0;
 
     renderOnce();
     raf = requestAnimationFrame(loop);
@@ -518,23 +657,25 @@ onMounted(() => {
 
   canvas.addEventListener('pointermove', onPointerMove);
   canvas.addEventListener('pointerleave', onPointerLeave);
+  canvas.addEventListener('pointerdown', onPointerDown);
   canvas.addEventListener('webglcontextlost', onContextLost, false);
   document.addEventListener('visibilitychange', onVisibility);
   mediaQuery?.addEventListener('change', onReducedMotion);
 
-  syncUniforms(program, buildRuntimeProps());
-  context = { program, rasterize };
+  syncUniforms(program, propsRef.current);
+  contextRef.current = { program, rasterize };
   resize();
   raf = requestAnimationFrame(loop);
 
-  teardown = () => {
+  return () => {
     disposed = true;
-    context = null;
+    contextRef.current = null;
     if (raf) cancelAnimationFrame(raf);
     resizeObserver?.disconnect();
     intersectionObserver?.disconnect();
     canvas.removeEventListener('pointermove', onPointerMove);
     canvas.removeEventListener('pointerleave', onPointerLeave);
+    canvas.removeEventListener('pointerdown', onPointerDown);
     canvas.removeEventListener('webglcontextlost', onContextLost);
     document.removeEventListener('visibilitychange', onVisibility);
     mediaQuery?.removeEventListener('change', onReducedMotion);
@@ -545,28 +686,73 @@ onMounted(() => {
         geometry?.remove?.();
         program?.remove?.();
         gl.getExtension('WEBGL_lose_context')?.loseContext();
-      } catch {
-        /* teardown best-effort; context may already be gone */
+      } catch (error) {
+        void error;
       }
     }
 
     if (canvas.parentNode === container) container.removeChild(canvas);
   };
+};
+
+onMounted(() => {
+  const container = containerRef.value;
+  if (!container || typeof window === 'undefined') return;
+  teardown = setup(container);
 });
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
   teardown?.();
-  teardown = null;
+  teardown = undefined;
 });
 </script>
 
 <template>
-  <div
-    ref="containerRef"
-    class="block isolate relative w-full min-h-55 overflow-hidden"
-    :class="className"
-    :style="style"
-    role="img"
-    :aria-label="text"
-  />
+  <div ref="containerRef" :class="`warp-text ${className}`.trim()" :style="style" role="img" :aria-label="text">
+    <span
+      v-if="failed"
+      class="warp-text__fallback"
+      aria-hidden="true"
+      v-text="text"
+      :style="{
+        color,
+        fontFamily,
+        fontWeight,
+        fontSize: getFontValue(fontSize),
+        letterSpacing: getFontValue(letterSpacing),
+        lineHeight
+      }"
+    />
+  </div>
 </template>
+
+<style>
+.warp-text {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 220px;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: inherit;
+}
+
+.warp-text canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.warp-text__fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 7%;
+  text-align: center;
+  white-space: pre-line;
+}
+</style>

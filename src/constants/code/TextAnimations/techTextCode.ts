@@ -2,35 +2,26 @@ import code from '@/content/TextAnimations/TechText/TechText.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const techText = createCodeObject(code, 'TextAnimations/TechText', {
-  usage: `<script setup>
+  dependencies: '',
+  usage: `<template>
+  <div :style="{ width: '100%', height: '480px', position: 'relative' }">
+    <TechText
+      text="Vue Bits"
+      :font-weight="600"
+      :font-size="150"
+      reveal="letter"
+      :dash-length="4"
+      :dash-gap="2"
+      :specks="15"
+      intro="none"
+      :intro-duration="2"
+      :click-kick="true"
+      :guides="false"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
 import TechText from './TechText.vue'
-</script>
-
-<template>
-<!-- move the cursor over the wordmark; drag a letter to spring it off the baseline -->
-<TechText text="React Bits" />
-
-<TechText
-  text="Vue Bits"
-  fontFamily=""
-  :fontWeight="600"
-  :fontSize="150"
-  :letterSpacing="-0.05"
-  color="#ffffff"
-  accentColor="#ffffff"
-  reveal="letter"
-  :reach="200"
-  :softness="0.7"
-  lineStyle="dashed"
-  :dashLength="4"
-  :dashGap="2"
-  :strokeWidth="1.5"
-  :specks="15"
-  selection
-  labels
-  draggable
-  sweep
-  :speed="1"
-/>
-</template>`
+</script>`
 });

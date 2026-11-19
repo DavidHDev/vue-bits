@@ -6,6 +6,7 @@ export const shuffle = createCodeObject(code, 'TextAnimations/Shuffle', {
   usage: `<template>
   <Shuffle
     text="Hello World"
+    effect="slide"
     shuffle-direction="right"
     :duration="0.35"
     animation-mode="evenodd"
@@ -15,11 +16,13 @@ export const shuffle = createCodeObject(code, 'TextAnimations/Shuffle', {
     :threshold="0.1"
     :trigger-once="true"
     :trigger-on-hover="true"
+    :hover-radius="0"
+    :motion-blur="false"
     :respect-reduced-motion="true"
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Shuffle from './Shuffle.vue'
 </script>`
 });

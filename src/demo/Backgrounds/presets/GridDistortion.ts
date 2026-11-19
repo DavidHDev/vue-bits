@@ -1,0 +1,49 @@
+export const DEFAULT_PROPS = {
+  preset: 'classic',
+  imageSrc: '/assets/demo/night-landscape.webp',
+  grid: 15,
+  radius: 0.18,
+  strength: 0.15,
+  relaxation: 0.96,
+  mode: 'drag' as 'drag' | 'push' | 'swirl',
+  softness: 0,
+  chroma: 0,
+  idle: 0.3,
+  clickRipple: true,
+  intro: true
+};
+
+export type GridDistortionDemoProps = typeof DEFAULT_PROPS;
+
+export const PRESETS: Record<string, Partial<GridDistortionDemoProps>> = {
+  classic: {},
+  liquid: { softness: 1, grid: 24, strength: 0.25, relaxation: 0.95 },
+  glitch: { grid: 32, radius: 0.12, strength: 0.3, relaxation: 0.9, chroma: 0.6 },
+  swirl: { mode: 'swirl', grid: 20, radius: 0.28, strength: 0.25, softness: 0.5 },
+  tiles: { grid: 8, radius: 0.3, strength: 0.3, relaxation: 0.97 }
+};
+
+export const PRESET_OPTIONS = [
+  { value: 'classic', label: 'Classic' },
+  { value: 'liquid', label: 'Liquid' },
+  { value: 'glitch', label: 'Glitch' },
+  { value: 'swirl', label: 'Swirl' },
+  { value: 'tiles', label: 'Tiles' }
+];
+
+export const presetProps = (
+  value: string,
+  {
+    defaults = {},
+    props = {}
+  }: { light?: boolean; defaults?: Partial<GridDistortionDemoProps>; props?: Partial<GridDistortionDemoProps> } = {}
+): Partial<GridDistortionDemoProps> => {
+  const base = Object.fromEntries(
+    Object.keys(DEFAULT_PROPS).map(key => [key, defaults[key as keyof GridDistortionDemoProps]])
+  ) as Partial<GridDistortionDemoProps>;
+  return {
+    ...base,
+    ...PRESETS[value],
+    imageSrc: props.imageSrc
+  };
+};

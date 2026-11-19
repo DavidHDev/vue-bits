@@ -1,246 +1,428 @@
 <template>
-  <h1 class="sub-category">Faulty Terminal</h1>
-  <TabsLayout
+  <ComponentPropsProvider
+    :props="props"
+    :default-props="DEFAULT_PROPS"
+    :reset-props="resetProps"
     :has-changes="hasChanges"
-    :onreset="reset"
-    :usage="faultyTerminal.usage"
-    :source="faultyTerminalSource"
-    component-name="FaultyTerminal"
-    :props-table="props"
+    :demo-only-props="['preset']"
   >
-    <template #preview>
-      <div class="relative p-0 h-[500px] overflow-hidden demo-container">
-        <FaultyTerminal
-          :key="key"
-          :scale="scale"
-          :digit-size="digitSize"
-          :time-scale="timeScale"
-          :scanline-intensity="scanlineIntensity"
-          :curvature="curvature"
-          :tint="tint"
-          :mouse-react="mouseReact"
-          :mouse-strength="mouseStrength"
-          :page-load-animation="pageLoadAnimation"
-          :noise-amp="noiseAmp"
-          :brightness="brightness"
-        />
-        <BackgroundContent pill-text="New Background" headline="It works on my machine, please check again" />
-      </div>
-    </template>
+    <TabsLayout>
+      <template #preview>
+        <div class="demo-container relative overflow-hidden" style="height: 500px; padding: 0">
+          <FaultyTerminal :key="rerenderKey" v-bind="settings" />
+          <BackgroundContent headline="It works on my machine, please check again" />
+          <RefreshButton @click="forceRerender" />
+        </div>
 
-    <template #customize>
-      <Customize>
-        <PreviewColorPicker title="Tint Color" v-model="tint" />
-        <PreviewSlider :min="1" :max="3" :step="0.1" v-model="scale" title="Scale" />
-        <PreviewSlider :min="0.5" :max="3" :step="0.1" v-model="digitSize" title="Digit Size" />
-        <PreviewSlider :min="0" :max="3" :step="0.1" v-model="timeScale" title="Speed" />
-        <PreviewSlider :min="0.5" :max="1" :step="0.1" v-model="noiseAmp" title="Noise Amplitude" />
-        <PreviewSlider :min="0.1" :max="1" :step="0.1" v-model="brightness" title="Brightness" />
-        <PreviewSlider :min="0" :max="2" :step="0.1" v-model="scanlineIntensity" title="Scanline Intensity" />
-        <PreviewSlider :min="0" :max="0.5" :step="0.01" v-model="curvature" title="Curvature" />
-        <PreviewSlider :min="0" :max="2" :step="0.1" v-model="mouseStrength" title="Mouse Strength" />
-        <PreviewSwitch title="Mouse React" v-model="mouseReact" />
-        <PreviewSwitch title="Page Load Animation" v-model="pageLoadAnimation" />
-      </Customize>
-    </template>
+        <Customize>
+          <PreviewSelect
+            title="Preset"
+            :options="PRESET_OPTIONS"
+            :model-value="props.preset"
+            @update:model-value="(value: string | number) => applyPreset(String(value))"
+          />
+          <PreviewColorPickerCustom
+            title="Tint"
+            :color="settings.tint"
+            @change="(value: string) => updateProp('tint', value)"
+          />
+          <PreviewSelect
+            title="Glyphs"
+            :options="GLYPH_OPTIONS"
+            :model-value="settings.glyphs"
+            @update:model-value="(value: string | number) => updateProp('glyphs', value as FaultyTerminalGlyphs)"
+          />
+          <PreviewSelect
+            title="Click Effect"
+            :options="CLICK_OPTIONS"
+            :model-value="settings.clickEffect"
+            @update:model-value="
+              (value: string | number) => updateProp('clickEffect', value as FaultyTerminalClickEffect)
+            "
+          />
+          <PreviewSlider
+            title="Scale"
+            :min="0.8"
+            :max="4"
+            :step="0.1"
+            :model-value="settings.scale"
+            @update:model-value="(value: number) => updateProp('scale', value)"
+          />
+          <PreviewSlider
+            title="Digit Size"
+            :min="0.9"
+            :max="2.5"
+            :step="0.05"
+            :model-value="settings.digitSize"
+            @update:model-value="(value: number) => updateProp('digitSize', value)"
+          />
+          <PreviewSlider
+            title="Speed"
+            :min="0"
+            :max="2"
+            :step="0.05"
+            :model-value="settings.timeScale"
+            @update:model-value="(value: number) => updateProp('timeScale', value)"
+          />
+          <PreviewSlider
+            title="Brightness"
+            :min="0.2"
+            :max="1.5"
+            :step="0.05"
+            :model-value="settings.brightness"
+            @update:model-value="(value: number) => updateProp('brightness', value)"
+          />
+          <PreviewSlider
+            title="Glow"
+            :min="0"
+            :max="1.5"
+            :step="0.05"
+            :model-value="settings.glow"
+            @update:model-value="(value: number) => updateProp('glow', value)"
+          />
+          <PreviewSlider
+            title="Persistence"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="settings.persistence"
+            @update:model-value="(value: number) => updateProp('persistence', value)"
+          />
+          <PreviewSlider
+            title="Mouse Strength"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.mouseStrength"
+            :is-disabled="!settings.mouseReact"
+            @update:model-value="(value: number) => updateProp('mouseStrength', value)"
+          />
+          <PreviewSlider
+            title="Mouse Glow"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.mouseGlow"
+            :is-disabled="!settings.mouseReact"
+            @update:model-value="(value: number) => updateProp('mouseGlow', value)"
+          />
+          <PreviewSlider
+            title="Scramble"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            :model-value="settings.scramble"
+            :is-disabled="settings.glyphs !== 'characters'"
+            @update:model-value="(value: number) => updateProp('scramble', value)"
+          />
+          <PreviewSlider
+            title="Scanline Intensity"
+            :min="0"
+            :max="1.5"
+            :step="0.05"
+            :model-value="settings.scanlineIntensity"
+            @update:model-value="(value: number) => updateProp('scanlineIntensity', value)"
+          />
+          <PreviewSlider
+            title="Glitch Amount"
+            :min="0"
+            :max="4"
+            :step="0.1"
+            :model-value="settings.glitchAmount"
+            @update:model-value="(value: number) => updateProp('glitchAmount', value)"
+          />
+          <PreviewSlider
+            title="Flicker Amount"
+            :min="0"
+            :max="3"
+            :step="0.1"
+            :model-value="settings.flickerAmount"
+            @update:model-value="(value: number) => updateProp('flickerAmount', value)"
+          />
+          <PreviewSlider
+            title="Noise Amplitude"
+            :min="0.5"
+            :max="1.5"
+            :step="0.05"
+            :model-value="settings.noiseAmp"
+            @update:model-value="(value: number) => updateProp('noiseAmp', value)"
+          />
+          <PreviewSlider
+            title="Chromatic Aberration"
+            :min="0"
+            :max="4"
+            :step="0.1"
+            value-unit="px"
+            :model-value="settings.chromaticAberration"
+            @update:model-value="(value: number) => updateProp('chromaticAberration', value)"
+          />
+          <PreviewSlider
+            title="Curvature"
+            :min="0"
+            :max="0.5"
+            :step="0.01"
+            :model-value="settings.curvature"
+            @update:model-value="(value: number) => updateProp('curvature', value)"
+          />
+          <PreviewSlider
+            title="Vignette"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            :model-value="settings.vignette"
+            @update:model-value="(value: number) => updateProp('vignette', value)"
+          />
+          <PreviewSwitch
+            title="Mouse React"
+            :model-value="settings.mouseReact"
+            @update:model-value="(value: boolean) => updateProp('mouseReact', value)"
+          />
+          <PreviewSwitch
+            title="Page Load Animation"
+            :model-value="settings.pageLoadAnimation"
+            @update:model-value="(value: boolean) => onPageLoadAnimation(value)"
+          />
+          <PreviewSwitch
+            title="Pause"
+            :model-value="settings.pause"
+            @update:model-value="(value: boolean) => updateProp('pause', value)"
+          />
+          <PreviewSwitch
+            title="Light Mode"
+            :model-value="settings.lightMode"
+            @update:model-value="(value: boolean) => updateProp('lightMode', value)"
+          />
+        </Customize>
 
-    <template #propTable>
-      <PropTable :data="props" />
-    </template>
+        <PropTable :data="propData" />
+      </template>
 
-    <template #code>
-      <DemoCodeTab slug="faulty-terminal" :usage="faultyTerminal.usage!" :source="faultyTerminalSource" />
-    </template>
-  </TabsLayout>
+      <template #code>
+        <CodeExample :code-object="faultyTerminal" component-name="FaultyTerminal" />
+      </template>
+    </TabsLayout>
+  </ComponentPropsProvider>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import BackgroundContent from '@/components/common/BackgroundContent.vue';
+import CodeExample from '@/components/common/CodeExample.vue';
 import Customize from '@/components/common/Customize.vue';
-import DemoCodeTab from '@/components/common/DemoCodeTab.vue';
-import PreviewColorPicker from '@/components/common/PreviewColorPicker.vue';
+import PreviewColorPickerCustom from '@/components/common/PreviewColorPickerCustom.vue';
+import PreviewSelect from '@/components/common/PreviewSelect.vue';
 import PreviewSlider from '@/components/common/PreviewSlider.vue';
 import PreviewSwitch from '@/components/common/PreviewSwitch.vue';
 import PropTable, { type PropRow } from '@/components/common/PropTable.vue';
+import RefreshButton from '@/components/common/RefreshButton.vue';
 import TabsLayout from '@/components/common/TabsLayout.vue';
+import ComponentPropsProvider from '@/components/context/ComponentPropsProvider.vue';
+import { useComponentProps } from '@/composables/useComponentProps';
 import { useForceRerender } from '@/composables/useForceRerender';
+import { useColorModeValue } from '@/composables/useTheme';
 import { faultyTerminal } from '@/constants/code/Backgrounds/faultyTerminalCode';
 import FaultyTerminal from '@/content/Backgrounds/FaultyTerminal/FaultyTerminal.vue';
-import faultyTerminalSource from '@/content/Backgrounds/FaultyTerminal/FaultyTerminal.vue?raw';
-import { computed, ref } from 'vue';
+import {
+  DEFAULT_PROPS,
+  PRESET_OPTIONS,
+  presetProps,
+  type FaultyTerminalClickEffect,
+  type FaultyTerminalGlyphs
+} from './presets/FaultyTerminal';
 
-const { rerenderKey: key, forceRerender } = useForceRerender();
+const GLYPH_OPTIONS = [
+  { value: 'blocks', label: 'Blocks' },
+  { value: 'dots', label: 'Dots' },
+  { value: 'characters', label: 'Characters' }
+];
 
-const DEFAULTS = {
-  scale: 1.5,
-  digitSize: 1.2,
-  timeScale: 0.5,
-  scanlineIntensity: 0.5,
-  curvature: 0.1,
-  tint: '#A7EF9E',
-  mouseReact: true,
-  mouseStrength: 0.5,
-  pageLoadAnimation: true,
-  noiseAmp: 1,
-  brightness: 0.6
-};
+const CLICK_OPTIONS = [
+  { value: 'glitch', label: 'Glitch' },
+  { value: 'degauss', label: 'Degauss' },
+  { value: 'none', label: 'None' }
+];
 
-const scale = ref(DEFAULTS.scale);
-const digitSize = ref(DEFAULTS.digitSize);
-const timeScale = ref(DEFAULTS.timeScale);
-const scanlineIntensity = ref(DEFAULTS.scanlineIntensity);
-const curvature = ref(DEFAULTS.curvature);
-const tint = ref(DEFAULTS.tint);
-const mouseReact = ref(DEFAULTS.mouseReact);
-const mouseStrength = ref(DEFAULTS.mouseStrength);
-const pageLoadAnimation = ref(DEFAULTS.pageLoadAnimation);
-const noiseAmp = ref(DEFAULTS.noiseAmp);
-const brightness = ref(DEFAULTS.brightness);
-
-const hasChanges = computed(
-  () =>
-    scale.value !== DEFAULTS.scale ||
-    digitSize.value !== DEFAULTS.digitSize ||
-    timeScale.value !== DEFAULTS.timeScale ||
-    scanlineIntensity.value !== DEFAULTS.scanlineIntensity ||
-    curvature.value !== DEFAULTS.curvature ||
-    tint.value !== DEFAULTS.tint ||
-    mouseReact.value !== DEFAULTS.mouseReact ||
-    mouseStrength.value !== DEFAULTS.mouseStrength ||
-    pageLoadAnimation.value !== DEFAULTS.pageLoadAnimation ||
-    noiseAmp.value !== DEFAULTS.noiseAmp ||
-    brightness.value !== DEFAULTS.brightness
-);
-
-function reset() {
-  scale.value = DEFAULTS.scale;
-  digitSize.value = DEFAULTS.digitSize;
-  timeScale.value = DEFAULTS.timeScale;
-  scanlineIntensity.value = DEFAULTS.scanlineIntensity;
-  curvature.value = DEFAULTS.curvature;
-  tint.value = DEFAULTS.tint;
-  mouseReact.value = DEFAULTS.mouseReact;
-  mouseStrength.value = DEFAULTS.mouseStrength;
-  pageLoadAnimation.value = DEFAULTS.pageLoadAnimation;
-  noiseAmp.value = DEFAULTS.noiseAmp;
-  brightness.value = DEFAULTS.brightness;
-  forceRerender();
-}
-
-const props: PropRow[] = [
-  {
-    name: 'scale',
-    type: 'number',
-    default: '1.5',
-    description: 'Controls the zoom/scale of the pattern.'
-  },
-  {
-    name: 'gridMul',
-    type: 'Vec2',
-    default: '[2, 1]',
-    description: 'Grid multiplier for glyph density [x, y].'
-  },
-  {
-    name: 'digitSize',
-    type: 'number',
-    default: '1.2',
-    description: 'Size of individual glyphs.'
-  },
-  {
-    name: 'timeScale',
-    type: 'number',
-    default: '1',
-    description: 'Animation speed multiplier.'
-  },
-  {
-    name: 'pause',
-    type: 'boolean',
-    default: 'false',
-    description: 'Pause/resume animation.'
-  },
-  {
-    name: 'scanlineIntensity',
-    type: 'number',
-    default: '1',
-    description: 'Strength of scanline effects.'
-  },
-  {
-    name: 'glitchAmount',
-    type: 'number',
-    default: '1',
-    description: 'Glitch displacement intensity.'
-  },
-  {
-    name: 'flickerAmount',
-    type: 'number',
-    default: '1',
-    description: 'Flicker effect strength.'
-  },
-  {
-    name: 'noiseAmp',
-    type: 'number',
-    default: '1',
-    description: 'Noise pattern amplitude.'
-  },
-  {
-    name: 'chromaticAberration',
-    type: 'number',
-    default: '0',
-    description: 'RGB channel separation in pixels.'
-  },
-  {
-    name: 'dither',
-    type: 'number | boolean',
-    default: '0',
-    description: 'Dithering effect intensity.'
-  },
-  {
-    name: 'curvature',
-    type: 'number',
-    default: '0',
-    description: 'Barrel distortion amount.'
-  },
+const propData: PropRow[] = [
   {
     name: 'tint',
     type: 'string',
     default: "'#ffffff'",
-    description: 'Color tint (hex).'
+    description: 'Phosphor color of the glyphs. In light mode, light colors are deepened so they print clearly.'
   },
   {
-    name: 'mouseReact',
-    type: 'boolean',
-    default: 'true',
-    description: 'Enable/disable mouse interaction.'
+    name: 'glyphs',
+    type: "'blocks' | 'dots' | 'characters'",
+    default: "'blocks'",
+    description:
+      'What each cell draws: squares of lit pixels, round LED dots, or terminal characters that keep changing.'
   },
   {
-    name: 'mouseStrength',
+    name: 'scale',
     type: 'number',
-    default: '0.5',
-    description: 'Mouse interaction intensity.'
+    default: '1',
+    description: 'Zoom of the pattern. Higher values show more, smaller glyphs.'
   },
   {
-    name: 'pageLoadAnimation',
-    type: 'boolean',
-    default: 'false',
-    description: 'Enable fade-in animation on load.'
+    name: 'gridMul',
+    type: '[number, number]',
+    default: '[2, 1]',
+    description: 'Glyph density across and down, multiplied with scale.'
+  },
+  {
+    name: 'digitSize',
+    type: 'number',
+    default: '1.5',
+    description: 'Space around each glyph. 1 packs them edge to edge, higher values leave wider gaps.'
+  },
+  {
+    name: 'timeScale',
+    type: 'number',
+    default: '0.3',
+    description: 'Speed of the animation.'
   },
   {
     name: 'brightness',
     type: 'number',
     default: '1',
-    description: 'Overall opacity/brightness control.'
+    description: 'Overall brightness of the screen, or ink strength in light mode.'
   },
   {
-    name: 'className',
-    type: 'string',
-    default: "''",
-    description: 'Additional CSS classes.'
+    name: 'glow',
+    type: 'number',
+    default: '0.5',
+    description: 'Phosphor bloom around the glyphs, with richer color in the halo and paler bright cores.'
   },
   {
-    name: 'style',
-    type: 'CSSProperties',
-    default: '{}',
-    description: 'Inline styles.'
-  }
+    name: 'persistence',
+    type: 'number',
+    default: '0.5',
+    description:
+      'How long glyphs keep glowing after they switch off, like real phosphor. Leaves trails behind the cursor.'
+  },
+  {
+    name: 'mouseReact',
+    type: 'boolean',
+    default: 'true',
+    description: 'Lights up the glyphs around the cursor. The light rests in the middle while the cursor is away.'
+  },
+  {
+    name: 'mouseStrength',
+    type: 'number',
+    default: '0.2',
+    description: 'How many glyphs the cursor lights up around it.'
+  },
+  {
+    name: 'mouseGlow',
+    type: 'number',
+    default: '0.6',
+    description: 'How much the glyphs under the cursor heat up toward white while you move.'
+  },
+  {
+    name: 'scramble',
+    type: 'number',
+    default: '0.5',
+    description: 'How fast characters change near the cursor. Only used with characters.'
+  },
+  {
+    name: 'clickEffect',
+    type: "'glitch' | 'degauss' | 'none'",
+    default: "'glitch'",
+    description:
+      'What a click does: tear the screen into shifting bands, or send a wobbling degauss wave from the click.'
+  },
+  {
+    name: 'scanlineIntensity',
+    type: 'number',
+    default: '0.3',
+    description: 'Strength of the soft halo and the bright band that rolls down the screen.'
+  },
+  {
+    name: 'glitchAmount',
+    type: 'number',
+    default: '1',
+    description: 'How far the faulty bands of the screen shift sideways.'
+  },
+  {
+    name: 'flickerAmount',
+    type: 'number',
+    default: '1',
+    description: 'How often the faulty bands appear.'
+  },
+  {
+    name: 'noiseAmp',
+    type: 'number',
+    default: '1',
+    description: 'Strength of the swirling pattern that decides which glyphs light up.'
+  },
+  {
+    name: 'chromaticAberration',
+    type: 'number',
+    default: '0',
+    description: 'Splits the red and blue channels apart, in pixels.'
+  },
+  {
+    name: 'curvature',
+    type: 'number',
+    default: '0.2',
+    description: 'Bulge of the screen, like the glass of an old tube.'
+  },
+  {
+    name: 'vignette',
+    type: 'number',
+    default: '0.25',
+    description: 'Darkens the edges of the screen so it fades into the page.'
+  },
+  {
+    name: 'dither',
+    type: 'number | boolean',
+    default: '0',
+    description: 'Fine noise that smooths color banding.'
+  },
+  {
+    name: 'pageLoadAnimation',
+    type: 'boolean',
+    default: 'true',
+    description: 'Switches the glyphs on one by one, each with a short phosphor flash, on mount.'
+  },
+  {
+    name: 'pause',
+    type: 'boolean',
+    default: 'false',
+    description: 'Freezes the animation. The cursor still lights up glyphs.'
+  },
+  {
+    name: 'variation',
+    type: 'number',
+    default: 'random',
+    description: 'Picks a fixed pattern. Leave it out for a different one on every mount.'
+  },
+  {
+    name: 'lightMode',
+    type: 'boolean',
+    default: 'false',
+    description: 'Prints the glyphs as crisp ink on a light page.'
+  },
+  { name: 'dpr', type: 'number', default: 'auto', description: 'Maximum device pixel ratio, capped at 2.' },
+  { name: 'className', type: 'string', default: "''", description: 'Extra class names for the container.' },
+  { name: 'style', type: 'CSSProperties', default: '-', description: 'Inline styles for the container.' }
 ];
+
+const { rerenderKey, forceRerender } = useForceRerender();
+const { props, defaultProps, updateProp, updateProps, resetProps, hasChanges } = useComponentProps(DEFAULT_PROPS);
+const light = useColorModeValue(true, false);
+
+const settings = computed(() => {
+  const { preset: _preset, ...rest } = props.value;
+  void _preset;
+  return rest;
+});
+
+const applyPreset = (value: string) => {
+  updateProps({ ...presetProps(value, { light: light.value, defaults: defaultProps.value }), preset: value });
+};
+
+const onPageLoadAnimation = (value: boolean) => {
+  updateProp('pageLoadAnimation', value);
+  forceRerender();
+};
 </script>

@@ -2,12 +2,8 @@ import code from '@/content/TextAnimations/TextLoop/TextLoop.vue?raw';
 import { createCodeObject } from '@/types/code';
 
 export const textLoop = createCodeObject(code, 'TextAnimations/TextLoop', {
-  usage: `<script setup>
-import TextLoop from './TextLoop.vue'
-</script>
-
-<template>
-<div :style="{ width: '100%', height: 360, background: '#09090f' }">
+  installation: `npm install gsap`,
+  usage: `<template>
   <TextLoop
     text="Vue ✦ Bits"
     shape="wave"
@@ -15,16 +11,25 @@ import TextLoop from './TextLoop.vue'
     direction="forward"
     separator="✦"
     :curviness="90"
-    :fontSize="46"
-    :fontWeight="800"
-    :letterSpacing="2"
-    uppercase
-    color="#ffffff"
-    ribbon
-    ribbonColor="#5227FF"
-    :ribbonWidth="86"
-    pauseOnHover
+    :tilt="0"
+    :font-size="46"
+    :font-weight="800"
+    :letter-spacing="2"
+    :uppercase="true"
+    :ribbon="true"
+    ribbon-color="#42b883"
+    :ribbon-width="86"
+    :edge-fade="0"
+    :cross="false"
+    :cross-angle="16"
+    :draggable="false"
+    :scroll-boost="0"
+    :outline="false"
+    :pause-on-hover="true"
   />
-</div>
-</template>`
+</template>
+
+<script setup lang="ts">
+import TextLoop from './TextLoop.vue'
+</script>`
 });
