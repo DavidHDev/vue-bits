@@ -443,6 +443,7 @@ const componentStyle = computed(() => {
     <span
       v-for="(tile, index) in tiles"
       :key="`${index}-${tiles.length}`"
+      v-memo="[tile, minimal, shaded]"
       :class="`split-flap-text__tile${tile.flipping ? ' is-flipping' : ''}`"
       aria-hidden="true"
     >
