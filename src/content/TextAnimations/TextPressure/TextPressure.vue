@@ -244,6 +244,11 @@ onMounted(() => {
 
   const tick = (now: number) => {
     rafId = 0;
+    if (!visible) {
+      last = 0;
+      return;
+    }
+
     const elapsed = last ? Math.min(now - last, 64) : 1000 / 60;
     last = now;
 
