@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Mesh, Program, Renderer, Texture, Triangle } from 'ogl';
-import { onBeforeUnmount, onMounted, useTemplateRef, watch } from 'vue';
+import { onBeforeUnmount, onMounted, useTemplateRef, watchEffect } from 'vue';
 
 interface EvilEyeProps {
   eyeColor?: string;
@@ -225,18 +225,23 @@ const setup = () => {
       uTime: { value: 0 },
       uResolution: { value: [gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height] },
       uNoiseTexture: { value: noiseTexture },
+      uMouse: { value: [0, 0] }
+    }
+  });
+
+  const stopUniformSync = watchEffect(() => {
+    Object.assign(program.uniforms, {
       uPupilSize: { value: props.pupilSize },
       uIrisWidth: { value: props.irisWidth },
       uGlowIntensity: { value: props.glowIntensity },
       uIntensity: { value: props.intensity },
       uScale: { value: props.scale },
       uNoiseScale: { value: props.noiseScale },
-      uMouse: { value: [0, 0] },
       uPupilFollow: { value: props.pupilFollow },
       uFlameSpeed: { value: props.flameSpeed },
       uEyeColor: { value: hexToVec3(props.eyeColor) },
       uBgColor: { value: hexToVec3(props.backgroundColor) }
-    }
+    });
   });
 
   function resize() {
@@ -261,6 +266,7 @@ const setup = () => {
   animationFrameId = requestAnimationFrame(update);
 
   cleanup = () => {
+    stopUniformSync();
     cancelAnimationFrame(animationFrameId);
     window.removeEventListener('resize', resize);
     container.removeEventListener('mousemove', onMouseMove);
@@ -277,25 +283,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
   cleanup?.();
 });
-
-watch(
-  () => [
-    props.eyeColor,
-    props.intensity,
-    props.pupilSize,
-    props.irisWidth,
-    props.glowIntensity,
-    props.scale,
-    props.noiseScale,
-    props.pupilFollow,
-    props.flameSpeed,
-    props.backgroundColor
-  ],
-  () => {
-    cleanup?.();
-    setup();
-  }
-);
 </script>
 
 <template>
